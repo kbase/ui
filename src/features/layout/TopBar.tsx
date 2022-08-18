@@ -18,7 +18,7 @@ import {
   faWrench,
 } from '@fortawesome/free-solid-svg-icons';
 import { FC } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import logo from '../../common/assets/logo/46_square.png';
 import { Dropdown } from '../../common/components';
@@ -52,7 +52,7 @@ export default function TopBar() {
 const LoginMenu: FC = () => {
   const username = useAppSelector(authUsername);
   const realname = useAppSelector(profileRealname);
-  const history = useHistory();
+  const navigate = useNavigate();
   return (
     <div className={classes.login_menu}>
       <Dropdown
@@ -99,7 +99,7 @@ const LoginMenu: FC = () => {
           },
         ]}
         onChange={(opt) => {
-          if (opt?.[0]) history.push(opt[0].value as string);
+          if (opt?.[0]) navigate(opt[0].value as string);
         }}
       >
         <div className={classes.login_menu_button}>

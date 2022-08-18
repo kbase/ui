@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 /** Creates and manages an iframe for any legacy KBaseUI page,
  * modifies the history to point to the iframe's path,
@@ -9,15 +9,15 @@ import { useHistory } from 'react-router-dom';
  * TODO: extract title from iframe topbar and set it as the page title.
  */
 export default function Legacy() {
-  const history = useHistory();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const legacyContent = useRef<HTMLIFrameElement>(null);
   const legacyFrame = legacyContent?.current?.contentWindow;
   const pathSyncInterval = 200;
 
   // path state
-  const initPath =
-    legacyPart(history.location.pathname) + history.location.hash;
+  const initPath = legacyPart(location.pathname) + location.hash;
   const [initialLegacyPath, setInitialLegacyPath] = useState<string>(initPath);
   const [legacyPath, setLegacyPath] = useState<string>(initPath);
   const [badLegacyPath, setBadLegacyPath] = useState<boolean>(false);
@@ -59,7 +59,7 @@ export default function Legacy() {
         if (inner !== legacyPath) {
           setLegacyPath(inner);
           pathChanged = true;
-          history.push(`/legacy${inner}`);
+          navigate(`/legacy${inner}`);
         } else if (outer !== legacyPath) {
           setLegacyPath(outer);
           setInitialLegacyPath(outer);
@@ -78,7 +78,7 @@ export default function Legacy() {
     return () => {
       clearInterval(pathAndHeightSync);
     };
-  }, [history, legacyContent, legacyPath, legacyHeight]);
+  }, [navigate, legacyContent, legacyPath, legacyHeight]);
 
   // This effect recursively injects <base target="_top"> into all child
   // iframe's `<head>` tags. this is necessary to allow the iframe to navigate
