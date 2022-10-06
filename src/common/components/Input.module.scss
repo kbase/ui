@@ -1,0 +1,40 @@
+@import "../colors";
+
+.input {
+  margin: 1ex;
+  padding: 1ex;
+
+  &.error {
+    background-color: use-color("error-lightest");
+    border: 1px solid use-color("error");
+  }
+
+  &.success {
+    background-color: use-color("success-lightest");
+    border: 1px solid use-color("success");
+  }
+}
+
+.label {
+  margin: 1ex;
+  padding: 1ex;
+
+  &.error {
+    border: 1px solid use-color("error");
+  }
+
+  &.success {
+    border: 1px solid use-color("success");
+  }
+}
+
+@each $state, $_ in $palette {
+  .input--#{$state} {
+    background-color: use-color($state);
+    @if (lightness(use-color($state)) > 33) {
+      color: use-color("black");
+    } @else {
+      color: use-color("white");
+    }
+  }
+}
