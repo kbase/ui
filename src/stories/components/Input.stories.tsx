@@ -1,8 +1,14 @@
 import { ComponentStory, ComponentMeta } from '@storybook/react';
-import { ChangeEvent, FunctionComponent as FC } from 'react';
+import { FunctionComponent as FC } from 'react';
 
+import { useForm } from 'react-hook-form';
+
+import {
+  _randomBackground,
+  inputRegisterFactory,
+  validateInputIsTacoFactory,
+} from '../../common/components/Input.common';
 import { Input } from '../../common/components/Input';
-import classes from '../../common/components/Input.module.scss';
 
 export default {
   title: 'Components/Input',
@@ -17,43 +23,164 @@ const LabelExample: FC = () => (
   </>
 );
 
-const validateInputIsTaco = (input: string) => input === 'taco';
-const randomBackground = (evt: ChangeEvent<HTMLInputElement>) => {
-  const classNames = Object.keys(classes);
-  const randomIndex = Math.floor(classNames.length * Math.random());
-  const randomClass = classes[classNames[randomIndex]];
-  const currentClasses = evt.currentTarget.classList;
-  currentClasses.forEach((cls) => currentClasses.remove(cls));
-  currentClasses.add(randomClass);
+const validateInputIsTodayFactory = (name: string) => (input: string) => {
+  const today = new Date().toISOString().split('T')[0];
+  if (input === today) return true;
+  return `Please enter today's date for the value ${name}.`;
 };
 
-const InputTemplate: ComponentStory<typeof Input> = (args) => (
-  <ul>
-    <li>
-      <Input idForLabel={'story-1'} label={<>Input with text label</>} />
-    </li>
-    <li>
-      <Input idForLabel={'story-2'} label={<LabelExample />} />
-    </li>
-    <li>
-      <Input idForLabel={'story-3'} disabled={true} label={<>Disabled.</>} />
-    </li>
-    <li>
-      <Input
-        idForLabel={'story-4'}
-        label={<>Uncontrolled with validator.</>}
-        validate={validateInputIsTaco}
-      />
-    </li>
-    <li>
-      <Input
-        changeHandler={randomBackground}
-        idForLabel={'story-5'}
-        label={<>Uncontrolled with changeHandler.</>}
-      />
-    </li>
-  </ul>
-);
+interface StoryValues {
+  storyChange: string;
+  storyDisabled: string;
+  storyLabel: string;
+  storyLabelFC: string;
+  storyLength: string;
+  storyPattern: string;
+  storyTaco: string;
+  storyToday: string;
+}
+
+const InputTemplate: ComponentStory<typeof Input> = (args) => {
+  const { formState, register } = useForm<StoryValues>({
+    defaultValues: {
+      storyChange: '',
+      storyDisabled: '',
+      storyLabel: '',
+      storyLabelFC: '',
+      storyLength: '',
+      storyPattern: '',
+      storyTaco: '',
+      storyToday: '',
+    },
+    mode: 'all',
+  });
+  const inputRegister = inputRegisterFactory<StoryValues>({
+    formState,
+    register,
+  });
+  const { errors } = formState;
+  const errorEntrys = Object.entries(errors);
+  const valueTooLong = (name: string) =>
+    `The value for ${name} is too long, ` +
+    'it should not be longer than 4 characters.';
+  const valueTooShort = (name: string) =>
+    `The value for ${name} is too short, ` +
+    'it should not be shorter than 4 characters.';
+  const valueDateShouldBeISO = (name: string) =>
+    `Please use YYYY-MM-DD format for ${name}.`;
+  const valueDateTooFuturistic = (name: string) =>
+    `The date entered for ${name} is too far in the future.`;
+
+  return (
+    <form>
+      <ul>
+        <li>
+          <Input
+            label={<>Input with text label</>}
+            placeholder={'storyLabel'}
+            {...inputRegister('storyLabel')}
+          />
+        </li>
+        <li>
+          <Input
+            label={<LabelExample />}
+            placeholder={'storyLabelFC'}
+            {...inputRegister('storyLabelFC')}
+          />
+        </li>
+        <li>
+          <Input
+            disabled={true}
+            label={<>Disabled.</>}
+            placeholder={'storyDisabled'}
+            {...inputRegister('storyDisabled')}
+          />
+        </li>
+        <li>
+          <Input
+            onChangeAlso={_randomBackground}
+            label={<>Uncontrolled with onChangeAlso.</>}
+            placeholder={'storyChange'}
+            {...inputRegister('storyChange')}
+          />
+        </li>
+        <li>
+          <Input
+            label={<>Uncontrolled with validations.</>}
+            placeholder={'storyLength'}
+            {...inputRegister('storyLength', {
+              maxLength: {
+                value: 4,
+                message: valueTooLong('storyLength'),
+              },
+              minLength: {
+                value: 4,
+                message: valueTooShort('storyLength'),
+              },
+            })}
+          />
+        </li>
+        <li>
+          <Input
+            label={<>Uncontrolled with validator and onChangeAlso.</>}
+            onChangeAlso={_randomBackground}
+            placeholder={'storyTaco'}
+            {...inputRegister('storyTaco', {
+              maxLength: {
+                value: 4,
+                message: valueTooLong('storyTaco'),
+              },
+              minLength: {
+                value: 4,
+                message: valueTooShort('storyTaco'),
+              },
+              validate: validateInputIsTacoFactory('storyTaco'),
+            })}
+          />
+        </li>
+        <li>
+          <Input
+            label={<>Should match pattern YYYY-MM-DD.</>}
+            placeholder={'storyPattern'}
+            {...inputRegister('storyPattern', {
+              maxLength: {
+                value: 12,
+                message: valueDateTooFuturistic('storyPattern'),
+              },
+              pattern: {
+                value: /^[0-9]+-[0-9]{2}-[0-9]{2}$/,
+                message: valueDateShouldBeISO('storyPattern'),
+              },
+            })}
+          />
+        </li>
+        <li>
+          <Input
+            label={<>Should match today's date in YYYY-MM-DD format.</>}
+            placeholder={'storyToday'}
+            {...inputRegister('storyToday', {
+              maxLength: {
+                value: 12,
+                message: valueDateTooFuturistic('storyToday'),
+              },
+              pattern: {
+                value: /^[0-9]+-[0-9]{2}-[0-9]{2}$/,
+                message: valueDateShouldBeISO('storyToday'),
+              },
+              validate: validateInputIsTodayFactory('storyToday'),
+            })}
+          />
+        </li>
+      </ul>
+      {errorEntrys.length > 0 ? <h2>Errors</h2> : <></>}
+      <ul>
+        {errorEntrys.map(([key, { message, type }]) => (
+          <li key={key}>{message}</li>
+        ))}
+      </ul>
+    </form>
+  );
+};
 
 export const Default = InputTemplate.bind({});
 Default.args = {};
