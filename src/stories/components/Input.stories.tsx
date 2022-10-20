@@ -98,10 +98,9 @@ const InputTemplate: ComponentStory<typeof Input> = (args) => {
         </li>
         <li>
           <Input
-            onChangeAlso={_randomBackground}
-            label={<>Uncontrolled with onChangeAlso.</>}
+            label={<>Uncontrolled with onChange.</>}
             placeholder={'storyChange'}
-            {...inputRegister('storyChange')}
+            {...inputRegister('storyChange', { onChange: _randomBackground })}
           />
         </li>
         <li>
@@ -122,10 +121,10 @@ const InputTemplate: ComponentStory<typeof Input> = (args) => {
         </li>
         <li>
           <Input
-            label={<>Uncontrolled with validator and onChangeAlso.</>}
-            onChangeAlso={_randomBackground}
+            label={<>Uncontrolled with validator and onChange.</>}
             placeholder={'storyTaco'}
             {...inputRegister('storyTaco', {
+              onChange: _randomBackground,
               maxLength: {
                 value: 4,
                 message: valueTooLong('storyTaco'),

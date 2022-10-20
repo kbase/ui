@@ -39,7 +39,6 @@ const TestInput: FC<TestProps> = ({ options }) => {
         <li>
           <Input
             label={<>Uncontrolled with validations.</>}
-            onChangeAlso={_randomBackground}
             {...inputRegister('testValue', options)}
           />
         </li>
@@ -71,7 +70,7 @@ describe('Input related components', () => {
 
   test('Input registered with validations validates as expected', async () => {
     const validate = validateInputIsTacoFactory('testValue');
-    render(<TestInput options={{ validate }} />);
+    render(<TestInput options={{ validate, onChange: _randomBackground }} />);
     const inputElement = screen.getByLabelText('validations', {
       exact: false,
     }) as HTMLInputElement;
