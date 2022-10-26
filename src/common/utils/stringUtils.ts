@@ -52,7 +52,9 @@ export function uriEncodeTemplateTag(
     if (values.length) {
       const value = values.shift();
       const valueSafe = (
-        typeof value in ['string', 'boolean', 'number'] ? value : String(value)
+        ['string', 'boolean', 'number'].includes(typeof value)
+          ? value
+          : String(value)
       ) as string | boolean | number;
       output += encodeURIComponent(valueSafe);
     }
