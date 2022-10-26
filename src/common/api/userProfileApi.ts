@@ -1,7 +1,7 @@
 import { baseApi } from './index';
-import { kbService } from './utils/kbService';
+import { jsonRpcService } from './utils/serviceHelpers';
 
-const userProfile = kbService({
+const userProfile = jsonRpcService({
   url: '/services/user_profile/rpc',
 });
 

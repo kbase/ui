@@ -60,7 +60,7 @@ documented deviations from the introductory rtk-query docs. These include:
    hooks. The auto-generated hooks (and the `initiate` function to call the
    endpoint outside of a react component) are then available as properties of
    those exported endpoints. More detail below.
-4. A small helper util in `src/common/api/utils/kbService.ts` which handles
+4. Small helper utils in `src/common/api/utils/serviceHelpers.ts` which handle
    defining the service type (static\[core\]/dynamic) and location, and returns
    a helper function that prevents that information from needing to be
    individually defined for every endpoint.

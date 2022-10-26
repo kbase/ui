@@ -1,7 +1,7 @@
 import { baseApi } from './index';
-import { kbService } from './utils/kbService';
+import { jsonRpcService } from './utils/serviceHelpers';
 
-export const narrativeMethodStore = kbService({
+export const narrativeMethodStore = jsonRpcService({
   url: '/services/narrative_method_store/rpc',
 });
 

@@ -1,7 +1,7 @@
 import { baseApi } from './index';
-import { kbService } from './utils/kbService';
+import { jsonRpcService } from './utils/serviceHelpers';
 
-const wsObject = kbService({
+const wsObject = jsonRpcService({
   url: '/services/ws',
 });
 

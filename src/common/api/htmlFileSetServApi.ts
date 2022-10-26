@@ -1,5 +1,5 @@
 import { baseApi } from './index';
-import { kbService } from './utils/kbService';
+import { jsonRpcService } from './utils/serviceHelpers';
 
 interface HTMLFileSetServParams {
   status: void;
@@ -15,7 +15,7 @@ interface HTMLFileSetServResults {
   };
 }
 
-const HTMLFileSetServ = kbService({
+const HTMLFileSetServ = jsonRpcService({
   name: 'HTMLFileSetServ',
   release: 'release',
 });

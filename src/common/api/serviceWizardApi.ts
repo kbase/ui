@@ -1,8 +1,8 @@
 import { baseApi } from './index';
 import { setConsumedService } from './utils/kbaseBaseQuery';
-import { kbService } from './utils/kbService';
+import { jsonRpcService } from './utils/serviceHelpers';
 
-const serviceWizard = kbService({ url: 'services/service_wizard' });
+const serviceWizard = jsonRpcService({ url: 'services/service_wizard' });
 
 interface ServiceWizardParams {
   serviceStatus: { module_name: string; version: string };

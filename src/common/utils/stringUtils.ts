@@ -31,3 +31,31 @@ export function getWSTypeName(type: string): string {
   // Insert a space before all caps and trim
   return match.replace(/([A-Z][a-z])/g, ' $1').trim();
 }
+
+/**
+ * Template string tag function for encoding values for a URI with encodeURIComponent
+ * ```
+ * import { uriEncodeTemplateTag as encode } from './stringUtils';
+ * const unencoded_var = 'var_content?';
+ * const encoded = encode`/uri/path/${'/foo/foo'}/more/path/${unencoded_var}`
+ * // encoded === "/uri/path/%2Ffoo%2Ffoo/more/path/var_content%3F"
+ * ```
+ */
+export function uriEncodeTemplateTag(
+  strings: TemplateStringsArray,
+  ...values: unknown[]
+) {
+  let output = '';
+  const stringsArr = [...strings];
+  while (stringsArr.length || values.length) {
+    if (stringsArr.length) output += stringsArr.shift();
+    if (values.length) {
+      const value = values.shift();
+      const valueSafe = (
+        typeof value in ['string', 'boolean', 'number'] ? value : String(value)
+      ) as string | boolean | number;
+      output += encodeURIComponent(valueSafe);
+    }
+  }
+  return output;
+}

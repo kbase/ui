@@ -9,24 +9,32 @@ import {
 import { RootState } from '../../../app/store';
 import { serviceWizardApi } from '../serviceWizardApi';
 
-interface StaticService {
-  url: string;
-}
-
-interface DynamicService {
+export interface DynamicService {
   name: string;
   release: string;
 }
 
-export interface KbQueryArgs {
+export interface StaticService {
+  url: string;
+}
+
+export interface JsonRpcQueryArgs {
+  apiType: 'JsonRpc';
   service: StaticService | DynamicService;
   method: string;
   params: unknown[];
   fetchArgs?: FetchArgs;
 }
 
-const isDynamic = (
-  service: KbQueryArgs['service']
+export interface HttpQueryArgs extends FetchArgs {
+  apiType: 'Http';
+  service: StaticService;
+}
+
+export type KbQueryArgs = JsonRpcQueryArgs | HttpQueryArgs;
+
+export const isDynamic = (
+  service: DynamicService | StaticService
 ): service is DynamicService => {
   return (service as StaticService).url === undefined;
 };
@@ -158,6 +166,22 @@ export const kbaseBaseQuery: (
   // wrap base query to add error handling and return
   const kbQuery: BaseQueryFn<KbQueryArgs, unknown, KBaseBaseQueryError> =
     async (kbQueryArgs, baseQueryAPI, extraOptions) => {
+      // If this is a Http query, call rawBaseQuery directly, after prepending the service url
+      if (kbQueryArgs.apiType === 'Http') {
+        const fetchArgs = {
+          ...kbQueryArgs,
+          url: new URL(
+            [kbQueryArgs.service.url, kbQueryArgs.url].reduce<string>(
+              (url, part) =>
+                (url.endsWith('/') ? url : url + '/') +
+                (part && part.startsWith('/') ? part.slice(1) : part),
+              fetchBaseQueryArgs.baseUrl || ''
+            )
+          ).toString(),
+        };
+        return rawBaseQuery(fetchArgs, baseQueryAPI, extraOptions);
+      }
+      // Otherwise, this is a JSON-RPC query
       // If this is a dynamic query, call service_wizard and transform it into a static one
       if (isDynamic(kbQueryArgs.service)) {
         // call service wizard to get the URL
@@ -171,14 +195,17 @@ export const kbaseBaseQuery: (
         return kbQuery(
           {
             ...kbQueryArgs,
-            service: { ...kbQueryArgs.service, url: serviceUrl.url },
+            service: {
+              ...kbQueryArgs.service,
+              url: serviceUrl.url,
+            },
           },
           baseQueryAPI,
           extraOptions
         );
       }
 
-      // Generate JsonRPC request id
+      // Generate JsonRpc request id
       const reqId = Math.random();
 
       // generate request body
@@ -246,7 +273,7 @@ export const kbaseBaseQuery: (
         };
       }
 
-      // All went well, return the JsonRPC result
+      // All went well, return the JsonRpc result
       return { data: data.result };
     };
   return kbQuery;
