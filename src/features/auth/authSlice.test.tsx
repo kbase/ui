@@ -262,7 +262,7 @@ describe('authSlice', () => {
           expires: Date.now() + 100,
         } as TokenInfo,
       };
-      mockCookieVal = 'kbase_session=AAAAAA';
+      mockCookieVal = 'AAAAAA';
       const mock = jest.spyOn(authFromToken, 'useQuery');
       mock.mockImplementation(() => {
         return {
