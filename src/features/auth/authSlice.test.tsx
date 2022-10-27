@@ -229,7 +229,7 @@ describe('authSlice', () => {
 
     test('useTokenCookie clears cookie for bad cookie token and empty auth state', async () => {
       const auth = {};
-      mockCookieVal = 'kbase_session=AAAAAA';
+      mockCookieVal = 'AAAAAA';
       const mock = jest.spyOn(authFromToken, 'useQuery');
       mock.mockImplementation(() => {
         return {
