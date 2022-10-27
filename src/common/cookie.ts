@@ -1,8 +1,10 @@
-export function getCookie(key: string) {
+import { useEffect, useMemo, useState } from 'react';
+
+export function getCookie(name: string) {
   const cookie = document.cookie
     .split(';')
     .map((kv) => kv.trim().split('='))
-    .find(([k, _v]) => k.trim() === key);
+    .find(([k, _v]) => k.trim() === name);
   if (cookie) {
     return cookie[1];
   } else {
@@ -41,4 +43,50 @@ export function clearCookie(
     ...options,
     expires: new Date('Thu, 01 Jan 1970 00:00:00 GMT'),
   });
+}
+
+type Rest<T extends unknown[]> = ((...p: T) => void) extends (
+  p1: infer P1,
+  ...rest: infer R
+) => void
+  ? R
+  : never;
+
+type wrappedFuncs = {
+  clear: (
+    ...args: Rest<Parameters<typeof clearCookie>>
+  ) => ReturnType<typeof clearCookie>;
+  set: (
+    ...args: Rest<Parameters<typeof setCookie>>
+  ) => ReturnType<typeof setCookie>;
+};
+
+export function useCookie(name: string) {
+  const [value, setValue] = useState<undefined | string>(getCookie(name));
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const cookieVal = getCookie(name);
+      if (cookieVal !== value) setValue(cookieVal);
+    }, 100);
+    return () => clearInterval(interval);
+  }, [name, value, setValue]);
+
+  const funcs: wrappedFuncs = useMemo(
+    () => ({
+      clear: (...args) => {
+        const result = clearCookie(name, ...args);
+        setValue(getCookie(name));
+        return result;
+      },
+      set: (...args) => {
+        const result = setCookie(name, ...args);
+        setValue(getCookie(name));
+        return result;
+      },
+    }),
+    [name, setValue]
+  );
+
+  return [value, funcs.set, funcs.clear] as const;
 }

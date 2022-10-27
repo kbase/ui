@@ -5,7 +5,7 @@ import fetchMock from 'jest-fetch-mock';
 
 import { createTestStore } from '../../app/store';
 import { authFromToken, revokeToken } from '../../common/api/authService';
-import { TokenInfo, useSetTokenCookie, useTryAuthFromToken } from './authSlice';
+import { TokenInfo, useTokenCookie, useTryAuthFromToken } from './authSlice';
 import * as cookies from '../../common/cookie';
 
 let testStore = createTestStore({});
@@ -101,41 +101,42 @@ describe('authSlice', () => {
     fetchMock.disableMocks();
   });
 
-  describe('useSetTokenCookie', () => {
-    let setCookieMock: jest.SpyInstance<
-      ReturnType<typeof cookies.setCookie>,
-      Parameters<typeof cookies.setCookie>
-    >;
-    let clearCookieMock: jest.SpyInstance<
-      ReturnType<typeof cookies.clearCookie>,
-      Parameters<typeof cookies.clearCookie>
+  describe('useTokenCookie', () => {
+    let useCookieMock: jest.SpyInstance<
+      ReturnType<typeof cookies.useCookie>,
+      Parameters<typeof cookies.useCookie>
     >;
     let consoleErrorMock: jest.SpyInstance<
       ReturnType<typeof console.error>,
       Parameters<typeof console.error>
     >;
+    let mockCookieVal = '';
+    const setTokenCookieMock = jest.fn();
+    const clearTokenCookieMock = jest.fn();
     beforeAll(() => {
-      setCookieMock = jest.spyOn(cookies, 'setCookie');
-      setCookieMock.mockImplementation(() => undefined);
-      clearCookieMock = jest.spyOn(cookies, 'clearCookie');
-      clearCookieMock.mockImplementation(() => undefined);
+      useCookieMock = jest.spyOn(cookies, 'useCookie');
+      useCookieMock.mockImplementation(() => [
+        mockCookieVal,
+        setTokenCookieMock,
+        clearTokenCookieMock,
+      ]);
       consoleErrorMock = jest.spyOn(console, 'error');
       consoleErrorMock.mockImplementation(() => undefined);
     });
     beforeEach(() => {
-      setCookieMock.mockClear();
-      clearCookieMock.mockClear();
+      setTokenCookieMock.mockClear();
+      clearTokenCookieMock.mockClear();
       consoleErrorMock.mockClear();
     });
     afterAll(() => {
-      setCookieMock.mockRestore();
-      clearCookieMock.mockRestore();
+      setTokenCookieMock.mockRestore();
+      clearTokenCookieMock.mockRestore();
       consoleErrorMock.mockRestore();
     });
 
-    test('useSetTokenCookie clears cookie if auth token is undefined', async () => {
+    test('useTokenCookie clears cookie if auth token is undefined', async () => {
       const Component = () => {
-        useSetTokenCookie();
+        useTokenCookie('kbase_session');
         return <></>;
       };
       render(
@@ -144,12 +145,12 @@ describe('authSlice', () => {
         </Provider>
       );
       await waitFor(() => {
-        expect(clearCookieMock).toHaveBeenCalledWith('kbase_session');
+        expect(clearTokenCookieMock).toHaveBeenCalledWith();
         expect(consoleErrorMock).not.toHaveBeenCalled();
       });
     });
 
-    test('useSetTokenCookie sets cookie if auth token exists with expiration', async () => {
+    test('useTokenCookie sets cookie if auth token exists with expiration', async () => {
       const auth = {
         token: 'some-token',
         username: 'some-user',
@@ -158,7 +159,7 @@ describe('authSlice', () => {
         } as TokenInfo,
       };
       const Component = () => {
-        useSetTokenCookie();
+        useTokenCookie('kbase_session');
         return <></>;
       };
       render(
@@ -167,19 +168,15 @@ describe('authSlice', () => {
         </Provider>
       );
       await waitFor(() => {
-        expect(setCookieMock).toHaveBeenCalledWith(
-          'kbase_session',
-          'some-token',
-          {
-            domain: 'ci-europa.kbase.us',
-            expires: new Date(auth.tokenInfo.expires),
-          }
-        );
+        expect(setTokenCookieMock).toHaveBeenCalledWith('some-token', {
+          domain: 'ci-europa.kbase.us',
+          expires: new Date(auth.tokenInfo.expires),
+        });
         expect(consoleErrorMock).not.toHaveBeenCalled();
       });
     });
 
-    test('useSetTokenCookie sets cookie without domain in development mode', async () => {
+    test('useTokenCookie sets cookie without domain in development mode', async () => {
       const processEnv = process.env;
       process.env = { ...processEnv, NODE_ENV: 'development' };
       const auth = {
@@ -190,7 +187,7 @@ describe('authSlice', () => {
         } as TokenInfo,
       };
       const Component = () => {
-        useSetTokenCookie();
+        useTokenCookie('kbase_session');
         return <></>;
       };
       render(
@@ -199,26 +196,22 @@ describe('authSlice', () => {
         </Provider>
       );
       await waitFor(() => {
-        expect(setCookieMock).toHaveBeenCalledWith(
-          'kbase_session',
-          'some-token',
-          {
-            expires: new Date(auth.tokenInfo.expires),
-          }
-        );
+        expect(setTokenCookieMock).toHaveBeenCalledWith('some-token', {
+          expires: new Date(auth.tokenInfo.expires),
+        });
         expect(consoleErrorMock).not.toHaveBeenCalled();
       });
       process.env = processEnv;
     });
 
-    test('useSetTokenCookie does nothing and `console.error`s if token is defined but tokenInfo.expires is not', async () => {
+    test('useTokenCookie does nothing and `console.error`s if token is defined but tokenInfo.expires is not', async () => {
       const auth = {
         token: 'some-token',
         username: 'some-user',
         tokenInfo: undefined,
       };
       const Component = () => {
-        useSetTokenCookie();
+        useTokenCookie('kbase_session');
         return <></>;
       };
       render(
@@ -230,8 +223,115 @@ describe('authSlice', () => {
         expect(consoleErrorMock).toHaveBeenCalledWith(
           'Could not set token cookie, missing expire time'
         );
-        expect(setCookieMock).not.toHaveBeenCalled();
+        expect(setTokenCookieMock).not.toHaveBeenCalled();
       });
+    });
+
+    test('useTokenCookie clears cookie for bad cookie token and empty auth state', async () => {
+      const auth = {};
+      mockCookieVal = 'kbase_session=AAAAAA';
+      const mock = jest.spyOn(authFromToken, 'useQuery');
+      mock.mockImplementation(() => {
+        return {
+          isSuccess: false,
+          isError: true,
+          isLoading: false,
+        } as unknown as ReturnType<typeof authFromToken['useQuery']>; // Assert mocked response type
+      });
+      const Component = () => {
+        useTokenCookie('kbase_session');
+        return <></>;
+      };
+      render(
+        <Provider store={createTestStore({ auth })}>
+          <Component />
+        </Provider>
+      );
+      await waitFor(() => {
+        expect(setTokenCookieMock).not.toBeCalled();
+        expect(clearTokenCookieMock).toBeCalled();
+      });
+      mock.mockClear();
+    });
+
+    test('useTokenCookie sets cookie for bad cookie token and defined auth state', async () => {
+      const auth = {
+        token: 'some-token',
+        username: 'some-user',
+        tokenInfo: {
+          expires: Date.now() + 100,
+        } as TokenInfo,
+      };
+      mockCookieVal = 'kbase_session=AAAAAA';
+      const mock = jest.spyOn(authFromToken, 'useQuery');
+      mock.mockImplementation(() => {
+        return {
+          isSuccess: false,
+          isError: true,
+          isLoading: false,
+        } as unknown as ReturnType<typeof authFromToken['useQuery']>; // Assert mocked response type
+      });
+      const Component = () => {
+        useTokenCookie('kbase_session');
+        return <></>;
+      };
+      render(
+        <Provider store={createTestStore({ auth })}>
+          <Component />
+        </Provider>
+      );
+      await waitFor(() => {
+        expect(setTokenCookieMock).toBeCalled();
+        expect(clearTokenCookieMock).not.toBeCalled();
+      });
+      mock.mockClear();
+    });
+
+    test('useTokenCookie does not set cookie while awaiting auth response', async () => {
+      const auth = {};
+      mockCookieVal = 'AAAAAA';
+      const mock = jest.spyOn(authFromToken, 'useQuery');
+      mock.mockImplementation(() => {
+        return {
+          isSuccess: false,
+          isError: false,
+          isLoading: true,
+        } as unknown as ReturnType<typeof authFromToken['useQuery']>; // Assert mocked response type
+      });
+      const Component = () => {
+        useTokenCookie('kbase_session');
+        return <></>;
+      };
+      const { rerender } = render(
+        <Provider store={createTestStore({ auth })}>
+          <Component />
+        </Provider>
+      );
+      await waitFor(() => {
+        expect(setTokenCookieMock).not.toBeCalled();
+        expect(clearTokenCookieMock).not.toBeCalled();
+      });
+      mock.mockImplementation(() => {
+        return {
+          isSuccess: true,
+          isError: false,
+          isLoading: false,
+          data: { user: 'someUser', expires: 10 },
+        } as unknown as ReturnType<typeof authFromToken['useQuery']>; // Assert mocked response type
+      });
+      rerender(
+        <Provider store={createTestStore({ auth })}>
+          <Component />
+        </Provider>
+      );
+      await waitFor(() => {
+        expect(setTokenCookieMock).toBeCalledWith('AAAAAA', {
+          domain: 'ci-europa.kbase.us',
+          expires: new Date(10),
+        });
+        expect(clearTokenCookieMock).not.toBeCalled();
+      });
+      mock.mockClear();
     });
   });
 });

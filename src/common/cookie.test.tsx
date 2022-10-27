@@ -1,4 +1,5 @@
-import { clearCookie, getCookie, setCookie } from './cookie';
+import { render, waitFor } from '@testing-library/react';
+import { clearCookie, getCookie, setCookie, useCookie } from './cookie';
 
 describe('Cookie Utils', () => {
   let setCookieSpy: jest.SpyInstance<void, [string]>;
@@ -108,5 +109,47 @@ describe('Cookie Utils', () => {
     const value = getCookie('non_cookie_name');
     expect(value).toBe(undefined);
     expect(getCookieSpy).toBeCalled();
+  });
+
+  test('useCookie tracks cookie value', async () => {
+    let useCookieVal: ReturnType<typeof useCookie>;
+    const TestComponent = () => {
+      useCookieVal = useCookie('some_cookie');
+      return <div></div>;
+    };
+    render(<TestComponent></TestComponent>);
+    await waitFor(() => {
+      expect(useCookieVal && useCookieVal.length === 3).toBe(true);
+      expect(useCookieVal[0]).toBe(undefined);
+    });
+    mockCookieString = 'some_cookie=ABCDEFG';
+    await waitFor(() => {
+      expect(useCookieVal[0]).toBe('ABCDEFG');
+    });
+    mockCookieString = 'some_cookie=12345';
+    await waitFor(() => {
+      expect(useCookieVal[0]).toBe('12345');
+    });
+  });
+
+  test('useCookie set/clear works', async () => {
+    let useCookieVal: ReturnType<typeof useCookie>;
+    const TestComponent = () => {
+      useCookieVal = useCookie('some_cookie');
+      return <div></div>;
+    };
+    render(<TestComponent></TestComponent>);
+    await waitFor(() => {
+      expect(useCookieVal && useCookieVal.length === 3).toBe(true);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-unused-vars
+      const [_val, setCookie, clearCookie] = useCookieVal!;
+      setCookie('abc123');
+      expect(setCookieSpy).toBeCalledWith('some_cookie=abc123;path=/;secure');
+      setCookieSpy.mockClear();
+      clearCookie();
+      expect(setCookieSpy).toBeCalledWith(
+        'some_cookie=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;secure'
+      );
+    });
   });
 });
