@@ -17,20 +17,23 @@ export function setCookie(
   value: string,
   options?: {
     expires?: Date;
-    path?: string;
+    path?: string | null;
     domain?: string;
     secure?: boolean;
+    SameSite?: 'Lax' | 'Strict' | 'None';
   }
 ) {
-  const { expires, path, domain, secure } = {
+  const { expires, path, domain, secure, SameSite } = {
     path: '/',
     secure: true,
+    SameSite: 'Lax',
     ...options,
   };
   let cookieString = `${name}=${value}`;
   if (expires) cookieString += `;expires=${expires.toUTCString()}`;
   if (path) cookieString += `;path=${path}`;
   if (domain) cookieString += `;domain=${domain}`;
+  if (SameSite) cookieString += `;SameSite=${SameSite}`;
   if (secure) cookieString += ';secure';
   document.cookie = cookieString;
 }
