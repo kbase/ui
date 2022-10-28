@@ -4,7 +4,11 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../common/hooks';
 import { useEffect } from 'react';
 import { setEnvironment } from '../features/layout/layoutSlice';
-import { authUsername, useTokenCookie } from '../features/auth/authSlice';
+import {
+  authInitialized,
+  authUsername,
+  useTokenCookie,
+} from '../features/auth/authSlice';
 import { useLoggedInProfileUser } from '../features/profile/profileSlice';
 import { ErrorBoundary } from 'react-error-boundary';
 
@@ -16,11 +20,12 @@ import ErrorPage from '../features/layout/ErrorPage';
 const useInitApp = () => {
   const dispatch = useAppDispatch();
 
-  // Get/Set the token cookie from auth state
-  const { isLoading } = useTokenCookie('kbase_session');
+  // Pulls token from cookie, syncs cookie to auth state
+  useTokenCookie('kbase_session');
 
   // Use authenticated username to load user's profile
   const username = useAppSelector(authUsername);
+  const initialized = useAppSelector(authInitialized);
   useLoggedInProfileUser(username);
 
   // Placeholder code for determining environment.
@@ -28,7 +33,7 @@ const useInitApp = () => {
     dispatch(setEnvironment('ci'));
   }, [dispatch]);
 
-  return { isLoading };
+  return { isLoading: !initialized };
 };
 
 export default function App() {

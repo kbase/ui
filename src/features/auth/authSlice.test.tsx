@@ -70,6 +70,7 @@ describe('authSlice', () => {
         token: 'foo',
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         tokenInfo: { id: 'existing-tokenid' } as TokenInfo,
+        initialized: true,
       },
     });
     fetchMock.enableMocks();
@@ -89,6 +90,7 @@ describe('authSlice', () => {
         token: 'foo',
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         tokenInfo: { id: 'existing-tokenid' } as TokenInfo,
+        initialized: true,
       },
     });
     fetchMock.enableMocks();
@@ -157,6 +159,7 @@ describe('authSlice', () => {
         tokenInfo: {
           expires: Date.now() + Math.floor(Math.random() * 10000),
         } as TokenInfo,
+        initialized: true,
       };
       const Component = () => {
         useTokenCookie('kbase_session');
@@ -185,6 +188,7 @@ describe('authSlice', () => {
         tokenInfo: {
           expires: Date.now() + 1,
         } as TokenInfo,
+        initialized: true,
       };
       const Component = () => {
         useTokenCookie('kbase_session');
@@ -209,11 +213,13 @@ describe('authSlice', () => {
         token: 'some-token',
         username: 'some-user',
         tokenInfo: undefined,
+        initialized: true,
       };
       const Component = () => {
         useTokenCookie('kbase_session');
         return <></>;
       };
+
       render(
         <Provider store={createTestStore({ auth })}>
           <Component />
@@ -228,14 +234,14 @@ describe('authSlice', () => {
     });
 
     test('useTokenCookie clears cookie for bad cookie token and empty auth state', async () => {
-      const auth = {};
+      const auth = { initialized: false };
       mockCookieVal = 'AAAAAA';
       const mock = jest.spyOn(authFromToken, 'useQuery');
       mock.mockImplementation(() => {
         return {
           isSuccess: false,
           isError: true,
-          isLoading: false,
+          isFetching: false,
         } as unknown as ReturnType<typeof authFromToken['useQuery']>; // Assert mocked response type
       });
       const Component = () => {
@@ -261,6 +267,7 @@ describe('authSlice', () => {
         tokenInfo: {
           expires: Date.now() + 100,
         } as TokenInfo,
+        initialized: true,
       };
       mockCookieVal = 'AAAAAA';
       const mock = jest.spyOn(authFromToken, 'useQuery');
@@ -268,7 +275,7 @@ describe('authSlice', () => {
         return {
           isSuccess: false,
           isError: true,
-          isLoading: false,
+          isFetching: false,
         } as unknown as ReturnType<typeof authFromToken['useQuery']>; // Assert mocked response type
       });
       const Component = () => {
@@ -288,14 +295,14 @@ describe('authSlice', () => {
     });
 
     test('useTokenCookie does not set cookie while awaiting auth response', async () => {
-      const auth = {};
+      const auth = { initialized: false };
       mockCookieVal = 'AAAAAA';
       const mock = jest.spyOn(authFromToken, 'useQuery');
       mock.mockImplementation(() => {
         return {
           isSuccess: false,
           isError: false,
-          isLoading: true,
+          isFetching: true,
         } as unknown as ReturnType<typeof authFromToken['useQuery']>; // Assert mocked response type
       });
       const Component = () => {
@@ -315,7 +322,7 @@ describe('authSlice', () => {
         return {
           isSuccess: true,
           isError: false,
-          isLoading: false,
+          isFetching: false,
           data: { user: 'someUser', expires: 10 },
         } as unknown as ReturnType<typeof authFromToken['useQuery']>; // Assert mocked response type
       });

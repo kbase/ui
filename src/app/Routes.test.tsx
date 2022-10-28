@@ -48,6 +48,7 @@ describe('Routing Utils', () => {
         token: 'some-token',
         username: 'some-user',
         tokenInfo: {} as TokenInfo,
+        initialized: true,
       },
     });
     expect(LOGIN_ROUTE).not.toBe(somePagePath);

@@ -30,6 +30,7 @@ export const initialState = {
   auth: {
     token: 'a token',
     username: usernameRequested,
+    initialized: true,
   },
   profile: {
     loggedInProfile: {

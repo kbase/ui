@@ -16,12 +16,15 @@ export interface TokenInfo {
 }
 
 interface AuthState {
+  initialized: boolean;
   token?: string;
   username?: string;
   tokenInfo?: TokenInfo;
 }
 
-const initialState: AuthState = {};
+const initialState: AuthState = {
+  initialized: false,
+};
 
 export const authSlice = createSlice({
   name: 'auth',
@@ -41,6 +44,7 @@ export const authSlice = createSlice({
       state.token = normToken;
       state.username = payload?.username;
       state.tokenInfo = payload?.tokenInfo;
+      state.initialized = true;
     },
   },
   extraReducers: (builder) =>
@@ -64,6 +68,10 @@ export const authUsername = (state: RootState) => {
 
 export const authToken = (state: RootState) => {
   return state.auth.token;
+};
+
+export const authInitialized = (state: RootState) => {
+  return state.auth.initialized;
 };
 
 export const useTryAuthFromToken = (token?: string) => {
@@ -96,20 +104,34 @@ export const useTryAuthFromToken = (token?: string) => {
   return tokenQuery;
 };
 
+/**
+ * Initializes auth from a cookie, then continues to monitor and update that cookie as appropriate.
+ */
 export const useTokenCookie = (name: string) => {
+  const dispatch = useAppDispatch();
+
   // Pull token from cookie. If it exists, and differs from state, try it for auth.
   const [cookieToken, setCookieToken, clearCookieToken] = useCookie(name);
-  const { isLoading, isError } = useTryAuthFromToken(cookieToken);
-  // Pull token and expiration info from state
+  const { isSuccess, isFetching } = useTryAuthFromToken(cookieToken);
+
+  // Pull token, expiration, and init info from auth state
   const token = useAppSelector(authToken);
   const expires = useAppSelector(({ auth }) => auth.tokenInfo?.expires);
-  // If authing from the cookie token failed, and there is no token in state, clear the cookie.
+  const initialized = useAppSelector(authInitialized);
+
+  // Initializes auth for states where useTryAuthFromToken does not set auth
   useEffect(() => {
-    if (!isLoading && isError && !token) clearCookieToken();
-  }, [isLoading, isError, token, clearCookieToken]);
-  // If there is a valid token/expire-time in state, and the cookie auth check is completed, set the cookie
+    if (isFetching || initialized) return;
+    if (!cookieToken) {
+      dispatch(setAuth(null));
+    } else if (cookieToken && !isSuccess) {
+      dispatch(setAuth(null));
+    }
+  }, [isFetching, initialized, cookieToken, dispatch, isSuccess]);
+
+  // Set the cookie according to the initialized auth state
   useEffect(() => {
-    if (isLoading) return;
+    if (!initialized) return;
     if (token && expires) {
       setCookieToken(token, {
         expires: new Date(expires),
@@ -120,9 +142,10 @@ export const useTokenCookie = (name: string) => {
     } else if (token && !expires) {
       // eslint-disable-next-line no-console
       console.error('Could not set token cookie, missing expire time');
+    } else if (!token) {
+      clearCookieToken();
     }
-  }, [isLoading, token, expires, setCookieToken]);
-  return { isLoading };
+  }, [initialized, token, expires, setCookieToken, clearCookieToken]);
 };
 
 function normalizeToken(
