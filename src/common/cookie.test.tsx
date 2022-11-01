@@ -27,18 +27,20 @@ describe('Cookie Utils', () => {
 
   test('setCookie sets a basic cookie', () => {
     setCookie('foo_cookie', 'bar');
-    expect(setCookieSpy).toBeCalledWith('foo_cookie=bar;path=/;secure');
+    expect(setCookieSpy).toBeCalledWith(
+      'foo_cookie=bar;path=/;SameSite=Lax;secure'
+    );
   });
 
   test('setCookie sets a basic insecure cookie', () => {
     setCookie('foo_cookie', 'bar', { secure: false });
-    expect(setCookieSpy).toBeCalledWith('foo_cookie=bar;path=/');
+    expect(setCookieSpy).toBeCalledWith('foo_cookie=bar;path=/;SameSite=Lax');
   });
 
   test('setCookie sets a basic cookie with exipration date', () => {
     setCookie('foo_cookie', 'bar', { expires: new Date(1666204369514) });
     expect(setCookieSpy).toBeCalledWith(
-      'foo_cookie=bar;expires=Wed, 19 Oct 2022 18:32:49 GMT;path=/;secure'
+      'foo_cookie=bar;expires=Wed, 19 Oct 2022 18:32:49 GMT;path=/;SameSite=Lax;secure'
     );
   });
 
@@ -48,13 +50,18 @@ describe('Cookie Utils', () => {
       path: '/foobar',
     });
     expect(setCookieSpy).toBeCalledWith(
-      'foo_cookie=bar;expires=Wed, 19 Oct 2022 18:32:49 GMT;path=/foobar;secure'
+      'foo_cookie=bar;expires=Wed, 19 Oct 2022 18:32:49 GMT;path=/foobar;SameSite=Lax;secure'
     );
   });
 
   test('setCookie sets a basic cookie without explicit path if specified as undefined', () => {
     setCookie('foo_cookie', 'bar', { path: undefined });
-    expect(setCookieSpy).toBeCalledWith('foo_cookie=bar;secure');
+    expect(setCookieSpy).toBeCalledWith('foo_cookie=bar;SameSite=Lax;secure');
+  });
+
+  test('setCookie sets a cookie without SameSite if explicitly undefined', () => {
+    setCookie('foo_cookie', 'bar', { SameSite: undefined });
+    expect(setCookieSpy).toBeCalledWith('foo_cookie=bar;path=/;secure');
   });
 
   test('setCookie sets a basic cookie with exipration date, path, and domain', () => {
@@ -64,28 +71,28 @@ describe('Cookie Utils', () => {
       domain: 'ci.kbase.us',
     });
     expect(setCookieSpy).toBeCalledWith(
-      'foo_cookie=bar;expires=Wed, 19 Oct 2022 18:32:49 GMT;path=/foobar;domain=ci.kbase.us;secure'
+      'foo_cookie=bar;expires=Wed, 19 Oct 2022 18:32:49 GMT;path=/foobar;domain=ci.kbase.us;SameSite=Lax;secure'
     );
   });
 
   test('clearCookie sets cookie with 0 milliseconds since epoch expiration date', () => {
     clearCookie('foo_cookie');
     expect(setCookieSpy).toBeCalledWith(
-      'foo_cookie=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;secure'
+      'foo_cookie=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;SameSite=Lax;secure'
     );
   });
 
   test('clearCookie appropriately clears cookie with path', () => {
     clearCookie('foo_cookie', { path: '/foo' });
     expect(setCookieSpy).toBeCalledWith(
-      'foo_cookie=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/foo;secure'
+      'foo_cookie=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/foo;SameSite=Lax;secure'
     );
   });
 
   test('clearCookie appropriately clears cookie with path and domain', () => {
     clearCookie('foo_cookie', { path: '/foo', domain: 'nonsense.kbase.us' });
     expect(setCookieSpy).toBeCalledWith(
-      'foo_cookie=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/foo;domain=nonsense.kbase.us;secure'
+      'foo_cookie=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/foo;domain=nonsense.kbase.us;SameSite=Lax;secure'
     );
   });
 
@@ -144,11 +151,13 @@ describe('Cookie Utils', () => {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-unused-vars
       const [_val, setCookie, clearCookie] = useCookieVal!;
       setCookie('abc123');
-      expect(setCookieSpy).toBeCalledWith('some_cookie=abc123;path=/;secure');
+      expect(setCookieSpy).toBeCalledWith(
+        'some_cookie=abc123;path=/;SameSite=Lax;secure'
+      );
       setCookieSpy.mockClear();
       clearCookie();
       expect(setCookieSpy).toBeCalledWith(
-        'some_cookie=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;secure'
+        'some_cookie=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;SameSite=Lax;secure'
       );
     });
   });
