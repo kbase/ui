@@ -124,7 +124,7 @@ export const useTokenCookie = (name: string) => {
     if (isFetching || initialized) return;
     if (!cookieToken) {
       dispatch(setAuth(null));
-    } else if (cookieToken && !isSuccess) {
+    } else if (!isSuccess) {
       dispatch(setAuth(null));
     }
   }, [isFetching, initialized, cookieToken, dispatch, isSuccess]);

@@ -78,12 +78,12 @@ export function useCookie(name: string) {
   const funcs: wrappedFuncs = useMemo(
     () => ({
       clear: (...args) => {
-        const result = clearCookie(name, ...args);
+        const result = clearCookie(name, ...args); // lgtm [js/use-of-returnless-function]
         setValue(getCookie(name));
         return result;
       },
       set: (...args) => {
-        const result = setCookie(name, ...args);
+        const result = setCookie(name, ...args); // lgtm [js/use-of-returnless-function]
         setValue(getCookie(name));
         return result;
       },
