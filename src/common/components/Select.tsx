@@ -15,10 +15,13 @@ export interface SelectOption {
   icon?: ReactNode;
 }
 
-type OptionsArray = OptionsOrGroups<SelectOption, GroupBase<SelectOption>>;
+export type OptionsArray = OptionsOrGroups<
+  SelectOption,
+  GroupBase<SelectOption>
+>;
 type OptionsAsync = (inputValue: string) => Promise<OptionsArray>;
 
-interface SelectProps {
+export interface SelectProps {
   /** Sets a className attribute on the outer component */
   className?: string;
   /** If true, adds a clickable icon for clearing the select */
