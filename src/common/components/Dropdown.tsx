@@ -1,13 +1,14 @@
 import { FC, ComponentPropsWithRef } from 'react';
 import { components } from 'react-select';
 import classes from './Dropdown.module.scss';
+import { Input, InputInterface } from './Input';
 import { Select } from './Select';
 
 const { DropdownIndicator } = components;
 
 export type DropdownProps = ComponentPropsWithRef<typeof Select>;
 
-export const Dropdown: FC<DropdownProps> = (props) => {
+const Dropdown: FC<DropdownProps> = (props) => {
   const indicator = props.children;
   return (
     <Select
@@ -22,3 +23,6 @@ export const Dropdown: FC<DropdownProps> = (props) => {
     />
   );
 };
+
+export { Dropdown, Input, Select };
+export type { InputInterface };

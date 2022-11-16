@@ -1,8 +1,9 @@
 import { ChangeEvent } from 'react';
 import {
+  FieldValues,
+  FormState,
   Path,
   RegisterOptions,
-  FormState,
   UseFormRegister,
 } from 'react-hook-form';
 
@@ -18,7 +19,7 @@ export const _randomBackground = (evt: ChangeEvent<HTMLInputElement>) => {
   currentClasses.add(randomClass);
 };
 
-export const inputRegisterFactory = <T,>({
+export const inputRegisterFactory = <T extends FieldValues>({
   formState,
   register,
 }: {
