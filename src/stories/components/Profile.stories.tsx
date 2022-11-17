@@ -1,5 +1,4 @@
 import { ComponentStory, ComponentMeta } from '@storybook/react';
-import { BrowserRouter as Router } from 'react-router-dom';
 
 import { Profile, ProfileParams } from '../../features/profile/Profile';
 
@@ -22,17 +21,15 @@ const ProfileTemplate: ComponentStory<typeof Profile> = (args) => {
     viewNarratives,
   } = args as ProfileParams;
   return (
-    <Router>
-      <Profile
-        narrativesLink={narrativesLink}
-        pageTitle={pageTitle}
-        profileLink={profileLink}
-        realname={realname}
-        username={username}
-        viewMine={viewMine}
-        viewNarratives={viewNarratives}
-      />
-    </Router>
+    <Profile
+      narrativesLink={narrativesLink}
+      pageTitle={pageTitle}
+      profileLink={profileLink}
+      realname={realname}
+      username={username}
+      viewMine={viewMine}
+      viewNarratives={viewNarratives}
+    />
   );
 };
 

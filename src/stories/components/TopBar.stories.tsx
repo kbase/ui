@@ -1,5 +1,4 @@
 import { ComponentStory, ComponentMeta } from '@storybook/react';
-import { BrowserRouter as Router } from 'react-router-dom';
 
 import TopBar from '../../features/layout/TopBar';
 import { usePageTitle } from '../../features/layout/layoutSlice';
@@ -16,11 +15,9 @@ const TopBarTemplate: ComponentStory<typeof TopBar> = (args) => {
   const { title } = args as ArgTypes;
   usePageTitle(title);
   return (
-    <Router>
-      <div style={{ height: '70px', width: '100%', position: 'relative' }}>
-        <TopBar />
-      </div>
-    </Router>
+    <div style={{ height: '70px', width: '100%', position: 'relative' }}>
+      <TopBar />
+    </div>
   );
 };
 
