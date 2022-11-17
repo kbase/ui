@@ -4,6 +4,7 @@ import auth from '../features/auth/authSlice';
 import count from '../features/count/countSlice';
 import icons from '../features/icons/iconSlice';
 import layout from '../features/layout/layoutSlice';
+import navigator from '../features/navigator/navigatorSlice';
 import profile from '../features/profile/profileSlice';
 
 const createStore = <T>(additionalOptions?: T) => {
@@ -14,6 +15,7 @@ const createStore = <T>(additionalOptions?: T) => {
       count,
       icons,
       layout,
+      navigator,
       profile,
       [baseApi.reducerPath]: baseApi.reducer,
     },

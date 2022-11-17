@@ -1,6 +1,6 @@
 import { ComponentMeta, ComponentStory } from '@storybook/react';
-import { BrowserRouter as Router } from 'react-router-dom';
-import NarrativeList from '../../common/components/NarrativeList/NarrativeList';
+import NarrativeList from '../../features/navigator/NarrativeList/NarrativeList';
+import { testItems } from '../../features/navigator/NarrativeList/NarrativeList.fixture';
 export default {
   title: 'Components/NarrativeList',
   component: NarrativeList,
@@ -11,11 +11,9 @@ export default {
 // component e.g. `<Component {...args} />`
 const NarrativeListTemplate: ComponentStory<typeof NarrativeList> = (args) => {
   return (
-    <Router>
-      <div style={{ height: '70px', width: '100%', position: 'relative' }}>
-        <NarrativeList {...args}></NarrativeList>
-      </div>
-    </Router>
+    <div style={{ height: '70px', width: '100%', position: 'relative' }}>
+      <NarrativeList {...args}></NarrativeList>
+    </div>
   );
 };
 
@@ -24,134 +22,5 @@ Default.args = {
   showVersionDropdown: true,
   itemsRemaining: 16,
   hasMoreItems: false,
-  items: [
-    {
-      access_group: 12345,
-      creator: 'charlie',
-      narrative_title: "Charlie's Storybook Narrative",
-      obj_id: 1,
-      timestamp: 0,
-      version: 8,
-    },
-    {
-      access_group: 12346,
-      creator: 'DJKhaled',
-      narrative_title: 'Another One',
-      obj_id: 1,
-      timestamp: 0,
-      version: 1,
-    },
-    {
-      access_group: 12345,
-      creator: 'charlie',
-      narrative_title: "Charlie's Storybook Narrative",
-      obj_id: 1,
-      timestamp: 0,
-      version: 8,
-    },
-    {
-      access_group: 12346,
-      creator: 'DJKhaled',
-      narrative_title: 'Another One',
-      obj_id: 1,
-      timestamp: 0,
-      version: 1,
-    },
-    {
-      access_group: 12345,
-      creator: 'charlie',
-      narrative_title: "Charlie's Storybook Narrative",
-      obj_id: 1,
-      timestamp: 0,
-      version: 8,
-    },
-    {
-      access_group: 12346,
-      creator: 'DJKhaled',
-      narrative_title: 'Another One',
-      obj_id: 1,
-      timestamp: 0,
-      version: 1,
-    },
-    {
-      access_group: 12345,
-      creator: 'charlie',
-      narrative_title: "Charlie's Storybook Narrative",
-      obj_id: 1,
-      timestamp: 0,
-      version: 8,
-    },
-    {
-      access_group: 12346,
-      creator: 'DJKhaled',
-      narrative_title: 'Another One',
-      obj_id: 1,
-      timestamp: 0,
-      version: 1,
-    },
-    {
-      access_group: 12345,
-      creator: 'charlie',
-      narrative_title: "Charlie's Storybook Narrative",
-      obj_id: 1,
-      timestamp: 0,
-      version: 8,
-    },
-    {
-      access_group: 12346,
-      creator: 'DJKhaled',
-      narrative_title: 'Another One',
-      obj_id: 1,
-      timestamp: 0,
-      version: 1,
-    },
-    {
-      access_group: 12345,
-      creator: 'charlie',
-      narrative_title: "Charlie's Storybook Narrative",
-      obj_id: 1,
-      timestamp: 0,
-      version: 8,
-    },
-    {
-      access_group: 12346,
-      creator: 'DJKhaled',
-      narrative_title: 'Another One',
-      obj_id: 1,
-      timestamp: 0,
-      version: 1,
-    },
-    {
-      access_group: 12345,
-      creator: 'charlie',
-      narrative_title: "Charlie's Storybook Narrative",
-      obj_id: 1,
-      timestamp: 0,
-      version: 8,
-    },
-    {
-      access_group: 12346,
-      creator: 'DJKhaled',
-      narrative_title: 'Another One',
-      obj_id: 1,
-      timestamp: 0,
-      version: 1,
-    },
-    {
-      access_group: 12345,
-      creator: 'charlie',
-      narrative_title: "Charlie's Storybook Narrative",
-      obj_id: 1,
-      timestamp: 0,
-      version: 8,
-    },
-    {
-      access_group: 12346,
-      creator: 'DJKhaled',
-      narrative_title: 'Another One',
-      obj_id: 1,
-      timestamp: 0,
-      version: 1,
-    },
-  ],
+  items: testItems,
 };

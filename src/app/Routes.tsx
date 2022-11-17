@@ -13,6 +13,10 @@ import Navigator from '../features/navigator/Navigator';
 import PageNotFound from '../features/layout/PageNotFound';
 import ProfileWrapper from '../features/profile/Profile';
 import { useAppSelector } from '../common/hooks';
+import {
+  narrativeSelectedPath,
+  narrativeSelectedPathWithCategory,
+} from '../common/routes';
 
 export const LOGIN_ROUTE = '/legacy/login';
 export const ROOT_REDIRECT_ROUTE = '/narratives';
@@ -36,7 +40,7 @@ const Routes: FC = () => (
       <Route path="/count" element={<Authed element={<Count />} />} />
       <Route path="/auth" element={<Auth />} />
       <Route
-        path={'/narratives/:id/:obj/:ver'}
+        path={narrativeSelectedPath}
         element={<Authed element={<Navigator />} />}
       />
       <Route
@@ -44,8 +48,8 @@ const Routes: FC = () => (
         element={<Authed element={<Navigator />} />}
       />
       <Route
-        path={'/narratives/:category/:id/:obj/:ver'}
-        element={<Navigator />}
+        path={narrativeSelectedPathWithCategory}
+        element={<Authed element={<Navigator />} />}
       />
       <Route path="/narratives" element={<Authed element={<Navigator />} />} />
       <Route path="/" element={<HashRouteRedirect />} />
