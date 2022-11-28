@@ -46,28 +46,6 @@ export const CustomizedColumns = () => (
   />
 );
 
-export const ColumnGroup = () => (
-  <Table
-    data={rows}
-    columnDefs={(columns) => [
-      columns.accessor('genome_name', {
-        header: 'Genome Name',
-      }),
-      columns.group({
-        header: 'Scaffolds',
-        columns: [
-          columns.accessor('scaffold_count', {
-            header: 'scaffold count',
-          }),
-          columns.accessor('longest_scaffold', {
-            header: 'longest scaffold',
-          }),
-        ],
-      }),
-    ]}
-  />
-);
-
 export const Paginated = () => (
   <Table
     data={rows}
@@ -97,6 +75,31 @@ export const Footer = () => (
           })
         )
     }
+  />
+);
+
+export const ColumnGroup = () => (
+  <Table
+    data={rows}
+    columnDefs={(columns) => [
+      columns.accessor('genome_name', {
+        header: 'Genome Name',
+      }),
+      columns.group({
+        header: 'Scaffolds',
+        footer: 'column group footer',
+        columns: [
+          columns.accessor('scaffold_count', {
+            header: 'scaffold count',
+            footer: 'some footer here',
+          }),
+          columns.accessor('longest_scaffold', {
+            header: 'longest scaffold',
+            footer: 'some other footer here',
+          }),
+        ],
+      }),
+    ]}
   />
 );
 

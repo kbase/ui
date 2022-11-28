@@ -56,22 +56,29 @@ $header-height: 2em;
   height: 100%;
   width: 100%;
 
+  thead {
+    position: sticky;
+    top: 0;
+  }
+
+  tfoot {
+    bottom: 0;
+    position: sticky;
+  }
+
   thead th {
     background-color: use-color("primary");
     color: use-color("white");
     height: $header-height;
-    position: sticky;
-    top: 0;
     white-space: nowrap;
   }
 
   tfoot th {
     background-color: use-color("white");
-    bottom: 0;
     color: use-color("primary-dark");
     font-style: italic;
     height: $header-height;
-    position: sticky;
+    white-space: nowrap;
   }
 
   th,
