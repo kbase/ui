@@ -53,18 +53,27 @@ describe('Table', () => {
     expect(table.querySelector('thead')).not.toBeInTheDocument();
   });
 
-  test('renders Table with header group', () => {
-    render(<Stories.ColumnGroup />);
-    const table = screen.getByTestId('table');
-    expect(table).toHaveClass(classes['table-container']);
-    expect(table.querySelectorAll('thead tr').length).toBe(2);
-  });
-
   test('renders Table with footer', () => {
     render(<Stories.Footer />);
     const table = screen.getByTestId('table');
     expect(table).toHaveClass(classes['table-container']);
     expect(table.querySelector('tfoot')).toBeInTheDocument();
+  });
+
+  test('renders Table with header group', () => {
+    render(<Stories.ColumnGroup />);
+    const table = screen.getByTestId('table');
+    expect(table).toHaveClass(classes['table-container']);
+    expect(table.querySelectorAll('thead tr').length).toBe(2);
+    expect(table.querySelectorAll('tfoot tr').length).toBe(2);
+    const headers = table.querySelectorAll('thead th');
+    expect(headers).toContain(screen.getByText('Scaffolds'));
+    expect(headers).toContain(screen.getByText('scaffold count'));
+    expect(headers).toContain(screen.getByText('longest scaffold'));
+    const footers = table.querySelectorAll('tfoot th');
+    expect(footers).toContain(screen.getByText('column group footer'));
+    expect(footers).toContain(screen.getByText('some footer here'));
+    expect(footers).toContain(screen.getByText('some other footer here'));
   });
 
   test('renders paginated Table', () => {
