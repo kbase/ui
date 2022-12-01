@@ -1,37 +1,31 @@
-import { useParams } from 'react-router-dom';
-import {
-  DataProduct as DataProductType,
-  getCollection,
-} from '../../common/api/collectionsApi';
+import { useParams, useNavigate } from 'react-router-dom';
+import { getCollection } from '../../common/api/collectionsApi';
 import { usePageTitle } from '../layout/layoutSlice';
 import styles from './Collections.module.scss';
 import { Card, CardList } from '../../common/components/Card';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { DataProduct } from './DataProduct';
 import { snakeCaseToHumanReadable } from '../../common/utils/stringUtils';
 
 export const CollectionDetail = () => {
-  const { id } = useParams();
-  const collectionQuery = getCollection.useQuery(id || '', {
-    skip: id === undefined,
+  const params = useParams();
+  const navigate = useNavigate();
+  const collectionQuery = getCollection.useQuery(params.id || '', {
+    skip: params.id === undefined,
   });
   const collection = collectionQuery.data;
   usePageTitle(`Data Collections`);
 
-  // State for data_product tabs
-  const [selectedDP, setSelectedDP] = useState<DataProductType>();
-  // Keep selectedDP up to date if collection reloads
+  const currDataProduct = collection?.data_products.find(
+    (dp) => dp.product === params.data_product
+  );
+
+  // Redirect if the data_product specified by the url DNE
   useEffect(() => {
-    const matchingDP = collection?.data_products.find(
-      (dp) =>
-        dp.product === selectedDP?.product && dp.version === selectedDP?.version
-    );
-    if (matchingDP) {
-      setSelectedDP(matchingDP);
-    } else {
-      setSelectedDP(undefined);
+    if (params.data_product && !currDataProduct) {
+      navigate(`/collections/${params.id}`);
     }
-  }, [collection?.data_products, selectedDP]);
+  }, [params.id, params.data_product, currDataProduct, navigate]);
 
   if (!collection) return <>loading...</>;
   return (
@@ -63,15 +57,17 @@ export const CollectionDetail = () => {
               key={dp.product + '|' + dp.version}
               title={snakeCaseToHumanReadable(dp.product)}
               subtitle={dp.version}
-              onClick={() => setSelectedDP(dp)}
-              selected={selectedDP === dp}
+              onClick={() =>
+                navigate(`/collections/${collection.id}/${dp.product}`)
+              }
+              selected={currDataProduct === dp}
             />
           ))}
         </CardList>
         <div className={styles['data_product_detail']}>
-          {selectedDP ? (
+          {currDataProduct ? (
             <DataProduct
-              dataProduct={selectedDP}
+              dataProduct={currDataProduct}
               collection_id={collection.id}
             />
           ) : (
