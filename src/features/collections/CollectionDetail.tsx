@@ -22,10 +22,10 @@ export const CollectionDetail = () => {
 
   // Redirect if the data_product specified by the url DNE
   useEffect(() => {
-    if (params.data_product && !currDataProduct) {
+    if (params.data_product && collection && !currDataProduct) {
       navigate(`/collections/${params.id}`);
     }
-  }, [params.id, params.data_product, currDataProduct, navigate]);
+  }, [params.id, params.data_product, collection, currDataProduct, navigate]);
 
   if (!collection) return <>loading...</>;
   return (
