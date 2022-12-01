@@ -18,7 +18,7 @@ export const CollectionDetail = () => {
   const collection = collectionQuery.data;
   usePageTitle(`Data Collections`);
 
-  // State for data_prodcut tabs
+  // State for data_product tabs
   const [selectedDP, setSelectedDP] = useState<DataProductType>();
   // Keep selectedDP up to date if collection reloads
   useEffect(() => {

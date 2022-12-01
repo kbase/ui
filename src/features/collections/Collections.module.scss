@@ -49,9 +49,8 @@ $border: 1px solid use-color("base-lighter");
 
   > .data_product_list {
     flex-grow: 0;
-    flex-shrink: 1;
-    max-width: 25%;
-    min-width: 10%;
+    flex-shrink: 0;
+    width: 8em;
   }
 
   > .data_product_detail {
@@ -59,6 +58,7 @@ $border: 1px solid use-color("base-lighter");
     flex-grow: 1;
     flex-shrink: 1;
     min-height: 100px;
+    min-width: 10%;
   }
 }
 

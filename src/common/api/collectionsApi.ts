@@ -53,6 +53,13 @@ interface CollectionsResults {
       count: number;
     }[];
   };
+  getGenomeAttribs: {
+    skip: number;
+    limit: number;
+    fields: { name: string }[];
+    table: unknown[][];
+    data?: null;
+  };
 }
 
 interface CollectionsParams {
@@ -67,6 +74,15 @@ interface CollectionsParams {
   getTaxaCountRank: {
     collection_id: string;
     rank: string;
+    load_ver_override?: string;
+  };
+  getGenomeAttribs: {
+    collection_id: string;
+    sort_on?: string;
+    sort_desc?: boolean;
+    skip?: number;
+    limit?: number;
+    output_table?: true; // will only this query style for now, for clearer types
     load_ver_override?: string;
   };
 }
@@ -156,6 +172,18 @@ export const collectionsApi = baseApi.injectEndpoints({
           params: load_ver_override ? { load_ver_override } : undefined,
         }),
     }),
+
+    getGenomeAttribs: builder.query<
+      CollectionsResults['getGenomeAttribs'],
+      CollectionsParams['getGenomeAttribs']
+    >({
+      query: ({ collection_id, ...options }) =>
+        collectionsService({
+          method: 'GET',
+          url: encode`/collections/${collection_id}/genome_attribs/`,
+          params: options,
+        }),
+    }),
   }),
 });
 export const {
@@ -166,6 +194,7 @@ export const {
   activateVersion,
   listTaxaCountRanks,
   getTaxaCountRank,
+  getGenomeAttribs,
 } = collectionsApi.endpoints;
 
 // const mockCollection = (override?: Partial<Collection>): Collection => {
