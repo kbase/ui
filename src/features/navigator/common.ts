@@ -4,6 +4,43 @@ import {
   narrativeSelectedPathWithCategory,
 } from '../../common/routes';
 
+// Types and typeguards
+export const navigatorParams = ['limit', 'search', 'sort', 'view'];
+export const searchParams = ['search', 'sort'];
+
+export const sortNames = {
+  '-updated': 'Recently updated',
+  updated: 'Least recently updated',
+  '-created': 'Recently created',
+  created: 'Oldest',
+  lex: 'Lexicographic (A-Za-z)',
+  '-lex': 'Reverse Lexicographic',
+} as const;
+
+export enum Sort {
+  '-updated' = '-updated',
+  updated = 'updated',
+  '-created' = '-created',
+  created = 'created',
+  lex = 'lex',
+  '-lex' = '-lex',
+}
+
+export enum Category {
+  own = 'own',
+  public = 'public',
+  shared = 'shared',
+  tutorials = 'tutorials',
+}
+
+export type CategoryString = keyof typeof Category;
+export const isCategoryString = (key: string): key is CategoryString =>
+  key in Category;
+
+export type SortString = keyof typeof Sort;
+export const isSortString = (key: string): key is SortString => key in Sort;
+
+// Other functions
 // Take a pathname (relative or absolute) and create a url to that pathname
 // preserving the current query parameters
 export const keepParams = (parameters: {
@@ -21,11 +58,11 @@ export const keepParams = (parameters: {
   const extraSlash = linkAbsolute ? '' : '/';
   // The PUBLIC_URL prefix should be removed from relative links.
   const publicPrefix = process.env.PUBLIC_URL;
+  const pathname = location.pathname.startsWith(publicPrefix)
+    ? location.pathname.slice(publicPrefix.length)
+    : location.pathname;
   // If the link is absolute then use it for the new pathmame,
-  // otherwise use the current path without the publicPrefix.
-  const pathnamePrefix = linkAbsolute
-    ? ''
-    : location.pathname.slice(publicPrefix.length);
+  const pathnamePrefix = linkAbsolute ? '' : pathname;
   // Create a new URL object with the appropriate href.
   const newLinkHref = origin + pathnamePrefix + extraSlash + link;
   const newLink = new URL(newLinkHref);
@@ -48,19 +85,8 @@ export const keepParamsForLocation = (parameters: {
   return (link: string) => keepParams({ location, params, link });
 };
 
-export enum Category {
-  own = 'own',
-  public = 'public',
-  shared = 'shared',
-  tutorials = 'tutorials',
-}
-
-export type CategoryStrings = keyof typeof Category;
-
-export const searchParams = ['search', 'sort'];
-
 export const narrativePath = (parameters: {
-  categoryPath: CategoryStrings | null;
+  categoryPath: CategoryString | null;
   id: string;
   obj: string;
   ver: string;

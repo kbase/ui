@@ -21,7 +21,7 @@ test('NarrativeList renders', async () => {
     </Provider>
   );
   expect(container).toBeTruthy();
-  expect(container.querySelectorAll('.narrative_item_outer')).toHaveLength(4);
+  expect(container.querySelectorAll('.narrative_item_outer')).toHaveLength(21);
   expect(screen.getByText('No more results.')).toBeInTheDocument();
 });
 
