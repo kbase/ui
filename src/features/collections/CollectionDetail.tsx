@@ -253,6 +253,7 @@ const Tree = () => {
 
   const [nodeList, setNodeList] = useState<Node[]>(someNodes);
   const [leafCount, setLeafCount] = useState<number>(1);
+  const [enterFrom, setEnterFrom] = useState<[number, number]>([0, 0]);
 
   const treeLayout = d3
     .cluster<Node>()
@@ -273,126 +274,159 @@ const Tree = () => {
     [hierarchy]
   );
 
-  const { svgElement, redraw } = useD3Viz({
-    init: (svg) => {
-      svg
-        .attr('width', vizOpts.treeWidth)
-        .attr('height', vizOpts.heightPerLeaf);
-      svg.append('g').classed('edge-layer', true);
-      svg.append('g').classed('node-layer', true);
-    },
-    draw: (svg) => {
-      // Produces a tree layout (with X and Y flipped from what we want)
-      const treeRoot = treeLayout(hierarchy);
+  const { svgElement, redraw } = useD3Viz(
+    {
+      init: (svg) => {
+        svg
+          .attr('width', vizOpts.treeWidth)
+          .attr('height', vizOpts.heightPerLeaf);
+        svg.append('g').classed('edge-layer', true);
+        svg.append('g').classed('node-layer', true);
+      },
+      draw: (svg) => {
+        // Produces a tree layout (with X and Y flipped from what we want)
+        const treeRoot = treeLayout(hierarchy);
+        const t = d3.transition().duration(200).ease(d3.easeLinear);
 
-      const currLeafCount = treeRoot.leaves().length;
-      setLeafCount(currLeafCount);
-      svg.attr('height', currLeafCount * vizOpts.heightPerLeaf);
+        const currLeafCount = treeRoot.leaves().length;
+        setLeafCount(currLeafCount);
+        const currHeight = currLeafCount * vizOpts.heightPerLeaf;
+        svg.transition(t).attr('height', currHeight);
 
-      const xExtent = d3.extent(
-        treeRoot.descendants().map((d) => d.data.rootDist)
-      );
-      const xScale = d3
-        .scaleLinear([
-          vizOpts.pad,
-          Number(svg.attr('width')) - vizOpts.pad - vizOpts.treeLabelWidth,
-        ])
-        .domain([xExtent[0] ?? 0, xExtent[1] ?? 0]);
+        const xExtent = d3.extent(
+          treeRoot.descendants().map((d) => d.data.rootDist)
+        );
+        const xScale = d3
+          .scaleLinear([
+            vizOpts.pad,
+            Number(svg.attr('width')) - vizOpts.pad - vizOpts.treeLabelWidth,
+          ])
+          .domain([xExtent[0] ?? 0, xExtent[1] ?? 0]);
 
-      const yExtent = d3.extent(treeRoot.descendants().map((d) => d.x));
-      const yScale = d3
-        .scaleLinear([
-          vizOpts.pad + vizOpts.heightPerLeaf / 2,
-          Number(svg.attr('height')) - vizOpts.pad - vizOpts.heightPerLeaf / 2,
-        ])
-        .domain([yExtent[0] ?? 0, yExtent[1] ?? 0]);
+        const yExtent = d3.extent(treeRoot.descendants().map((d) => d.x));
+        const yScale = d3
+          .scaleLinear([
+            vizOpts.pad + vizOpts.heightPerLeaf / 2,
+            currHeight - vizOpts.pad - vizOpts.heightPerLeaf / 2,
+          ])
+          .domain([yExtent[0] ?? 0, yExtent[1] ?? 0]);
 
-      const nodes = svg
-        .select('g.node-layer')
-        .selectAll<SVGGElement, d3.HierarchyPointNode<Node>>('g.node')
-        .data<d3.HierarchyPointNode<Node>>(treeRoot.descendants());
-      nodes.exit().remove();
-      const nodesEnt = nodes.enter().append('g').classed('node', true);
-      nodesEnt.append('circle').attr('cx', 0).attr('cy', 0).append('title');
-      nodesEnt
-        .append('text')
-        .attr('x', 8)
-        .attr('y', 5 / 2)
-        .attr('font-size', '10px');
-      const allNodes = nodesEnt.merge(nodes);
-      allNodes.attr(
-        'transform',
-        (d) => `translate(${xScale(d.data.rootDist)},${yScale(d.x) || 0})`
-      );
-      allNodes
-        .select('circle')
-        .attr('r', (d) => (d.data.leaves.isLeaf ? 5 : 3));
-      allNodes.select('circle title').text((d) => String(d.id));
-
-      allNodes
-        .select('text')
-        .text((d) => (d.data.leaves.isLeaf ? `Node ${d.id}` : ''));
-
-      allNodes
-        .on('click', null)
-        .filter((d) => !d.data.leaves.isLeaf)
-        .on('click', (event, d) => {
-          console.log('foo');
-          if (d.children) {
-            hiddenChildren[d.data.nodeId] = d.children;
-            d.children = undefined;
-          } else if (d.data.nodeId in hiddenChildren) {
-            d.children = hiddenChildren[d.data.nodeId];
-            delete hiddenChildren[d.data.nodeId];
-          }
-          redraw();
-        });
-
-      const dashLineLayout = d3.line();
-      const dLines = svg
-        .select('g.edge-layer')
-        .selectAll<SVGGElement, d3.HierarchyPointNode<Node>>('g.dash-line')
-        .data(treeRoot.descendants().filter((d) => d.data.leaves.isLeaf));
-      dLines.exit().remove();
-      const dLinesEnt = dLines.enter().append('g').classed('dash-line', true);
-      dLinesEnt
-        .append('path')
-        .attr('fill', 'none')
-        .attr('stroke', 'grey')
-        .attr('stroke-dasharray', '1');
-      const allDLines = dLinesEnt.merge(dLines);
-      allDLines.select('path').attr('d', (d) =>
-        dashLineLayout([
-          [xScale(d.data.rootDist), yScale(d.x)],
-          [vizOpts.treeWidth, yScale(d.x)],
-        ])
-      );
-
-      const edges = svg
-        .select('g.edge-layer')
-        .selectAll<SVGGElement, d3.HierarchyPointLink<Node>>('g.edge')
-        .data(treeRoot.links());
-      edges.exit().remove();
-      const edgesEnt = edges.enter().append('g').classed('edge', true);
-      edgesEnt.append('path').attr('fill', 'none').attr('stroke', 'black');
-      const allLinks = edgesEnt.merge(edges);
-      allLinks.select('path').attr(
-        'd',
-        d3
-          .link<d3.HierarchyPointLink<Node>, d3.HierarchyPointNode<Node>>(
-            d3.curveStepBefore
+        const nodes = svg
+          .select('g.node-layer')
+          .selectAll<SVGGElement, d3.HierarchyPointNode<Node>>('g.node')
+          .data<d3.HierarchyPointNode<Node>>(
+            treeRoot.descendants(),
+            (d) => d.data.nodeId
+          );
+        nodes.exit().remove();
+        const nodesEnt = nodes.enter().append('g').classed('node', true);
+        nodesEnt
+          .attr(
+            'transform',
+            (d) => `translate(${enterFrom[0]},${enterFrom[1]})`
           )
-          .y((d) => yScale(d.x) || 0)
-          .x((d) => xScale(d.data.rootDist) || 0)
-      );
+          .append('circle')
+          .attr('cx', 0)
+          .attr('cy', 0)
+          .append('title');
+        nodesEnt
+          .append('text')
+          .attr('x', 8)
+          .attr('y', 5 / 2)
+          .attr('font-size', '10px');
+        const allNodes = nodesEnt.merge(nodes);
+        allNodes
+          .transition(t)
+          .attr(
+            'transform',
+            (d) => `translate(${xScale(d.data.rootDist)},${yScale(d.x) || 0})`
+          );
+        allNodes
+          .select('circle')
+          .attr('r', (d) => (d.data.leaves.isLeaf ? 5 : 3));
+        allNodes.select('circle title').text((d) => String(d.id));
+
+        allNodes
+          .select('text')
+          .text((d) => (d.data.leaves.isLeaf ? `Node ${d.id}` : ''));
+
+        allNodes
+          .on('click', null)
+          .filter((d) => !d.data.leaves.isLeaf)
+          .on('click', (event, d) => {
+            if (d.children) {
+              hiddenChildren[d.data.nodeId] = d.children;
+              d.children = undefined;
+            } else if (d.data.nodeId in hiddenChildren) {
+              d.children = hiddenChildren[d.data.nodeId];
+              delete hiddenChildren[d.data.nodeId];
+            }
+            setEnterFrom([xScale(d.data.rootDist), yScale(d.x)]);
+            redraw();
+          });
+
+        const dashLineLayout = d3.line();
+        const dLines = svg
+          .select('g.edge-layer')
+          .selectAll<SVGGElement, d3.HierarchyPointNode<Node>>('g.dash-line')
+          .data(
+            treeRoot.descendants().filter((d) => d.data.leaves.isLeaf),
+            (d) => d.data.nodeId
+          );
+        dLines.exit().remove();
+        const dLinesEnt = dLines.enter().append('g').classed('dash-line', true);
+        dLinesEnt
+          .append('path')
+          .attr('fill', 'none')
+          .attr('stroke', 'grey')
+          .attr('stroke-dasharray', '1')
+          .attr('d', (d) => dashLineLayout([enterFrom, enterFrom]));
+        const allDLines = dLinesEnt.merge(dLines);
+        allDLines
+          .select('path')
+          .transition(t)
+          .attr('d', (d) =>
+            dashLineLayout([
+              [xScale(d.data.rootDist), yScale(d.x)],
+              [vizOpts.treeWidth, yScale(d.x)],
+            ])
+          );
+
+        const edges = svg
+          .select('g.edge-layer')
+          .selectAll<SVGGElement, d3.HierarchyPointLink<Node>>('g.edge')
+          .data(treeRoot.links(), (d) => d.target.data.nodeId);
+        edges.exit().remove();
+        const edgesEnt = edges.enter().append('g').classed('edge', true);
+        edgesEnt
+          .append('path')
+          .attr('fill', 'none')
+          .attr('stroke', 'black')
+          .attr('d', (d) => d3.line()([enterFrom, enterFrom, enterFrom]));
+        const allLinks = edgesEnt.merge(edges);
+        allLinks
+          .select('path')
+          .transition(t)
+          .attr(
+            'd',
+            d3
+              .link<d3.HierarchyPointLink<Node>, d3.HierarchyPointNode<Node>>(
+                d3.curveStepBefore
+              )
+              .y((d) => yScale(d.x) || 0)
+              .x((d) => xScale(d.data.rootDist) || 0)
+          );
+        console.log('drawn');
+      },
     },
-  });
+    []
+  );
 
   useEffect(redraw, [redraw, nodeList]);
 
   const tableData = useMemo(
-    () => d3.range(leafCount).map((d) => [d]),
-    [leafCount]
+    () => hierarchy.leaves().map((d) => [d]),
+    [leafCount, hierarchy]
   );
 
   return (
@@ -421,13 +455,12 @@ const Tree = () => {
               cell: (d) => (
                 <span
                   style={{
-                    color: hierarchy.leaves()[d.cell.getValue()].data.leaves
-                      .isLeaf
+                    color: d.cell.getValue().data.leaves.isLeaf
                       ? 'green'
                       : 'red',
                   }}
                 >
-                  {hierarchy.leaves()[d.cell.getValue()].data.nodeId}
+                  {d.cell.getValue().data.nodeId}
                 </span>
               ),
             }),
