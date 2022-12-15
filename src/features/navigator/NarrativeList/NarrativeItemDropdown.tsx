@@ -5,7 +5,11 @@ import { faCheck, faCaretDown } from '@fortawesome/free-solid-svg-icons';
 import { useAppSelector } from '../../../common/hooks';
 import { Dropdown } from '../../../common/components/Dropdown';
 import { SelectOption } from '../../../common/components/Select';
-import { keepParamsForLocation, narrativePath, searchParams } from '../common';
+import {
+  keepParamsForLocation,
+  narrativePath,
+  navigatorParams,
+} from '../common';
 import { categorySelected, navigatorSelected } from '../navigatorSlice';
 import classes from './NarrativeList.module.scss';
 
@@ -21,24 +25,21 @@ const NarrativeItemDropdown: FC<NarrativeItemDropdownProps> = ({
   version,
 }) => {
   const narrativeSelected = useAppSelector(navigatorSelected);
-  console.log({ narrativeSelected }); // eslint-disable-line no-console
   const categorySet = useAppSelector(categorySelected);
   const navigate = useNavigate();
   const [id, obj, ver] = narrative.split('/');
   const versionLatest = +ver;
-  const [idSelected, objSelected, versionSelected] = narrativeSelected
+  const [versionSelected] = narrativeSelected
     ? narrativeSelected.split('/')
     : [null, null, null];
-  const active = idSelected === id && objSelected === obj;
-  console.log({ active, narrativeSelected }); // eslint-disable-line no-console
   const loc = useLocation();
-  const keepSearch = keepParamsForLocation({
+  const keepNavigatorParams = keepParamsForLocation({
     location: loc,
-    params: searchParams,
+    params: navigatorParams,
   });
   const versionPath = (version: number) => {
     const categoryPath = categorySet !== 'own' ? categorySet : null;
-    return keepSearch(
+    return keepNavigatorParams(
       narrativePath({
         id,
         obj,
@@ -78,11 +79,8 @@ const NarrativeItemDropdown: FC<NarrativeItemDropdownProps> = ({
     });
 
   const handleDropdownChange = (event: SelectOption[]) => {
-    console.log({ event }); // eslint-disable-line no-console
     const versionSelected = +event[0].value;
-    const upa = `${id}/${obj}/${event[0].value}`;
     const path = versionPath(versionSelected);
-    console.log({ upa, path }); // eslint-disable-line no-console
     onVersionSelect(versionSelected);
     navigate(path);
   };

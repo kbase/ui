@@ -51,6 +51,7 @@ export const NarrativesView: FC<{ realname: string; yours: boolean }> = ({
         itemsRemaining={0}
         loading={false}
         narrative={null}
+        nextLimit={''}
         showVersionDropdown
       />
     </div>

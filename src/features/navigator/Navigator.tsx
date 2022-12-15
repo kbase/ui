@@ -16,6 +16,7 @@ import {
   isSortString,
   isCategoryString,
   keepParamsForLocation,
+  navigatorParams,
   searchParams,
   Category,
   Sort,
@@ -26,10 +27,11 @@ import {
   setCategory,
   useNarratives,
 } from './navigatorSlice';
+import NarrativeList from './NarrativeList/NarrativeList';
+import classes from './Navigator.module.scss';
 import RefreshButton from './RefreshButton';
 import SearchInput from './SearchInput';
 import SortSelect from './SortSelect';
-import classes from './Navigator.module.scss';
 
 const NarrativeNewButton: FC = () => (
   <a href="/#narrativemanager/new" rel="noopener noreferrer" target="_blank">
@@ -97,7 +99,6 @@ const FilterContainer: FC<{ search: string; sort: string }> = ({
   );
 };
 
-const NarrativeList = PlaceholderFactory('NarrativeList');
 /* NarrativeView should take (at least) a narrative upa as prop, but if it is
    null then it should show a message saying there is no narrative selected.
 */
@@ -105,10 +106,11 @@ const NarrativeView = PlaceholderFactory('NarrativeView');
 
 const MainContainer: FC<{
   limit: number;
+  limitTemplate: (limit: number) => string;
   items: NarrativeListDoc[];
   narrative: string | null;
   view: string;
-}> = ({ limit, items, narrative, view }) => {
+}> = ({ limit, limitTemplate, items, narrative, view }) => {
   return (
     <div className={classes.main} /* main fragment */>
       <div className={classes.container}>
@@ -118,11 +120,12 @@ const MainContainer: FC<{
           <>
             <div className={classes.list}>
               <NarrativeList
-                hasMoreItems={items.length - limit > 0}
+                hasMoreItems={items.length > limit}
                 items={items.slice(0, limit)}
-                itemsRemaining={items.length - limit}
+                itemsRemaining={Math.max(items.length - limit, 0)}
                 loading={false}
                 narrative={narrative}
+                nextLimit={limitTemplate(limit + 20)}
                 showVersionDropdown={true}
               />
             </div>
@@ -171,17 +174,23 @@ const Navigator: FC = () => {
   const previouslySelected = useAppSelector(navigatorSelected);
   const { category, id, obj, ver } = useParams();
   const items = useNarratives();
+  const loc = useLocation();
+  const categoryFilter =
+    category && isCategoryString(category)
+      ? Category[category]
+      : Category['own'];
   const searchParamsDefaults = new URLSearchParams(searchParamDefaults);
   const [searchParams] = useSearchParams(searchParamsDefaults);
   const { limit, search, sort, view } = Object.fromEntries(
     searchParams.entries()
   );
+  const keepNavigatorParams = keepParamsForLocation({
+    location: loc,
+    params: navigatorParams.slice(1), // keep all except for limit
+  });
+  const limitTemplate = (nextLimit: number) =>
+    keepNavigatorParams(`?limit=${nextLimit}`);
   const sortKey = sort && isSortString(sort) ? Sort[sort] : Sort['-updated'];
-  const categoryFilter =
-    category && isCategoryString(category)
-      ? Category[category]
-      : Category['own'];
-
   const narrativeSelected = getNarrativeSelected({ id, obj, ver, items });
   // hooks that update state
   useEffect(() => {
@@ -205,7 +214,13 @@ const Navigator: FC = () => {
             search={search}
             sort={sortKey}
           />
-          <MainContainer limit={20} items={[]} narrative={null} view={view} />
+          <MainContainer
+            limit={20}
+            limitTemplate={(n) => ''}
+            items={[]}
+            narrative={null}
+            view={view}
+          />
         </section>
       </>
     );
@@ -221,6 +236,7 @@ const Navigator: FC = () => {
         />
         <MainContainer
           limit={+limit}
+          limitTemplate={limitTemplate}
           items={items}
           narrative={narrativeSelected}
           view={view}
