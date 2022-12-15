@@ -1,13 +1,25 @@
 import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FC, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import {
+  Link,
+  useLocation,
+  useParams,
+  useSearchParams,
+} from 'react-router-dom';
 import { Button } from '../../common/components';
 import { PlaceholderFactory } from '../../common/components/PlaceholderFactory';
 import { useAppDispatch, useAppSelector } from '../../common/hooks';
 import { NarrativeListDoc } from '../../common/types/NarrativeDoc';
 import { usePageTitle } from '../../features/layout/layoutSlice';
-import { keepParamsForLocation, searchParams, Category, Sort } from './common';
+import {
+  isSortString,
+  isCategoryString,
+  keepParamsForLocation,
+  searchParams,
+  Category,
+  Sort,
+} from './common';
 import {
   navigatorSelected,
   select,
@@ -15,6 +27,7 @@ import {
   useNarratives,
 } from './navigatorSlice';
 import RefreshButton from './RefreshButton';
+import SortSelect from './SortSelect';
 import classes from './Navigator.module.scss';
 
 const NarrativeNewButton: FC = () => (
@@ -71,7 +84,6 @@ const HeaderContainer: FC<{ category: string; search: string; sort: string }> =
   );
 
 const SearchInput = PlaceholderFactory('SearchInput');
-const SortSelect = PlaceholderFactory('SortSelect');
 const FilterContainer: FC<{ search: string; sort: string }> = ({
   search,
   sort,
@@ -127,6 +139,12 @@ const MainContainer: FC<{
 };
 
 const emptyItem = { access_group: 0, obj_id: 0, version: 0 } as const;
+const searchParamDefaults = {
+  limit: '20',
+  search: '',
+  sort: Sort['-updated'],
+  view: 'data',
+} as const;
 const narrativesByAccessGroup = (narratives: NarrativeListDoc[]) => {
   return Object.fromEntries(
     narratives.map((narrative) => [narrative.access_group, narrative])
@@ -147,23 +165,24 @@ const getNarrativeSelected = (parameters: {
   return id && obj && ver ? `${id}/${obj}/${ver}` : upa;
 };
 // Navigator component
-// TODO: Pare down to make new commits for easier review.
 const Navigator: FC = () => {
   usePageTitle('Narrative Navigator');
   const dispatch = useAppDispatch();
   const previouslySelected = useAppSelector(navigatorSelected);
+  const { category, id, obj, ver } = useParams();
   const items = useNarratives();
-  const categoryFilter = Category['own'];
-  const limit = 20;
-  const search = '';
-  const sortKey = Sort['-updated'];
-  const view = 'data';
-  const narrativeSelected = getNarrativeSelected({
-    id: undefined,
-    obj: undefined,
-    ver: undefined,
-    items,
-  });
+  const searchParamsDefaults = new URLSearchParams(searchParamDefaults);
+  const [searchParams] = useSearchParams(searchParamsDefaults);
+  const { limit, search, sort, view } = Object.fromEntries(
+    searchParams.entries()
+  );
+  const sortKey = sort && isSortString(sort) ? Sort[sort] : Sort['-updated'];
+  const categoryFilter =
+    category && isCategoryString(category)
+      ? Category[category]
+      : Category['own'];
+
+  const narrativeSelected = getNarrativeSelected({ id, obj, ver, items });
   // hooks that update state
   useEffect(() => {
     dispatch(setCategory(categoryFilter));
