@@ -27,6 +27,7 @@ import {
   useNarratives,
 } from './navigatorSlice';
 import RefreshButton from './RefreshButton';
+import SearchInput from './SearchInput';
 import SortSelect from './SortSelect';
 import classes from './Navigator.module.scss';
 
@@ -83,14 +84,13 @@ const HeaderContainer: FC<{ category: string; search: string; sort: string }> =
     </header>
   );
 
-const SearchInput = PlaceholderFactory('SearchInput');
 const FilterContainer: FC<{ search: string; sort: string }> = ({
   search,
   sort,
 }) => {
   return (
     <div className={classes.search}>
-      <SearchInput label={''} search={search} />
+      <SearchInput label={<></>} search={search} />
       <SortSelect sort={sort} />
       <RefreshButton />
     </div>
