@@ -1,13 +1,20 @@
 import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
-import { FC } from 'react';
+import { FC, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '../../common/components';
 import { PlaceholderFactory } from '../../common/components/PlaceholderFactory';
+import { useAppDispatch, useAppSelector } from '../../common/hooks';
 import { NarrativeListDoc } from '../../common/types/NarrativeDoc';
 import { usePageTitle } from '../../features/layout/layoutSlice';
-import { testItems } from './NarrativeList/NarrativeList.fixture';
 import { keepParamsForLocation, searchParams, Category, Sort } from './common';
+import {
+  navigatorSelected,
+  select,
+  setCategory,
+  useNarratives,
+} from './navigatorSlice';
+import RefreshButton from './RefreshButton';
 import classes from './Navigator.module.scss';
 
 const NarrativeNewButton: FC = () => (
@@ -63,7 +70,6 @@ const HeaderContainer: FC<{ category: string; search: string; sort: string }> =
     </header>
   );
 
-const RefreshButton = PlaceholderFactory('RefreshButton');
 const SearchInput = PlaceholderFactory('SearchInput');
 const SortSelect = PlaceholderFactory('SortSelect');
 const FilterContainer: FC<{ search: string; sort: string }> = ({
@@ -144,7 +150,9 @@ const getNarrativeSelected = (parameters: {
 // TODO: Pare down to make new commits for easier review.
 const Navigator: FC = () => {
   usePageTitle('Narrative Navigator');
-  const items = testItems;
+  const dispatch = useAppDispatch();
+  const previouslySelected = useAppSelector(navigatorSelected);
+  const items = useNarratives();
   const categoryFilter = Category['own'];
   const limit = 20;
   const search = '';
@@ -156,6 +164,13 @@ const Navigator: FC = () => {
     ver: undefined,
     items,
   });
+  // hooks that update state
+  useEffect(() => {
+    dispatch(setCategory(categoryFilter));
+    if (previouslySelected !== narrativeSelected) {
+      dispatch(select(narrativeSelected));
+    }
+  }, [categoryFilter, dispatch, previouslySelected, narrativeSelected]);
   /*
   The default selected narrative should be the 0 indexed item in items.
   If the length of items is 0 then a message should be shown.
