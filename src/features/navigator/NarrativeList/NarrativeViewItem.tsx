@@ -3,7 +3,11 @@ import { useLocation, useParams, Link } from 'react-router-dom';
 import * as timeago from 'timeago.js';
 import { useAppSelector } from '../../../common/hooks';
 import { NarrativeListDoc } from '../../../common/types/NarrativeDoc';
-import { keepParamsForLocation, narrativePath, searchParams } from '../common';
+import {
+  keepParamsForLocation,
+  narrativePath,
+  navigatorParams,
+} from '../common';
 import { categorySelected } from '../navigatorSlice';
 import NarrativeItemDropdown from './NarrativeItemDropdown';
 import classes from './NarrativeList.module.scss';
@@ -39,9 +43,9 @@ const NarrativeViewItem: FC<NarrativeViewItemProps> = ({
   const timeElapsed = timeago.format(timestamp * 1000);
   const categorySet = useAppSelector(categorySelected);
   const loc = useLocation();
-  const keepSearch = keepParamsForLocation({
+  const keepNavigatorParams = keepParamsForLocation({
     location: loc,
-    params: searchParams,
+    params: navigatorParams,
   });
   // notify upa change once new narrative item is focused on
   useEffect(() => {
@@ -56,7 +60,7 @@ const NarrativeViewItem: FC<NarrativeViewItemProps> = ({
 
   const narrativeViewItemPath = (version: number) => {
     const categoryPath = categorySet !== 'own' ? categorySet : null;
-    return keepSearch(
+    return keepNavigatorParams(
       narrativePath({
         id: access_group.toString(),
         obj: obj_id.toString(),
@@ -68,7 +72,6 @@ const NarrativeViewItem: FC<NarrativeViewItemProps> = ({
 
   const pathVersion = active ? +selectedVersion : version;
   const path = narrativeViewItemPath(pathVersion);
-  console.log({ upa, path, selected: active }); // eslint-disable-line no-console
   return (
     <section key={idx}>
       <Link
@@ -77,9 +80,7 @@ const NarrativeViewItem: FC<NarrativeViewItemProps> = ({
       >
         <div className={classes.narrative_item_inner}>
           <div className={classes.narrative_item_text}>
-            <div>
-              {narrative_title || 'Untitiled'} {upa}
-            </div>
+            <div>{narrative_title || 'Untitiled'}</div>
             {showVersionDropdown && active ? (
               <NarrativeItemDropdown
                 narrative={upa}

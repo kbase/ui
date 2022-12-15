@@ -1,8 +1,9 @@
-import classes from './NarrativeList.module.scss';
-import NarrativeViewItem from './NarrativeViewItem';
 import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
 import { faCog } from '@fortawesome/free-solid-svg-icons';
+import { Link } from 'react-router-dom';
 import { NarrativeListDoc } from '../../../common/types/NarrativeDoc';
+import classes from './NarrativeList.module.scss';
+import NarrativeViewItem from './NarrativeViewItem';
 
 interface NarrativeListProps {
   hasMoreItems: boolean;
@@ -10,6 +11,7 @@ interface NarrativeListProps {
   itemsRemaining: number;
   loading: boolean;
   narrative: string | null;
+  nextLimit: string;
   showVersionDropdown: boolean;
   onLoadMoreItems?: () => void;
   sort?: string; // do we need it
@@ -45,7 +47,13 @@ function NarrativeList(props: NarrativeListProps) {
   }
 
   function hasMoreButton() {
-    const { itemsRemaining, hasMoreItems, loading, onLoadMoreItems } = props;
+    const {
+      itemsRemaining,
+      hasMoreItems,
+      loading,
+      onLoadMoreItems,
+      nextLimit,
+    } = props;
     if (!hasMoreItems) {
       return <span className={classes.list_footer}>No more results.</span>;
     }
@@ -62,12 +70,13 @@ function NarrativeList(props: NarrativeListProps) {
       );
     }
     return (
-      <span
+      <Link
         className={`${classes.list_footer} ${classes.link_action}`}
         onClick={onLoadMoreItems}
+        to={nextLimit}
       >
         Load more ({itemsRemaining} remaining)
-      </span>
+      </Link>
     );
   }
 

@@ -31,7 +31,7 @@ test('NarrativeViewItem renders', () => {
   expect(
     screen.getByText('Updated 52 years ago by JaRule')
   ).toBeInTheDocument();
-  expect(screen.getByText('4000', { exact: false })).toBeInTheDocument();
+  expect(screen.getByText('cool', { exact: false })).toBeInTheDocument();
 });
 
 test('NarrativeViewItem displays active class', () => {
