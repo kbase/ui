@@ -1,7 +1,15 @@
 import { fireEvent, render } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { createTestStore } from '../../app/store';
+import { Category } from './common';
 import RefreshButton from './RefreshButton';
+
+const initialFreshState = {
+  category: Category['own'],
+  fresh: true,
+  narratives: [],
+  selected: null,
+};
 
 test('RefreshButton renders', () => {
   const { container } = render(
@@ -14,12 +22,13 @@ test('RefreshButton renders', () => {
 });
 
 test('RefreshButton sets fresh to false when clicked', () => {
-  const store = createTestStore({ navigator: { fresh: true } });
+  const store = createTestStore({ navigator: initialFreshState });
   const { container } = render(
     <Provider store={store}>
       <RefreshButton />
     </Provider>
   );
-  fireEvent.click(container.querySelector('.button.refresh'));
+  const refreshButton = container.querySelector('.button.refresh');
+  refreshButton && fireEvent.click(refreshButton);
   expect(store.getState().navigator.fresh).toBeFalsy();
 });

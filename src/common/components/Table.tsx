@@ -33,7 +33,7 @@ export type ColumnDefs<Datum> = (
  * [TanStack/table](https://tanstack.com/table/v8/docs/) see those docs for
  * detailed documentation on column definitions.
  */
-export const Table = <Datum extends unknown>({
+export const Table = <Datum,>({
   data,
   columnDefs,
   className,
@@ -111,11 +111,7 @@ export const Table = <Datum extends unknown>({
   );
 };
 
-const Pagination = <Datum extends unknown>({
-  table,
-}: {
-  table: TableType<Datum>;
-}) => {
+const Pagination = <Datum,>({ table }: { table: TableType<Datum> }) => {
   const totalButtons = 9; // Odd, >=9
   const buttons: (number | ReturnType<typeof Button>)[] = [];
   const sideAmt = (totalButtons - 3) / 2; // how many bttns per side
@@ -191,11 +187,7 @@ const Pagination = <Datum extends unknown>({
   );
 };
 
-const TableHeader = <Datum extends unknown>({
-  table,
-}: {
-  table: TableType<Datum>;
-}) => (
+const TableHeader = <Datum,>({ table }: { table: TableType<Datum> }) => (
   <thead>
     {table.getHeaderGroups().map((headerGroup) => (
       <tr key={headerGroup.id}>
@@ -233,11 +225,7 @@ const TableHeader = <Datum extends unknown>({
   </thead>
 );
 
-const TableFooter = <Datum extends unknown>({
-  table,
-}: {
-  table: TableType<Datum>;
-}) => (
+const TableFooter = <Datum,>({ table }: { table: TableType<Datum> }) => (
   <tfoot>
     {table.getFooterGroups().map((footerGroup) => (
       <tr key={footerGroup.id}>

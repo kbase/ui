@@ -15,6 +15,7 @@ test('NarrativeList renders', async () => {
           itemsRemaining={0}
           loading={false}
           narrative={null}
+          nextLimit={''}
           showVersionDropdown={true}
         />
       </Router>
@@ -35,6 +36,7 @@ test('NarrativeList displays loading circle', async () => {
           itemsRemaining={0}
           loading={true}
           narrative={null}
+          nextLimit={''}
           showVersionDropdown={true}
         />
       </Router>
@@ -55,6 +57,7 @@ test('NarrativeList can load more items', async () => {
           itemsRemaining={42}
           loading={false}
           narrative={null}
+          nextLimit={''}
           onLoadMoreItems={onLoadMoreItemsSpy}
           showVersionDropdown={true}
         />
