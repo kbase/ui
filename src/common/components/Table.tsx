@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   createColumnHelper,
   ColumnHelper,
@@ -9,6 +9,7 @@ import {
   getPaginationRowModel,
   flexRender,
   SortingState,
+  PaginationState,
   HeaderGroup,
   DeepKeys,
   Table as TableType,
@@ -20,6 +21,7 @@ import {
   faCaretDown,
   faCaretUp,
   faSort,
+  faSpinner,
 } from '@fortawesome/free-solid-svg-icons';
 import classes from './Table.module.scss';
 import { Button } from './Button';
@@ -27,6 +29,31 @@ import { Button } from './Button';
 export type ColumnDefs<Datum> = (
   columnHelper: ColumnHelper<Datum>
 ) => ColumnDef<Datum, any>[]; // eslint-disable-line @typescript-eslint/no-explicit-any
+
+interface StaticTableProps {
+  pageSize?: number;
+  pageCount?: never;
+  showLoader?: never;
+  onTableChange?: never;
+}
+
+interface DynamicTableProps {
+  pageSize: number;
+  pageCount: number;
+  showLoader?: boolean;
+  onTableChange: (state: {
+    sortBy?: string;
+    sortDesc: boolean;
+    pageIndex: number;
+    pageSize: number;
+  }) => void;
+}
+
+type TableProps<Datum> = {
+  data: Datum[];
+  columnDefs?: ColumnDefs<Datum>;
+  className?: string;
+} & (DynamicTableProps | StaticTableProps);
 
 /**
  * Table component based on
@@ -37,14 +64,12 @@ export const Table = <Datum extends unknown>({
   data,
   columnDefs,
   className,
-  pageSize = false,
-}: {
-  data: Datum[];
-  columnDefs?: ColumnDefs<Datum>;
-  className?: string;
-  pageSize?: number | false;
-}) => {
-  const [sorting, setSorting] = useState<SortingState>([]);
+  pageSize = Number.MAX_SAFE_INTEGER,
+  pageCount,
+  showLoader,
+  onTableChange,
+}: TableProps<Datum>) => {
+  const isDynamic = onTableChange ? true : false;
 
   const defaultColumnDefs = useDefaultColumnDefs<Datum>(data[0]);
   const currentColumnDefs = columnDefs || defaultColumnDefs;
@@ -53,26 +78,54 @@ export const Table = <Datum extends unknown>({
     return currentColumnDefs(columnHelper);
   }, [currentColumnDefs]);
 
+  const [sortState, setSortState] = useState<SortingState>([]);
+  const [pageState, setPageState] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize,
+  });
+
+  const tableChangeRef = useRef(onTableChange);
+  tableChangeRef.current = onTableChange;
+  useEffect(() => {
+    if (tableChangeRef.current)
+      tableChangeRef.current({
+        ...pageState,
+        sortBy: sortState[0]?.id,
+        sortDesc: sortState[0]?.desc ?? true,
+      });
+  }, [pageState, sortState]);
+
   const table = useReactTable({
     data,
     columns,
     state: {
-      sorting,
+      sorting: sortState,
+      pagination: pageState,
     },
-    onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
+
     getSortedRowModel: getSortedRowModel(),
+    onSortingChange: setSortState,
+    manualSorting: isDynamic,
+
     getPaginationRowModel: getPaginationRowModel(),
+    onPaginationChange: setPageState,
+    manualPagination: isDynamic,
+    pageCount: pageCount,
   });
 
   const [shouldPaginate, setShouldPaginate] = useState(false);
   useEffect(() => {
-    const paginated = !!pageSize && pageSize > 0;
+    // Should show pagination buttons if pageSize is set on a table, but not if
+    // the table is dynamic without a pageCount >=1
+    let paginated = pageSize !== Number.MAX_SAFE_INTEGER;
+    if (paginated && pageCount !== undefined) {
+      paginated = pageCount >= 1;
+    }
     // If pagination is disabled, set the tanstack page size to MAX_SAFE_INTEGER
-    const size = paginated ? pageSize : Number.MAX_SAFE_INTEGER;
-    table.setPageSize(size);
+    table.setPageSize(pageSize);
     setShouldPaginate(paginated);
-  }, [pageSize, table]);
+  }, [isDynamic, pageCount, pageSize, table]);
 
   const shouldRenderHeader = someHeaderDefines(
     'header',
@@ -102,9 +155,16 @@ export const Table = <Datum extends unknown>({
                 ))}
               </tr>
             ))}
+            {/* Add an empty <tr> for empty state to prevent header/footer stretching */}
+            {table.getRowModel().rows.length < 1 ? <tr /> : undefined}
           </tbody>
           {shouldRenderFooter ? <TableFooter table={table} /> : undefined}
         </table>
+        {showLoader ? (
+          <div className={classes['loader']}>
+            <FAIcon icon={faSpinner} spin size={'2x'} />
+          </div>
+        ) : null}
       </div>
       {shouldPaginate ? <Pagination table={table} /> : undefined}
     </div>
@@ -118,7 +178,7 @@ const Pagination = <Datum extends unknown>({
 }) => {
   const totalButtons = 9; // Odd, >=9
   const buttons: (number | ReturnType<typeof Button>)[] = [];
-  const sideAmt = (totalButtons - 3) / 2; // how many bttns per side
+  const sideAmt = (totalButtons - 3) / 2; // how many buttons per side
 
   const start = 0;
   const curr = table.getState().pagination.pageIndex;
@@ -281,7 +341,9 @@ const useDefaultColumnDefs = <Datum,>(
 ): ColumnDefs<Datum> => {
   return useMemo(
     () => (columns) => {
-      if (typeof firstRowDatum === 'object') {
+      if (!firstRowDatum) {
+        return [];
+      } else if (typeof firstRowDatum === 'object') {
         if (Array.isArray(firstRowDatum)) {
           // array datum
           return firstRowDatum.map((col, index) =>
