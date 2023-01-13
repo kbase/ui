@@ -12,14 +12,16 @@ import { PlaceholderFactory } from '../../common/components/PlaceholderFactory';
 import { useAppDispatch, useAppSelector } from '../../common/hooks';
 import { NarrativeListDoc } from '../../common/types/NarrativeDoc';
 import { usePageTitle } from '../../features/layout/layoutSlice';
+import { getParams } from '../../features/params/paramsSlice';
 import {
-  isSortString,
-  isCategoryString,
-  keepParamsForLocation,
-  navigatorParams,
-  searchParams,
   Category,
   Sort,
+  generatePathWithSearchParams,
+  isCategoryString,
+  isSortString,
+  narrativeSelectedPath,
+  narrativeSelectedPathWithCategory,
+  searchParams,
 } from './common';
 import {
   navigatorSelected,
@@ -42,29 +44,31 @@ const NarrativeNewButton: FC = () => (
 );
 
 const HeaderTabs: FC<{ category: string }> = ({ category }) => {
-  const loc = useLocation();
-  const keepSearch = keepParamsForLocation({
-    location: loc,
-    params: searchParams,
-  });
+  const europaParams = useAppSelector(getParams);
+  const searchParamsCurrent = Object.fromEntries(
+    searchParams.map((param) => [param, europaParams[param]])
+  );
+  const categoryPathWithSearchParams = (pathSpec: string) => {
+    return generatePathWithSearchParams(pathSpec, searchParamsCurrent);
+  };
   return (
     <ul className={classes.tabs}>
-      <Link to={keepSearch('/narratives/')}>
+      <Link to={categoryPathWithSearchParams('/narratives/')}>
         <li className={category === 'own' ? classes.active : ''}>
           My Narratives
         </li>
       </Link>
-      <Link to={keepSearch('/narratives/shared/')}>
+      <Link to={categoryPathWithSearchParams('/narratives/shared/')}>
         <li className={category === 'shared' ? classes.active : ''}>
           Shared With Me
         </li>
       </Link>
-      <Link to={keepSearch('/narratives/tutorials/')}>
+      <Link to={categoryPathWithSearchParams('/narratives/tutorials/')}>
         <li className={category === 'tutorials' ? classes.active : ''}>
           Tutorials
         </li>
       </Link>
-      <Link to={keepSearch('/narratives/public/')}>
+      <Link to={categoryPathWithSearchParams('/narratives/public/')}>
         <li className={category === 'public' ? classes.active : ''}>Public</li>
       </Link>
     </ul>
@@ -172,6 +176,7 @@ const Navigator: FC = () => {
   usePageTitle('Narrative Navigator');
   const dispatch = useAppDispatch();
   const previouslySelected = useAppSelector(navigatorSelected);
+  const europaParams = useAppSelector(getParams);
   const { category, id, obj, ver } = useParams();
   const items = useNarratives();
   const loc = useLocation();
@@ -184,12 +189,11 @@ const Navigator: FC = () => {
   const { limit, search, sort, view } = Object.fromEntries(
     searchParams.entries()
   );
-  const keepNavigatorParams = keepParamsForLocation({
-    location: loc,
-    params: navigatorParams.slice(1), // keep all except for limit
-  });
   const limitTemplate = (nextLimit: number) =>
-    keepNavigatorParams(`?limit=${nextLimit}`);
+    generatePathWithSearchParams(loc.pathname, {
+      ...europaParams,
+      limit: nextLimit.toString(),
+    });
   const sortKey = sort && isSortString(sort) ? Sort[sort] : Sort['-updated'];
   const narrativeSelected = getNarrativeSelected({ id, obj, ver, items });
   // hooks that update state
@@ -246,4 +250,5 @@ const Navigator: FC = () => {
   );
 };
 
+export { narrativeSelectedPath, narrativeSelectedPathWithCategory };
 export default Navigator;

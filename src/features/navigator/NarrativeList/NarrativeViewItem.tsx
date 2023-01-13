@@ -1,13 +1,10 @@
-import { FC, useEffect } from 'react';
-import { useLocation, useParams, Link } from 'react-router-dom';
+import { FC } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import * as timeago from 'timeago.js';
 import { useAppSelector } from '../../../common/hooks';
 import { NarrativeListDoc } from '../../../common/types/NarrativeDoc';
-import {
-  keepParamsForLocation,
-  narrativePath,
-  navigatorParams,
-} from '../common';
+import { getParams } from '../../../features/params/paramsSlice';
+import { narrativePath, navigatorParams } from '../common';
 import { categorySelected } from '../navigatorSlice';
 import NarrativeItemDropdown from './NarrativeItemDropdown';
 import classes from './NarrativeList.module.scss';
@@ -29,48 +26,38 @@ const NarrativeViewItem: FC<NarrativeViewItemProps> = ({
   const { access_group, creator, narrative_title, obj_id, timestamp, version } =
     item;
   const upa = `${access_group}/${obj_id}/${version}`;
-  const { id, obj, ver } =
-    useParams<{ id: string; obj: string; ver: string }>();
-  const selectedAccessGroup = id ? id : null;
-  const selectedObjId = obj ? obj : null;
-  const selectedVersion = ver ? ver : null;
+  const {
+    id = null,
+    obj = null,
+    ver = null,
+  } = useParams<{ id: string; obj: string; ver: string }>();
   const active =
-    access_group.toString() === selectedAccessGroup &&
-    obj_id.toString() === selectedObjId &&
-    selectedVersion;
+    access_group.toString() === id && obj_id.toString() === obj && ver;
   const status = active ? 'active' : 'inactive';
   // Note: timeago expects milliseconds
   const timeElapsed = timeago.format(timestamp * 1000);
   const categorySet = useAppSelector(categorySelected);
-  const loc = useLocation();
-  const keepNavigatorParams = keepParamsForLocation({
-    location: loc,
-    params: navigatorParams,
-  });
-  // notify upa change once new narrative item is focused on
-  useEffect(() => {
-    if (active) {
-      onUpaChange?.(upa);
-    }
-  }, [active, onUpaChange, upa]);
+  const europaParams = useAppSelector(getParams);
 
   function handleVersionSelect(version: number) {
     onUpaChange?.(`${access_group}/${obj_id}/${version}`);
   }
 
+  const navigatorParamsCurrent = Object.fromEntries(
+    navigatorParams.map((param) => [param, europaParams[param]])
+  );
   const narrativeViewItemPath = (version: number) => {
     const categoryPath = categorySet !== 'own' ? categorySet : null;
-    return keepNavigatorParams(
-      narrativePath({
-        id: access_group.toString(),
-        obj: obj_id.toString(),
-        categoryPath,
-        ver: version.toString(),
-      })
-    );
+    return narrativePath({
+      categoryPath,
+      extraParams: navigatorParamsCurrent,
+      id: access_group.toString(),
+      obj: obj_id.toString(),
+      ver: version.toString(),
+    });
   };
 
-  const pathVersion = active ? +selectedVersion : version;
+  const pathVersion = active ? +ver : version;
   const path = narrativeViewItemPath(pathVersion);
   return (
     <section key={idx}>
@@ -81,15 +68,12 @@ const NarrativeViewItem: FC<NarrativeViewItemProps> = ({
         <div className={classes.narrative_item_inner}>
           <div className={classes.narrative_item_text}>
             <div>{narrative_title || 'Untitiled'}</div>
-            {showVersionDropdown && active ? (
-              <NarrativeItemDropdown
-                narrative={upa}
-                version={pathVersion}
-                onVersionSelect={(e) => handleVersionSelect(e)}
-              />
-            ) : (
-              <div className={classes.dropdown_wrapper}></div>
-            )}
+            <NarrativeItemDropdown
+              narrative={upa}
+              onVersionSelect={(e) => handleVersionSelect(e)}
+              visible={Boolean(showVersionDropdown && active)}
+              version={pathVersion}
+            />
           </div>
           <div className={classes.narrative_item_details}>
             Updated {timeElapsed} by {creator}

@@ -56,6 +56,7 @@ test('NarrativeItemDropdown renders', async () => {
           narrative={'1/2/400'}
           onVersionSelect={versionSelectSpy}
           version={400}
+          visible={true}
         />
       </Router>
     </Provider>
@@ -72,6 +73,7 @@ test('NarrativeItemDropdown populates right number of versions', () => {
           narrative={'1/2/123'}
           onVersionSelect={jest.fn()}
           version={123}
+          visible={true}
         />
       </Router>
     </Provider>
@@ -92,6 +94,7 @@ test('NarrativeItemDropdown calls onVersionSelect', () => {
           narrative={'1/2/42'}
           onVersionSelect={versionSelectSpy}
           version={42}
+          visible={true}
         />
       </Router>
     </Provider>

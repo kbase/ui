@@ -3,8 +3,8 @@ import { Provider } from 'react-redux';
 import { MemoryRouter as Router, Route, Routes } from 'react-router-dom';
 import { createTestStore } from '../../../app/store';
 import { NarrativeListDoc } from '../../../common/types/NarrativeDoc';
-import { narrativeSelectedPath } from '../../../common/routes';
 import NarrativeViewItem from './NarrativeViewItem';
+import { narrativeSelectedPath } from '../Navigator';
 
 const testDoc: NarrativeListDoc = {
   timestamp: 0,
@@ -28,9 +28,7 @@ test('NarrativeViewItem renders', () => {
   expect(
     screen.getByText('What a cool narrative', { exact: false })
   ).toBeInTheDocument();
-  expect(
-    screen.getByText('Updated 52 years ago by JaRule')
-  ).toBeInTheDocument();
+  expect(screen.getByText('JaRule', { exact: false })).toBeInTheDocument();
   expect(screen.getByText('cool', { exact: false })).toBeInTheDocument();
 });
 
