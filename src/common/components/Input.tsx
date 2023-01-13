@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import classes from './Input.module.scss';
 
-export interface InputInterface extends ComponentProps<'input'> {
+interface InputInterface extends ComponentProps<'input'> {
   label: ReactElement;
   errors?: boolean;
   validated?: boolean;

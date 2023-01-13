@@ -12,8 +12,14 @@ interface PlaceholderInterface {
     | Meta;
 }
 
+// This placeholder factory makes components that can be used as stubs for
+// development. There should be no Placeholders in production, so an error is
+// thrown in that case.
 export const PlaceholderFactory = (name: string) => {
   const Placeholder: FC<PlaceholderInterface> = (props) => {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('Placeholder components may not be used in production.');
+    }
     const entrys = Object.entries(props);
     return (
       <pre

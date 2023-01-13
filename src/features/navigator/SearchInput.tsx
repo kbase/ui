@@ -1,8 +1,8 @@
-import { ChangeEvent, FC } from 'react';
+import { ChangeEvent, ComponentProps, FC } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Input, InputInterface } from '../../common/components';
+import { Input } from '../../common/components';
 
-interface SearchInterface extends InputInterface {
+interface SearchInterface extends ComponentProps<typeof Input> {
   search: string;
 }
 const SearchInput: FC<SearchInterface> = ({
