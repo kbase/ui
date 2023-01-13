@@ -9,20 +9,20 @@ import {
 import Auth from '../features/auth/Auth';
 import Count from '../features/count/Counter';
 import Legacy, { LEGACY_BASE_ROUTE } from '../features/legacy/Legacy';
-import Navigator from '../features/navigator/Navigator';
-import PageNotFound from '../features/layout/PageNotFound';
-import ProfileWrapper from '../features/profile/Profile';
-import { useAppSelector } from '../common/hooks';
-import {
+import Navigator, {
   narrativeSelectedPath,
   narrativeSelectedPathWithCategory,
-} from '../common/routes';
+} from '../features/navigator/Navigator';
+import PageNotFound from '../features/layout/PageNotFound';
+import ProfileWrapper from '../features/profile/Profile';
+import { useAppSelector, useFilteredParams } from '../common/hooks';
 
 export const LOGIN_ROUTE = '/legacy/login';
 export const ROOT_REDIRECT_ROUTE = '/narratives';
 
-const Routes: FC = () => (
-  <>
+const Routes: FC = () => {
+  useFilteredParams();
+  return (
     <RRRoutes>
       <Route path={`${LEGACY_BASE_ROUTE}/*`} element={<Legacy />} />
       <Route
@@ -55,8 +55,8 @@ const Routes: FC = () => (
       <Route path="/" element={<HashRouteRedirect />} />
       <Route path="*" element={<PageNotFound />} />
     </RRRoutes>
-  </>
-);
+  );
+};
 
 export const Authed: FC<{ element: ReactElement }> = ({ element }) => {
   const token = useAppSelector((state) => state.auth.token);

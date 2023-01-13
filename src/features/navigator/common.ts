@@ -1,9 +1,8 @@
-import { generatePath, Location } from 'react-router-dom';
-import {
-  narrativeSelectedPath,
-  narrativeSelectedPathWithCategory,
-} from '../../common/routes';
+import { generatePath } from 'react-router-dom';
 
+export const narrativeSelectedPath = '/narratives/:id/:obj/:ver';
+export const narrativeSelectedPathWithCategory =
+  '/narratives/:category/:id/:obj/:ver';
 // Types and typeguards
 export const navigatorParams = ['limit', 'search', 'sort', 'view'];
 export const searchParams = ['search', 'sort'];
@@ -41,48 +40,24 @@ export type SortString = keyof typeof Sort;
 export const isSortString = (key: string): key is SortString => key in Sort;
 
 // Other functions
-// Take a pathname (relative or absolute) and create a url to that pathname
-// preserving the current query parameters
-export const keepParams = (parameters: {
-  location: Location;
-  params: string[];
-  link: string;
-}): string => {
-  const { link, location, params } = parameters;
-  const origin = `http${window.isSecureContext ? 's' : ''}://${
-    process.env.REACT_APP_KBASE_DOMAIN
-  }`;
-  // Is the link relative or absolute?
-  const linkAbsolute = link[0] === '/';
-  // An extra slash is needed eventually if the path is relative.
-  const extraSlash = linkAbsolute ? '' : '/';
-  // The PUBLIC_URL prefix should be removed from relative links.
-  const publicPrefix = process.env.PUBLIC_URL;
-  const pathname = location.pathname.startsWith(publicPrefix)
-    ? location.pathname.slice(publicPrefix.length)
-    : location.pathname;
-  // If the link is absolute then use it for the new pathmame,
-  const pathnamePrefix = linkAbsolute ? '' : pathname;
-  // Create a new URL object with the appropriate href.
-  const newLinkHref = origin + pathnamePrefix + extraSlash + link;
-  const newLink = new URL(newLinkHref);
-  // Remember the desired SearchParams.
-  const locSearchParams = new URLSearchParams(location.search);
-  params.forEach((param) => {
-    const value = locSearchParams.get(param);
-    if (value !== null) {
-      newLink.searchParams.set(param, value);
-    }
-  });
-  return newLink.pathname + newLink.search;
-};
-
-export const keepParamsForLocation = (parameters: {
-  location: Location;
-  params: string[];
-}) => {
-  const { location, params } = parameters;
-  return (link: string) => keepParams({ location, params, link });
+// Take a path specification and create a url to that pathname including the
+// URL search parameters specified in params
+export const generatePathWithSearchParams = (
+  pathSpec: string,
+  params: Record<string, string>
+) => {
+  const path = generatePath(pathSpec, params);
+  const paramsInPathSpec = Array.from(pathSpec.matchAll(/:\w+/g)).map(
+    ([match]) => match.slice(1)
+  );
+  const pathSearchParams = new URLSearchParams(
+    Object.fromEntries(
+      Object.entries(params).filter(
+        ([param, value]) => paramsInPathSpec.indexOf(param) === -1
+      )
+    )
+  ).toString();
+  return `${path}?${pathSearchParams}`;
 };
 
 export const narrativePath = (parameters: {
@@ -90,19 +65,22 @@ export const narrativePath = (parameters: {
   id: string;
   obj: string;
   ver: string;
+  extraParams?: Record<string, string>;
 }) => {
-  const { categoryPath, id, obj, ver } = parameters;
+  const { categoryPath, extraParams, id, obj, ver } = parameters;
   if (categoryPath) {
-    return generatePath(narrativeSelectedPathWithCategory, {
+    return generatePathWithSearchParams(narrativeSelectedPathWithCategory, {
       category: categoryPath,
       id,
       obj,
       ver,
+      ...extraParams,
     });
   }
-  return generatePath(narrativeSelectedPath, {
+  return generatePathWithSearchParams(narrativeSelectedPath, {
     id,
     obj,
     ver,
+    ...extraParams,
   });
 };
