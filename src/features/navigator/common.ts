@@ -1,4 +1,4 @@
-import { generatePath } from 'react-router-dom';
+import { generatePathWithSearchParams } from '../../features/params/paramsSlice';
 
 export const narrativeSelectedPath = '/narratives/:id/:obj/:ver';
 export const narrativeSelectedPathWithCategory =
@@ -40,26 +40,6 @@ export type SortString = keyof typeof Sort;
 export const isSortString = (key: string): key is SortString => key in Sort;
 
 // Other functions
-// Take a path specification and create a url to that pathname including the
-// URL search parameters specified in params
-export const generatePathWithSearchParams = (
-  pathSpec: string,
-  params: Record<string, string>
-) => {
-  const path = generatePath(pathSpec, params);
-  const paramsInPathSpec = Array.from(pathSpec.matchAll(/:\w+/g)).map(
-    ([match]) => match.slice(1)
-  );
-  const pathSearchParams = new URLSearchParams(
-    Object.fromEntries(
-      Object.entries(params).filter(
-        ([param, value]) => paramsInPathSpec.indexOf(param) === -1
-      )
-    )
-  ).toString();
-  return `${path}?${pathSearchParams}`;
-};
-
 export const narrativePath = (parameters: {
   categoryPath: CategoryString | null;
   id: string;

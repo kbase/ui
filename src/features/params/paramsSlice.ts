@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { generatePath } from 'react-router-dom';
 import type { RootState } from '../../app/store';
 
 // Define a type for the slice state
@@ -28,15 +29,35 @@ export const paramsSlice = createSlice({
   initialState,
   reducers: {
     setParams: (state, action: PayloadAction<Partial<ParamsState>>) => {
-      const params = Object.keys(action.payload);
-      params.forEach((param) => {
-        if (isValidParam(param)) {
-          state[param] = action.payload[param];
-        }
+      ParamsValid.forEach((param) => {
+        if (!isValidParam(param)) return;
+        state[param] = action.payload[param] || initialState[param];
       });
     },
   },
 });
+
+// Take a path specification and create a url to that pathname including the
+// URL search parameters specified in params
+export const generatePathWithSearchParams = (
+  pathSpec: string,
+  params: Record<string, string>
+) => {
+  const path = generatePath(pathSpec, params);
+  const paramsInPathSpec = Array.from(pathSpec.matchAll(/:\w+/g)).map(
+    ([match]) => match.slice(1)
+  );
+  const pathSearchParams = new URLSearchParams(
+    Object.fromEntries(
+      Object.entries(params).filter(
+        ([param, value]) =>
+          paramsInPathSpec.indexOf(param) === -1 &&
+          value !== initialState[param]
+      )
+    )
+  ).toString();
+  return `${path}?${pathSearchParams}`;
+};
 
 export default paramsSlice.reducer;
 export const { setParams } = paramsSlice.actions;
