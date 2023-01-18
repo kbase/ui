@@ -2,7 +2,11 @@ import { useEffect } from 'react';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { RootState, AppDispatch } from '../app/store';
-import { isValidParam, setParams } from '../features/params/paramsSlice';
+import {
+  generatePathWithSearchParams,
+  isValidParam,
+  setParams,
+} from '../features/params/paramsSlice';
 
 // Use throughout the app instead of plain `useDispatch` and `useSelector`
 export const useAppDispatch = () => useDispatch<AppDispatch>();
@@ -33,22 +37,15 @@ export const useFilteredParams = () => {
         return [param, value];
       })
   );
-  const paramsQuery = new URLSearchParams(paramsFiltered).toString();
   const check = Array.from(locSearch.entries())
     .map(([param, value]) => paramsFiltered[param] === value)
     .filter((entry) => !entry);
   useEffect(() => {
     if (check.length) {
-      navigate(`${loc.pathname}?${paramsQuery}`);
+      const path = generatePathWithSearchParams(loc.pathname, paramsFiltered);
+      navigate(path);
     }
     dispatch(setParams(paramsFiltered));
-  }, [
-    check.length,
-    dispatch,
-    loc.pathname,
-    navigate,
-    paramsFiltered,
-    paramsQuery,
-  ]);
+  }, [check.length, dispatch, loc.pathname, navigate, paramsFiltered]);
   return paramsFiltered;
 };

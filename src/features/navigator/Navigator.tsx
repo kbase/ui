@@ -12,11 +12,13 @@ import { PlaceholderFactory } from '../../common/components/PlaceholderFactory';
 import { useAppDispatch, useAppSelector } from '../../common/hooks';
 import { NarrativeListDoc } from '../../common/types/NarrativeDoc';
 import { usePageTitle } from '../../features/layout/layoutSlice';
-import { getParams } from '../../features/params/paramsSlice';
+import {
+  getParams,
+  generatePathWithSearchParams,
+} from '../../features/params/paramsSlice';
 import {
   Category,
   Sort,
-  generatePathWithSearchParams,
   isCategoryString,
   isSortString,
   narrativeSelectedPath,

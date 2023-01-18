@@ -1,6 +1,7 @@
 import { FC } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Select, SelectOption } from '../../common/components';
+import { generatePathWithSearchParams } from '../../features/params/paramsSlice';
 import { sortNames } from './common';
 import classes from './Navigator.module.scss';
 
@@ -11,7 +12,8 @@ const SortSelect: FC<{ sort: string }> = ({ sort }) => {
     const queryParams = new URLSearchParams(loc.search);
     const { value } = option[0];
     queryParams.set('sort', value.toString());
-    const path = [loc.pathname, queryParams.toString()].join('?');
+    const searchParams = Object.fromEntries(queryParams.entries());
+    const path = generatePathWithSearchParams(loc.pathname, searchParams);
     navigate(path);
   };
   const options = Object.entries(sortNames).map(([key, value]) => ({
