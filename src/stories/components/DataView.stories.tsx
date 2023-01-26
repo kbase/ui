@@ -1,5 +1,4 @@
 import { ComponentMeta, ComponentStory } from '@storybook/react';
-import { BrowserRouter as Router } from 'react-router-dom';
 import DataView from '../../common/components/DataView';
 
 export default {
@@ -12,11 +11,9 @@ export default {
 // component e.g. `<Component {...args} />`
 const DataViewTemplate: ComponentStory<typeof DataView> = (args) => {
   return (
-    <Router>
-      <div style={{ height: '70px', width: '100%', position: 'relative' }}>
-        <DataView {...args}></DataView>
-      </div>
-    </Router>
+    <div style={{ height: '70px', width: '100%', position: 'relative' }}>
+      <DataView {...args}></DataView>
+    </div>
   );
 };
 

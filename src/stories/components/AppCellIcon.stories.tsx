@@ -1,5 +1,4 @@
 import { ComponentMeta, ComponentStory } from '@storybook/react';
-import { BrowserRouter as Router } from 'react-router-dom';
 
 import AppCellIcon from '../../features/icons/AppCellIcon';
 import { AppTag } from '../../features/icons/iconSlice';
@@ -14,11 +13,9 @@ export default {
 // component e.g. `<Component {...args} />`
 const AppCellIconTemplate: ComponentStory<typeof AppCellIcon> = (args) => {
   return (
-    <Router>
-      <div style={{ height: '70px', width: '100%', position: 'relative' }}>
-        <AppCellIcon {...args}></AppCellIcon>
-      </div>
-    </Router>
+    <div style={{ height: '70px', width: '100%', position: 'relative' }}>
+      <AppCellIcon {...args}></AppCellIcon>
+    </div>
   );
 };
 

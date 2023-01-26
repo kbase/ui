@@ -1,14 +1,14 @@
 import { FC, useMemo } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
-import { Button } from '../../common/components';
-import NarrativeList from '../../common/components/NarrativeList/NarrativeList';
-import { useAppSelector } from '../../common/hooks';
-import { usePageTitle } from '../layout/layoutSlice';
-import { authUsername } from '../auth/authSlice';
-import PageNotFound from '../layout/PageNotFound';
-import classes from './Profile.module.scss';
 import { getUserProfile } from '../../common/api/userProfileApi';
 import { parseError } from '../../common/api/utils/parseError';
+import { Button } from '../../common/components';
+import { useAppSelector } from '../../common/hooks';
+import { authUsername } from '../auth/authSlice';
+import { usePageTitle } from '../layout/layoutSlice';
+import PageNotFound from '../layout/PageNotFound';
+import NarrativeList from '../navigator/NarrativeList/NarrativeList';
+import classes from './Profile.module.scss';
 
 /*
  * The following components are stubs due to be written in the future.
@@ -46,10 +46,12 @@ export const NarrativesView: FC<{ realname: string; yours: boolean }> = ({
     <div className={classes.narratives}>
       <ProfileNarrativesMessage realname={realname} yours={yours} />
       <NarrativeList
+        hasMoreItems={false}
         items={[]}
         itemsRemaining={0}
-        hasMoreItems={false}
         loading={false}
+        narrative={null}
+        nextLimit={''}
         showVersionDropdown
       />
     </div>

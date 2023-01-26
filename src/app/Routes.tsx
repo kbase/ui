@@ -9,17 +9,21 @@ import {
 import Auth from '../features/auth/Auth';
 import Count from '../features/count/Counter';
 import Legacy, { LEGACY_BASE_ROUTE } from '../features/legacy/Legacy';
-import Navigator from '../features/navigator/Navigator';
+import Navigator, {
+  narrativeSelectedPath,
+  narrativeSelectedPathWithCategory,
+} from '../features/navigator/Navigator';
 import PageNotFound from '../features/layout/PageNotFound';
 import ProfileWrapper from '../features/profile/Profile';
 import Collections from '../features/collections/Collections';
-import { useAppSelector } from '../common/hooks';
+import { useAppSelector, useFilteredParams } from '../common/hooks';
 
 export const LOGIN_ROUTE = '/legacy/login';
 export const ROOT_REDIRECT_ROUTE = '/narratives';
 
-const Routes: FC = () => (
-  <>
+const Routes: FC = () => {
+  useFilteredParams();
+  return (
     <RRRoutes>
       <Route path={`${LEGACY_BASE_ROUTE}/*`} element={<Legacy />} />
       <Route
@@ -37,7 +41,7 @@ const Routes: FC = () => (
       <Route path="/count" element={<Authed element={<Count />} />} />
       <Route path="/auth" element={<Auth />} />
       <Route
-        path={'/narratives/:id/:obj/:ver'}
+        path={narrativeSelectedPath}
         element={<Authed element={<Navigator />} />}
       />
       <Route
@@ -45,16 +49,16 @@ const Routes: FC = () => (
         element={<Authed element={<Navigator />} />}
       />
       <Route
-        path={'/narratives/:category/:id/:obj/:ver'}
-        element={<Navigator />}
+        path={narrativeSelectedPathWithCategory}
+        element={<Authed element={<Navigator />} />}
       />
       <Route path="/narratives" element={<Authed element={<Navigator />} />} />
       <Route path="/collections/*" element={<Collections />} />
       <Route path="/" element={<HashRouteRedirect />} />
       <Route path="*" element={<PageNotFound />} />
     </RRRoutes>
-  </>
-);
+  );
+};
 
 export const Authed: FC<{ element: ReactElement }> = ({ element }) => {
   const token = useAppSelector((state) => state.auth.token);

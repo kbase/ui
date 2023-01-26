@@ -1,10 +1,15 @@
 .narrative_item_outer {
   border-bottom: 1px solid #ccc;
+  display: block;
   padding-left: 1rem;
   padding-right: 1rem;
 
   &.active {
     background: #cdecff;
+  }
+
+  &.inactive {
+    background: transparent;
   }
 
   &:hover:not(.active):not(.dropdown_wrapper) {
@@ -55,16 +60,18 @@
 }
 
 .narrative_item_text {
+  display: flex;
   font-size: 1rem;
+  justify-content: space-between;
   margin: 0;
   margin-bottom: 0.5rem;
   padding: 0;
 }
 
 .dropdown_wrapper {
-  display: inline-block;
-  margin-left: 10px;
-  max-width: 100px;
+  display: flex;
+  justify-content: right;
+  width: 100px;
 }
 
 .narrative_item_details {
@@ -73,6 +80,11 @@
 }
 
 .version_dropdown {
+  a {
+    height: 100%;
+    width: 100%;
+  }
+
   :global(.react-select__dropdown-indicator) {
     background: rgba(0, 0, 0, 0) !important;
     color: #aaa;
@@ -103,6 +115,7 @@
     display: inline-block;
     min-height: 0;
     min-width: 100px;
+    padding: 0;
     text-align: center;
   }
 }

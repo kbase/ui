@@ -1,11 +1,14 @@
 import { screen, render, getByTestId, fireEvent } from '@testing-library/react';
-import NarrativeItemDropdown from './NarrativeItemDropdown';
-import { DropdownProps } from '../Dropdown';
+import { Provider } from 'react-redux';
+import { MemoryRouter as Router } from 'react-router-dom';
 import { GroupBase } from 'react-select';
-import { SelectOption, OptionsArray } from '../Select';
+import { createTestStore } from '../../../app/store';
+import { DropdownProps } from '../../../common/components/Dropdown';
+import { SelectOption, OptionsArray } from '../../../common/components/Select';
+import NarrativeItemDropdown from './NarrativeItemDropdown';
 
 // mock react-select with regular HTML select
-jest.mock('../Dropdown', () => ({
+jest.mock('../../../common/components/Dropdown', () => ({
   __esModule: true,
   Dropdown: ({ options, onChange }: DropdownProps) => {
     function handleChange(event: SelectOption) {
@@ -47,7 +50,16 @@ jest.mock('../Dropdown', () => ({
 test('NarrativeItemDropdown renders', async () => {
   const versionSelectSpy = jest.fn();
   const { container } = render(
-    <NarrativeItemDropdown version={400} onVersionSelect={versionSelectSpy} />
+    <Provider store={createTestStore()}>
+      <Router>
+        <NarrativeItemDropdown
+          narrative={'1/2/400'}
+          onVersionSelect={versionSelectSpy}
+          version={400}
+          visible={true}
+        />
+      </Router>
+    </Provider>
   );
   expect(container).toBeTruthy();
   expect(container.querySelector('.dropdown_wrapper')).toBeInTheDocument();
@@ -55,7 +67,16 @@ test('NarrativeItemDropdown renders', async () => {
 
 test('NarrativeItemDropdown populates right number of versions', () => {
   const { container } = render(
-    <NarrativeItemDropdown version={123} onVersionSelect={jest.fn()} />
+    <Provider store={createTestStore()}>
+      <Router>
+        <NarrativeItemDropdown
+          narrative={'1/2/123'}
+          onVersionSelect={jest.fn()}
+          version={123}
+          visible={true}
+        />
+      </Router>
+    </Provider>
   );
   const select = screen.getByTestId('select');
   // this tests that the component will render 123 separate items in the dropdown
@@ -67,7 +88,16 @@ test('NarrativeItemDropdown populates right number of versions', () => {
 test('NarrativeItemDropdown calls onVersionSelect', () => {
   const versionSelectSpy = jest.fn();
   const { container } = render(
-    <NarrativeItemDropdown version={42} onVersionSelect={versionSelectSpy} />
+    <Provider store={createTestStore()}>
+      <Router>
+        <NarrativeItemDropdown
+          narrative={'1/2/42'}
+          onVersionSelect={versionSelectSpy}
+          version={42}
+          visible={true}
+        />
+      </Router>
+    </Provider>
   );
   fireEvent.click(getByTestId(container, '34'));
   // callback should be numeric version
