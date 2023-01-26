@@ -156,7 +156,7 @@ export const collectionsApi = baseApi.injectEndpoints({
       query: ({ collection_id, load_ver_override }) =>
         collectionsService({
           method: 'GET',
-          url: encode`/collections/${collection_id}/taxa_count/ranks/`,
+          url: encode`/collections/${collection_id}/data_products/taxa_count/ranks/`,
           params: load_ver_override ? { load_ver_override } : undefined,
         }),
     }),
@@ -168,7 +168,7 @@ export const collectionsApi = baseApi.injectEndpoints({
       query: ({ collection_id, rank, load_ver_override }) =>
         collectionsService({
           method: 'GET',
-          url: encode`/collections/${collection_id}/taxa_count/counts/${rank}/`,
+          url: encode`/collections/${collection_id}/data_products/taxa_count/counts/${rank}/`,
           params: load_ver_override ? { load_ver_override } : undefined,
         }),
     }),
@@ -180,7 +180,7 @@ export const collectionsApi = baseApi.injectEndpoints({
       query: ({ collection_id, ...options }) =>
         collectionsService({
           method: 'GET',
-          url: encode`/collections/${collection_id}/genome_attribs/`,
+          url: encode`/collections/${collection_id}/data_products/genome_attribs/`,
           params: options,
         }),
     }),
