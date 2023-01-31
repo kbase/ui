@@ -1,0 +1,54 @@
+@import "../../../common/colors";
+
+$bar-height: 25px;
+$gaps: 5px;
+
+.figure {
+  display: flex;
+  flex-flow: row nowrap;
+  gap: $gaps;
+  width: 100%;
+}
+
+.name-section,
+.bars-section {
+  display: flex;
+  flex-flow: column nowrap;
+  gap: $gaps;
+}
+
+.name {
+  height: $bar-height;
+  line-height: $bar-height;
+  text-align: right;
+}
+
+.bars-section {
+  flex-grow: 1;
+}
+
+.bar-row {
+  display: flex;
+  flex-flow: row nowrap;
+  font-size: 12px;
+  gap: $gaps;
+  line-height: $bar-height;
+
+  .bar {
+    background: use-color("primary");
+    height: $bar-height;
+    text-align: right;
+  }
+
+  .label-light {
+    color: use-color("white");
+    height: $bar-height;
+    padding-right: $gaps;
+  }
+
+  .label-dark {
+    color: use-color("ink");
+    height: $bar-height;
+  }
+
+}

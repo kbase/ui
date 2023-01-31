@@ -30,7 +30,7 @@ const useInitApp = () => {
 
   // Placeholder code for determining environment.
   useEffect(() => {
-    dispatch(setEnvironment('ci'));
+    dispatch(setEnvironment('ci-europa'));
   }, [dispatch]);
 
   return { isLoading: !initialized };

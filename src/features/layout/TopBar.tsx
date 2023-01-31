@@ -193,11 +193,13 @@ const Enviroment: FC = () => {
   if (env === 'production') return null;
   const icon = {
     ci: faFlask,
+    'ci-europa': faFlask,
     unknown: faQuestionCircle,
     appdev: faWrench,
   }[env];
   const txt = {
     ci: 'CI',
+    'ci-europa': 'EUR',
     unknown: '??',
     appdev: 'APPDEV',
   }[env];

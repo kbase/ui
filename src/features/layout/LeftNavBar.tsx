@@ -12,6 +12,7 @@ import {
   faIdCard,
   faBullhorn,
   IconDefinition,
+  faBoxesStacked,
 } from '@fortawesome/free-solid-svg-icons';
 
 export default function LeftNavBar() {
@@ -27,6 +28,7 @@ export default function LeftNavBar() {
         <NavItem path="/legacy/feeds" desc="Feeds" icon={faBullhorn} />
         <NavItem path="/count" desc="Count" icon={faExclamation} />
         <NavItem path="/auth" desc="Auth" icon={faExclamation} />
+        <NavItem path="/collections" desc="Collections" icon={faBoxesStacked} />
       </ul>
     </nav>
   );

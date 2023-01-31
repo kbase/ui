@@ -1,0 +1,80 @@
+@import "../../common/colors";
+
+$border: 1px solid use-color("base-lighter");
+
+.collection_wrapper {
+  background-color: use-color("base-lightest");
+  display: flex;
+  flex-flow: column nowrap;
+  gap: 10px;
+  height: 100%;
+  padding: 10px;
+}
+
+.collection_detail,
+.data_product_detail {
+  background-color: use-color("white");
+  border: $border;
+  padding: 10px;
+}
+
+.detail_header {
+  align-items: center;
+  display: flex;
+  flex-flow: row nowrap;
+  font-size: 24px;
+  gap: 10px;
+  justify-content: stretch;
+  width: 100%;
+
+  > * {
+    flex-grow: 1;
+    flex-shrink: 1;
+  }
+
+  > img {
+    flex-grow: 0;
+    flex-shrink: 0;
+    height: 64px;
+    width: 64px;
+  }
+}
+
+.data_products {
+  align-items: stretch;
+  background-color: use-color("white");
+  display: flex;
+  flex-flow: row nowrap;
+  width: 100%;
+
+  > .data_product_list {
+    flex-grow: 0;
+    flex-shrink: 0;
+    width: 8em;
+  }
+
+  > .data_product_detail {
+    border-left: 0;
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 100px;
+    min-width: 10%;
+  }
+}
+
+.data_product_placeholder {
+  align-items: center;
+  display: flex;
+  flex-flow: column nowrap;
+  height: 100%;
+  justify-content: center;
+  width: 100%;
+
+  >* {
+    background-color: use-color("info-lightest");
+    border-radius: 4px;
+    color: use-color("info-dark");
+    font-weight: bold;
+    padding: 4px;
+  }
+}
