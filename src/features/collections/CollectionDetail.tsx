@@ -7,6 +7,9 @@ import { useEffect } from 'react';
 import { DataProduct } from './DataProduct';
 import { snakeCaseToHumanReadable } from '../../common/utils/stringUtils';
 
+export const detailPath = ':id';
+export const detailDataProductPath = ':id/:data_product';
+
 export const CollectionDetail = () => {
   const params = useParams();
   const navigate = useNavigate();

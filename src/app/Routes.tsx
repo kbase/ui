@@ -15,7 +15,12 @@ import Navigator, {
 } from '../features/navigator/Navigator';
 import PageNotFound from '../features/layout/PageNotFound';
 import ProfileWrapper from '../features/profile/Profile';
-import Collections from '../features/collections/Collections';
+import {
+  CollectionsList,
+  CollectionDetail,
+  detailPath,
+  detailDataProductPath,
+} from '../features/collections/Collections';
 import { useAppSelector, useFilteredParams } from '../common/hooks';
 
 export const LOGIN_ROUTE = '/legacy/login';
@@ -40,6 +45,8 @@ const Routes: FC = () => {
       />
       <Route path="/count" element={<Authed element={<Count />} />} />
       <Route path="/auth" element={<Auth />} />
+
+      {/* Navigator */}
       <Route
         path={narrativeSelectedPath}
         element={<Authed element={<Navigator />} />}
@@ -53,7 +60,15 @@ const Routes: FC = () => {
         element={<Authed element={<Navigator />} />}
       />
       <Route path="/narratives" element={<Authed element={<Navigator />} />} />
-      <Route path="/collections/*" element={<Collections />} />
+
+      {/* Collections */}
+      <Route path="/collections">
+        <Route index element={<CollectionsList />} />
+        <Route path={detailPath} element={<CollectionDetail />} />
+        <Route path={detailDataProductPath} element={<CollectionDetail />} />
+        <Route path="*" element={<PageNotFound />} />
+      </Route>
+
       <Route path="/" element={<HashRouteRedirect />} />
       <Route path="*" element={<PageNotFound />} />
     </RRRoutes>

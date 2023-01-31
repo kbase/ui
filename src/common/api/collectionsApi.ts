@@ -9,7 +9,6 @@ const collectionsService = httpService({
 export interface DataProduct {
   product: string;
   version: string;
-  // unknown
 }
 
 interface DataProductRef {
@@ -102,17 +101,6 @@ export const collectionsApi = baseApi.injectEndpoints({
       CollectionsParams['listCollections']
     >({
       query: () => collectionsService({ method: 'GET', url: `/collections/` }),
-      // queryFn: () => ({
-      //   data: {
-      //     data: [
-      //       mockCollection(),
-      //       mockCollection(),
-      //       mockCollection(),
-      //       mockCollection(),
-      //       mockCollection(),
-      //     ],
-      //   },
-      // }),
     }),
 
     getCollection: builder.query<
@@ -121,7 +109,6 @@ export const collectionsApi = baseApi.injectEndpoints({
     >({
       query: (id) =>
         collectionsService({ method: 'GET', url: encode`/collections/${id}/` }),
-      // queryFn: (id) => ({ data: mockCollection({ id }) }),
     }),
 
     saveCollection: builder.mutation<
@@ -186,6 +173,7 @@ export const collectionsApi = baseApi.injectEndpoints({
     }),
   }),
 });
+
 export const {
   collectionsStatus: status,
   listCollections,
@@ -196,23 +184,3 @@ export const {
   getTaxaCountRank,
   getGenomeAttribs,
 } = collectionsApi.endpoints;
-
-// const mockCollection = (override?: Partial<Collection>): Collection => {
-//   const randoNum = Math.floor(Math.random() * 1000000000);
-//   const id = Number(override?.id) || randoNum;
-//   return {
-//     id: String(id),
-//     name: `Some Collection with ID ${id}`,
-//     desc: 'some collections description here',
-//     ver_tag: `tag_${id}`,
-//     ver_num: id,
-//     ver_src: 'foo_bar_baz',
-//     icon_url: `https://picsum.photos/seed/${id}/64`,
-//     user_active: 'FooUser',
-//     user_create: 'FooUser2',
-//     date_create: new Date().toString(),
-//     date_active: new Date().toString(),
-//     data_products: [],
-//     ...override,
-//   };
-// };
