@@ -17,7 +17,10 @@ interface PlaceholderInterface {
 // thrown in that case.
 export const PlaceholderFactory = (name: string) => {
   const Placeholder: FC<PlaceholderInterface> = (props) => {
-    if (process.env.NODE_ENV === 'production') {
+    const invalidEnvironment =
+      process.env.NODE_ENV === 'production' &&
+      process.env.REACT_APP_KBASE_ENV !== 'ci-europa';
+    if (invalidEnvironment) {
       throw new Error('Placeholder components may not be used in production.');
     }
     const entrys = Object.entries(props);
