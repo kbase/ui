@@ -111,7 +111,7 @@
   },
   "scripts": {
     "start": "REACT_APP_COMMIT=`git rev-parse HEAD` react-scripts start",
-    "build": "REACT_APP_COMMIT=`git rev-parse HEAD` react-scripts build",
+    "build": "REACT_APP_COMMIT=`git rev-parse HEAD` REACT_APP_ENVIRONMENT=\"development\" react-scripts build",
     "test": "react-scripts test",
     "lint": "./scripts/lint.sh",
     "lint:fix": "./scripts/lint.fix.sh",
