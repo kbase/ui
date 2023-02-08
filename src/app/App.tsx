@@ -21,7 +21,7 @@ const useInitApp = () => {
   const dispatch = useAppDispatch();
 
   // Pulls token from cookie, syncs cookie to auth state
-  useTokenCookie('kbase_session');
+  useTokenCookie('kbase_session_foobarbaz');
 
   // Use authenticated username to load user's profile
   const username = useAppSelector(authUsername);
