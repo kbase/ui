@@ -4,7 +4,7 @@ export const testItems = [
     creator: 'user0',
     narrative_title: "user0's Narrative",
     obj_id: 1,
-    timestamp: 100000,
+    timestamp: 100000000,
     version: 1,
   },
   {
@@ -12,7 +12,7 @@ export const testItems = [
     creator: 'user1',
     narrative_title: "user1's Narrative",
     obj_id: 1,
-    timestamp: 1000000,
+    timestamp: 1000000000,
     version: 2,
   },
   {
@@ -21,7 +21,7 @@ export const testItems = [
     narrative_title:
       'A navigator narrative with a, perhaps, excessively long, like really really long, title.',
     obj_id: 2,
-    timestamp: 10000000,
+    timestamp: 10000000000,
     version: 3,
   },
   {
@@ -29,7 +29,7 @@ export const testItems = [
     creator: 'user3',
     narrative_title: "user3's Narrative",
     obj_id: 1,
-    timestamp: 100000000,
+    timestamp: 100000000000,
     version: 3,
   },
   {
@@ -37,7 +37,7 @@ export const testItems = [
     creator: 'user4',
     narrative_title: "user4's Narrative",
     obj_id: 1,
-    timestamp: 1000000000,
+    timestamp: 1000000000000,
     version: 4,
   },
   {
@@ -45,7 +45,7 @@ export const testItems = [
     creator: 'user5',
     narrative_title: "user5's Narrative",
     obj_id: 1,
-    timestamp: 1414210000,
+    timestamp: 1414210000000,
     version: 5,
   },
   {
@@ -53,7 +53,7 @@ export const testItems = [
     creator: 'user6',
     narrative_title: "user6's Narrative",
     obj_id: 1,
-    timestamp: 1475890000,
+    timestamp: 1475890000000,
     version: 2,
   },
   {
@@ -61,7 +61,7 @@ export const testItems = [
     creator: 'user7',
     narrative_title: "user7's Narrative",
     obj_id: 2,
-    timestamp: 1475900000,
+    timestamp: 1475900000000,
     version: 7,
   },
   {
@@ -69,7 +69,7 @@ export const testItems = [
     creator: 'user8',
     narrative_title: "user8's Narrative",
     obj_id: 1,
-    timestamp: 1475910000,
+    timestamp: 1475910000000,
     version: 8,
   },
   {
@@ -77,7 +77,7 @@ export const testItems = [
     creator: 'user9',
     narrative_title: "user9's Narrative",
     obj_id: 1,
-    timestamp: 1475920000,
+    timestamp: 1475920000000,
     version: 9,
   },
   {
@@ -85,7 +85,7 @@ export const testItems = [
     creator: 'user10',
     narrative_title: "user10's Narrative",
     obj_id: 1,
-    timestamp: 1475930000,
+    timestamp: 1475930000000,
     version: 10,
   },
   {
@@ -93,7 +93,7 @@ export const testItems = [
     creator: 'user11',
     narrative_title: "user11's Narrative",
     obj_id: 1,
-    timestamp: 1475940000,
+    timestamp: 1475940000000,
     version: 11,
   },
   {
@@ -101,7 +101,7 @@ export const testItems = [
     creator: 'user12',
     narrative_title: "user12's Narrative",
     obj_id: 1,
-    timestamp: 1475950000,
+    timestamp: 1475950000000,
     version: 12,
   },
   {
@@ -109,7 +109,7 @@ export const testItems = [
     creator: 'user13',
     narrative_title: "user13's Narrative",
     obj_id: 1,
-    timestamp: 1475960000,
+    timestamp: 1475960000000,
     version: 13,
   },
   {
@@ -117,7 +117,7 @@ export const testItems = [
     creator: 'user14',
     narrative_title: "user14's Narrative",
     obj_id: 1,
-    timestamp: 1570790000,
+    timestamp: 1570790000000,
     version: 14,
   },
   {
@@ -125,7 +125,7 @@ export const testItems = [
     creator: 'user15',
     narrative_title: "user15's Narrative",
     obj_id: 1,
-    timestamp: 1587380000,
+    timestamp: 1587380000000,
     version: 15,
   },
   {
@@ -133,7 +133,7 @@ export const testItems = [
     creator: 'user16',
     narrative_title: "user16's Narrative",
     obj_id: 1,
-    timestamp: 1618000000,
+    timestamp: 1618000000000,
     version: 16,
   },
   {
@@ -141,7 +141,7 @@ export const testItems = [
     creator: 'dlyon',
     narrative_title: 'Dawg Lion',
     obj_id: 1,
-    timestamp: 1632640000,
+    timestamp: 1632640000000,
     version: 5,
   },
   {
@@ -149,7 +149,7 @@ export const testItems = [
     creator: 'charlie',
     narrative_title: "Charlie's Storybook Narrative",
     obj_id: 1,
-    timestamp: 1666666667,
+    timestamp: 1666666666667,
     version: 8,
   },
   {
@@ -157,7 +157,7 @@ export const testItems = [
     creator: 'DJKhaled',
     narrative_title: 'Another One',
     obj_id: 1,
-    timestamp: 1670000000,
+    timestamp: 1670000000000,
     version: 1,
   },
   {
@@ -165,7 +165,7 @@ export const testItems = [
     creator: 'dakota_ci',
     narrative_title: 'A cool narrative',
     obj_id: 2,
-    timestamp: 2147483647,
+    timestamp: 2147483647501,
     version: 4,
   },
 ];

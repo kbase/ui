@@ -31,11 +31,7 @@ export const useFilteredParams = () => {
     console.log(ignoredParameterWarning(paramsIgnored));
   }
   const paramsFiltered = Object.fromEntries(
-    Array.from(locSearch.entries())
-      .filter(([param]) => isValidParam(param))
-      .map(([param, value]) => {
-        return [param, value];
-      })
+    Array.from(locSearch.entries()).filter(([param]) => isValidParam(param))
   );
   const check = Array.from(locSearch.entries())
     .map(([param, value]) => paramsFiltered[param] === value)
