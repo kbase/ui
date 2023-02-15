@@ -1,25 +1,24 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { useEffect } from 'react';
 import type { RootState } from '../../app/store';
 import { NarrativeListDoc } from '../../common/types/NarrativeDoc';
-import { useAppDispatch, useAppSelector } from '../../common/hooks';
+import { SearchResults } from '../../common/api/searchApi';
 import { Category } from './common';
-// FAKE DATA
-import { testItems } from './NarrativeList/NarrativeList.fixture';
 
 // Define a type for the slice state
 interface NavigatorState {
   category: Category;
-  fresh: boolean;
+  count: number;
   narratives: NarrativeListDoc[];
+  search_time: number;
   selected: string | null;
 }
 
 // Define the initial state using that type
 const initialState: NavigatorState = {
   category: Category['own'],
-  fresh: false,
+  count: 0,
   narratives: [],
+  search_time: 0,
   selected: null,
 };
 
@@ -34,45 +33,21 @@ export const navigatorSlice = createSlice({
     setCategory: (state, action: PayloadAction<NavigatorState['category']>) => {
       state.category = action.payload;
     },
-    setFresh: (state, action: PayloadAction<NavigatorState['fresh']>) => {
-      state.fresh = action.payload;
-    },
     setNarratives: (
       state,
-      action: PayloadAction<NavigatorState['narratives']>
+      action: PayloadAction<SearchResults['getNarratives']>
     ) => {
-      if (state.fresh) return;
-      state.fresh = true;
-      state.narratives = action.payload;
+      state.count = action.payload.count;
+      state.narratives = action.payload.hits;
+      state.search_time = action.payload.search_time;
     },
   },
 });
 
 export default navigatorSlice.reducer;
-export const { select, setCategory, setFresh, setNarratives } =
-  navigatorSlice.actions;
+export const { select, setCategory, setNarratives } = navigatorSlice.actions;
 // Other code such as selectors can use the imported `RootState` type
 export const categorySelected = (state: RootState) => state.navigator.category;
-export const isFresh = (state: RootState) => state.navigator.fresh;
 export const narratives = (state: RootState) => state.navigator.narratives;
+export const narrativeCount = (state: RootState) => state.navigator.count;
 export const navigatorSelected = (state: RootState) => state.navigator.selected;
-
-const queryNarratives = (query?: string) => {
-  const cycleLimit = [0, 11, 22][
-    (new Date().getMinutes() + Math.floor(new Date().getSeconds() / 15)) % 3
-  ];
-  const nitems = Number(localStorage.getItem('nitems'));
-  const limit = nitems ? nitems : cycleLimit;
-  return testItems.slice(0, limit);
-};
-
-export const useNarratives = (query?: string) => {
-  const dispatch = useAppDispatch();
-  const result = queryNarratives(query);
-  const narrativesPrevious = useAppSelector(narratives);
-  const fresh = useAppSelector(isFresh);
-  useEffect(() => {
-    dispatch(setNarratives(result));
-  }, [dispatch, fresh, narrativesPrevious, result]);
-  return result;
-};
