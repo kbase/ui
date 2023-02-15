@@ -30,7 +30,6 @@ export const paramsSlice = createSlice({
   reducers: {
     setParams: (state, action: PayloadAction<Partial<ParamsState>>) => {
       ParamsValid.forEach((param) => {
-        if (!isValidParam(param)) return;
         state[param] = action.payload[param] || initialState[param];
       });
     },

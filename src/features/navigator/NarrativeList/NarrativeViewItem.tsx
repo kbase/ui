@@ -35,7 +35,7 @@ const NarrativeViewItem: FC<NarrativeViewItemProps> = ({
     access_group.toString() === id && obj_id.toString() === obj && ver;
   const status = active ? 'active' : 'inactive';
   // Note: timeago expects milliseconds
-  const timeElapsed = timeago.format(timestamp * 1000);
+  const timeElapsed = timeago.format(timestamp);
   const categorySet = useAppSelector(categorySelected);
   const europaParams = useAppSelector(getParams);
 
@@ -67,7 +67,7 @@ const NarrativeViewItem: FC<NarrativeViewItemProps> = ({
       >
         <div className={classes.narrative_item_inner}>
           <div className={classes.narrative_item_text}>
-            <div>{narrative_title || 'Untitiled'}</div>
+            <div>{narrative_title}</div>
             <NarrativeItemDropdown
               narrative={upa}
               onVersionSelect={(e) => handleVersionSelect(e)}
