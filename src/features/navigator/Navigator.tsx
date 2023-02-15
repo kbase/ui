@@ -11,6 +11,7 @@ import { Button } from '../../common/components';
 import { PlaceholderFactory } from '../../common/components/PlaceholderFactory';
 import { useAppDispatch, useAppSelector } from '../../common/hooks';
 import { NarrativeListDoc } from '../../common/types/NarrativeDoc';
+import { authUsername } from '../../features/auth/authSlice';
 import { usePageTitle } from '../../features/layout/layoutSlice';
 import {
   getParams,
@@ -25,11 +26,13 @@ import {
   narrativeSelectedPathWithCategory,
   searchParams,
 } from './common';
+import { useNarratives } from './hooks';
 import {
   navigatorSelected,
+  narratives,
+  narrativeCount,
   select,
   setCategory,
-  useNarratives,
 } from './navigatorSlice';
 import NarrativeList from './NarrativeList/NarrativeList';
 import classes from './Navigator.module.scss';
@@ -53,25 +56,26 @@ const HeaderTabs: FC<{ category: string }> = ({ category }) => {
   const categoryPathWithSearchParams = (pathSpec: string) => {
     return generatePathWithSearchParams(pathSpec, searchParamsCurrent);
   };
+  const { own, shared, tutorials, public: public_ } = Category;
   return (
     <ul className={classes.tabs}>
       <Link to={categoryPathWithSearchParams('/narratives/')}>
-        <li className={category === 'own' ? classes.active : ''}>
+        <li className={category === own ? classes.active : ''}>
           My Narratives
         </li>
       </Link>
       <Link to={categoryPathWithSearchParams('/narratives/shared/')}>
-        <li className={category === 'shared' ? classes.active : ''}>
+        <li className={category === shared ? classes.active : ''}>
           Shared With Me
         </li>
       </Link>
       <Link to={categoryPathWithSearchParams('/narratives/tutorials/')}>
-        <li className={category === 'tutorials' ? classes.active : ''}>
+        <li className={category === tutorials ? classes.active : ''}>
           Tutorials
         </li>
       </Link>
       <Link to={categoryPathWithSearchParams('/narratives/public/')}>
-        <li className={category === 'public' ? classes.active : ''}>Public</li>
+        <li className={category === public_ ? classes.active : ''}>Public</li>
       </Link>
     </ul>
   );
@@ -117,6 +121,8 @@ const MainContainer: FC<{
   narrative: string | null;
   view: string;
 }> = ({ limit, limitTemplate, items, narrative, view }) => {
+  const narrativesMatched = useAppSelector(narrativeCount);
+  const nextLimit = limitTemplate(limit + 20);
   return (
     <div className={classes.main} /* main fragment */>
       <div className={classes.container}>
@@ -126,12 +132,12 @@ const MainContainer: FC<{
           <>
             <div className={classes.list}>
               <NarrativeList
-                hasMoreItems={items.length > limit}
+                hasMoreItems={narrativesMatched > limit}
                 items={items.slice(0, limit)}
-                itemsRemaining={Math.max(items.length - limit, 0)}
+                itemsRemaining={Math.max(narrativesMatched - limit, 0)}
                 loading={false}
                 narrative={narrative}
-                nextLimit={limitTemplate(limit + 20)}
+                nextLimit={nextLimit}
                 showVersionDropdown={true}
               />
             </div>
@@ -177,10 +183,10 @@ const getNarrativeSelected = (parameters: {
 const Navigator: FC = () => {
   usePageTitle('Narrative Navigator');
   const dispatch = useAppDispatch();
+  const username = useAppSelector(authUsername);
   const previouslySelected = useAppSelector(navigatorSelected);
   const europaParams = useAppSelector(getParams);
   const { category, id, obj, ver } = useParams();
-  const items = useNarratives();
   const loc = useLocation();
   const categoryFilter =
     category && isCategoryString(category)
@@ -197,6 +203,15 @@ const Navigator: FC = () => {
       limit: nextLimit.toString(),
     });
   const sortKey = sort && isSortString(sort) ? Sort[sort] : Sort['-updated'];
+  useNarratives({
+    category: categoryFilter,
+    limit: Number(limit),
+    offset: 0,
+    sort: sortKey,
+    term: search,
+    username,
+  });
+  const items = useAppSelector(narratives);
   const narrativeSelected = getNarrativeSelected({ id, obj, ver, items });
   // hooks that update state
   useEffect(() => {
