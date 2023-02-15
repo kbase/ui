@@ -22,7 +22,7 @@ export interface JsonRpcQueryArgs {
   apiType: 'JsonRpc';
   service: StaticService | DynamicService;
   method: string;
-  params: unknown[];
+  params: unknown;
   fetchArgs?: FetchArgs;
 }
 
@@ -39,9 +39,12 @@ export const isDynamic = (
   return (service as StaticService).url === undefined;
 };
 
+// JSONRPC 2.0 allows id to be string, number (with no fractional part) or null
+// JSONRPC 1.1 allows id to be "any JSON type"
+// KBase mostly uses strings, or string serializable values, so we can too.
 type JsonRpcError = {
   version: '1.1';
-  id: number;
+  id: string;
   error: {
     name: string;
     code: number;
@@ -206,7 +209,7 @@ export const kbaseBaseQuery: (
       }
 
       // Generate JsonRpc request id
-      const reqId = Math.random();
+      const reqId = Math.random().toString();
 
       // generate request body
       const fetchArgs = {
@@ -255,10 +258,10 @@ export const kbaseBaseQuery: (
 
       // From here, assume we have a jsonRpc response
       const data = response.data as {
-        version: string;
-        result?: unknown;
         error?: unknown;
-        id?: number;
+        id?: string;
+        result?: unknown;
+        version: string;
       };
 
       // If the IDs don't match, fail
