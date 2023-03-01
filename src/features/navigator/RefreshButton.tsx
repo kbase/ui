@@ -1,30 +1,20 @@
-import { FC, MouseEvent } from 'react';
+import { FC } from 'react';
 import { faRefresh } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
 import { Button } from '../../common/components';
-import type { AppDispatch } from '../../app/store';
 import { useAppDispatch } from '../../common/hooks';
 import { clearCacheAction } from '../../common/api/searchApi';
 import classes from './Navigator.module.scss';
 
-// This handler factory pattern is primarily to aid unit testing.
-export const refreshHandlerFactory = (dispatch: AppDispatch) => () => {
-  dispatch(clearCacheAction);
-};
-
-interface RefreshButtonParams {
-  clickHandlerFactory?: (dispatch: AppDispatch) => (evt?: MouseEvent) => void;
-}
-
-const RefreshButton: FC<RefreshButtonParams> = ({ clickHandlerFactory }) => {
+const RefreshButton: FC = () => {
   const dispatch = useAppDispatch();
-  const handler = clickHandlerFactory
-    ? clickHandlerFactory(dispatch)
-    : refreshHandlerFactory(dispatch);
+  const refreshHandler = () => {
+    dispatch(clearCacheAction);
+  };
   return (
     <Button
       className={`${classes.button} ${classes['refresh']}`}
-      onClick={handler}
+      onClick={refreshHandler}
     >
       Refresh <FAIcon icon={faRefresh} />
     </Button>

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from '../../common/hooks';
 import { getSearch, SearchParams } from '../../common/api/searchApi';
 import { Category, Sort } from './common';
@@ -82,12 +82,15 @@ const makeGetNarrativesParams = (
 export const useNarratives = (params: getNarrativesParams) => {
   const dispatch = useAppDispatch();
   const narrativesPrevious = useAppSelector(narratives);
-  const searchQuery = makeGetNarrativesParams(params);
-  const query = getSearch.useQuery(searchQuery);
+  const searchAPIParams = useMemo(
+    () => makeGetNarrativesParams(params),
+    [params]
+  );
+  const searchAPIQuery = getSearch.useQuery(searchAPIParams);
   useEffect(() => {
-    if (query.isSuccess) {
-      const data = query.data;
+    if (searchAPIQuery.isSuccess) {
+      const data = searchAPIQuery.data;
       dispatch(setNarratives(data));
     }
-  }, [dispatch, narrativesPrevious, query, searchQuery]);
+  }, [dispatch, narrativesPrevious, searchAPIQuery, searchAPIParams]);
 };
