@@ -8,7 +8,6 @@ import {
   useSearchParams,
 } from 'react-router-dom';
 import { Button } from '../../common/components';
-import { PlaceholderFactory } from '../../common/components/PlaceholderFactory';
 import { useAppDispatch, useAppSelector } from '../../common/hooks';
 import { NarrativeListDoc } from '../../common/types/NarrativeDoc';
 import { authUsername } from '../../features/auth/authSlice';
@@ -35,6 +34,7 @@ import {
   setCategory,
 } from './navigatorSlice';
 import NarrativeList from './NarrativeList/NarrativeList';
+import NarrativeView from './NarrativeView';
 import classes from './Navigator.module.scss';
 import RefreshButton from './RefreshButton';
 import SearchInput from './SearchInput';
@@ -109,11 +109,6 @@ const FilterContainer: FC<{ search: string; sort: string }> = ({
   );
 };
 
-/* NarrativeView should take (at least) a narrative upa as prop, but if it is
-   null then it should show a message saying there is no narrative selected.
-*/
-const NarrativeView = PlaceholderFactory('NarrativeView');
-
 const MainContainer: FC<{
   limit: number;
   limitTemplate: (limit: number) => string;
@@ -141,11 +136,7 @@ const MainContainer: FC<{
                 showVersionDropdown={true}
               />
             </div>
-            <NarrativeView
-              className={classes.details}
-              narrative={narrative}
-              view={view}
-            />
+            <NarrativeView narrative={narrative} view={view} />
           </>
         )}
       </div>
