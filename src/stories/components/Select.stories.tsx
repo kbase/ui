@@ -35,23 +35,28 @@ const SelectAsyncTemplate: ComponentStory<typeof Select> = (args) => {
   const handleChange = (selected: SelectOption[]) => {
     setValue(selected);
   };
+  const [options, setOptions] = useState<SelectOption[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
   return (
     <Select
+      loading={loading}
       {...args}
       value={value}
       onChange={handleChange}
-      options={async (inputValue) => {
-        return new Promise((resolve) => {
-          setTimeout(
-            () =>
-              resolve([
-                { value: 'chocolate', label: 'Chocolate' },
-                { value: 'strawberry', label: 'Strawberry' },
-                { value: 'vanilla', label: 'Vanilla' },
-                { value: inputValue, label: `Some Option(s) ${inputValue}` },
-              ]),
-            500
-          );
+      options={options}
+      onSuggest={(inputValue) => {
+        new Promise<void>((resolve) => {
+          setLoading(true);
+          setTimeout(() => {
+            setOptions([
+              { value: 'chocolate', label: 'Chocolate' },
+              { value: 'strawberry', label: 'Strawberry' },
+              { value: 'vanilla', label: 'Vanilla' },
+              { value: inputValue, label: `Some Option(s) ${inputValue}` },
+            ]);
+            setLoading(false);
+            resolve();
+          }, 500);
         });
       }}
     />

@@ -1,4 +1,4 @@
-import { FC, ReactNode, useState, useEffect } from 'react';
+import { FC, ReactNode, useMemo } from 'react';
 import ReactSelect, {
   GroupBase,
   MultiValue,
@@ -6,7 +6,6 @@ import ReactSelect, {
   SingleValue,
   Props as ReactSelectProps,
 } from 'react-select';
-import AsyncSelect from 'react-select/async';
 import classes from './Select.module.scss';
 
 export interface SelectOption {
@@ -19,7 +18,6 @@ export type OptionsArray = OptionsOrGroups<
   SelectOption,
   GroupBase<SelectOption>
 >;
-type OptionsAsync = (inputValue: string) => Promise<OptionsArray>;
 
 export interface SelectProps {
   /** Sets a className attribute on the outer component */
@@ -30,6 +28,8 @@ export interface SelectProps {
   components?: ReactSelectProps<SelectOption>['components'];
   /** If true, sets select to disabled */
   disabled?: boolean;
+  /** If true, sets select to loading */
+  loading?: boolean;
   /** Whether the dropdown select menu should be pinned to the left or right
    * (default left) */
   horizontalMenuAlign?: 'left' | 'right';
@@ -37,9 +37,10 @@ export interface SelectProps {
   multiple?: boolean;
   /** onChange callback, triggered when the selected value changes */
   onChange?: (value: SelectOption[]) => void;
-  /** The array of options & option groups (see react-select documentation) OR
-   * an async function which returns such an array given the input content */
-  options: OptionsArray | OptionsAsync;
+  /** onSuggest callback, triggered when the user types in the suggest box */
+  onSuggest?: (value: string) => void;
+  /** The array of options & option groups (see react-select documentation) */
+  options: OptionsArray;
   /** If defined, sets the value of the select. */
   value?: SingleValue<SelectOption> | MultiValue<SelectOption>;
 }
@@ -66,16 +67,7 @@ export const Select: FC<SelectProps> = (props) => {
   const options = props.options;
 
   // Detect how to format options based on if they have icons
-  const defaultHasIcons = doesHaveIcons(options);
-  const [hasIcons, setHasIcons] = useState(defaultHasIcons);
-
-  useEffect(() => {
-    // Detect if static option icons have changed
-    // needed so we can deal with icons set ansynchronously
-    if (!isFunc(options)) {
-      setHasIcons(defaultHasIcons);
-    }
-  }, [options, defaultHasIcons]);
+  const hasIcons = useMemo(() => doesHaveIcons(options), [options]);
 
   // Add the right-aligned class if needed
   const classNames = [classes['react-select'], props.className ?? ''];
@@ -100,47 +92,28 @@ export const Select: FC<SelectProps> = (props) => {
     );
   };
 
-  // Common between sync/async
-  const commonProps = {
-    className: classNames.join(' '),
-    /** classNamePrefix allows us to override the default styles by using global
-     * classes prefixed with the below */
-    classNamePrefix: 'react-select',
-    components: props.components,
-    formatOptionLabel: handleFormatOptionLabel,
-    isClearable: props.clearable,
-    isDisabled: props.disabled,
-    isMulti: props.multiple,
-    onChange: handleChange,
-    value: props.value,
-  };
-
-  return !isFunc(options) ? (
-    // Synchronous
-    <ReactSelect {...commonProps} options={options} />
-  ) : (
-    // Asynchronous
-    // Could later support pagination here with react-select-async-paginate
-    <AsyncSelect
-      {...commonProps}
-      loadOptions={async (inputValue: string) => {
-        const newOpts = await options(inputValue);
-        setHasIcons(doesHaveIcons(newOpts));
-        return newOpts;
-      }}
-      defaultOptions={true}
+  return (
+    <ReactSelect
+      className={classNames.join(' ')}
+      /** classNamePrefix allows us to override the default styles by using global
+       * classes prefixed with the below */
+      classNamePrefix={'react-select'}
+      components={props.components}
+      formatOptionLabel={handleFormatOptionLabel}
+      isClearable={props.clearable}
+      isDisabled={props.disabled}
+      isLoading={props.loading}
+      isMulti={props.multiple}
+      onChange={handleChange}
+      value={props.value}
+      options={options}
+      onInputChange={props.onSuggest}
     />
   );
 };
 
-const isFunc = (opts: SelectProps['options']): opts is OptionsAsync => {
-  return typeof opts === 'function';
-};
-
 const doesHaveIcons = (opts: SelectProps['options']): boolean => {
-  // Double check that we're not dealing with async options
   // mostly appeasing typescript here
-  if (isFunc(opts)) return false;
   return opts.some((optionOrGroup) => {
     if ('options' in optionOrGroup) {
       return doesHaveIcons(optionOrGroup.options);
