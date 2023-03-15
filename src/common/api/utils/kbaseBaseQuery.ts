@@ -156,7 +156,7 @@ export const kbaseBaseQuery: (
       const token = (api.getState() as RootState).auth.token;
 
       // If we have a token set in state, let's assume that we should be passing it.
-      if (token) {
+      if (token && !headers.has('authorization')) {
         headers.set('authorization', `${token}`);
       }
       return headers;
