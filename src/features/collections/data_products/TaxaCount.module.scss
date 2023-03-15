@@ -17,10 +17,15 @@ $gaps: 5px;
   gap: $gaps;
 }
 
-.name {
+.name,
+.subname {
   height: $bar-height;
   line-height: $bar-height;
   text-align: right;
+}
+
+.subname {
+  color: use-color("silver");
 }
 
 .bars-section {
@@ -49,6 +54,12 @@ $gaps: 5px;
   .label-dark {
     color: use-color("ink");
     height: $bar-height;
+  }
+
+  &.matched {
+    .bar {
+      background: use-color("secondary");
+    }
   }
 
 }

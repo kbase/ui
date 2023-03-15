@@ -1,6 +1,7 @@
 import { uriEncodeTemplateTag as encode } from '../utils/stringUtils';
 import { baseApi } from './index';
 import { httpService } from './utils/serviceHelpers';
+import { store } from '../../app/store';
 
 const collectionsService = httpService({
   url: 'services/collectionsservice',
@@ -34,6 +35,32 @@ export interface Collection extends UnsavedCollection {
   date_active: string;
 }
 
+interface Matcher {
+  id: string;
+  types: string[];
+  description: string;
+  required_data_products: string;
+  user_parameters: unknown;
+  collection_parameters: unknown;
+}
+
+interface IncompleteMatch {
+  match_id: string;
+  matcher_id: string;
+  collection_id: string;
+  collection_ver: number;
+  user_parameters: Record<string, never>;
+  match_state: 'processing' | 'failed';
+}
+
+interface CompleteMatch extends Omit<IncompleteMatch, 'match_state'> {
+  match_state: 'complete';
+  upas: string[];
+  matches: string[];
+}
+
+type Match = IncompleteMatch | CompleteMatch;
+
 interface CollectionsResults {
   status: {
     service_name: string;
@@ -45,12 +72,17 @@ interface CollectionsResults {
   getCollection: Collection;
   saveCollection: Collection;
   activateVersion: void;
+  getCollectionMatchers: { data: Matcher[] };
+  createMatch: Match;
+  getMatch: Match;
   listTaxaCountRanks: { data: string[] };
   getTaxaCountRank: {
     data: {
       name: string;
       count: number;
+      match_count?: number;
     }[];
+    taxa_count_match_state: 'processing' | 'complete' | 'failed';
   };
   getGenomeAttribs: {
     skip: number;
@@ -58,6 +90,7 @@ interface CollectionsResults {
     fields: { name: string }[];
     table: unknown[][];
     data?: null;
+    count?: number;
   };
 }
 
@@ -69,11 +102,20 @@ interface CollectionsParams {
   activateVersion:
     | Pick<Collection, 'id' | 'ver_tag'>
     | Pick<Collection, 'id' | 'ver_num'>;
+  getCollectionMatchers: Collection['id'];
+  createMatch: {
+    collection_id: Collection['id'];
+    matcher_id: Matcher['id'];
+    upas: string[];
+    parameters: Match['user_parameters'];
+  };
+  getMatch: string;
   listTaxaCountRanks: { collection_id: string; load_ver_override?: string };
   getTaxaCountRank: {
     collection_id: string;
     rank: string;
     load_ver_override?: string;
+    match_id?: string;
   };
   getGenomeAttribs: {
     collection_id: string;
@@ -82,6 +124,9 @@ interface CollectionsParams {
     skip?: number;
     limit?: number;
     output_table?: true; // will only this query style for now, for clearer types
+    match_id?: string;
+    match_mark?: boolean;
+    count?: boolean;
     load_ver_override?: string;
   };
 }
@@ -136,6 +181,51 @@ export const collectionsApi = baseApi.injectEndpoints({
         }),
     }),
 
+    getCollectionMatchers: builder.query<
+      CollectionsResults['getCollectionMatchers'],
+      CollectionsParams['getCollectionMatchers']
+    >({
+      query: (id) =>
+        collectionsService({
+          method: 'GET',
+          url: encode`/collections/${id}/matchers`,
+        }),
+    }),
+
+    createMatch: builder.mutation<
+      CollectionsResults['createMatch'],
+      CollectionsParams['createMatch']
+    >({
+      query: (params) => {
+        const { collection_id, matcher_id, ...body_params } = params;
+        return collectionsService({
+          method: 'POST',
+          url: encode`/collections/${collection_id}/matchers/${matcher_id}`,
+          body: body_params,
+          headers: {
+            authorization: `Bearer ${store.getState().auth.token}`,
+          },
+        });
+      },
+    }),
+
+    getMatch: builder.query<
+      CollectionsResults['getMatch'],
+      CollectionsParams['getMatch']
+    >({
+      query: (match_id) =>
+        collectionsService({
+          method: 'GET',
+          url: encode`/matches/${match_id}/`,
+          params: {
+            verbose: true,
+          },
+          headers: {
+            authorization: `Bearer ${store.getState().auth.token}`,
+          },
+        }),
+    }),
+
     listTaxaCountRanks: builder.query<
       CollectionsResults['listTaxaCountRanks'],
       CollectionsParams['listTaxaCountRanks']
@@ -145,6 +235,9 @@ export const collectionsApi = baseApi.injectEndpoints({
           method: 'GET',
           url: encode`/collections/${collection_id}/data_products/taxa_count/ranks/`,
           params: load_ver_override ? { load_ver_override } : undefined,
+          headers: {
+            authorization: `Bearer ${store.getState().auth.token}`,
+          },
         }),
     }),
 
@@ -152,11 +245,14 @@ export const collectionsApi = baseApi.injectEndpoints({
       CollectionsResults['getTaxaCountRank'],
       CollectionsParams['getTaxaCountRank']
     >({
-      query: ({ collection_id, rank, load_ver_override }) =>
+      query: ({ collection_id, rank, load_ver_override, match_id }) =>
         collectionsService({
           method: 'GET',
           url: encode`/collections/${collection_id}/data_products/taxa_count/counts/${rank}/`,
-          params: load_ver_override ? { load_ver_override } : undefined,
+          params: { load_ver_override, match_id },
+          headers: {
+            authorization: `Bearer ${store.getState().auth.token}`,
+          },
         }),
     }),
 
@@ -169,6 +265,9 @@ export const collectionsApi = baseApi.injectEndpoints({
           method: 'GET',
           url: encode`/collections/${collection_id}/data_products/genome_attribs/`,
           params: options,
+          headers: {
+            authorization: `Bearer ${store.getState().auth.token}`,
+          },
         }),
     }),
   }),
@@ -180,6 +279,9 @@ export const {
   getCollection,
   saveCollection,
   activateVersion,
+  getCollectionMatchers,
+  createMatch,
+  getMatch,
   listTaxaCountRanks,
   getTaxaCountRank,
   getGenomeAttribs,
