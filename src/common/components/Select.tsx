@@ -1,4 +1,4 @@
-import { FC, ReactNode, useMemo } from 'react';
+import { FC, ReactNode, useEffect, useMemo, useState } from 'react';
 import ReactSelect, {
   GroupBase,
   MultiValue,
@@ -6,6 +6,7 @@ import ReactSelect, {
   SingleValue,
   Props as ReactSelectProps,
 } from 'react-select';
+import SearchInput from '../../features/navigator/SearchInput';
 import classes from './Select.module.scss';
 
 export interface SelectOption {
@@ -37,12 +38,13 @@ export interface SelectProps {
   multiple?: boolean;
   /** onChange callback, triggered when the selected value changes */
   onChange?: (value: SelectOption[]) => void;
-  /** onSuggest callback, triggered when the user types in the suggest box */
-  onSuggest?: (value: string) => void;
+  /** onSearch callback, triggered when the user types in the suggest box */
+  onSearch?: (value: string) => void;
   /** The array of options & option groups (see react-select documentation) */
   options: OptionsArray;
   /** If defined, sets the value of the select. */
   value?: SingleValue<SelectOption> | MultiValue<SelectOption>;
+  /** If defined, sets the value of the input */
 }
 
 export const handleChangeFactory = (
@@ -75,11 +77,26 @@ export const Select: FC<SelectProps> = (props) => {
     classNames.push(classes['react-select--right']);
   }
 
-  const callOnChange =
-    props.onChange ??
-    (() => {
-      /* noop */
-    });
+  const [searchString, setSearchString] = useState('');
+  const handleInputChange = async (searchInput: string) => {
+    setSearchString(searchInput);
+  };
+  const { onSearch } = props;
+  useEffect(() => {
+    if (onSearch) onSearch(searchString);
+  }, [onSearch, searchString]);
+
+  const callOnChange: SelectProps['onChange'] = (options) => {
+    const opt = options?.[0];
+    if (props.onChange) return props.onChange(options);
+    if (opt) {
+      if (typeof opt.label === 'string') {
+        setSearchString(opt.label);
+      }
+    }
+    return;
+  };
+
   const handleChange = handleChangeFactory(callOnChange);
   const handleFormatOptionLabel = (data: SelectOption) => {
     return (
@@ -107,7 +124,10 @@ export const Select: FC<SelectProps> = (props) => {
       onChange={handleChange}
       value={props.value}
       options={options}
-      onInputChange={props.onSuggest}
+      onInputChange={handleInputChange}
+      inputValue={searchString}
+      // don't auto-filter the list if we're using onSearch
+      filterOption={props.onSearch ? () => true : undefined}
     />
   );
 };

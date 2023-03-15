@@ -125,7 +125,7 @@ test('Async option loading and selection', async () => {
       });
     };
     return (
-      <Select onChange={onChange} onSuggest={handleSuggest} options={options} />
+      <Select onChange={onChange} onSearch={handleSuggest} options={options} />
     );
   };
   const { container } = render(<Parent />);

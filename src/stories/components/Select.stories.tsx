@@ -44,7 +44,7 @@ const SelectAsyncTemplate: ComponentStory<typeof Select> = (args) => {
       value={value}
       onChange={handleChange}
       options={options}
-      onSuggest={(inputValue) => {
+      onSearch={(inputValue) => {
         new Promise<void>((resolve) => {
           setLoading(true);
           setTimeout(() => {
