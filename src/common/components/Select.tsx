@@ -6,7 +6,6 @@ import ReactSelect, {
   SingleValue,
   Props as ReactSelectProps,
 } from 'react-select';
-import SearchInput from '../../features/navigator/SearchInput';
 import classes from './Select.module.scss';
 
 export interface SelectOption {
@@ -25,7 +24,7 @@ export interface SelectProps {
   className?: string;
   /** If true, adds a clickable icon for clearing the select */
   clearable?: boolean;
-  /** Advanced: allows manualy manipulation of react-select subcomponents */
+  /** Advanced: allows manually manipulation of react-select subcomponents */
   components?: ReactSelectProps<SelectOption>['components'];
   /** If true, sets select to disabled */
   disabled?: boolean;
@@ -44,7 +43,8 @@ export interface SelectProps {
   options: OptionsArray;
   /** If defined, sets the value of the select. */
   value?: SingleValue<SelectOption> | MultiValue<SelectOption>;
-  /** If defined, sets the value of the input */
+  /** If defined, sets the value of the placeholder */
+  placeholder?: string;
 }
 
 export const handleChangeFactory = (
@@ -111,6 +111,7 @@ export const Select: FC<SelectProps> = (props) => {
 
   return (
     <ReactSelect
+      placeholder={props.placeholder}
       className={classNames.join(' ')}
       /** classNamePrefix allows us to override the default styles by using global
        * classes prefixed with the below */
