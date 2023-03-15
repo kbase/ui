@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { CSSProperties, useEffect, useMemo, useState } from 'react';
 import {
   createColumnHelper,
   ColumnHelper,
@@ -12,6 +12,7 @@ import {
   HeaderGroup,
   DeepKeys,
   Table as TableType,
+  Row,
 } from '@tanstack/react-table';
 import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -38,11 +39,15 @@ export const Table = <Datum,>({
   columnDefs,
   className,
   pageSize = false,
+  pageCount = 0,
+  rowStyle = () => ({}),
 }: {
   data: Datum[];
   columnDefs?: ColumnDefs<Datum>;
   className?: string;
   pageSize?: number | false;
+  pageCount?: number; // 0 uses data length
+  rowStyle?: (row: Row<Datum>) => CSSProperties;
 }) => {
   const [sorting, setSorting] = useState<SortingState>([]);
 
@@ -72,7 +77,8 @@ export const Table = <Datum,>({
     const size = paginated ? pageSize : Number.MAX_SAFE_INTEGER;
     table.setPageSize(size);
     setShouldPaginate(paginated);
-  }, [pageSize, table]);
+    table.setPageCount(pageCount || -1);
+  }, [pageCount, pageSize, table]);
 
   const shouldRenderHeader = someHeaderDefines(
     'header',
@@ -94,7 +100,7 @@ export const Table = <Datum,>({
           {shouldRenderHeader ? <TableHeader table={table} /> : undefined}
           <tbody>
             {table.getRowModel().rows.map((row) => (
-              <tr key={row.id}>
+              <tr key={row.id} style={rowStyle(row)}>
                 {row.getVisibleCells().map((cell) => (
                   <td key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
