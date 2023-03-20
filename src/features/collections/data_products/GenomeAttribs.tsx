@@ -9,26 +9,42 @@ export const GenomeAttribs: FC<{
 }> = ({ collection_id }) => {
   const matchId = useAppParam('match');
   const [onlyMatch, setOnlyMatch] = useState(false);
+
+  const [tableState, setTableState] = useState<{
+    sortBy?: string;
+    sortDesc: boolean;
+    pageIndex: number;
+    pageSize: number;
+  }>({ sortDesc: false, pageIndex: 0, pageSize: 8 });
+
   const attribParams = useMemo(
     () => ({
       collection_id,
+      sort_on: tableState.sortBy,
+      sort_desc: tableState.sortDesc,
+      skip: tableState.pageIndex * tableState.pageSize,
+      limit: tableState.pageSize,
       ...(matchId ? { match_id: matchId, match_mark: !onlyMatch } : {}),
     }),
-    [collection_id, matchId, onlyMatch]
+    [collection_id, matchId, onlyMatch, tableState]
   );
-  const { data } = getGenomeAttribs.useQuery(attribParams);
+  const { data, isFetching } = getGenomeAttribs.useQuery(attribParams);
+
   const countParams = useMemo(
     () => ({ ...attribParams, count: true }),
     [attribParams]
   );
   const { data: countData } = getGenomeAttribs.useQuery(countParams);
+
   const colDefs = useAttribColumns({
     fieldNames: data?.fields.map((field) => field.name),
     order: ['genome_name', 'genome_size'],
     exclude: ['__match__'],
   });
+
   if (data) {
     const matchIndex = data.fields.findIndex((f) => f.name === '__match__');
+    const pageCount = Math.ceil((countData?.count || 0) / tableState.pageSize);
     return (
       <>
         {matchId ? (
@@ -37,11 +53,13 @@ export const GenomeAttribs: FC<{
           </button>
         ) : null}
         <Table
+          showLoader={isFetching}
           className={classes['table']}
           data={data.table}
-          pageSize={8}
-          pageCount={Math.ceil((countData?.count || 0) / 8)}
+          pageSize={tableState.pageSize}
+          pageCount={pageCount}
           columnDefs={colDefs}
+          onTableChange={(state) => setTableState(state)}
           rowStyle={(row) => {
             if (matchIndex === -1) return {};
             return {
