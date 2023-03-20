@@ -4,6 +4,7 @@ import {
   listTaxaCountRanks,
 } from '../../../common/api/collectionsApi';
 import { Select, SelectOption } from '../../../common/components/Select';
+import { useBackoff } from '../../../common/hooks';
 import { snakeCaseToHumanReadable } from '../../../common/utils/stringUtils';
 import { useAppParam } from '../../params/hooks';
 import classes from './TaxaCount.module.scss';
@@ -31,22 +32,32 @@ export const TaxaCount: FC<{
     () => ({ collection_id, rank: String(rank?.value), match_id: matchId }),
     [collection_id, matchId, rank?.value]
   );
-  const [polling, setPolling] = useState(false);
-  useEffect(() => setPolling(!!countsParams.match_id), [countsParams]); // Poll for new queries with a matchId
+  const backoff = useBackoff();
+  useEffect(() => {
+    backoff.reset();
+    backoff.toggle(!!matchId);
+  }, [countsParams, matchId, backoff]);
+
   const countsQuery = getTaxaCountRank.useQuery(countsParams, {
     skip: !rank,
-    pollingInterval: polling ? 1000 : 0,
+    pollingInterval: backoff.duration,
   });
+
+  useEffect(() => backoff.increment(), [countsQuery.startedTimeStamp, backoff]);
+
+  const pollDone =
+    countsQuery.error ||
+    countsQuery.data?.taxa_count_match_state !== 'processing';
+
   useEffect(() => {
-    if (matchId)
-      setPolling(countsQuery.data?.taxa_count_match_state === 'processing');
-  }, [countsQuery.data, matchId]); // if the match is processing, set polling to true
+    backoff.toggle(!pollDone);
+  }, [backoff, pollDone]);
 
   const taxa = countsQuery.data?.data || [];
 
   const max = taxa.reduce((max, { count }) => (max > count ? max : count), 0);
 
-  if (polling || ranksQuery.isLoading || countsQuery.isLoading)
+  if (backoff.isPolling || ranksQuery.isLoading || countsQuery.isLoading)
     return <>Loading...</>;
 
   return (

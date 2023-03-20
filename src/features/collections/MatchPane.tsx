@@ -10,6 +10,7 @@ import { Select, SelectOption } from '../../common/components';
 import { listObjects, listWorkspaceInfo } from '../../common/api/workspaceApi';
 import { parseError } from '../../common/api/utils/parseError';
 import { useAppParam, useUpdateAppParams } from '../params/hooks';
+import { useBackoff } from '../../common/hooks';
 
 export const CollectionMatchPane = ({
   collectionId,
@@ -190,37 +191,28 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
 };
 
 const usePollMatch = (matchId: string | undefined) => {
-  const [matchPoll, setMatchPoll] = useState<{
-    shouldPoll: boolean;
-    pollCount: number;
-  }>({ shouldPoll: true, pollCount: 0 });
-
-  useEffect(() => setMatchPoll({ shouldPoll: true, pollCount: 0 }), [matchId]);
-
-  const pollingInterval = matchPoll.shouldPoll
-    ? 200 * Math.pow(2, matchPoll.pollCount)
-    : 0;
-  const skip = !matchId || (!matchPoll.shouldPoll && matchPoll.pollCount > 1);
+  const backoff = useBackoff();
+  useEffect(() => {
+    backoff.reset();
+    backoff.toggle(!!matchId);
+  }, [matchId, backoff]);
 
   const getMatchQuery = getMatch.useQuery(matchId || '', {
-    skip,
-    pollingInterval,
+    skip: !matchId,
+    pollingInterval: backoff.duration,
   });
 
-  const matchStatus = getMatchQuery.isFetching
-    ? 'fetching'
-    : getMatchQuery.isError
-    ? 'error'
-    : getMatchQuery.data?.match_state || 'unknown';
+  useEffect(
+    () => backoff.increment(),
+    [getMatchQuery.startedTimeStamp, backoff]
+  );
+
+  const pollDone =
+    getMatchQuery.error || getMatchQuery.data?.match_state !== 'processing';
 
   useEffect(() => {
-    if (['complete', 'failed', 'error'].includes(matchStatus)) {
-      setMatchPoll((d) => ({ shouldPoll: false, pollCount: d.pollCount }));
-    }
-    if (matchStatus === 'processing') {
-      setMatchPoll((d) => ({ shouldPoll: true, pollCount: d.pollCount + 1 }));
-    }
-  }, [matchStatus, getMatchQuery.fulfilledTimeStamp]);
+    backoff.toggle(!pollDone);
+  }, [backoff, pollDone]);
 
   return getMatchQuery;
 };
