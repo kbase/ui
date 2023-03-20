@@ -6,7 +6,16 @@ import fetchMock, {
 import type { MockParams } from 'jest-fetch-mock';
 import { Provider } from 'react-redux';
 import { MemoryRouter as Router } from 'react-router-dom';
-
+import Routes from '../../app/Routes';
+import { createTestStore } from '../../app/store';
+import { baseApi } from '../../common/api';
+import { setAuth, TokenInfo } from '../auth/authSlice';
+import {
+  realname,
+  realnameOther,
+  usernameOtherRequested,
+  usernameRequested,
+} from '../common';
 import {
   Profile,
   ProfileInfobox,
@@ -15,16 +24,6 @@ import {
   ProfileView,
   ProfileWrapper,
 } from './Profile';
-
-import Routes from '../../app/Routes';
-import { createTestStore } from '../../app/store';
-import { setAuth, TokenInfo } from '../auth/authSlice';
-import { baseApi } from '../../common/api';
-
-export const realname = 'Rosalind Franklin';
-export const usernameRequested = 'rosalind-franklin';
-export const realnameOther = 'Dorothy Hodgkin';
-export const usernameOtherRequested = 'dorothy-hodgkin';
 
 export const initialState = {
   auth: {

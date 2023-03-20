@@ -1,19 +1,19 @@
-import { useState } from 'react';
-import classes from './NarrativeList.module.scss';
-import NarrativeViewItem from './NarrativeViewItem';
 import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
 import { faCog } from '@fortawesome/free-solid-svg-icons';
-import { NarrativeListDoc } from '../../types/NarrativeDoc';
+import { Link } from 'react-router-dom';
+import { NarrativeListDoc } from '../../../common/types/NarrativeDoc';
+import classes from './NarrativeList.module.scss';
+import NarrativeViewItem from './NarrativeViewItem';
 
 interface NarrativeListProps {
-  items: Array<NarrativeListDoc>;
-  showVersionDropdown: boolean;
-  itemsRemaining: number;
   hasMoreItems: boolean;
+  items: Array<NarrativeListDoc>;
+  itemsRemaining: number;
   loading: boolean;
-  onSelectItem?: (upa: string) => void;
+  narrative: string | null;
+  nextLimit: string;
+  showVersionDropdown: boolean;
   onLoadMoreItems?: () => void;
-  selectedIdx?: number;
   sort?: string; // do we need it
 }
 
@@ -22,10 +22,6 @@ export interface SelectItemEvent {
   idx: number;
 }
 function NarrativeList(props: NarrativeListProps) {
-  const [selectedIdx, setSelectedIdx] = useState<number>(
-    props.selectedIdx ?? -1
-  );
-
   if (!props.items.length) {
     if (props.loading) {
       return (
@@ -51,7 +47,13 @@ function NarrativeList(props: NarrativeListProps) {
   }
 
   function hasMoreButton() {
-    const { itemsRemaining, hasMoreItems, loading, onLoadMoreItems } = props;
+    const {
+      itemsRemaining,
+      hasMoreItems,
+      loading,
+      onLoadMoreItems,
+      nextLimit,
+    } = props;
     if (!hasMoreItems) {
       return <span className={classes.list_footer}>No more results.</span>;
     }
@@ -68,12 +70,13 @@ function NarrativeList(props: NarrativeListProps) {
       );
     }
     return (
-      <span
+      <Link
         className={`${classes.list_footer} ${classes.link_action}`}
         onClick={onLoadMoreItems}
+        to={nextLimit}
       >
         Load more ({itemsRemaining} remaining)
-      </span>
+      </Link>
     );
   }
 
@@ -82,14 +85,14 @@ function NarrativeList(props: NarrativeListProps) {
       {props.items.map((item, idx) => {
         return (
           <NarrativeViewItem
-            key={idx}
-            item={item}
             idx={idx}
-            active={idx === selectedIdx}
-            onSelectItem={(idx) => setSelectedIdx(idx)}
-            onUpaChange={(upa) => props.onSelectItem?.(upa)}
+            item={item}
+            key={idx}
+            onUpaChange={
+              (upa) => console.log(upa) /* eslint-disable-line no-console */
+            }
             showVersionDropdown={props.showVersionDropdown}
-          ></NarrativeViewItem>
+          />
         );
       })}
       {hasMoreButton()}

@@ -1,5 +1,4 @@
 import { ComponentMeta, ComponentStory } from '@storybook/react';
-import { BrowserRouter as Router } from 'react-router-dom';
 
 import TypeIcon from '../../features/icons/TypeIcon';
 import { typeIconInfos } from '../../features/icons/common';
@@ -20,11 +19,9 @@ export default {
 // component e.g. `<Component {...args} />`
 const TypeIconTemplate: ComponentStory<typeof TypeIcon> = (args) => {
   return (
-    <Router>
-      <div style={{ height: '70px', width: '100%', position: 'relative' }}>
-        <TypeIcon {...args}></TypeIcon>
-      </div>
-    </Router>
+    <div style={{ height: '70px', width: '100%', position: 'relative' }}>
+      <TypeIcon {...args}></TypeIcon>
+    </div>
   );
 };
 

@@ -1,0 +1,61 @@
+:root {
+  --dark-green: #137752;
+  --white: #fff;
+}
+
+pre {
+  margin: 0;
+}
+
+.active {
+  background-color: #f0f;
+  color: #ff0;
+}
+
+.button {
+  &.narrative-new {
+    height: 100%;
+    width: 100%;
+  }
+
+  &.refresh {
+    background-color: var(--dark-green);
+    color: var(--white);
+  }
+}
+
+.container {
+  display: flex;
+  justify-content: space-between;
+}
+
+.details {
+  flex-grow: 3;
+}
+
+.header nav {
+  display: flex;
+  justify-content: space-between;
+}
+
+.list {
+  flex-grow: 2;
+  max-width: 600px;
+}
+
+/*
+.navigator div,
+.navigator header,
+.navigator nav,
+.navigator pre {
+  border: 1px dashed #000;
+}
+*/
+
+.search {
+  display: flex;
+}
+
+.sort {
+  width: 30ch;
+}

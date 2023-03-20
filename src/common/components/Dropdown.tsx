@@ -7,7 +7,7 @@ const { DropdownIndicator } = components;
 
 export type DropdownProps = ComponentPropsWithRef<typeof Select>;
 
-export const Dropdown: FC<DropdownProps> = (props) => {
+const Dropdown: FC<DropdownProps> = (props) => {
   const indicator = props.children;
   return (
     <Select
@@ -22,3 +22,5 @@ export const Dropdown: FC<DropdownProps> = (props) => {
     />
   );
 };
+
+export { Dropdown };

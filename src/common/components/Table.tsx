@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
 import {
   createColumnHelper,
   ColumnHelper,
@@ -13,6 +13,7 @@ import {
   HeaderGroup,
   DeepKeys,
   Table as TableType,
+  Row,
 } from '@tanstack/react-table';
 import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -53,6 +54,7 @@ type TableProps<Datum> = {
   data: Datum[];
   columnDefs?: ColumnDefs<Datum>;
   className?: string;
+  rowStyle?: (row: Row<Datum>) => CSSProperties;
 } & (DynamicTableProps | StaticTableProps);
 
 /**
@@ -60,7 +62,7 @@ type TableProps<Datum> = {
  * [TanStack/table](https://tanstack.com/table/v8/docs/) see those docs for
  * detailed documentation on column definitions.
  */
-export const Table = <Datum extends unknown>({
+export const Table = <Datum,>({
   data,
   columnDefs,
   className,
@@ -68,6 +70,7 @@ export const Table = <Datum extends unknown>({
   pageCount,
   showLoader,
   onTableChange,
+  rowStyle = () => ({}),
 }: TableProps<Datum>) => {
   const isDynamic = onTableChange ? true : false;
 
@@ -147,7 +150,7 @@ export const Table = <Datum extends unknown>({
           {shouldRenderHeader ? <TableHeader table={table} /> : undefined}
           <tbody>
             {table.getRowModel().rows.map((row) => (
-              <tr key={row.id}>
+              <tr key={row.id} style={rowStyle(row)}>
                 {row.getVisibleCells().map((cell) => (
                   <td key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -171,11 +174,7 @@ export const Table = <Datum extends unknown>({
   );
 };
 
-const Pagination = <Datum extends unknown>({
-  table,
-}: {
-  table: TableType<Datum>;
-}) => {
+const Pagination = <Datum,>({ table }: { table: TableType<Datum> }) => {
   const totalButtons = 9; // Odd, >=9
   const buttons: (number | ReturnType<typeof Button>)[] = [];
   const sideAmt = (totalButtons - 3) / 2; // how many buttons per side
@@ -251,11 +250,7 @@ const Pagination = <Datum extends unknown>({
   );
 };
 
-const TableHeader = <Datum extends unknown>({
-  table,
-}: {
-  table: TableType<Datum>;
-}) => (
+const TableHeader = <Datum,>({ table }: { table: TableType<Datum> }) => (
   <thead>
     {table.getHeaderGroups().map((headerGroup) => (
       <tr key={headerGroup.id}>
@@ -293,11 +288,7 @@ const TableHeader = <Datum extends unknown>({
   </thead>
 );
 
-const TableFooter = <Datum extends unknown>({
-  table,
-}: {
-  table: TableType<Datum>;
-}) => (
+const TableFooter = <Datum,>({ table }: { table: TableType<Datum> }) => (
   <tfoot>
     {table.getFooterGroups().map((footerGroup) => (
       <tr key={footerGroup.id}>

@@ -61,7 +61,7 @@ export const Card: FC<{
           onClick: handleClick,
           /** For keyboard a11y */
           onKeyDown: (ev, ...args) =>
-            [' ', 'Enter', 'Spacebar'].includes(ev.key) && handleClick
+            [' ', 'Enter', 'Spacebar'].includes(ev.key)
               ? rootDiv?.current?.click()
               : null,
         }

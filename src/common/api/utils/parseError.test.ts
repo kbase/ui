@@ -21,7 +21,7 @@ describe('parseError', () => {
       status: 'JSONRPC_ERROR',
       data: {
         error: { code: 500, message: 'something else', name: 'name' },
-        id: 0,
+        id: '0',
         version: '1.1',
       },
     };
