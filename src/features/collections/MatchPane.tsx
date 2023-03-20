@@ -5,7 +5,6 @@ import {
 } from '../../common/api/collectionsApi';
 import styles from './Collections.module.scss';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { snakeCaseToHumanReadable } from '../../common/utils/stringUtils';
 import { Select, SelectOption } from '../../common/components';
 import { listObjects, listWorkspaceInfo } from '../../common/api/workspaceApi';
 import { parseError } from '../../common/api/utils/parseError';
@@ -66,6 +65,15 @@ const ViewMatch = () => {
   );
 };
 
+const MATCHER_LABELS = new Map<string, string>(
+  Object.entries({
+    gtdb_lineage: 'GTDB Lineage',
+  })
+);
+const getMatcherLabel = (matcherId: string) =>
+  MATCHER_LABELS.get(matcherId.toLowerCase()) ??
+  `Unknown Matcher "${matcherId}"`;
+
 const CreateMatch = ({ collectionId }: { collectionId: string }) => {
   const updateAppParams = useUpdateAppParams();
   const matchersQuery = getCollectionMatchers.useQuery(collectionId);
@@ -77,9 +85,7 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
     return (
       matchers?.map((matcher) => ({
         value: matcher.id,
-        label: `${snakeCaseToHumanReadable(matcher.id)}: ${
-          matcher.description
-        }`,
+        label: getMatcherLabel(matcher.id),
         data: matcher,
       })) || []
     );

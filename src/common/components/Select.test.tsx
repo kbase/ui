@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { Select, handleChangeFactory, SelectOption } from './Select';
@@ -111,17 +111,15 @@ test('Async option loading and selection', async () => {
   const onChange = jest.fn();
   const Parent = () => {
     const [options, setOptions] = useState<SelectOption[]>([]);
-    const handleSuggest = (inputValue: string) => {
-      new Promise<void>((r) => {
-        setTimeout(() => {
-          setOptions([
-            { value: 'chocolate', label: 'Chocolate' },
-            { value: 'strawberry', label: 'Strawberry' },
-            { value: 'vanilla', label: 'Vanilla' },
-            { value: 'test-value', label: inputValue },
-          ]);
-          r();
-        }, 100);
+    const handleSuggest = async (inputValue: string) => {
+      await new Promise<void>((r) => setTimeout(r, 100));
+      act(() => {
+        setOptions([
+          { value: 'chocolate', label: 'Chocolate' },
+          { value: 'strawberry', label: 'Strawberry' },
+          { value: 'vanilla', label: 'Vanilla' },
+          { value: 'test-value', label: inputValue },
+        ]);
       });
     };
     return (

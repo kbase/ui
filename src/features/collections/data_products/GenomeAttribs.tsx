@@ -28,6 +28,7 @@ export const GenomeAttribs: FC<{
     exclude: ['__match__'],
   });
   if (data) {
+    const matchIndex = data.fields.findIndex((f) => f.name === '__match__');
     return (
       <>
         {matchId ? (
@@ -39,12 +40,9 @@ export const GenomeAttribs: FC<{
           className={classes['table']}
           data={data.table}
           pageSize={8}
-          pageCount={countData?.count || 0}
+          pageCount={Math.ceil((countData?.count || 0) / 8)}
           columnDefs={colDefs}
           rowStyle={(row) => {
-            const matchIndex = data?.fields.findIndex(
-              (f) => f.name === '__match__'
-            );
             if (matchIndex === -1) return {};
             return {
               background: row.original[matchIndex] ? 'yellow' : undefined,
