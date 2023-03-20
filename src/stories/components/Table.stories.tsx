@@ -1,4 +1,5 @@
 import { ComponentMeta } from '@storybook/react';
+import { ComponentProps, useEffect, useState } from 'react';
 
 import { Table } from '../../common/components/Table';
 import { snakeCaseToHumanReadable } from '../../common/utils/stringUtils';
@@ -43,22 +44,6 @@ export const CustomizedColumns = () => (
         },
       }),
     ]}
-  />
-);
-
-export const Paginated = () => (
-  <Table
-    data={rows}
-    pageSize={6}
-    columnDefs={(columns) =>
-      (Object.keys(rows[0]) as (keyof typeof rows[0])[])
-        .slice(0, 6)
-        .map((col) =>
-          columns.accessor(col, {
-            header: snakeCaseToHumanReadable(col),
-          })
-        )
-    }
   />
 );
 
@@ -112,6 +97,121 @@ export const NoHeader = () => (
         .map((col) =>
           columns.accessor(col, {
             header: undefined,
+          })
+        )
+    }
+  />
+);
+
+export const PaginatedWithStaticData = () => (
+  <Table
+    data={rows}
+    pageSize={6}
+    columnDefs={(columns) =>
+      (Object.keys(rows[0]) as (keyof typeof rows[0])[])
+        .slice(0, 6)
+        .map((col) =>
+          columns.accessor(col, {
+            header: snakeCaseToHumanReadable(col),
+          })
+        )
+    }
+  />
+);
+
+const useMockDataQuery = (opts: {
+  pageSize: number;
+  pageIndex: number;
+  sortBy?: string;
+  sortDesc?: boolean;
+}) => {
+  const [fetching, setFetching] = useState(false);
+  const [rowPart, setRowPart] = useState<typeof rows>([]);
+  const [rowCount, setRowCount] = useState(-1);
+  useEffect(() => {
+    setFetching(true);
+    new Promise((resolve) => setTimeout(resolve, 500)).then(() => {
+      setFetching(false);
+      const sortOrder = opts.sortDesc ? 1 : -1;
+      setRowPart(
+        [...rows]
+          .sort((a, b) =>
+            opts.sortBy
+              ? a[opts.sortBy as keyof typeof rows[number]] >
+                b[opts.sortBy as keyof typeof rows[number]]
+                ? 1 * sortOrder
+                : -1 * sortOrder
+              : 0
+          )
+          .slice(
+            opts.pageSize * opts.pageIndex,
+            opts.pageSize * (opts.pageIndex + 1)
+          )
+      );
+      setRowCount(rows.length);
+    });
+  }, [opts.pageSize, opts.pageIndex, opts.sortBy, opts.sortDesc]);
+  return { result: { rows: rowPart, rowCount }, fetching };
+};
+
+export const PaginatedWithDynamicData = (testProps: {
+  onTableChange?: ComponentProps<typeof Table>['onTableChange'];
+}) => {
+  const [{ pageIndex, pageSize, sortBy, sortDesc }, setTableState] = useState<{
+    pageIndex: number;
+    pageSize: number;
+    sortBy?: string;
+    sortDesc?: boolean;
+  }>({ pageIndex: 0, pageSize: 10 });
+  const {
+    result: { rows, rowCount },
+    fetching,
+  } = useMockDataQuery({
+    pageIndex,
+    pageSize,
+    sortBy,
+    sortDesc,
+  });
+  return (
+    <Table
+      data={rows}
+      pageSize={pageSize}
+      pageCount={Math.ceil(rowCount / pageSize)}
+      showLoader={fetching}
+      onTableChange={({ pageIndex, pageSize, sortBy, sortDesc }) => {
+        if (testProps.onTableChange)
+          testProps.onTableChange({ pageIndex, pageSize, sortBy, sortDesc });
+        setTableState({
+          pageIndex,
+          pageSize,
+          sortBy,
+          sortDesc,
+        });
+      }}
+      columnDefs={(columns) =>
+        (Object.keys(rows[0] || []) as (keyof typeof rows[0])[])
+          .slice(0, 6)
+          .map((col) =>
+            columns.accessor(col, {
+              header: snakeCaseToHumanReadable(col),
+            })
+          )
+      }
+    />
+  );
+};
+
+export const Empty = () => <Table data={[] as typeof rows} />;
+
+export const EmptyWithDefinedColumns = () => (
+  <Table
+    data={[] as typeof rows}
+    columnDefs={(columns) =>
+      (Object.keys(rows[0] || []) as (keyof typeof rows[0])[])
+        .slice(0, 6)
+        .map((col) =>
+          columns.accessor(col, {
+            header: snakeCaseToHumanReadable(col),
           })
         )
     }
