@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import classes from './Table.module.scss';
 import { Table } from './Table';
 import * as Stories from '../../stories/components/Table.stories';
@@ -155,7 +155,7 @@ describe('Table', () => {
   });
 
   test('Table pagination buttons act as expected', () => {
-    const { getByTestId } = render(<Stories.Paginated />);
+    const { getByTestId } = render(<Stories.PaginatedWithStaticData />);
     const table = getByTestId('table');
     const pagination = getByTestId('pagination');
     // Test helpers
@@ -202,5 +202,90 @@ describe('Table', () => {
     expect(nextButton()).toBeDisabled();
     nextButton().click();
     expect(currentPageButton()?.innerText).toBe(last.innerText);
+  });
+
+  test('Table pagination and sort buttons trigger calls to onTableChange for dynamic tables', async () => {
+    const onTableChange = jest.fn();
+    const { getByTestId } = render(
+      <Stories.PaginatedWithDynamicData onTableChange={onTableChange} />
+    );
+    const table = getByTestId('table');
+    const pagination = () => getByTestId('pagination');
+    // Test helpers
+    const buttons = () => Array.from(pagination().querySelectorAll('button'));
+    const prevButton = () => buttons()[0];
+    const nextButton = () => buttons()[buttons().length - 1];
+
+    expect(table).toBeInTheDocument();
+    expect(table).toHaveClass(classes['table-container']);
+    await waitFor(() => expect(pagination()).toBeInTheDocument());
+    expect(onTableChange).toHaveBeenLastCalledWith({
+      pageIndex: 0,
+      pageSize: 10,
+      sortBy: undefined,
+      sortDesc: true,
+    });
+
+    // Test that pagination triggers onTableChange
+    nextButton().click();
+    await waitFor(() => expect(onTableChange).toHaveBeenCalled());
+    expect(onTableChange).toHaveBeenLastCalledWith({
+      pageIndex: 1,
+      pageSize: 10,
+      sortBy: undefined,
+      sortDesc: true,
+    });
+
+    prevButton().click();
+    await waitFor(() => expect(onTableChange).toHaveBeenCalled());
+    expect(onTableChange).toHaveBeenLastCalledWith({
+      pageIndex: 0,
+      pageSize: 10,
+      sortBy: undefined,
+      sortDesc: true,
+    });
+
+    // Test that sorting triggers onTableChange
+    const headers = Array.from(table.querySelectorAll('th'));
+    fireEvent.click(headers[0]);
+    await waitFor(() => expect(onTableChange).toHaveBeenCalled());
+    expect(onTableChange).toHaveBeenLastCalledWith({
+      pageIndex: 0,
+      pageSize: 10,
+      sortBy: 'genome_name',
+      sortDesc: false,
+    });
+
+    fireEvent.click(headers[0]);
+    await waitFor(() => expect(onTableChange).toHaveBeenCalled());
+    expect(onTableChange).toHaveBeenLastCalledWith({
+      pageIndex: 0,
+      pageSize: 10,
+      sortBy: 'genome_name',
+      sortDesc: true,
+    });
+
+    fireEvent.click(headers[5]);
+    await waitFor(() => expect(onTableChange).toHaveBeenCalled());
+    expect(onTableChange).toHaveBeenLastCalledWith({
+      pageIndex: 0,
+      pageSize: 10,
+      sortBy: 'ncbi_species_taxid',
+      sortDesc: true,
+    });
+  });
+
+  test('renders empty static Table', () => {
+    render(<Table data={[]} />);
+    const table = screen.getByTestId('table');
+    expect(table).toHaveClass(classes['table-container']);
+  });
+
+  test('renders empty dynamic Table', () => {
+    render(
+      <Table data={[]} pageCount={0} pageSize={10} onTableChange={jest.fn()} />
+    );
+    const table = screen.getByTestId('table');
+    expect(table).toHaveClass(classes['table-container']);
   });
 });

@@ -5,14 +5,17 @@ import type { RootState } from '../../app/store';
 // Define a type for the slice state
 class ParamsClass {
   constructor(
+    // Search
     readonly limit: string | null = '20',
     readonly search: string | null = null,
     readonly sort: string | null = '-updated',
-    readonly view: string | null = 'data'
+    readonly view: string | null = 'data',
+    // Matching
+    readonly match: string | null = null
   ) {}
 }
 
-type ParamsState = ParamsClass;
+export type ParamsState = ParamsClass;
 export type ParamValid = Array<keyof ParamsState>;
 export const ParamsValid: ParamValid = Object.keys(
   new ParamsClass()

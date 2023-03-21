@@ -50,6 +50,20 @@ $header-height: 2em;
   }
 }
 
+.table-wrapper .loader {
+  align-items: center;
+  background-color: use-rgba-color("grey", 0.8);
+  bottom: 0;
+  color: use-color("white");
+  display: flex;
+  justify-content: center;
+  left: 0;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
 .table-wrapper table {
   border-collapse: separate;
   border-spacing: 0;

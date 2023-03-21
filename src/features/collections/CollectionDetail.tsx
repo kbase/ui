@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { getCollection } from '../../common/api/collectionsApi';
 import { usePageTitle } from '../layout/layoutSlice';
 import styles from './Collections.module.scss';
@@ -6,6 +6,7 @@ import { Card, CardList } from '../../common/components/Card';
 import { useEffect } from 'react';
 import { DataProduct } from './DataProduct';
 import { snakeCaseToHumanReadable } from '../../common/utils/stringUtils';
+import { CollectionMatchPane } from './MatchPane';
 
 export const detailPath = ':id';
 export const detailDataProductPath = ':id/:data_product';
@@ -13,6 +14,8 @@ export const detailDataProductPath = ':id/:data_product';
 export const CollectionDetail = () => {
   const params = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+
   const collectionQuery = getCollection.useQuery(params.id || '', {
     skip: params.id === undefined,
   });
@@ -26,9 +29,19 @@ export const CollectionDetail = () => {
   // Redirect if the data_product specified by the url DNE
   useEffect(() => {
     if (params.data_product && collection && !currDataProduct) {
-      navigate(`/collections/${params.id}`);
+      navigate({
+        pathname: `/collections/${params.id}`,
+        search: location.search,
+      });
     }
-  }, [params.id, params.data_product, collection, currDataProduct, navigate]);
+  }, [
+    params.id,
+    params.data_product,
+    collection,
+    currDataProduct,
+    navigate,
+    location.search,
+  ]);
 
   if (!collection) return <>loading...</>;
   return (
@@ -53,6 +66,9 @@ export const CollectionDetail = () => {
           </li>
         </ul>
       </div>
+      <div className={styles['collection_detail']}>
+        <CollectionMatchPane collectionId={collection.id} />
+      </div>
       <div className={styles['data_products']}>
         <CardList className={styles['data_product_list']}>
           {collection.data_products.map((dp) => (
@@ -61,7 +77,10 @@ export const CollectionDetail = () => {
               title={snakeCaseToHumanReadable(dp.product)}
               subtitle={dp.version}
               onClick={() =>
-                navigate(`/collections/${collection.id}/${dp.product}`)
+                navigate({
+                  pathname: `/collections/${collection.id}/${dp.product}`,
+                  search: location.search,
+                })
               }
               selected={currDataProduct === dp}
             />

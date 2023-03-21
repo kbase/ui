@@ -1,6 +1,7 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Select, handleChangeFactory } from './Select';
+import { useState } from 'react';
+import { Select, handleChangeFactory, SelectOption } from './Select';
 
 test('The change handler does nothing when passed null.', () => {
   // This test is (currently) required for 100% coverage.
@@ -108,35 +109,31 @@ test('Multi select onchange and remove', async () => {
 
 test('Async option loading and selection', async () => {
   const onChange = jest.fn();
-  const options = async (inputValue: string) => {
-    await new Promise((r) => setTimeout(r, 100));
-    return [
-      { value: 'chocolate', label: 'Chocolate' },
-      { value: 'strawberry', label: 'Strawberry' },
-      { value: 'vanilla', label: 'Vanilla' },
-      { value: 'test-value', label: inputValue },
-    ];
+  const Parent = () => {
+    const [options, setOptions] = useState<SelectOption[]>([]);
+    const handleSuggest = async (inputValue: string) => {
+      await new Promise<void>((r) => setTimeout(r, 100));
+      act(() => {
+        setOptions([
+          { value: 'chocolate', label: 'Chocolate' },
+          { value: 'strawberry', label: 'Strawberry' },
+          { value: 'vanilla', label: 'Vanilla' },
+          { value: 'test-value', label: inputValue },
+        ]);
+      });
+    };
+    return (
+      <Select onChange={onChange} onSearch={handleSuggest} options={options} />
+    );
   };
-  const optionsSpy = jest.fn(options);
-  const { container } = render(
-    <Select onChange={onChange} options={optionsSpy} />
-  );
+  const { container } = render(<Parent />);
   const selectControl = container.querySelector('.react-select__control');
   expect(selectControl).toBeInTheDocument();
-  await waitFor(async () => {
-    // initial options load
-    expect(optionsSpy).toHaveBeenCalledTimes(1);
-    await optionsSpy.mock.results[0].value;
-  });
 
   const input = container.querySelector('input');
   const testText = 'foobar';
   await userEvent.type(input as HTMLInputElement, testText);
-  await waitFor(async () => {
-    // wait for new options to load
-    expect(optionsSpy).toHaveBeenCalledTimes(1 + testText.length);
-    await optionsSpy.mock.results[testText.length].value;
-  });
+
   const opt = await screen.findByText(testText);
   expect(opt).toBeInTheDocument();
   opt && (await userEvent.click(opt));
