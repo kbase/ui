@@ -38,6 +38,7 @@ export interface Collection extends UnsavedCollection {
 interface Matcher {
   id: string;
   types: string[];
+  set_types: string[];
   description: string;
   required_data_products: string;
   user_parameters: unknown;
