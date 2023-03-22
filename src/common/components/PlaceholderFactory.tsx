@@ -1,15 +1,8 @@
 import { FC } from 'react';
-import { Meta } from '../types';
+import { JSONSerializable } from '../types';
 
 interface PlaceholderInterface {
-  [x: string]:
-    | boolean
-    | null
-    | number
-    | string
-    | undefined
-    | Array<boolean | null | number | string | undefined | Meta>
-    | Meta;
+  [x: string]: undefined | JSONSerializable;
 }
 
 // This placeholder factory makes components that can be used as stubs for

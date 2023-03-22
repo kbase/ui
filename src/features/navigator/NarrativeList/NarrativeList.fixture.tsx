@@ -1,4 +1,5 @@
-export const testItems = [
+import { NarrativeListDoc } from '../../../common/types/NarrativeDoc';
+export const testItems: NarrativeListDoc[] = [
   {
     access_group: 10000,
     creator: 'user0',
