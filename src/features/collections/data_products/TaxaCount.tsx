@@ -45,13 +45,12 @@ export const TaxaCount: FC<{
 
   useEffect(() => backoff.increment(), [countsQuery.startedTimeStamp, backoff]);
 
-  const pollDone =
-    countsQuery.error ||
-    countsQuery.data?.taxa_count_match_state !== 'processing';
-
   useEffect(() => {
+    const pollDone =
+      countsQuery.error ||
+      countsQuery.data?.taxa_count_match_state !== 'processing';
     backoff.toggle(!pollDone);
-  }, [backoff, pollDone]);
+  }, [backoff, countsQuery.data, countsQuery.error]);
 
   const taxa = countsQuery.data?.data || [];
 
