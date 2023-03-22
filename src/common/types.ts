@@ -2,12 +2,11 @@
  Meta is meant to be JSON-like and understandable to the typescript compiler.
 */
 
-export interface Meta {
-  [key: string]:
-    | null
-    | boolean
-    | number
-    | string
-    | Array<null | boolean | number | string | Meta>
-    | Meta;
-}
+type Scalar = null | boolean | number | string;
+
+export type JSONSerializable =
+  | Scalar
+  | Array<Scalar | JSONSerializable>
+  | {
+      [key: string]: JSONSerializable;
+    };
