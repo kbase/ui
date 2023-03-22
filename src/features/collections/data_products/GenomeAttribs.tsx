@@ -31,7 +31,15 @@ export const GenomeAttribs: FC<{
   const { data, isFetching } = getGenomeAttribs.useQuery(attribParams);
 
   const countParams = useMemo(
-    () => ({ ...attribParams, count: true }),
+    // get the count for either matched or total, depending on match_mark
+    () => ({
+      ...attribParams,
+      count: true,
+      match_id:
+        attribParams.match_id && attribParams.match_mark
+          ? undefined
+          : attribParams.match_id,
+    }),
     [attribParams]
   );
   const { data: countData } = getGenomeAttribs.useQuery(countParams);
@@ -58,6 +66,7 @@ export const GenomeAttribs: FC<{
           data={data.table}
           pageSize={tableState.pageSize}
           pageCount={pageCount}
+          maxPage={Math.floor(10000 / tableState.pageSize)}
           columnDefs={colDefs}
           onTableChange={(state) => setTableState(state)}
           rowStyle={(row) => {
