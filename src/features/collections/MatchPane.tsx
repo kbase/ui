@@ -113,6 +113,11 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
     ids: narrativeSelected?.[0] ? [narrativeSelected?.[0]] : [],
   });
 
+  const allTypes = [
+    ...(matcherSelected?.types || []),
+    ...(matcherSelected?.set_types || []),
+  ];
+
   const dataObjOptions = (dataObjQuery?.data?.[0] || [])
     .map((objInfo) => ({
       value: `${narrativeSelected?.[0]}/${objInfo[0]}/${objInfo[4]}`,
@@ -120,9 +125,7 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
       data: objInfo,
     }))
     .filter((opt) =>
-      matcherSelected?.types.some((matchType) =>
-        opt.data[2].startsWith(matchType)
-      )
+      allTypes.some((matchType) => opt.data[2].startsWith(matchType))
     );
 
   // Matches

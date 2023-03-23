@@ -34,6 +34,7 @@ export type ColumnDefs<Datum> = (
 interface StaticTableProps {
   pageSize?: number;
   pageCount?: never;
+  maxPage?: never;
   showLoader?: never;
   onTableChange?: never;
 }
@@ -41,6 +42,7 @@ interface StaticTableProps {
 interface DynamicTableProps {
   pageSize: number;
   pageCount: number;
+  maxPage?: number;
   showLoader?: boolean;
   onTableChange: (state: {
     sortBy?: string;
@@ -70,6 +72,7 @@ export const Table = <Datum,>({
   pageCount,
   showLoader,
   onTableChange,
+  maxPage = Number.MAX_SAFE_INTEGER,
   rowStyle = () => ({}),
 }: TableProps<Datum>) => {
   const isDynamic = onTableChange ? true : false;
@@ -169,12 +172,20 @@ export const Table = <Datum,>({
           </div>
         ) : null}
       </div>
-      {shouldPaginate ? <Pagination table={table} /> : undefined}
+      {shouldPaginate ? (
+        <Pagination maxPage={maxPage} table={table} />
+      ) : undefined}
     </div>
   );
 };
 
-const Pagination = <Datum,>({ table }: { table: TableType<Datum> }) => {
+const Pagination = <Datum,>({
+  table,
+  maxPage,
+}: {
+  table: TableType<Datum>;
+  maxPage: number;
+}) => {
   const totalButtons = 9; // Odd, >=9
   const buttons: (number | ReturnType<typeof Button>)[] = [];
   const sideAmt = (totalButtons - 3) / 2; // how many buttons per side
@@ -224,7 +235,7 @@ const Pagination = <Datum,>({ table }: { table: TableType<Datum> }) => {
   buttons.push(
     <Button
       key="next"
-      disabled={!table.getCanNextPage()}
+      disabled={!table.getCanNextPage() || curr >= maxPage}
       onClick={() => table.nextPage()}
     >
       <FAIcon icon={faArrowRightLong} />
@@ -237,7 +248,7 @@ const Pagination = <Datum,>({ table }: { table: TableType<Datum> }) => {
         typeof button === 'number' ? (
           <Button
             key={button}
-            disabled={button === curr}
+            disabled={button === curr || button > maxPage}
             onClick={() => table.setPageIndex(button)}
           >
             {button + 1}
