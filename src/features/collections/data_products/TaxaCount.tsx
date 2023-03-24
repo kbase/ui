@@ -73,7 +73,7 @@ export const TaxaCount: FC<{
             <Fragment key={name}>
               <div className={classes['name']}>{name}</div>
               {matchId ? (
-                <div className={classes['subname']}>Matched</div>
+                <div className={classes['sub-name']}>Matched</div>
               ) : undefined}
             </Fragment>
           ))}
