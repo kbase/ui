@@ -18,13 +18,13 @@ $gaps: 5px;
 }
 
 .name,
-.subname {
+.sub-name {
   height: $bar-height;
   line-height: $bar-height;
   text-align: right;
 }
 
-.subname {
+.sub-name {
   color: use-color("silver");
 }
 
