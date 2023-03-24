@@ -7,6 +7,8 @@ const collectionsService = httpService({
   url: 'services/collectionsservice',
 });
 
+type ProcessState = 'processing' | 'failed' | 'complete';
+
 export interface DataProduct {
   product: string;
   version: string;
@@ -45,17 +47,21 @@ interface Matcher {
   collection_parameters: unknown;
 }
 
-interface IncompleteMatch {
+interface BaseMatch {
   match_id: string;
   matcher_id: string;
   collection_id: string;
   collection_ver: number;
   user_parameters: Record<string, never>;
-  match_state: 'processing' | 'failed';
+  state: ProcessState;
 }
 
-interface CompleteMatch extends Omit<IncompleteMatch, 'match_state'> {
-  match_state: 'complete';
+interface IncompleteMatch extends BaseMatch {
+  state: 'failed' | 'processing';
+}
+
+interface CompleteMatch extends BaseMatch {
+  state: 'complete';
   upas: string[];
   matches: string[];
 }
@@ -83,7 +89,8 @@ interface CollectionsResults {
       count: number;
       match_count?: number;
     }[];
-    taxa_count_match_state: 'processing' | 'complete' | 'failed';
+    taxa_count_match_state: ProcessState;
+    taxa_count_selection_state: ProcessState;
   };
   getGenomeAttribs: {
     skip: number;

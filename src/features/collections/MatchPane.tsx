@@ -33,10 +33,9 @@ const ViewMatch = () => {
   const matchQuery = usePollMatch(matchId);
   const match = matchQuery.data;
 
-  const matchCount =
-    match?.match_state === 'complete' ? match.matches.length : 0;
+  const matchCount = match?.state === 'complete' ? match.matches.length : 0;
   const upaCount =
-    match?.match_state === 'complete'
+    match?.state === 'complete'
       ? match.upas.flatMap((upaList) => upaList.split(';')).length
       : 0;
 
@@ -51,8 +50,8 @@ const ViewMatch = () => {
       ) : (
         <ul>
           <li>Match ID: {match?.match_id}</li>
-          <li>Match Status: {match?.match_state}</li>
-          {match?.match_state === 'complete' ? (
+          <li>Match Status: {match?.state}</li>
+          {match?.state === 'complete' ? (
             <li>
               You input a total of <strong>{upaCount}</strong> data objects,
               matching <strong>{matchCount}</strong> collection items.
@@ -217,7 +216,7 @@ const usePollMatch = (matchId: string | undefined) => {
   );
 
   const pollDone =
-    getMatchQuery.error || getMatchQuery.data?.match_state !== 'processing';
+    getMatchQuery.error || getMatchQuery.data?.state !== 'processing';
 
   useEffect(() => {
     backoff.toggle(!pollDone);
