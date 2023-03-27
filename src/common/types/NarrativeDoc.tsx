@@ -119,10 +119,6 @@ export const isKBaseAppCell = (kbase: KBaseCell): kbase is KBaseAppCell => {
   return isKBaseCodeTypeCell(kbase) ? kbase.type === 'app' : false;
 };
 
-export const isKBaseCodeCell = (kbase: KBaseCell): kbase is KBaseCodeCell => {
-  return isKBaseCodeTypeCell(kbase) ? kbase.type === 'code' : false;
-};
-
 export const isKBaseDataCell = (kbase: KBaseCell): kbase is KBaseDataCell => {
   return isKBaseCodeTypeCell(kbase) ? kbase.type === 'data' : false;
 };

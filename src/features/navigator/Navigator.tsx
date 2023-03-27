@@ -8,7 +8,6 @@ import {
   useSearchParams,
 } from 'react-router-dom';
 import { Button } from '../../common/components';
-import { PlaceholderFactory } from '../../common/components/PlaceholderFactory';
 import { useAppDispatch, useAppSelector } from '../../common/hooks';
 import { NarrativeListDoc } from '../../common/types/NarrativeDoc';
 import { authUsername } from '../../features/auth/authSlice';
@@ -35,6 +34,7 @@ import {
   setCategory,
 } from './navigatorSlice';
 import NarrativeList from './NarrativeList/NarrativeList';
+import NarrativeView from './NarrativeView';
 import classes from './Navigator.module.scss';
 import RefreshButton from './RefreshButton';
 import SearchInput from './SearchInput';
@@ -109,45 +109,30 @@ const FilterContainer: FC<{ search: string; sort: string }> = ({
   );
 };
 
-/* NarrativeView should take (at least) a narrative upa as prop, but if it is
-   null then it should show a message saying there is no narrative selected.
-*/
-const NarrativeView = PlaceholderFactory('NarrativeView');
-
 const MainContainer: FC<{
   limit: number;
   limitTemplate: (limit: number) => string;
   items: NarrativeListDoc[];
-  narrative: string | null;
+  narrativeUPA: string;
   view: string;
-}> = ({ limit, limitTemplate, items, narrative, view }) => {
+}> = ({ limit, limitTemplate, items, narrativeUPA, view }) => {
   const narrativesMatched = useAppSelector(narrativeCount);
   const nextLimit = limitTemplate(limit + 20);
   return (
-    <div className={classes.main} /* main fragment */>
+    <div className={classes.main} /* main component */>
       <div className={classes.container}>
-        {items.length === 0 ? (
-          <>No narratives match this query.</>
-        ) : (
-          <>
-            <div className={classes.list}>
-              <NarrativeList
-                hasMoreItems={narrativesMatched > limit}
-                items={items.slice(0, limit)}
-                itemsRemaining={Math.max(narrativesMatched - limit, 0)}
-                loading={false}
-                narrative={narrative}
-                nextLimit={nextLimit}
-                showVersionDropdown={true}
-              />
-            </div>
-            <NarrativeView
-              className={classes.details}
-              narrative={narrative}
-              view={view}
-            />
-          </>
-        )}
+        <div className={classes.list}>
+          <NarrativeList
+            hasMoreItems={narrativesMatched > limit}
+            items={items.slice(0, limit)}
+            itemsRemaining={Math.max(narrativesMatched - limit, 0)}
+            loading={false}
+            narrativeUPA={narrativeUPA}
+            nextLimit={nextLimit}
+            showVersionDropdown={true}
+          />
+        </div>
+        <NarrativeView narrativeUPA={narrativeUPA} view={view} />
       </div>
     </div>
   );
@@ -235,13 +220,7 @@ const Navigator: FC = () => {
             search={search}
             sort={sortKey}
           />
-          <MainContainer
-            limit={20}
-            limitTemplate={(n) => ''}
-            items={[]}
-            narrative={null}
-            view={view}
-          />
+          <span>No narratives match this query.</span>
         </section>
       </>
     );
@@ -259,7 +238,7 @@ const Navigator: FC = () => {
           limit={+limit}
           limitTemplate={limitTemplate}
           items={items}
-          narrative={narrativeSelected}
+          narrativeUPA={narrativeSelected}
           view={view}
         />
       </section>

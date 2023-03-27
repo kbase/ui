@@ -14,7 +14,7 @@ test('NarrativeList renders', async () => {
           items={testItems}
           itemsRemaining={0}
           loading={false}
-          narrative={null}
+          narrativeUPA={null}
           nextLimit={''}
           showVersionDropdown={true}
         />
@@ -35,7 +35,7 @@ test('NarrativeList displays loading circle', async () => {
           items={[]}
           itemsRemaining={0}
           loading={true}
-          narrative={null}
+          narrativeUPA={null}
           nextLimit={''}
           showVersionDropdown={true}
         />
@@ -56,7 +56,7 @@ test('NarrativeList can load more items', async () => {
           items={testItems}
           itemsRemaining={42}
           loading={false}
-          narrative={null}
+          narrativeUPA={null}
           nextLimit={''}
           onLoadMoreItems={onLoadMoreItemsSpy}
           showVersionDropdown={true}
