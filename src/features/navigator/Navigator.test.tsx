@@ -122,6 +122,19 @@ describe('The <Navigator /> component...', () => {
     });
   });
 
+  test('displays the narrative preview when specified.', () => {
+    const { container } = render(
+      <Provider store={createTestStore()}>
+        <Router initialEntries={['/narratives/?view=preview']}>
+          <RRRoutes>
+            <Route path={'/narratives/'} element={<Navigator />} />
+          </RRRoutes>
+        </Router>
+      </Provider>
+    );
+    expect(container).toBeTruthy();
+  });
+
   test(`uses the 'own' Category when category is unknown.`, () => {
     const { container } = render(
       <Provider store={createTestStore()}>
