@@ -43,14 +43,9 @@ pre {
   max-width: 600px;
 }
 
-/*
-.navigator div,
-.navigator header,
-.navigator nav,
-.navigator pre {
+.preview {
   border: 1px dashed #000;
 }
-*/
 
 .search {
   display: flex;
@@ -58,4 +53,21 @@ pre {
 
 .sort {
   width: 30ch;
+}
+
+.view {
+  border: 1px dashed #000;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.view pre {
+  border: 1px dashed #000;
+}
+
+.view .control {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
 }

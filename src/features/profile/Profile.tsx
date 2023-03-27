@@ -50,7 +50,7 @@ export const NarrativesView: FC<{ realname: string; yours: boolean }> = ({
         items={[]}
         itemsRemaining={0}
         loading={false}
-        narrative={null}
+        narrativeUPA={null}
         nextLimit={''}
         showVersionDropdown
       />

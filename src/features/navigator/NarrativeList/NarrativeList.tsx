@@ -10,7 +10,7 @@ interface NarrativeListProps {
   items: Array<NarrativeListDoc>;
   itemsRemaining: number;
   loading: boolean;
-  narrative: string | null;
+  narrativeUPA: string | null;
   nextLimit: string;
   showVersionDropdown: boolean;
   onLoadMoreItems?: () => void;

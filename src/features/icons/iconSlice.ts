@@ -73,7 +73,6 @@ export const iconSlice = createSlice({
 });
 
 export default iconSlice.reducer;
-//export const {} = iconSlice.actions;
 
 export const useAppIcon = ({
   appId,
@@ -93,9 +92,13 @@ export const useAppIcon = ({
   const getMethodBriefInfoParams = useMemo(() => {
     return [{ ids: [appId], tag: appTag }];
   }, [appId, appTag]);
-  const { isLoading } = getMethodBriefInfo.useQuery(getMethodBriefInfoParams, {
+  const out = getMethodBriefInfo.useQuery(getMethodBriefInfoParams, {
     skip: !!cachedIcon,
   });
+  // TODO: Note that icons will not work locally without configuring a proxy.
+  // For example, MEGAHIT/run_megahit will receive the default icon.
+  // https://ci.kbase.us/services/narrative_method_store/img?method_id=MEGAHIT/run_megahit&image_name=megahit-blue.png&tag=release
+  const { isLoading } = out;
 
   if (cachedIcon) return cachedIcon;
   if (isLoading) return loadingIcon;
