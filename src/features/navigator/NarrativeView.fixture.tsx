@@ -58,11 +58,11 @@ export const testCells: (MarkdownCell | CodeCell)[] = [
     metadata: {
       kbase: {
         attributes: {
-          title: 'A markdown cell.',
+          title: '# A markdown cell.',
         },
       },
     },
-    source: '# A markdown cell',
+    source: '# A markdown cell.\n## A wonderful markdown subtitle.',
   },
   {
     // app cell
@@ -145,6 +145,35 @@ export const testCells: (MarkdownCell | CodeCell)[] = [
     },
     source: '# A cool code cell title\nimport this',
   },
+  {
+    // @ts-expect-error A corrupted cell for tests.
+    cell_type: 'corrupt',
+    source: 'corrupted',
+  },
+  {
+    // another markdown cell
+    cell_type: 'markdown',
+    metadata: {
+      kbase: {
+        attributes: {
+          title: 'A title.',
+        },
+      },
+    },
+    source: 'A different title!',
+  },
+  {
+    // another (less) corrupted cell
+    cell_type: 'code',
+    metadata: {
+      kbase: {
+        attributes: {
+          title: 'A corrupted cell.',
+        },
+      },
+    },
+    source: '# some python\nimport this',
+  },
   ...testApps.map((app) =>
     appCellFactory({
       id: app,
@@ -156,7 +185,7 @@ export const testCells: (MarkdownCell | CodeCell)[] = [
 ];
 
 export const testNarrative: NarrativeDoc = {
-  access_group: 0,
+  access_group: 1,
   cells: testCells,
   copied: null,
   creation_date: '',
