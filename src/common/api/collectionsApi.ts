@@ -4,7 +4,7 @@ import { httpService } from './utils/serviceHelpers';
 import { store } from '../../app/store';
 
 const collectionsService = httpService({
-  url: 'services/collectionsservice',
+  url: 'services/collections',
 });
 
 type ProcessState = 'processing' | 'failed' | 'complete';
