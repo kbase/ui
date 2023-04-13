@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import * as timeago from 'timeago.js';
 import { useAppSelector } from '../../../common/hooks';
-import { NarrativeListDoc } from '../../../common/types/NarrativeDoc';
+import { NarrativeDoc } from '../../../common/types/NarrativeDoc';
 import { getParams } from '../../../features/params/paramsSlice';
 import { narrativePath, navigatorParams } from '../common';
 import { categorySelected } from '../navigatorSlice';
@@ -11,7 +11,7 @@ import classes from './NarrativeList.module.scss';
 
 export interface NarrativeViewItemProps {
   idx: number;
-  item: NarrativeListDoc;
+  item: NarrativeDoc;
   showVersionDropdown: boolean;
   onSelectItem?: (idx: number) => void;
   onUpaChange?: (upa: string) => void;
@@ -23,22 +23,21 @@ const NarrativeViewItem: FC<NarrativeViewItemProps> = ({
   onUpaChange,
   showVersionDropdown,
 }) => {
-  const { access_group, creator, narrative_title, obj_id, timestamp, version } =
-    item;
-  const upa = `${access_group}/${obj_id}/${version}`;
+  const categorySet = useAppSelector(categorySelected);
+  const europaParams = useAppSelector(getParams);
   const {
     id = null,
     obj = null,
     ver = null,
   } = useParams<{ id: string; obj: string; ver: string }>();
+  const { access_group, creator, narrative_title, obj_id, timestamp, version } =
+    item;
+  const upa = `${access_group}/${obj_id}/${version}`;
   const active =
     access_group.toString() === id && obj_id.toString() === obj && ver;
   const status = active ? 'active' : 'inactive';
   // Note: timeago expects milliseconds
   const timeElapsed = timeago.format(timestamp);
-  const categorySet = useAppSelector(categorySelected);
-  const europaParams = useAppSelector(getParams);
-
   function handleVersionSelect(version: number) {
     onUpaChange?.(`${access_group}/${obj_id}/${version}`);
   }
