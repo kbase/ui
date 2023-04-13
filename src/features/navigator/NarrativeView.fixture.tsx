@@ -204,6 +204,6 @@ export const testNarrative: NarrativeDoc = {
   shared_users: [],
   tags: [],
   timestamp: 0,
-  total_cells: 0,
+  total_cells: testCells.length,
   version: 0,
 };

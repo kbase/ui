@@ -1,10 +1,12 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import fetchMock, {
   MockParams,
   disableFetchMocks,
   enableFetchMocks,
 } from 'jest-fetch-mock';
+import { FC } from 'react';
+import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
 import { Provider } from 'react-redux';
 import {
   Route,
@@ -19,6 +21,7 @@ import { ignoredParameterWarning } from '../../common/hooks';
 import { testItems } from './NarrativeList/NarrativeList.fixture';
 import classes from './NarrativeList/NarrativeList.module.scss';
 import { Category } from './common';
+import { testNarrative } from './NarrativeView.fixture';
 import Navigator, {
   narrativeSelectedPath,
   narrativeSelectedPathWithCategory,
@@ -26,10 +29,12 @@ import Navigator, {
 
 const initialState = {
   category: Category['own'],
+  cells: [],
   count: testItems.length,
   narratives: testItems,
   search_time: 0,
   selected: null,
+  wsObjects: [],
 };
 
 let testStore = createTestStore({ navigator: initialState });
@@ -51,6 +56,24 @@ const testItemResponseOK: [string, MockParams] = [
   { status: 200 },
 ];
 
+const testNarrativeResponseOK: [string, MockParams] = [
+  JSON.stringify({
+    jsonrpc: '2.0',
+    result: [{ data: [{ data: testNarrative }] }],
+  }),
+  { status: 200 },
+];
+
+const TestingError: FC<FallbackProps> = ({ error }) => {
+  return <>Error: {JSON.stringify(error)}</>;
+};
+
+const logError = (error: Error, info: { componentStack: string }) => {
+  console.log({ error }); // eslint-disable-line no-console
+  console.log(info.componentStack); // eslint-disable-line no-console
+  screen.debug();
+};
+
 describe('The <Navigator /> component...', () => {
   beforeAll(() => {
     enableFetchMocks();
@@ -67,7 +90,6 @@ describe('The <Navigator /> component...', () => {
 
   beforeEach(() => {
     fetchMock.resetMocks();
-    fetchMock.mockResponses(testItemResponseOK);
     consoleError.mockClear();
     testStore = createTestStore({ navigator: initialState });
     testStore.dispatch(baseApi.util.resetApiState());
@@ -86,17 +108,19 @@ describe('The <Navigator /> component...', () => {
   });
 
   test('may be refreshed manually.', async () => {
+    fetchMock.mockResponses(testItemResponseOK, testNarrativeResponseOK);
     const { container } = render(
       <Provider store={createTestStore()}>
         <Router>
-          <Navigator />
+          <ErrorBoundary FallbackComponent={TestingError} onError={logError}>
+            <Navigator />
+          </ErrorBoundary>
         </Router>
       </Provider>
     );
     const refreshButton = screen.getByText('Refresh', {
       exact: false,
     });
-    fetchMock.mockResponses(testItemResponseOK);
     await userEvent.click(refreshButton);
     expect(container).toBeTruthy();
     expect(container.querySelector('section.navigator')).toBeInTheDocument();
@@ -104,6 +128,7 @@ describe('The <Navigator /> component...', () => {
 
   Object.keys(Category).forEach((category) => {
     test(`uses the '${category}' Category when specified.`, () => {
+      fetchMock.mockResponses(testNarrativeResponseOK);
       const { container } = render(
         <Provider
           store={createTestStore({
@@ -113,7 +138,17 @@ describe('The <Navigator /> component...', () => {
         >
           <Router initialEntries={[`/narratives/${category}/`]}>
             <RRRoutes>
-              <Route path={'/narratives/:category'} element={<Navigator />} />
+              <Route
+                path={'/narratives/:category'}
+                element={
+                  <ErrorBoundary
+                    FallbackComponent={TestingError}
+                    onError={logError}
+                  >
+                    <Navigator />
+                  </ErrorBoundary>
+                }
+              />
             </RRRoutes>
           </Router>
         </Provider>
@@ -140,7 +175,17 @@ describe('The <Navigator /> component...', () => {
       <Provider store={createTestStore()}>
         <Router initialEntries={['/narratives/hooey/']}>
           <RRRoutes>
-            <Route path={'/narratives/:category'} element={<Navigator />} />
+            <Route
+              path={'/narratives/:category'}
+              element={
+                <ErrorBoundary
+                  FallbackComponent={TestingError}
+                  onError={logError}
+                >
+                  <Navigator />
+                </ErrorBoundary>
+              }
+            />
           </RRRoutes>
         </Router>
       </Provider>
@@ -149,6 +194,7 @@ describe('The <Navigator /> component...', () => {
   });
 
   test('identifies the selected narrative.', async () => {
+    fetchMock.mockResponses(testNarrativeResponseOK);
     const { container } = render(
       <Provider
         store={createTestStore({
@@ -158,10 +204,12 @@ describe('The <Navigator /> component...', () => {
           },
           navigator: {
             category: Category['tutorials'],
+            cells: [],
             count: testItems.length,
             narratives: testItems,
             search_time: 0,
             selected: null,
+            wsObjects: [],
           },
         })}
       >
@@ -169,7 +217,14 @@ describe('The <Navigator /> component...', () => {
           <RRRoutes>
             <Route
               path={narrativeSelectedPathWithCategory}
-              element={<Navigator />}
+              element={
+                <ErrorBoundary
+                  FallbackComponent={TestingError}
+                  onError={logError}
+                >
+                  <Navigator />
+                </ErrorBoundary>
+              }
             />
           </RRRoutes>
         </Router>
@@ -213,17 +268,32 @@ describe('The <Navigator /> component...', () => {
     expect(consoleLog).toHaveBeenCalledWith(ignoredParameterWarning(['hooey']));
   });
 
-  test('suffers fools gladly.', () => {
-    const { container } = render(
-      <Provider store={testStore}>
-        <Router initialEntries={['/narratives?sort=hooey']}>
-          <RRRoutes>
-            <Route path={'/narratives'} element={<Navigator />} />
-          </RRRoutes>
-        </Router>
-      </Provider>
+  test('suffers fools gladly.', async () => {
+    fetchMock.mockResponses(testNarrativeResponseOK);
+    const { container } = await waitFor(() =>
+      render(
+        <Provider store={testStore}>
+          <Router initialEntries={['/narratives?sort=hooey']}>
+            <RRRoutes>
+              <Route
+                path={'/narratives'}
+                element={
+                  <ErrorBoundary
+                    FallbackComponent={TestingError}
+                    onError={logError}
+                  >
+                    <Navigator />
+                  </ErrorBoundary>
+                }
+              />
+            </RRRoutes>
+          </Router>
+        </Provider>
+      )
     );
     expect(container).toBeTruthy();
+    container &&
+      expect(container.querySelector('section.navigator')).toBeInTheDocument();
   });
 
   test('Europa assigns recognized search parameters.', () => {
@@ -231,11 +301,21 @@ describe('The <Navigator /> component...', () => {
       <Provider store={testStore}>
         <Router initialEntries={['/narratives?search=taco']}>
           <RRRoutes>
-            <Route path={'/narratives'} element={<Navigator />} />
+            <Route
+              path={'/narratives'}
+              element={
+                <ErrorBoundary
+                  FallbackComponent={TestingError}
+                  onError={logError}
+                >
+                  <Navigator />
+                </ErrorBoundary>
+              }
+            />
           </RRRoutes>
         </Router>
       </Provider>
     );
-    expect(container).toBeTruthy();
+    expect(container.querySelector('section.navigator')).toBeInTheDocument();
   });
 });
