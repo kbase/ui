@@ -1,3 +1,4 @@
+import { Cell } from '../types/NarrativeDoc';
 import { baseApi } from './index';
 import { jsonRpcService } from './utils/serviceHelpers';
 
@@ -15,6 +16,7 @@ type TimeParams = (
   );
 
 interface wsParams {
+  getwsNarrative: { upa: string };
   getwsObjectByName: { upa: string };
   listObjects: {
     ids?: number[];
@@ -44,6 +46,13 @@ interface wsParams {
 }
 
 interface wsResults {
+  getwsNarrative: {
+    data: {
+      data: {
+        cells: Cell[];
+      };
+    }[];
+  }[];
   getwsObjectByName: unknown;
   listWorkspaceInfo: [
     id: number,
@@ -73,6 +82,16 @@ interface wsResults {
 
 const wsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    getwsNarrative: builder.query<
+      wsResults['getwsNarrative'],
+      wsParams['getwsNarrative']
+    >({
+      query: ({ upa }) =>
+        ws({
+          method: 'Workspace.get_objects2',
+          params: [{ objects: [{ ref: upa }] }],
+        }),
+    }),
     getwsObjectByName: builder.query<
       wsResults['getwsObjectByName'],
       wsParams['getwsObjectByName']
@@ -106,5 +125,9 @@ const wsApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { getwsObjectByName, listObjects, listWorkspaceInfo } =
-  wsApi.endpoints;
+export const {
+  getwsNarrative,
+  getwsObjectByName,
+  listObjects,
+  listWorkspaceInfo,
+} = wsApi.endpoints;
