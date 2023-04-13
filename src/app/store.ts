@@ -1,6 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { baseApi } from '../common/api';
 import auth from '../features/auth/authSlice';
+import collections from '../features/collections/collectionsSlice';
 import count from '../features/count/countSlice';
 import icons from '../features/icons/iconSlice';
 import layout from '../features/layout/layoutSlice';
@@ -13,6 +14,7 @@ const createStore = <T>(additionalOptions?: T) => {
     devTools: true,
     reducer: {
       auth,
+      collections,
       count,
       icons,
       layout,

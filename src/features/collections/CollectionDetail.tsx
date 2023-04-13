@@ -6,7 +6,8 @@ import { Card, CardList } from '../../common/components/Card';
 import { useEffect } from 'react';
 import { DataProduct } from './DataProduct';
 import { snakeCaseToHumanReadable } from '../../common/utils/stringUtils';
-import { CollectionMatchPane } from './MatchPane';
+import { MatchPane } from './MatchPane';
+import { SelectionPane } from './SelectionPane';
 
 export const detailPath = ':id';
 export const detailDataProductPath = ':id/:data_product';
@@ -67,7 +68,8 @@ export const CollectionDetail = () => {
         </ul>
       </div>
       <div className={styles['collection_detail']}>
-        <CollectionMatchPane collectionId={collection.id} />
+        <MatchPane collectionId={collection.id} />
+        <SelectionPane collectionId={collection.id} />
       </div>
       <div className={styles['data_products']}>
         <CardList className={styles['data_product_list']}>

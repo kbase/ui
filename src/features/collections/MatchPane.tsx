@@ -11,11 +11,7 @@ import { parseError } from '../../common/api/utils/parseError';
 import { useAppParam, useUpdateAppParams } from '../params/hooks';
 import { useBackoff } from '../../common/hooks';
 
-export const CollectionMatchPane = ({
-  collectionId,
-}: {
-  collectionId: string;
-}) => {
+export const MatchPane = ({ collectionId }: { collectionId: string }) => {
   const matchId = useAppParam('match');
 
   return (

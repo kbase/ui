@@ -68,6 +68,25 @@ interface CompleteMatch extends BaseMatch {
 
 type Match = IncompleteMatch | CompleteMatch;
 
+interface BaseSelection {
+  state: ProcessState;
+  collection_id: Collection['id'];
+  collection_ver: Collection['ver_num'];
+  selection_id: string;
+}
+
+interface IncompleteSelection extends BaseSelection {
+  state: 'failed' | 'processing';
+}
+
+interface CompleteSelection extends BaseSelection {
+  state: 'complete';
+  selection_ids: string[];
+  unmatched_ids: string[];
+}
+
+type Selection = IncompleteSelection | CompleteSelection;
+
 interface CollectionsResults {
   status: {
     service_name: string;
@@ -82,6 +101,8 @@ interface CollectionsResults {
   getCollectionMatchers: { data: Matcher[] };
   createMatch: Match;
   getMatch: Match;
+  createSelection: BaseSelection;
+  getSelection: Selection;
   listTaxaCountRanks: { data: string[] };
   getTaxaCountRank: {
     data: {
@@ -118,6 +139,13 @@ interface CollectionsParams {
     parameters: Match['user_parameters'];
   };
   getMatch: string;
+  createSelection: {
+    collection_id: Collection['id'];
+    selection_ids: string[];
+  };
+  getSelection: {
+    selection_id: string;
+  };
   listTaxaCountRanks: { collection_id: string; load_ver_override?: string };
   getTaxaCountRank: {
     collection_id: string;
@@ -234,6 +262,43 @@ export const collectionsApi = baseApi.injectEndpoints({
         }),
     }),
 
+    createSelection: builder.mutation<
+      CollectionsResults['createSelection'],
+      CollectionsParams['createSelection']
+    >({
+      query: ({ collection_id, selection_ids }) =>
+        collectionsService({
+          method: 'POST',
+          url: encode`/collections/${collection_id}/selections`,
+          params: {
+            verbose: true,
+          },
+          headers: {
+            authorization: `Bearer ${store.getState().auth.token}`,
+          },
+          body: {
+            selection_ids,
+          },
+        }),
+    }),
+
+    getSelection: builder.query<
+      CollectionsResults['getSelection'],
+      CollectionsParams['getSelection']
+    >({
+      query: ({ selection_id }) =>
+        collectionsService({
+          method: 'GET',
+          url: encode`/selections/${selection_id}`,
+          params: {
+            verbose: true,
+          },
+          headers: {
+            authorization: `Bearer ${store.getState().auth.token}`,
+          },
+        }),
+    }),
+
     listTaxaCountRanks: builder.query<
       CollectionsResults['listTaxaCountRanks'],
       CollectionsParams['listTaxaCountRanks']
@@ -290,6 +355,8 @@ export const {
   getCollectionMatchers,
   createMatch,
   getMatch,
+  createSelection,
+  getSelection,
   listTaxaCountRanks,
   getTaxaCountRank,
   getGenomeAttribs,
