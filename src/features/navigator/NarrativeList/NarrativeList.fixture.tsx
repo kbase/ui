@@ -1,5 +1,39 @@
-import { NarrativeListDoc } from '../../../common/types/NarrativeDoc';
-export const testItems: NarrativeListDoc[] = [
+import { NarrativeDoc } from '../../../common/types/NarrativeDoc';
+
+export type NarrativeTestDoc = Pick<
+  NarrativeDoc,
+  | 'access_group'
+  | 'creator'
+  | 'narrative_title'
+  | 'obj_id'
+  | 'timestamp'
+  | 'version'
+>;
+
+export const factoryNarrativeDoc = (
+  partial: NarrativeTestDoc
+): NarrativeDoc => {
+  return {
+    cells: [],
+    copied: null,
+    creation_date: partial.timestamp.toString(),
+    data_objects: [],
+    is_narratorial: false,
+    is_public: false,
+    is_temporary: false,
+    modified_at: partial.timestamp,
+    obj_name: 'obj_name',
+    obj_type_module: 'KBaseType',
+    obj_type_version: '1',
+    owner: partial.creator,
+    shared_users: [],
+    tags: [],
+    total_cells: 0,
+    ...partial,
+  };
+};
+
+export const testItems: NarrativeDoc[] = [
   {
     access_group: 10000,
     creator: 'user0',
@@ -169,4 +203,4 @@ export const testItems: NarrativeListDoc[] = [
     timestamp: 2147483647501,
     version: 4,
   },
-];
+].map((partial) => factoryNarrativeDoc(partial));

@@ -2,18 +2,13 @@ import { screen, render } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { MemoryRouter as Router, Route, Routes } from 'react-router-dom';
 import { createTestStore } from '../../../app/store';
-import { NarrativeListDoc } from '../../../common/types/NarrativeDoc';
+import { testItems } from './NarrativeList.fixture';
 import NarrativeViewItem from './NarrativeViewItem';
 import { narrativeSelectedPath } from '../Navigator';
 
-const testDoc: NarrativeListDoc = {
-  timestamp: 0,
-  access_group: 4000,
-  obj_id: 4000,
-  version: 4000,
-  narrative_title: 'What a cool narrative',
-  creator: 'JaRule',
-};
+const testDoc = testItems[0];
+const { access_group, creator, obj_id, version } = testDoc;
+const testDocUPA = `${access_group}/${obj_id}/${version}`;
 
 test('NarrativeViewItem renders', () => {
   const { container } = render(
@@ -26,16 +21,17 @@ test('NarrativeViewItem renders', () => {
   expect(container).toBeTruthy();
   expect(container.querySelectorAll('.narrative_item_outer')).toHaveLength(1);
   expect(
-    screen.getByText('What a cool narrative', { exact: false })
+    screen.getByText(testDoc.narrative_title, { exact: false })
   ).toBeInTheDocument();
-  expect(screen.getByText('JaRule', { exact: false })).toBeInTheDocument();
-  expect(screen.getByText('cool', { exact: false })).toBeInTheDocument();
+  expect(
+    screen.getByText(`by ${creator}`, { exact: false })
+  ).toBeInTheDocument();
 });
 
 test('NarrativeViewItem displays active class', () => {
   const { container } = render(
     <Provider store={createTestStore()}>
-      <Router initialEntries={[`/narratives/4000/4000/4000`]}>
+      <Router initialEntries={[`/narratives/${testDocUPA}`]}>
         <Routes>
           <Route
             path={narrativeSelectedPath}

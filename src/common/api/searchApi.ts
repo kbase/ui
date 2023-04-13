@@ -1,6 +1,6 @@
 import { baseApi } from './index';
 import { jsonRpcService } from './utils/serviceHelpers';
-import { NarrativeListDoc } from '../types/NarrativeDoc';
+import { NarrativeDoc } from '../types/NarrativeDoc';
 
 const searchService = jsonRpcService({
   url: '/services/searchapi2/rpc',
@@ -32,7 +32,7 @@ interface SearchGetNarrativesParams {
 
 interface SearchGetNarrativesResults {
   count: number;
-  hits: NarrativeListDoc[];
+  hits: NarrativeDoc[];
   search_time: number;
 }
 
@@ -48,7 +48,7 @@ export const searchApi = baseApi
   .enhanceEndpoints({ addTagTypes: ['Search'] })
   .injectEndpoints({
     endpoints: (builder) => ({
-      getSearch: builder.query<
+      getNarratives: builder.query<
         SearchResults['getNarratives'],
         SearchParams['getNarratives']
       >({
@@ -62,5 +62,5 @@ export const searchApi = baseApi
     }),
   });
 
-export const { getSearch } = searchApi.endpoints;
+export const { getNarratives } = searchApi.endpoints;
 export const clearCacheAction = searchApi.util.invalidateTags(['Search']);

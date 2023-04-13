@@ -1,13 +1,13 @@
 import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
 import { faCog } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
-import { NarrativeListDoc } from '../../../common/types/NarrativeDoc';
+import { NarrativeDoc } from '../../../common/types/NarrativeDoc';
 import classes from './NarrativeList.module.scss';
 import NarrativeViewItem from './NarrativeViewItem';
 
 interface NarrativeListProps {
   hasMoreItems: boolean;
-  items: Array<NarrativeListDoc>;
+  items: NarrativeDoc[];
   itemsRemaining: number;
   loading: boolean;
   narrativeUPA: string | null;

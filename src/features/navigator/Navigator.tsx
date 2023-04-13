@@ -9,7 +9,7 @@ import {
 } from 'react-router-dom';
 import { Button } from '../../common/components';
 import { useAppDispatch, useAppSelector } from '../../common/hooks';
-import { NarrativeListDoc } from '../../common/types/NarrativeDoc';
+import { NarrativeDoc } from '../../common/types/NarrativeDoc';
 import { authUsername } from '../../features/auth/authSlice';
 import { usePageTitle } from '../../features/layout/layoutSlice';
 import {
@@ -112,7 +112,7 @@ const FilterContainer: FC<{ search: string; sort: string }> = ({
 const MainContainer: FC<{
   limit: number;
   limitTemplate: (limit: number) => string;
-  items: NarrativeListDoc[];
+  items: NarrativeDoc[];
   narrativeUPA: string;
   view: string;
 }> = ({ limit, limitTemplate, items, narrativeUPA, view }) => {
@@ -145,7 +145,7 @@ const searchParamDefaults = {
   sort: Sort['-updated'],
   view: 'data',
 } as const;
-const narrativesByAccessGroup = (narratives: NarrativeListDoc[]) => {
+const narrativesByAccessGroup = (narratives: NarrativeDoc[]) => {
   return Object.fromEntries(
     narratives.map((narrative) => [narrative.access_group, narrative])
   );
@@ -154,7 +154,7 @@ const getNarrativeSelected = (parameters: {
   id: string | undefined;
   obj: string | undefined;
   ver: string | undefined;
-  items: NarrativeListDoc[];
+  items: NarrativeDoc[];
 }) => {
   const { id, obj, ver, items } = parameters;
   const narrativesLookup = narrativesByAccessGroup(items);

@@ -13,7 +13,6 @@ import { Link } from 'react-router-dom';
 import { marked } from 'marked';
 import { Card, CardList } from '../../common/components/Card';
 import DataView from '../../common/components/DataView';
-import { testDataObjects } from '../../common/components/DataView.fixture';
 import { PlaceholderFactory } from '../../common/components/PlaceholderFactory';
 import { useAppSelector } from '../../common/hooks';
 import {
@@ -32,7 +31,8 @@ import {
   generatePathWithSearchParams,
 } from '../../features/params/paramsSlice';
 import { searchParams } from './common';
-import { testNarrative } from './NarrativeView.fixture';
+import { useCells } from './hooks';
+import { wsObjects } from './navigatorSlice';
 import classes from './Navigator.module.scss';
 
 const DOMPurify = createDOMPurify(window);
@@ -110,6 +110,8 @@ const CellCard: FC<{
   if (!isCodeCell(cell)) {
     // This will only happen in exceptional circumstances, e.g. a corrupted
     // narrative, so perhaps this should throw a more obnoxious error?
+    // eslint-disable-next-line no-console
+    console.error('Corrupted narrative object detected.');
     return (
       <Card
         image={<DefaultIcon cellType={cell.cell_type} />}
@@ -117,22 +119,24 @@ const CellCard: FC<{
       />
     );
   }
-  const kbase = cell.metadata.kbase;
-  const title = kbase.attributes.title;
-  const subtitle = kbase.attributes.subtitle;
-  if (isKBaseAppCell(kbase)) {
-    const app = kbase.appCell.app;
+  const kbaseData = cell.metadata.kbase;
+  const title = kbaseData.attributes.title;
+  const subtitle = kbaseData.attributes.subtitle;
+  if (isKBaseAppCell(kbaseData)) {
+    const app = kbaseData.appCell.app;
     const tag = app.tag;
     const icon = <AppCellIcon appId={app.id} appTag={tag} />;
     return <Card image={icon} title={title} subtitle={subtitle} />;
   }
-  if (isKBaseDataCell(kbase)) {
-    const objectInfo = kbase.dataCell.objectInfo;
+  if (isKBaseDataCell(kbaseData)) {
+    const objectInfo = kbaseData.dataCell.objectInfo;
     const objType = objectInfo.typeName;
     const icon = <TypeIcon objType={objType} />;
     return <Card image={icon} title={title} subtitle={subtitle} />;
   }
-  const cellType = isKBaseCodeTypeCell(kbase) ? kbase.type : cell.cell_type;
+  const cellType = isKBaseCodeTypeCell(kbaseData)
+    ? kbaseData.type
+    : cell.cell_type;
   return (
     <Card
       image={<DefaultIcon cellType={cellType} />}
@@ -185,8 +189,8 @@ const NarrativeView: FC<{
   narrativeUPA: string;
 }> = ({ narrativeUPA, view }) => {
   const wsId = +narrativeUPA.split('/')[0];
-  //const narrative = useNarrative({ narrativeUPA });
-  const narrative = testNarrative;
+  const cells = useCells({ narrativeUPA });
+  const dataObjectsLookup = useAppSelector(wsObjects);
   return (
     <>
       <section className={classes.view}>
@@ -199,9 +203,9 @@ const NarrativeView: FC<{
           <NarrativeViewTabs view={view} />
         </div>
         {view === 'data' ? (
-          <DataView wsId={wsId} dataObjects={testDataObjects} />
+          <DataView wsId={wsId} dataObjects={dataObjectsLookup[wsId]} />
         ) : (
-          <NarrativePreview wsId={wsId} cells={narrative.cells} />
+          <NarrativePreview wsId={wsId} cells={cells} />
         )}
       </section>
     </>

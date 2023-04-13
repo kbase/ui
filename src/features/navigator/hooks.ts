@@ -1,8 +1,10 @@
 import { useEffect, useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from '../../common/hooks';
-import { getSearch, SearchParams } from '../../common/api/searchApi';
+import { getNarratives, SearchParams } from '../../common/api/searchApi';
+import { getwsNarrative } from '../../common/api/workspaceApi';
+import { Cell } from '../../common/types/NarrativeDoc';
 import { Category, Sort } from './common';
-import { narratives, setNarratives } from './navigatorSlice';
+import { cells, narratives, setCells, setNarratives } from './navigatorSlice';
 
 const categoryField = (category: Category, username: string) => {
   const { own, public: public_, shared, tutorials } = Category;
@@ -79,6 +81,23 @@ const makeGetNarrativesParams = (
   };
 };
 
+export const useCells = ({ narrativeUPA }: { narrativeUPA: string }) => {
+  const dispatch = useAppDispatch();
+  const cellsPrevious = useAppSelector(cells);
+  const narrativeQuery = getwsNarrative.useQuery({ upa: narrativeUPA });
+  useEffect(() => {
+    if (narrativeQuery.isSuccess) {
+      const data = narrativeQuery.data;
+      if (!data || !data[0]) {
+        throw narrativeQuery.error;
+      }
+      const cells: Cell[] = data[0].data[0].data.cells;
+      dispatch(setCells(cells));
+    }
+  }, [dispatch, cellsPrevious, narrativeQuery, narrativeUPA]);
+  return cellsPrevious;
+};
+
 export const useNarratives = (params: getNarrativesParams) => {
   const dispatch = useAppDispatch();
   const narrativesPrevious = useAppSelector(narratives);
@@ -86,9 +105,9 @@ export const useNarratives = (params: getNarrativesParams) => {
     () => makeGetNarrativesParams(params),
     [params]
   );
-  const searchAPIQuery = getSearch.useQuery(searchAPIParams);
+  const searchAPIQuery = getNarratives.useQuery(searchAPIParams);
   useEffect(() => {
-    if (searchAPIQuery.isSuccess) {
+    if (searchAPIQuery.isSuccess && searchAPIQuery.data) {
       const data = searchAPIQuery.data;
       dispatch(setNarratives(data));
     }

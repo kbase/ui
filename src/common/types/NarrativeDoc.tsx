@@ -1,5 +1,11 @@
 import { AppTag } from '../../features/icons/iconSlice';
 
+/*
+ The KBaseCell type does not describe an entire cell, but the contents of the
+ `kbase` key within a CodeCell. It mainly exists to support the type guards
+ used to determine which kind of cell this object represents, that is, an App,
+ Code, Data or other kind of cell.
+*/
 interface KBaseCell {
   attributes: {
     subtitle?: string;
@@ -97,17 +103,6 @@ export interface NarrativeDoc {
   total_cells: number;
   version: number;
 }
-
-// for NarrativeList and children components
-export type NarrativeListDoc = Pick<
-  NarrativeDoc,
-  | 'access_group'
-  | 'creator'
-  | 'narrative_title'
-  | 'obj_id'
-  | 'timestamp'
-  | 'version'
->;
 
 export const isKBaseCodeTypeCell = (
   kbase: KBaseCell
