@@ -4,7 +4,7 @@ import {
   listTaxaCountRanks,
 } from '../../../common/api/collectionsApi';
 import { Select, SelectOption } from '../../../common/components/Select';
-import { useBackoff } from '../../../common/hooks';
+import { useAppSelector, useBackoff } from '../../../common/hooks';
 import { snakeCaseToHumanReadable } from '../../../common/utils/stringUtils';
 import { useAppParam } from '../../params/hooks';
 import classes from './TaxaCount.module.scss';
@@ -28,9 +28,17 @@ export const TaxaCount: FC<{
 
   // Counts
   const matchId = useAppParam('match');
+  const selectionId = useAppSelector((state) => state.collections.selection.id);
+  const hasSelection =
+    useAppSelector((state) => state.collections.selection.current.length) > 0;
   const countsParams = useMemo(
-    () => ({ collection_id, rank: String(rank?.value), match_id: matchId }),
-    [collection_id, matchId, rank?.value]
+    () => ({
+      collection_id,
+      rank: String(rank?.value),
+      match_id: matchId,
+      selection_id: selectionId,
+    }),
+    [collection_id, matchId, rank?.value, selectionId]
   );
   const backoff = useBackoff();
   useEffect(() => {
@@ -48,7 +56,8 @@ export const TaxaCount: FC<{
   useEffect(() => {
     const pollDone =
       countsQuery.error ||
-      countsQuery.data?.taxa_count_match_state !== 'processing';
+      (countsQuery.data?.taxa_count_match_state !== 'processing' &&
+        countsQuery.data?.taxa_count_selection_state !== 'processing');
     backoff.toggle(!pollDone);
   }, [backoff, countsQuery.data, countsQuery.error]);
 
@@ -75,14 +84,18 @@ export const TaxaCount: FC<{
               {matchId ? (
                 <div className={classes['sub-name']}>Matched</div>
               ) : undefined}
+              {hasSelection ? (
+                <div className={classes['sub-name']}>Selected</div>
+              ) : undefined}
             </Fragment>
           ))}
         </div>
         <div className={classes['bars-section']}>
-          {taxa.map(({ name, count, match_count }) => {
+          {taxa.map(({ name, count, match_count, sel_count }) => {
             const width = Math.round((count / max) * 10000) / 100;
             const matchWidth =
               Math.round(((match_count || 0) / max) * 10000) / 100;
+            const selWidth = Math.round(((sel_count || 0) / max) * 10000) / 100;
             return (
               <Fragment key={name}>
                 <Bar width={width} count={count} />
@@ -91,6 +104,13 @@ export const TaxaCount: FC<{
                     className={classes['matched']}
                     width={matchWidth}
                     count={match_count || 0}
+                  />
+                ) : undefined}
+                {hasSelection ? (
+                  <Bar
+                    className={classes['selected']}
+                    width={selWidth}
+                    count={sel_count || 0}
                   />
                 ) : undefined}
               </Fragment>

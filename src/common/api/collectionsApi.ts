@@ -109,6 +109,7 @@ interface CollectionsResults {
       name: string;
       count: number;
       match_count?: number;
+      sel_count?: number;
     }[];
     taxa_count_match_state: ProcessState;
     taxa_count_selection_state: ProcessState;
@@ -152,6 +153,7 @@ interface CollectionsParams {
     rank: string;
     load_ver_override?: string;
     match_id?: string;
+    selection_id?: string;
   };
   getGenomeAttribs: {
     collection_id: string;
@@ -318,11 +320,17 @@ export const collectionsApi = baseApi.injectEndpoints({
       CollectionsResults['getTaxaCountRank'],
       CollectionsParams['getTaxaCountRank']
     >({
-      query: ({ collection_id, rank, load_ver_override, match_id }) =>
+      query: ({
+        collection_id,
+        rank,
+        load_ver_override,
+        match_id,
+        selection_id,
+      }) =>
         collectionsService({
           method: 'GET',
           url: encode`/collections/${collection_id}/data_products/taxa_count/counts/${rank}/`,
-          params: { load_ver_override, match_id },
+          params: { load_ver_override, match_id, selection_id },
           headers: {
             authorization: `Bearer ${store.getState().auth.token}`,
           },
