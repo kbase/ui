@@ -62,4 +62,10 @@ $gaps: 5px;
     }
   }
 
+  &.selected {
+    .bar {
+      background: use-color("accent-cool");
+    }
+  }
+
 }
