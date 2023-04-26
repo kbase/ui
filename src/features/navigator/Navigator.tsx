@@ -28,8 +28,8 @@ import {
 import { useNarratives } from './hooks';
 import {
   navigatorSelected,
-  narratives,
-  narrativeCount,
+  narrativeDocs,
+  narrativeDocsCount,
   select,
   setCategory,
 } from './navigatorSlice';
@@ -116,16 +116,17 @@ const MainContainer: FC<{
   narrativeUPA: string;
   view: string;
 }> = ({ limit, limitTemplate, items, narrativeUPA, view }) => {
-  const narrativesMatched = useAppSelector(narrativeCount);
+  const narrativeDocsMatched = useAppSelector(narrativeDocsCount);
   const nextLimit = limitTemplate(limit + 20);
+  console.log('MainContainer', { view }); // eslint-disable-line no-console
   return (
     <div className={classes.main} /* main component */>
       <div className={classes.container}>
         <div className={classes.list}>
           <NarrativeList
-            hasMoreItems={narrativesMatched > limit}
+            hasMoreItems={narrativeDocsMatched > limit}
             items={items.slice(0, limit)}
-            itemsRemaining={Math.max(narrativesMatched - limit, 0)}
+            itemsRemaining={Math.max(narrativeDocsMatched - limit, 0)}
             loading={false}
             narrativeUPA={narrativeUPA}
             nextLimit={nextLimit}
@@ -166,22 +167,24 @@ const getNarrativeSelected = (parameters: {
 };
 // Navigator component
 const Navigator: FC = () => {
+  /* general hooks */
   usePageTitle('Narrative Navigator');
-  const dispatch = useAppDispatch();
-  const username = useAppSelector(authUsername);
-  const previouslySelected = useAppSelector(navigatorSelected);
-  const europaParams = useAppSelector(getParams);
-  const { category, id, obj, ver } = useParams();
   const loc = useLocation();
+  const { category, id, obj, ver } = useParams();
   const categoryFilter =
     category && isCategoryString(category)
       ? Category[category]
       : Category['own'];
+  const dispatch = useAppDispatch();
   const searchParamsDefaults = new URLSearchParams(searchParamDefaults);
   const [searchParams] = useSearchParams(searchParamsDefaults);
   const { limit, search, sort, view } = Object.fromEntries(
     searchParams.entries()
   );
+  /* hooks for state data */
+  const username = useAppSelector(authUsername);
+  const previouslySelected = useAppSelector(navigatorSelected);
+  const europaParams = useAppSelector(getParams);
   const limitTemplate = (nextLimit: number) =>
     generatePathWithSearchParams(loc.pathname, {
       ...europaParams,
@@ -196,7 +199,7 @@ const Navigator: FC = () => {
     term: search,
     username,
   });
-  const items = useAppSelector(narratives);
+  const items = useAppSelector(narrativeDocs);
   const narrativeSelected = getNarrativeSelected({ id, obj, ver, items });
   // hooks that update state
   useEffect(() => {
@@ -211,6 +214,7 @@ const Navigator: FC = () => {
   If the URL specifies a valid narrative object then it should be selected,
   otherwise the default should be selected.
   */
+  console.log('Navigator', { nitems: items.length, view }); // eslint-disable-line no-console
   if (items.length === 0) {
     return (
       <>

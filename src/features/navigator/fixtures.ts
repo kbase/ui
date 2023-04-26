@@ -1,24 +1,47 @@
+import { usernameRequested } from '../common';
 import { testDataObjects } from '../../common/components/DataView.fixture';
 import {
+  Cell,
   CodeCell,
   MarkdownCell,
   NarrativeDoc,
 } from '../../common/types/NarrativeDoc';
 import { AppTag } from '../../features/icons/iconSlice';
+import narrativeTestDocs from './fixture.NarrativeTestDocs.json';
+import { Category } from './common';
 
-const testApps = [
-  'kb_uploadmethods/import_fasta_as_assembly_from_staging',
-  'refseq_importer',
-  'kb_uploadmethods/import_gff_fasta_as_genome_from_staging',
-  'sample_uploader/import_samples',
-  'KEConnectorGenomeHomology.run',
-  'RAST_SDK/reannotate_microbial_genome',
-  'MEGAHIT/run_megahit',
-  'genome_transform.genbank_to_genome',
-  'RAST_SDK/annotate_contigset',
-  'GenomeFileUtil/import_genome_gbk_file',
-  'hipmer/run_hipmer_hpc',
-] as const;
+export type NarrativeTestDoc = Pick<
+  NarrativeDoc,
+  | 'access_group'
+  | 'creator'
+  | 'narrative_title'
+  | 'obj_id'
+  | 'timestamp'
+  | 'version'
+>;
+
+export const factoryNarrativeDoc = (
+  partial: NarrativeTestDoc
+): NarrativeDoc => {
+  return {
+    cells: [],
+    copied: null,
+    creation_date: partial.timestamp.toString(),
+    data_objects: [],
+    is_narratorial: false,
+    is_public: false,
+    is_temporary: false,
+    modified_at: partial.timestamp,
+    obj_name: 'obj_name',
+    obj_type_module: 'KBaseType',
+    obj_type_version: '1',
+    owner: partial.creator,
+    shared_users: [partial.creator],
+    tags: [],
+    total_cells: 0,
+    ...partial,
+  };
+};
 
 const appCellFactory = ({
   id,
@@ -50,6 +73,20 @@ const appCellFactory = ({
   },
   source: '# some python\nimport this',
 });
+
+const testApps = [
+  'kb_uploadmethods/import_fasta_as_assembly_from_staging',
+  'refseq_importer',
+  'kb_uploadmethods/import_gff_fasta_as_genome_from_staging',
+  'sample_uploader/import_samples',
+  'KEConnectorGenomeHomology.run',
+  'RAST_SDK/reannotate_microbial_genome',
+  'MEGAHIT/run_megahit',
+  'genome_transform.genbank_to_genome',
+  'RAST_SDK/annotate_contigset',
+  'GenomeFileUtil/import_genome_gbk_file',
+  'hipmer/run_hipmer_hpc',
+] as const;
 
 export const testCells: (MarkdownCell | CodeCell)[] = [
   {
@@ -146,11 +183,6 @@ export const testCells: (MarkdownCell | CodeCell)[] = [
     source: '# A cool code cell title\nimport this',
   },
   {
-    // @ts-expect-error A corrupted cell for tests.
-    cell_type: 'corrupt',
-    source: 'corrupted',
-  },
-  {
     // another markdown cell
     cell_type: 'markdown',
     metadata: {
@@ -163,16 +195,29 @@ export const testCells: (MarkdownCell | CodeCell)[] = [
     source: 'A different title!',
   },
   {
-    // another (less) corrupted cell
+    // Not implemented: a cell type not counted in <NarrativeMetadata />
     cell_type: 'code',
     metadata: {
       kbase: {
         attributes: {
-          title: 'A corrupted cell.',
+          title: 'A cell that thinks different.',
         },
       },
     },
     source: '# some python\nimport this',
+  },
+  {
+    // Corrupt: cell_type is not markdown or code.
+    // @ts-expect-error A corrupted cell.
+    cell_type: 'corrupt',
+    source: 'corrupted',
+  },
+  {
+    // Corrupt: kbase key does not exist in metadata attribute.
+    cell_type: 'code',
+    // @ts-expect-error No kbase key.
+    metadata: {},
+    source: 'corrupted',
   },
   ...testApps.map((app) =>
     appCellFactory({
@@ -184,12 +229,12 @@ export const testCells: (MarkdownCell | CodeCell)[] = [
   ),
 ];
 
-export const testNarrative: NarrativeDoc = {
+export const testNarrativeDoc: NarrativeDoc = {
   access_group: 1,
   cells: testCells,
   copied: null,
   creation_date: '',
-  creator: '',
+  creator: usernameRequested,
   data_objects: testDataObjects,
   is_narratorial: true,
   is_public: true,
@@ -201,9 +246,38 @@ export const testNarrative: NarrativeDoc = {
   obj_type_module: '',
   obj_type_version: '',
   owner: '',
-  shared_users: [],
+  shared_users: [usernameRequested],
   tags: [],
   timestamp: 0,
   total_cells: testCells.length,
   version: 0,
 };
+
+export const testItems: NarrativeDoc[] = narrativeTestDocs
+  .map((partial) => factoryNarrativeDoc(partial))
+  .concat(testNarrativeDoc);
+
+export const testNarrativeDocsLookup = Object.fromEntries(
+  testItems.map((narrative) => [narrative.access_group, narrative])
+);
+
+export const initialTestStateFactory = ({
+  cells = [],
+  cellsLoaded = false,
+}: {
+  cells?: Cell[];
+  cellsLoaded?: boolean;
+}) => ({
+  category: Category['own'],
+  count: testItems.length,
+  narrativeDocs: testItems,
+  narrativeDocsLookup: testNarrativeDocsLookup,
+  search_time: 0,
+  selected: null,
+  users: {},
+  wsObjects: [],
+  cells,
+  cellsLoaded,
+});
+
+export const initialTestState = initialTestStateFactory({});

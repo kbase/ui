@@ -3,7 +3,7 @@ import { Provider } from 'react-redux';
 import { MemoryRouter as Router } from 'react-router-dom';
 import { createTestStore } from '../../../app/store';
 import NarrativeList from './NarrativeList';
-import { testItems } from './NarrativeList.fixture';
+import { testItems } from '../fixtures';
 
 test('NarrativeList renders', async () => {
   const { container } = render(
@@ -22,7 +22,7 @@ test('NarrativeList renders', async () => {
     </Provider>
   );
   expect(container).toBeTruthy();
-  expect(container.querySelectorAll('.narrative_item_outer')).toHaveLength(21);
+  expect(container.querySelectorAll('.narrative_item_outer')).toHaveLength(22);
   expect(screen.getByText('No more results.')).toBeInTheDocument();
 });
 

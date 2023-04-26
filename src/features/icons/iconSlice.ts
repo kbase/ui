@@ -54,6 +54,7 @@ export const iconSlice = createSlice({
     builder.addMatcher(
       getMethodBriefInfo.matchFulfilled,
       (state, { payload, meta }) => {
+        if (!payload) return;
         // Update Icon Cache when getMethodBriefInfo succeeds
         const appIds = meta.arg.originalArgs[0].ids;
         const appTags = meta.arg.originalArgs[0].ids;
@@ -95,6 +96,7 @@ export const useAppIcon = ({
   const out = getMethodBriefInfo.useQuery(getMethodBriefInfoParams, {
     skip: !!cachedIcon,
   });
+  console.log({ out }); // eslint-disable-line no-console
   // TODO: Note that icons will not work locally without configuring a proxy.
   // For example, MEGAHIT/run_megahit will receive the default icon.
   // https://ci.kbase.us/services/narrative_method_store/img?method_id=MEGAHIT/run_megahit&image_name=megahit-blue.png&tag=release

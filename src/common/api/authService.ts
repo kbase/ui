@@ -16,6 +16,17 @@ interface TokenResponse {
   cachefor: number;
 }
 
+interface AuthParams {
+  getUsers: {
+    token: string;
+    users: string[];
+  };
+}
+
+interface AuthResults {
+  getUsers: Record<string, string>;
+}
+
 // Auth does not use JSONRpc, so we use queryFn to make custom queries
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -29,6 +40,17 @@ export const authApi = baseApi.injectEndpoints({
           },
         }),
     }),
+    getUsers: builder.query<AuthResults['getUsers'], AuthParams['getUsers']>({
+      query: ({ token, users }) =>
+        authService({
+          headers: {
+            Authorization: token || '',
+          },
+          method: 'GET',
+          params: { list: users.join(',') },
+          url: '/api/V2/users',
+        }),
+    }),
     revokeToken: builder.mutation<boolean, string>({
       query: (tokenId) =>
         authService({
@@ -39,4 +61,4 @@ export const authApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { authFromToken, revokeToken } = authApi.endpoints;
+export const { authFromToken, getUsers, revokeToken } = authApi.endpoints;

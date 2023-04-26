@@ -2,7 +2,7 @@ import { screen, render } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { MemoryRouter as Router, Route, Routes } from 'react-router-dom';
 import { createTestStore } from '../../../app/store';
-import { testItems } from './NarrativeList.fixture';
+import { testItems } from '../fixtures';
 import NarrativeViewItem from './NarrativeViewItem';
 import { narrativeSelectedPath } from '../Navigator';
 

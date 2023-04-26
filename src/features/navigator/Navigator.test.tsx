@@ -18,26 +18,16 @@ import Routes from '../../app/Routes';
 import { baseApi } from '../../common/api';
 import { usernameRequested } from '../common';
 import { ignoredParameterWarning } from '../../common/hooks';
-import { testItems } from './NarrativeList/NarrativeList.fixture';
+import { NarrativeDoc } from '../../common/types/NarrativeDoc';
+import { initialTestState, testItems, testNarrativeDoc } from './fixtures';
 import classes from './NarrativeList/NarrativeList.module.scss';
 import { Category } from './common';
-import { testNarrative } from './NarrativeView.fixture';
 import Navigator, {
   narrativeSelectedPath,
   narrativeSelectedPathWithCategory,
 } from './Navigator';
 
-const initialState = {
-  category: Category['own'],
-  cells: [],
-  count: testItems.length,
-  narratives: testItems,
-  search_time: 0,
-  selected: null,
-  wsObjects: [],
-};
-
-let testStore = createTestStore({ navigator: initialState });
+let testStore = createTestStore({ navigator: initialTestState });
 
 const consoleError = jest.spyOn(console, 'error');
 // This mockImplementation supresses console.error calls.
@@ -56,10 +46,20 @@ const testItemResponseOK: [string, MockParams] = [
   { status: 200 },
 ];
 
-const testNarrativeResponseOK: [string, MockParams] = [
+const testResponseOKFactory = (
+  narrativeDoc: NarrativeDoc
+): [string, MockParams] => [
   JSON.stringify({
     jsonrpc: '2.0',
-    result: [{ data: [{ data: testNarrative }] }],
+    result: [{ data: [{ data: narrativeDoc }] }],
+  }),
+  { status: 200 },
+];
+
+const testNarrativeDocResponseOK: [string, MockParams] = [
+  JSON.stringify({
+    jsonrpc: '2.0',
+    result: [{ data: [{ data: testNarrativeDoc }] }],
   }),
   { status: 200 },
 ];
@@ -91,7 +91,7 @@ describe('The <Navigator /> component...', () => {
   beforeEach(() => {
     fetchMock.resetMocks();
     consoleError.mockClear();
-    testStore = createTestStore({ navigator: initialState });
+    testStore = createTestStore({ navigator: initialTestState });
     testStore.dispatch(baseApi.util.resetApiState());
   });
 
@@ -108,7 +108,7 @@ describe('The <Navigator /> component...', () => {
   });
 
   test('may be refreshed manually.', async () => {
-    fetchMock.mockResponses(testItemResponseOK, testNarrativeResponseOK);
+    fetchMock.mockResponses(testItemResponseOK, testNarrativeDocResponseOK);
     const { container } = render(
       <Provider store={createTestStore()}>
         <Router>
@@ -128,12 +128,12 @@ describe('The <Navigator /> component...', () => {
 
   Object.keys(Category).forEach((category) => {
     test(`uses the '${category}' Category when specified.`, () => {
-      fetchMock.mockResponses(testNarrativeResponseOK);
+      fetchMock.mockResponses(testNarrativeDocResponseOK);
       const { container } = render(
         <Provider
           store={createTestStore({
             auth: { initialized: false, username: usernameRequested },
-            navigator: initialState,
+            navigator: initialTestState,
           })}
         >
           <Router initialEntries={[`/narratives/${category}/`]}>
@@ -194,7 +194,7 @@ describe('The <Navigator /> component...', () => {
   });
 
   test('identifies the selected narrative.', async () => {
-    fetchMock.mockResponses(testNarrativeResponseOK);
+    fetchMock.mockResponses(testNarrativeDocResponseOK);
     const { container } = render(
       <Provider
         store={createTestStore({
@@ -203,13 +203,8 @@ describe('The <Navigator /> component...', () => {
             username: usernameRequested,
           },
           navigator: {
+            ...initialTestState,
             category: Category['tutorials'],
-            cells: [],
-            count: testItems.length,
-            narratives: testItems,
-            search_time: 0,
-            selected: null,
-            wsObjects: [],
           },
         })}
       >
@@ -269,7 +264,7 @@ describe('The <Navigator /> component...', () => {
   });
 
   test('suffers fools gladly.', async () => {
-    fetchMock.mockResponses(testNarrativeResponseOK);
+    fetchMock.mockResponses(testNarrativeDocResponseOK);
     const { container } = await waitFor(() =>
       render(
         <Provider store={testStore}>
@@ -277,6 +272,36 @@ describe('The <Navigator /> component...', () => {
             <RRRoutes>
               <Route
                 path={'/narratives'}
+                element={
+                  <ErrorBoundary
+                    FallbackComponent={TestingError}
+                    onError={logError}
+                  >
+                    <Navigator />
+                  </ErrorBoundary>
+                }
+              />
+            </RRRoutes>
+          </Router>
+        </Provider>
+      )
+    );
+    expect(container).toBeTruthy();
+    container &&
+      expect(container.querySelector('section.navigator')).toBeInTheDocument();
+  });
+
+  test('yields an error if no cells are found in the narrative.', async () => {
+    const narrativeDoc = initialTestState.narrativeDocs[0];
+    fetchMock.mockResponses(testResponseOKFactory(narrativeDoc));
+    const wsId = narrativeDoc.access_group;
+    const { container } = await waitFor(() =>
+      render(
+        <Provider store={testStore}>
+          <Router initialEntries={[`/narratives/${wsId}/2/3?view=preview`]}>
+            <RRRoutes>
+              <Route
+                path={narrativeSelectedPath}
                 element={
                   <ErrorBoundary
                     FallbackComponent={TestingError}
