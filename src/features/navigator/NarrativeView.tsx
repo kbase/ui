@@ -181,7 +181,10 @@ interface NarrativePreviewProps {
   narrativeDoc: NarrativeDoc;
   wsId: number;
 }
-
+export const noPreviewMessage =
+  'There is no preview available for this narrative.';
+export const noWorkspaceCellsMessage =
+  'No cells from the workspace can be previewed.';
 export const NarrativePreview: FC<NarrativePreviewProps> = ({
   cells,
   narrativeDoc,
@@ -195,11 +198,11 @@ export const NarrativePreview: FC<NarrativePreviewProps> = ({
   const NoPreviewAvailable: FC = () => {
     // eslint-disable-next-line no-console
     console.log(
-      'No cells from the workspace can be previewed.',
+      noWorkspaceCellsMessage,
       /* `There are ${narrativeDoc.cells.length} cached.`, */
       { wsId, cells, narrativeDoc }
     );
-    return <>There is no preview available for this narrative.</>;
+    return <>{noPreviewMessage}</>;
   };
   return (
     <section className={classes.preview}>
@@ -230,11 +233,11 @@ const NarrativeView: FC<{
   const cellsLoadedStatus = useAppSelector(cellsLoaded) && Array.isArray(cells);
   const dataObjectsLookup = useAppSelector(wsObjects);
   const narrativeDocsFound = useAppSelector(narrativeDocsLookup);
-  /* This narrativeDoc is a NarrativeDoc from searchapi2 which is a distinct
-     type from a narrative object from the workspace.
+  /* This narrativeDocFound is a NarrativeDoc from searchapi2 which is a
+     distinct type from a narrative object from the workspace.
   */
   const narrativeDocFound = narrativeDocsFound[wsId];
-  const NarrativeViewCurrent: FC<{}> = () => {
+  const NarrativeViewCurrent: FC = () => {
     return view === 'data' ? (
       <DataView wsId={wsId} dataObjects={dataObjectsLookup[wsId]} />
     ) : (

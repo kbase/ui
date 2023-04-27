@@ -98,7 +98,6 @@ export const useCells = ({ narrativeUPA }: { narrativeUPA: string }) => {
   const narrativeQuery = getwsNarrative.useQuery({ upa: narrativeUPA });
   useEffect(() => {
     dispatch(setCellsLoaded(false));
-    console.log({ narrativeQuery }); // eslint-disable-line no-console
     if (narrativeQuery.isSuccess) {
       const data = narrativeQuery.data;
       if (!data || !data[0]) {
@@ -106,7 +105,7 @@ export const useCells = ({ narrativeUPA }: { narrativeUPA: string }) => {
       }
       const narrative = data[0].data[0].data;
       const cells: Cell[] = narrative.cells;
-      if (!cells) {
+      if (!cells || cells.length === 0) {
         corruptNarrativeError(narrativeUPA, narrative);
         dispatch(setCells([]));
         return;

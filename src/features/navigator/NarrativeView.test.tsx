@@ -1,8 +1,4 @@
-import {
-  render,
-  // screen
-  screen,
-} from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import fetchMock, {
   MockParams,
   disableFetchMocks,
@@ -15,20 +11,40 @@ import { NarrativePreviewTemplate } from '../../stories/components/NarrativePrev
 import { NarrativeDoc } from '../../common/types/NarrativeDoc';
 import {
   initialTestState,
-  initialTestStateFactory,
+  // initialTestStateFactory,
   testNarrativeDoc,
   testNarrativeDocsLookup,
 } from './fixtures';
-import NarrativeView from './NarrativeView';
+import NarrativeView, {
+  noPreviewMessage,
+  noWorkspaceCellsMessage,
+} from './NarrativeView';
 
-const testResponseOKFactory = (
-  narrativeDoc: NarrativeDoc
-): [string, MockParams] => [
+type MockResponse = [string, MockParams];
+
+const testResponseOKFactory = (narrativeDoc: NarrativeDoc): MockResponse => [
   JSON.stringify({
     jsonrpc: '2.0',
     result: [{ data: [{ data: narrativeDoc }] }],
   }),
   { status: 200 },
+];
+
+const testResponseError: MockResponse = [
+  JSON.stringify({
+    version: '2.0',
+    error: {
+      name: 'JSONRPCError',
+      code: -32500,
+      message:
+        'Object 1 cannot be accessed: No workspace with id 8675309 exists',
+      error: [
+        'us.kbase.workspace.database.exceptions.InaccessibleObjectException: ',
+        'Object 1 cannot be accessed: No workspace with id 8675309 exists',
+      ].join(''),
+    },
+  }),
+  { status: 500 },
 ];
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -37,12 +53,12 @@ const testResponseOKFactory = (
 const consoleError = jest.spyOn(console, 'error');
 const consoleLog = jest.spyOn(console, 'log');
 const consoleWarn = jest.spyOn(console, 'warn');
-// consoleError.mockImplementation(emptyFunc);
-// consoleLog.mockImplementation(emptyFunc);
-// consoleWarn.mockImplementation(emptyFunc);
+//consoleError.mockImplementation(emptyFunc);
+//consoleLog.mockImplementation(emptyFunc);
+//consoleWarn.mockImplementation(emptyFunc);
 
 describe('The <NarrativeView /> component...', () => {
-  /* TODO: enable fetches for this suite
+  /* TODO: enable fetches for this suite */
   beforeAll(() => {
     enableFetchMocks();
   });
@@ -54,91 +70,88 @@ describe('The <NarrativeView /> component...', () => {
   beforeEach(() => {
     fetchMock.resetMocks();
   });
-  */
 
-  test('renders.', () => {
-    const { container } = render(
-      <Provider store={createTestStore({ navigator: initialTestState })}>
-        <Router>
-          <NarrativeView narrativeUPA={'1/2/3'} view={'preview'} />
-        </Router>
-      </Provider>
+  /*
+   */
+  test('renders.', async () => {
+    fetchMock.mockResponses(testResponseOKFactory(testNarrativeDoc));
+    const { container } = await waitFor(() =>
+      render(
+        <Provider store={createTestStore({ navigator: initialTestState })}>
+          <Router>
+            <NarrativeView narrativeUPA={'1/2/3'} view={'preview'} />
+          </Router>
+        </Provider>
+      )
     );
     expect(container).toBeTruthy();
     expect(container.querySelector('section.view')).toBeInTheDocument();
   });
 
-  test('renders cells in the preview view.', () => {
-    const initialState = initialTestStateFactory({
-      cells: testNarrativeDoc.cells,
-      cellsLoaded: true,
-    });
+  test('renders the data view.', async () => {
+    fetchMock.mockResponses(testResponseOKFactory(testNarrativeDoc));
+    const initialState = initialTestState;
     const wsId = testNarrativeDoc.access_group;
-    const { container } = render(
-      <Provider
-        store={createTestStore({
-          navigator: initialState,
-        })}
-      >
-        <Router>
-          <NarrativeView narrativeUPA={`${wsId}/2/3`} view={'preview'} />
-        </Router>
-      </Provider>
+    const { container } = await waitFor(() =>
+      render(
+        <Provider
+          store={createTestStore({
+            navigator: initialState,
+          })}
+        >
+          <Router>
+            <NarrativeView narrativeUPA={`${wsId}/2/3`} view={'data'} />
+          </Router>
+        </Provider>
+      )
     );
     expect(container).toBeTruthy();
     expect(container.querySelector('section.view')).toBeInTheDocument();
   });
 
-  test('renders the data view.', () => {
-    const { container } = render(
-      <Provider store={createTestStore({ navigator: initialTestState })}>
-        <Router>
-          <NarrativeView narrativeUPA={'1/2/3'} view={'data'} />
-        </Router>
-      </Provider>
-    );
-    expect(container).toBeTruthy();
-    expect(container.querySelector('section.view')).toBeInTheDocument();
-  });
-
-  test('renders blank if narrative is not found.', () => {
+  test('renders blank if narrative is not found.', async () => {
     const wsId = 8675309;
-    const { container } = render(
-      <Provider store={createTestStore({ navigator: initialTestState })}>
-        <Router>
-          <NarrativeView narrativeUPA={`${wsId}/2/3`} view={'data'} />
-        </Router>
-      </Provider>
+    fetchMock.mockResponses(testResponseError);
+    const { container } = await waitFor(() =>
+      render(
+        <Provider store={createTestStore({ navigator: initialTestState })}>
+          <Router>
+            <NarrativeView narrativeUPA={`${wsId}/2/3`} view={'data'} />
+          </Router>
+        </Provider>
+      )
     );
     expect(wsId in testNarrativeDocsLookup).toBeFalsy();
     expect(container).toBeTruthy();
     expect(container.querySelector('section.view')).toBeInTheDocument();
   });
 
-  // TODO: this test is not working. It should cause useCells to give an error
-  // about a corrupt narrative, but does not seem to wait on the api query response.
-  // see Navigator.test.tsx#L283
-  test('warns if no cells are found in narrative.', () => {
+  test('warns if no cells are found in narrative.', async () => {
     const narrativeDoc = initialTestState.narrativeDocs[0];
     fetchMock.mockResponses(testResponseOKFactory(narrativeDoc));
-    console.log({ narrativeDoc }); // eslint-disable-line no-console
     const wsId = narrativeDoc.access_group;
-    console.log('test begin render'); // eslint-disable-line no-console
     const testStore = createTestStore({ navigator: initialTestState });
-    const { container } = render(
-      <Provider store={testStore}>
-        <Router>
-          <NarrativeView narrativeUPA={`${wsId}/2/3`} view={'data'} />
-        </Router>
-      </Provider>
+    const { container } = await waitFor(() =>
+      render(
+        <Provider store={testStore}>
+          <Router>
+            <NarrativeView narrativeUPA={`${wsId}/2/3`} view={'preview'} />
+          </Router>
+        </Provider>
+      )
     );
-    console.log('test end render'); // eslint-disable-line no-console
-    screen.debug();
     expect(container).toBeTruthy();
-    expect(container.querySelector('section.view')).toBeInTheDocument();
+    expect(container.querySelector('section.preview')).toBeInTheDocument();
+    expect(
+      screen.getByText(noPreviewMessage, {
+        exact: false,
+      })
+    );
+    const lastCallArg = consoleLog.mock.lastCall
+      ? consoleLog.mock.lastCall[0]
+      : '';
+    expect(lastCallArg).toBe(noWorkspaceCellsMessage);
   });
-  /*
-   */
 });
 
 describe('The <NarrativePreview /> component...', () => {
