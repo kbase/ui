@@ -1,13 +1,19 @@
 import { FC, useCallback, useMemo, useState } from 'react';
 import { getGenomeAttribs } from '../../../common/api/collectionsApi';
 import { Table, ColumnDefs } from '../../../common/components/Table';
+import { useAppDispatch, useAppSelector } from '../../../common/hooks';
 import { useAppParam } from '../../params/hooks';
+import { setUserSelection } from '../collectionsSlice';
 import classes from './GenomeAttribs.module.scss';
 
 export const GenomeAttribs: FC<{
   collection_id: string;
 }> = ({ collection_id }) => {
   const matchId = useAppParam('match');
+  const dispatch = useAppDispatch();
+  const currentSelection = useAppSelector(
+    (state) => state.collections.selection.current
+  );
   const [onlyMatch, setOnlyMatch] = useState(false);
 
   const [tableState, setTableState] = useState<{
@@ -16,6 +22,12 @@ export const GenomeAttribs: FC<{
     pageIndex: number;
     pageSize: number;
   }>({ sortDesc: false, pageIndex: 0, pageSize: 8 });
+
+  const selection = useMemo(
+    () => Object.fromEntries(currentSelection.map((k) => [k, true])),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [[...currentSelection].sort().join(', ')]
+  );
 
   const attribParams = useMemo(
     () => ({
@@ -44,6 +56,7 @@ export const GenomeAttribs: FC<{
 
   if (data) {
     const matchIndex = data.fields.findIndex((f) => f.name === '__match__');
+    const idIndex = data.fields.findIndex((f) => f.name === 'kbase_id');
     const pageCount = Math.ceil((countData?.count || 0) / tableState.pageSize);
     return (
       <>
@@ -56,11 +69,19 @@ export const GenomeAttribs: FC<{
           showLoader={isFetching}
           className={classes['table']}
           data={data.table}
+          getRowId={(row) => String(row[idIndex])}
           pageSize={tableState.pageSize}
           pageCount={pageCount}
           maxPage={Math.floor(10000 / tableState.pageSize)}
           columnDefs={colDefs}
-          onTableChange={(state) => setTableState(state)}
+          onTableChange={({ selected, ...state }) => {
+            dispatch(
+              setUserSelection({ selection: Object.keys(selected ?? {}) })
+            );
+            setTableState(state);
+          }}
+          selectable
+          selected={selection}
           rowStyle={(row) => {
             if (matchIndex === -1) return {};
             return {

@@ -1,4 +1,11 @@
-import { CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  CSSProperties,
+  HTMLProps,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   createColumnHelper,
   ColumnHelper,
@@ -14,6 +21,7 @@ import {
   DeepKeys,
   Table as TableType,
   Row,
+  RowSelectionState,
 } from '@tanstack/react-table';
 import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -49,14 +57,18 @@ interface DynamicTableProps {
     sortDesc: boolean;
     pageIndex: number;
     pageSize: number;
+    selected: Record<string, boolean>;
   }) => void;
 }
 
 type TableProps<Datum> = {
   data: Datum[];
+  getRowId?: (row: Datum, index: number) => string;
   columnDefs?: ColumnDefs<Datum>;
   className?: string;
   rowStyle?: (row: Row<Datum>) => CSSProperties;
+  selectable?: boolean;
+  selected?: Record<string, boolean>;
 } & (DynamicTableProps | StaticTableProps);
 
 /**
@@ -66,6 +78,7 @@ type TableProps<Datum> = {
  */
 export const Table = <Datum,>({
   data,
+  getRowId,
   columnDefs,
   className,
   pageSize = Number.MAX_SAFE_INTEGER,
@@ -74,6 +87,8 @@ export const Table = <Datum,>({
   onTableChange,
   maxPage = Number.MAX_SAFE_INTEGER,
   rowStyle = () => ({}),
+  selectable,
+  selected,
 }: TableProps<Datum>) => {
   const isDynamic = onTableChange ? true : false;
 
@@ -81,14 +96,37 @@ export const Table = <Datum,>({
   const currentColumnDefs = columnDefs || defaultColumnDefs;
   const columns = useMemo(() => {
     const columnHelper = createColumnHelper<Datum>();
-    return currentColumnDefs(columnHelper);
-  }, [currentColumnDefs]);
+    const cols = currentColumnDefs(columnHelper);
+    if (selectable)
+      cols.unshift({
+        id: '__select_col__',
+        header: ({ table }) => (
+          <SelectBox
+            checked={table.getIsAllPageRowsSelected()}
+            partial={table.getIsSomePageRowsSelected()}
+            onChange={table.getToggleAllPageRowsSelectedHandler()}
+          />
+        ),
+        cell: ({ row }) => (
+          <SelectBox
+            checked={row.getIsSelected()}
+            disabled={!row.getCanSelect()}
+            partial={row.getIsSomeSelected()}
+            onChange={row.getToggleSelectedHandler()}
+          />
+        ),
+      });
+    return cols;
+  }, [currentColumnDefs, selectable]);
 
   const [sortState, setSortState] = useState<SortingState>([]);
   const [pageState, setPageState] = useState<PaginationState>({
     pageIndex: 0,
     pageSize,
   });
+  const [selectState, setSelectState] = useState<RowSelectionState>(
+    selected || {}
+  );
 
   const tableChangeRef = useRef(onTableChange);
   tableChangeRef.current = onTableChange;
@@ -98,8 +136,9 @@ export const Table = <Datum,>({
         ...pageState,
         sortBy: sortState[0]?.id,
         sortDesc: sortState[0]?.desc ?? true,
+        selected: selectState,
       });
-  }, [pageState, sortState]);
+  }, [pageState, sortState, selectState]);
 
   const table = useReactTable({
     data,
@@ -107,8 +146,10 @@ export const Table = <Datum,>({
     state: {
       sorting: sortState,
       pagination: pageState,
+      rowSelection: selectState,
     },
     getCoreRowModel: getCoreRowModel(),
+    getRowId: getRowId,
 
     getSortedRowModel: getSortedRowModel(),
     onSortingChange: setSortState,
@@ -118,6 +159,8 @@ export const Table = <Datum,>({
     onPaginationChange: setPageState,
     manualPagination: isDynamic,
     pageCount: pageCount,
+    enableRowSelection: selectable,
+    onRowSelectionChange: setSelectState,
   });
 
   const [shouldPaginate, setShouldPaginate] = useState(false);
@@ -132,6 +175,10 @@ export const Table = <Datum,>({
     table.setPageSize(pageSize);
     setShouldPaginate(paginated);
   }, [isDynamic, pageCount, pageSize, table]);
+
+  useEffect(() => {
+    setSelectState(selected || {});
+  }, [selected]);
 
   const shouldRenderHeader = someHeaderDefines(
     'header',
@@ -376,3 +423,27 @@ const useDefaultColumnDefs = <Datum,>(
     [firstRowDatum]
   );
 };
+
+function SelectBox({
+  partial,
+  className = '',
+  ...rest
+}: { partial?: boolean } & HTMLProps<HTMLInputElement>) {
+  const ref = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (typeof partial === 'boolean' && ref.current) {
+      ref.current.indeterminate = !rest.checked && partial;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ref, partial]);
+
+  return (
+    <input
+      type="checkbox"
+      ref={ref}
+      className={className + ' cursor-pointer'}
+      {...rest}
+    />
+  );
+}
