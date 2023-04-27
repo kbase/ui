@@ -162,6 +162,7 @@ export const PaginatedWithDynamicData = (testProps: {
     pageSize: number;
     sortBy?: string;
     sortDesc?: boolean;
+    selected?: Record<string, boolean>;
   }>({ pageIndex: 0, pageSize: 10 });
   const {
     result: { rows, rowCount },
@@ -178,14 +179,21 @@ export const PaginatedWithDynamicData = (testProps: {
       pageSize={pageSize}
       pageCount={Math.ceil(rowCount / pageSize)}
       showLoader={fetching}
-      onTableChange={({ pageIndex, pageSize, sortBy, sortDesc }) => {
+      onTableChange={({ pageIndex, pageSize, sortBy, sortDesc, selected }) => {
         if (testProps.onTableChange)
-          testProps.onTableChange({ pageIndex, pageSize, sortBy, sortDesc });
+          testProps.onTableChange({
+            pageIndex,
+            pageSize,
+            sortBy,
+            sortDesc,
+            selected,
+          });
         setTableState({
           pageIndex,
           pageSize,
           sortBy,
           sortDesc,
+          selected,
         });
       }}
       columnDefs={(columns) =>

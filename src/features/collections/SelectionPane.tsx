@@ -1,5 +1,5 @@
 import { useAppDispatch, useAppSelector, useBackoff } from '../../common/hooks';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 import {
@@ -13,40 +13,24 @@ export const SelectionPane = ({ collectionId }: { collectionId: string }) => {
   const dispatch = useAppDispatch();
 
   const selection = useAppSelector((state) => state.collections.selection);
-  const inputRef = useRef<HTMLInputElement>(null);
   useSyncSelection(collectionId);
 
   return (
     <>
       <h3>
-        Selection {selection.id ? undefined : <FAIcon icon={faSpinner} spin />}
+        Selection Options{' '}
+        {selection.id ? undefined : <FAIcon icon={faSpinner} spin />}
       </h3>
       <ul>
         <li>
           Your current selection includes {selection.current.length} items.
         </li>
         <li>Selection ID: {selection.id}</li>
+        <li>Selection: {[...selection.current].join(', ')}</li>
       </ul>
       <button onClick={() => dispatch(setUserSelection({ selection: [] }))}>
         Clear Selection
       </button>
-      <h5>testing, to be removed</h5>
-      <p>
-        <input type="text" ref={inputRef} />
-        <button
-          onClick={() =>
-            dispatch(
-              setUserSelection({
-                selection: (inputRef.current?.value || '')
-                  .split(',')
-                  .map((s) => s.trim()),
-              })
-            )
-          }
-        >
-          Set Selection
-        </button>
-      </p>
     </>
   );
 };
@@ -133,7 +117,10 @@ const useSyncSelection = (collectionId: string) => {
         if (selection.pendingId === getSelectionQuery.data.selection_id) {
           dispatch(setPendingSelectionId(undefined));
         }
-      } else {
+      } else if (
+        getSelectionQuery.error ||
+        getSelectionQuery.data?.state === 'failed'
+      ) {
         // eslint-disable-next-line no-console
         console.error(
           'An error occurred fetching a selection',
