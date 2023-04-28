@@ -1,12 +1,12 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import classes from './Table.module.scss';
-import { Table } from './Table';
+import { OldTable } from './Table';
 import * as Stories from '../../stories/components/Table.stories';
 
 describe('Table', () => {
   test('renders Table', () => {
     render(
-      <Table
+      <OldTable
         data={[
           { a: 1, b: 2, c: 3 },
           { a: 4, b: 5, c: 6 },
@@ -21,7 +21,7 @@ describe('Table', () => {
 
   test('renders Table from 2d array', () => {
     render(
-      <Table
+      <OldTable
         data={[
           [1, 2, 3, 4],
           [5, 6, 7, 8],
@@ -38,7 +38,7 @@ describe('Table', () => {
     const consoleError = jest.spyOn(console, 'error');
     consoleError.mockImplementation(() => undefined);
     expect(() =>
-      render(<Table data={['some', 1, 'weird', 0, 'array']} />)
+      render(<OldTable data={['some', 1, 'weird', 0, 'array']} />)
     ).toThrowError(
       'Cannot automatically create columns from data, use the columnDefs prop'
     );
@@ -78,7 +78,7 @@ describe('Table', () => {
 
   test('renders paginated Table', () => {
     render(
-      <Table
+      <OldTable
         data={[
           [1, 2, 3, 4],
           [5, 6, 7, 8],
@@ -95,7 +95,7 @@ describe('Table', () => {
 
   test('Table sorts when sortable headers are clicked', async () => {
     render(
-      <Table
+      <OldTable
         data={[
           ['5', '2', '11', '4'],
           ['1', '6', '7', '8'],
@@ -276,14 +276,14 @@ describe('Table', () => {
   });
 
   test('renders empty static Table', () => {
-    render(<Table data={[]} />);
+    render(<OldTable data={[]} />);
     const table = screen.getByTestId('table');
     expect(table).toHaveClass(classes['table-container']);
   });
 
   test('renders empty dynamic Table', () => {
     render(
-      <Table data={[]} pageCount={0} pageSize={10} onTableChange={jest.fn()} />
+      <OldTable data={[]} pageCount={0} pageSize={10} onTableChange={jest.fn()} />
     );
     const table = screen.getByTestId('table');
     expect(table).toHaveClass(classes['table-container']);

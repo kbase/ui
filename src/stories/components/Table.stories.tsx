@@ -1,14 +1,14 @@
 import { ComponentMeta } from '@storybook/react';
 import { ComponentProps, useEffect, useState } from 'react';
 
-import { Table } from '../../common/components/Table';
+import { OldTable } from '../../common/components/Table';
 import { snakeCaseToHumanReadable } from '../../common/utils/stringUtils';
 
 import rows from './tableData.json';
 
 export default {
   title: 'Components/Table',
-  component: Table,
+  component: OldTable,
   decorators: [
     (Story) => (
       <div style={{ height: '600px' }}>
@@ -16,12 +16,12 @@ export default {
       </div>
     ),
   ],
-} as ComponentMeta<typeof Table>;
+} as ComponentMeta<typeof OldTable>;
 
-export const Default = () => <Table data={rows} />;
+export const Default = () => <OldTable data={rows} />;
 
 export const CustomizedColumns = () => (
-  <Table
+  <OldTable
     data={rows}
     columnDefs={(columns) => [
       columns.accessor('genome_name', {
@@ -48,7 +48,7 @@ export const CustomizedColumns = () => (
 );
 
 export const Footer = () => (
-  <Table
+  <OldTable
     data={rows}
     columnDefs={(columns) =>
       (Object.keys(rows[0]) as (keyof typeof rows[0])[])
@@ -64,7 +64,7 @@ export const Footer = () => (
 );
 
 export const ColumnGroup = () => (
-  <Table
+  <OldTable
     data={rows}
     columnDefs={(columns) => [
       columns.accessor('genome_name', {
@@ -89,7 +89,7 @@ export const ColumnGroup = () => (
 );
 
 export const NoHeader = () => (
-  <Table
+  <OldTable
     data={rows}
     columnDefs={(columns) =>
       (Object.keys(rows[0]) as (keyof typeof rows[0])[])
@@ -104,7 +104,7 @@ export const NoHeader = () => (
 );
 
 export const PaginatedWithStaticData = () => (
-  <Table
+  <OldTable
     data={rows}
     pageSize={6}
     columnDefs={(columns) =>
@@ -155,7 +155,7 @@ const useMockDataQuery = (opts: {
 };
 
 export const PaginatedWithDynamicData = (testProps: {
-  onTableChange?: ComponentProps<typeof Table>['onTableChange'];
+  onTableChange?: ComponentProps<typeof OldTable>['onTableChange'];
 }) => {
   const [{ pageIndex, pageSize, sortBy, sortDesc }, setTableState] = useState<{
     pageIndex: number;
@@ -174,7 +174,7 @@ export const PaginatedWithDynamicData = (testProps: {
     sortDesc,
   });
   return (
-    <Table
+    <OldTable
       data={rows}
       pageSize={pageSize}
       pageCount={Math.ceil(rowCount / pageSize)}
@@ -209,10 +209,10 @@ export const PaginatedWithDynamicData = (testProps: {
   );
 };
 
-export const Empty = () => <Table data={[] as typeof rows} />;
+export const Empty = () => <OldTable data={[] as typeof rows} />;
 
 export const EmptyWithDefinedColumns = () => (
-  <Table
+  <OldTable
     data={[] as typeof rows}
     columnDefs={(columns) =>
       (Object.keys(rows[0] || []) as (keyof typeof rows[0])[])

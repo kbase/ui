@@ -35,151 +35,19 @@ import {
 import classes from './Table.module.scss';
 import { Button } from './Button';
 
-export type ColumnDefs<Datum> = (
-  columnHelper: ColumnHelper<Datum>
-) => ColumnDef<Datum, any>[]; // eslint-disable-line @typescript-eslint/no-explicit-any
-
-interface StaticTableProps {
-  pageSize?: number;
-  pageCount?: never;
-  maxPage?: never;
-  showLoader?: never;
-  onTableChange?: never;
-}
-
-interface DynamicTableProps {
-  pageSize: number;
-  pageCount: number;
-  maxPage?: number;
-  showLoader?: boolean;
-  onTableChange: (state: {
-    sortBy?: string;
-    sortDesc: boolean;
-    pageIndex: number;
-    pageSize: number;
-    selected: Record<string, boolean>;
-  }) => void;
-}
-
-type TableProps<Datum> = {
-  data: Datum[];
-  getRowId?: (row: Datum, index: number) => string;
-  columnDefs?: ColumnDefs<Datum>;
+export const Table = <Datum,>({
+  table,
+  className = '',
+  rowStyle = () => ({}),
+  isLoading = false,
+  maxPage = Number.MAX_SAFE_INTEGER,
+}: {
+  table: TableType<Datum>;
   className?: string;
   rowStyle?: (row: Row<Datum>) => CSSProperties;
-  selectable?: boolean;
-  selected?: Record<string, boolean>;
-} & (DynamicTableProps | StaticTableProps);
-
-/**
- * Table component based on
- * [TanStack/table](https://tanstack.com/table/v8/docs/) see those docs for
- * detailed documentation on column definitions.
- */
-export const Table = <Datum,>({
-  data,
-  getRowId,
-  columnDefs,
-  className,
-  pageSize = Number.MAX_SAFE_INTEGER,
-  pageCount,
-  showLoader,
-  onTableChange,
-  maxPage = Number.MAX_SAFE_INTEGER,
-  rowStyle = () => ({}),
-  selectable,
-  selected,
-}: TableProps<Datum>) => {
-  const isDynamic = onTableChange ? true : false;
-
-  const defaultColumnDefs = useDefaultColumnDefs<Datum>(data[0]);
-  const currentColumnDefs = columnDefs || defaultColumnDefs;
-  const columns = useMemo(() => {
-    const columnHelper = createColumnHelper<Datum>();
-    const cols = currentColumnDefs(columnHelper);
-    if (selectable)
-      cols.unshift({
-        id: '__select_col__',
-        header: ({ table }) => (
-          <SelectBox
-            checked={table.getIsAllPageRowsSelected()}
-            partial={table.getIsSomePageRowsSelected()}
-            onChange={table.getToggleAllPageRowsSelectedHandler()}
-          />
-        ),
-        cell: ({ row }) => (
-          <SelectBox
-            checked={row.getIsSelected()}
-            disabled={!row.getCanSelect()}
-            partial={row.getIsSomeSelected()}
-            onChange={row.getToggleSelectedHandler()}
-          />
-        ),
-      });
-    return cols;
-  }, [currentColumnDefs, selectable]);
-
-  const [sortState, setSortState] = useState<SortingState>([]);
-  const [pageState, setPageState] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize,
-  });
-  const [selectState, setSelectState] = useState<RowSelectionState>(
-    selected || {}
-  );
-
-  const tableChangeRef = useRef(onTableChange);
-  tableChangeRef.current = onTableChange;
-  useEffect(() => {
-    if (tableChangeRef.current)
-      tableChangeRef.current({
-        ...pageState,
-        sortBy: sortState[0]?.id,
-        sortDesc: sortState[0]?.desc ?? true,
-        selected: selectState,
-      });
-  }, [pageState, sortState, selectState]);
-
-  const table = useReactTable({
-    data,
-    columns,
-    state: {
-      sorting: sortState,
-      pagination: pageState,
-      rowSelection: selectState,
-    },
-    getCoreRowModel: getCoreRowModel(),
-    getRowId: getRowId,
-
-    getSortedRowModel: getSortedRowModel(),
-    onSortingChange: setSortState,
-    manualSorting: isDynamic,
-
-    getPaginationRowModel: getPaginationRowModel(),
-    onPaginationChange: setPageState,
-    manualPagination: isDynamic,
-    pageCount: pageCount,
-    enableRowSelection: selectable,
-    onRowSelectionChange: setSelectState,
-  });
-
-  const [shouldPaginate, setShouldPaginate] = useState(false);
-  useEffect(() => {
-    // Should show pagination buttons if pageSize is set on a table, but not if
-    // the table is dynamic without a pageCount >=1
-    let paginated = pageSize !== Number.MAX_SAFE_INTEGER;
-    if (paginated && pageCount !== undefined) {
-      paginated = pageCount >= 1;
-    }
-    // If pagination is disabled, set the tanstack page size to MAX_SAFE_INTEGER
-    table.setPageSize(pageSize);
-    setShouldPaginate(paginated);
-  }, [isDynamic, pageCount, pageSize, table]);
-
-  useEffect(() => {
-    setSelectState(selected || {});
-  }, [selected]);
-
+  isLoading?: boolean;
+  maxPage?: number;
+}) => {
   const shouldRenderHeader = someHeaderDefines(
     'header',
     table.getFooterGroups()
@@ -189,6 +57,8 @@ export const Table = <Datum,>({
     'footer',
     table.getFooterGroups()
   );
+
+  const shouldRenderPagination = table.getPageCount() > 1;
 
   return (
     <div
@@ -201,6 +71,16 @@ export const Table = <Datum,>({
           <tbody>
             {table.getRowModel().rows.map((row) => (
               <tr key={row.id} style={rowStyle(row)}>
+                {table.options.enableRowSelection ? (
+                  <td>
+                    <SelectBox
+                      checked={row.getIsSelected()}
+                      disabled={!row.getCanSelect()}
+                      partial={row.getIsSomeSelected()}
+                      onChange={row.getToggleSelectedHandler()}
+                    />
+                  </td>
+                ) : undefined}
                 {row.getVisibleCells().map((cell) => (
                   <td key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -213,13 +93,13 @@ export const Table = <Datum,>({
           </tbody>
           {shouldRenderFooter ? <TableFooter table={table} /> : undefined}
         </table>
-        {showLoader ? (
+        {isLoading ? (
           <div className={classes['loader']}>
             <FAIcon icon={faSpinner} spin size={'2x'} />
           </div>
         ) : null}
       </div>
-      {shouldPaginate ? (
+      {shouldRenderPagination ? (
         <Pagination maxPage={maxPage} table={table} />
       ) : undefined}
     </div>
@@ -312,6 +192,15 @@ const TableHeader = <Datum,>({ table }: { table: TableType<Datum> }) => (
   <thead>
     {table.getHeaderGroups().map((headerGroup) => (
       <tr key={headerGroup.id}>
+        {table.options.enableRowSelection ? (
+          <th>
+            <SelectBox
+              checked={table.getIsAllPageRowsSelected()}
+              partial={table.getIsSomePageRowsSelected()}
+              onChange={table.getToggleAllPageRowsSelectedHandler()}
+            />
+          </th>
+        ) : undefined}
         {headerGroup.headers.map((header) => (
           <th
             key={header.id}
@@ -350,6 +239,15 @@ const TableFooter = <Datum,>({ table }: { table: TableType<Datum> }) => (
   <tfoot>
     {table.getFooterGroups().map((footerGroup) => (
       <tr key={footerGroup.id}>
+        {table.options.enableRowSelection ? (
+          <th>
+            <SelectBox
+              checked={table.getIsAllPageRowsSelected()}
+              partial={table.getIsSomePageRowsSelected()}
+              onChange={table.getToggleAllPageRowsSelectedHandler()}
+            />
+          </th>
+        ) : undefined}
         {footerGroup.headers.map((footer) => (
           <th key={footer.id} colSpan={footer.colSpan}>
             {footer.isPlaceholder
@@ -447,3 +345,136 @@ function SelectBox({
     />
   );
 }
+
+export type ColumnDefs<Datum> = (
+  columnHelper: ColumnHelper<Datum>
+) => ColumnDef<Datum, any>[]; // eslint-disable-line @typescript-eslint/no-explicit-any
+
+interface StaticTableProps {
+  pageSize?: number;
+  pageCount?: never;
+  maxPage?: never;
+  showLoader?: never;
+  onTableChange?: never;
+}
+
+interface DynamicTableProps {
+  pageSize: number;
+  pageCount: number;
+  maxPage?: number;
+  showLoader?: boolean;
+  onTableChange: (state: {
+    sortBy?: string;
+    sortDesc: boolean;
+    pageIndex: number;
+    pageSize: number;
+    selected: Record<string, boolean>;
+  }) => void;
+}
+
+type TableProps<Datum> = {
+  data: Datum[];
+  getRowId?: (row: Datum, index: number) => string;
+  columnDefs?: ColumnDefs<Datum>;
+  className?: string;
+  rowStyle?: (row: Row<Datum>) => CSSProperties;
+  selectable?: boolean;
+  selected?: Record<string, boolean>;
+} & (DynamicTableProps | StaticTableProps);
+
+/**
+ * Table component based on
+ * [TanStack/table](https://tanstack.com/table/v8/docs/) see those docs for
+ * detailed documentation on column definitions.
+ */
+export const OldTable = <Datum,>({
+  data,
+  getRowId,
+  columnDefs,
+  className,
+  pageSize = Number.MAX_SAFE_INTEGER,
+  pageCount,
+  showLoader,
+  onTableChange,
+  maxPage = Number.MAX_SAFE_INTEGER,
+  rowStyle = () => ({}),
+  selectable,
+  selected,
+}: TableProps<Datum>) => {
+  const isDynamic = onTableChange ? true : false;
+
+  const defaultColumnDefs = useDefaultColumnDefs<Datum>(data[0]);
+  const currentColumnDefs = columnDefs || defaultColumnDefs;
+  const columns = useMemo(() => {
+    return currentColumnDefs(createColumnHelper<Datum>());
+  }, [currentColumnDefs]);
+
+  const [sortState, setSortState] = useState<SortingState>([]);
+  const [pageState, setPageState] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize,
+  });
+  const [selectState, setSelectState] = useState<RowSelectionState>(
+    selected || {}
+  );
+
+  const tableChangeRef = useRef(onTableChange);
+  tableChangeRef.current = onTableChange;
+  useEffect(() => {
+    if (tableChangeRef.current)
+      tableChangeRef.current({
+        ...pageState,
+        sortBy: sortState[0]?.id,
+        sortDesc: sortState[0]?.desc ?? true,
+        selected: selectState,
+      });
+  }, [pageState, sortState, selectState]);
+
+  const table = useReactTable({
+    data,
+    columns,
+    state: {
+      sorting: sortState,
+      pagination: pageState,
+      rowSelection: selectState,
+    },
+    getCoreRowModel: getCoreRowModel(),
+    getRowId: getRowId,
+
+    getSortedRowModel: getSortedRowModel(),
+    onSortingChange: setSortState,
+    manualSorting: isDynamic,
+
+    getPaginationRowModel: getPaginationRowModel(),
+    onPaginationChange: setPageState,
+    manualPagination: isDynamic,
+    pageCount: pageCount,
+    enableRowSelection: selectable,
+    onRowSelectionChange: setSelectState,
+  });
+
+  useEffect(() => {
+    // Should show pagination buttons if pageSize is set on a table, but not if
+    // the table is dynamic without a pageCount >=1
+    let paginated = pageSize !== Number.MAX_SAFE_INTEGER;
+    if (paginated && pageCount !== undefined) {
+      paginated = pageCount >= 1;
+    }
+    // If pagination is disabled, set the tanstack page size to MAX_SAFE_INTEGER
+    table.setPageSize(pageSize);
+  }, [isDynamic, pageCount, pageSize, table]);
+
+  useEffect(() => {
+    setSelectState(selected || {});
+  }, [selected]);
+
+  return (
+    <Table
+      table={table}
+      className={className}
+      rowStyle={rowStyle}
+      isLoading={showLoader}
+      maxPage={maxPage}
+    />
+  );
+};

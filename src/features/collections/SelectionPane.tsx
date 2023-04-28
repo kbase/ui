@@ -19,7 +19,7 @@ export const SelectionPane = ({ collectionId }: { collectionId: string }) => {
     <>
       <h3>
         Selection Options{' '}
-        {selection.id ? undefined : <FAIcon icon={faSpinner} spin />}
+        {selection.pendingId ? <FAIcon icon={faSpinner} spin /> : undefined}
       </h3>
       <ul>
         <li>
@@ -50,14 +50,14 @@ const useSyncSelection = (collectionId: string) => {
 
   useEffect(() => {
     // create a new server-side collection when a user has an unsaved collection in state
-    if (!selection.id && !selection.pendingId) {
+    if (!selection.id && !selection.pendingId && selection.current.length > 0) {
       createSelectionMutation({
         collection_id: collectionId,
         selection_ids: selection.current,
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selection.id, selection.pendingId]);
+  }, [selection.id, selection.pendingId, selection.current]);
 
   useEffect(() => {
     // created ID gets stored as pending (so we can check it still matches the current selection)
