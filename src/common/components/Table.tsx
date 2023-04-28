@@ -346,6 +346,56 @@ function SelectBox({
   );
 }
 
+export const useTableColumns = ({
+  fieldNames = [],
+  order = [],
+  exclude = [],
+}: {
+  fieldNames?: string[];
+  order?: string[];
+  exclude?: string[];
+}) => {
+  const accessors: {
+    [fieldName: string]: <RowData extends unknown[]>(
+      rowData: RowData
+    ) => RowData[number];
+  } = {};
+  fieldNames.forEach((fieldName, index) => {
+    accessors[fieldName] = (rowData) => rowData[index];
+  });
+
+  const fieldsOrdered = fieldNames
+    .filter((name) => !exclude.includes(name))
+    .sort((a, b) => {
+      const aOrder = order.indexOf(a);
+      const bOrder = order.indexOf(b);
+      if (aOrder !== -1 && bOrder !== -1) {
+        return aOrder - bOrder;
+      } else if (aOrder !== -1) {
+        return -1;
+      } else if (bOrder !== -1) {
+        return 1;
+      } else {
+        return fieldNames.indexOf(a) - fieldNames.indexOf(b);
+      }
+    });
+
+  return useMemo(
+    () => {
+      const columns = createColumnHelper<unknown[]>();
+      return fieldsOrdered.map((fieldName) =>
+        columns.accessor(accessors[fieldName], {
+          header: fieldName.replace(/_/g, ' ').trim(),
+          id: fieldName,
+        })
+      );
+    },
+    // We only want to remake the columns if fieldNames or fieldsOrdered have new values
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [JSON.stringify(fieldNames), JSON.stringify(fieldsOrdered)]
+  );
+};
+
 export type ColumnDefs<Datum> = (
   columnHelper: ColumnHelper<Datum>
 ) => ColumnDef<Datum, any>[]; // eslint-disable-line @typescript-eslint/no-explicit-any

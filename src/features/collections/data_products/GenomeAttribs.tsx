@@ -3,15 +3,13 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-  createColumnHelper,
-  ColumnHelper,
   PaginationState,
   SortingState,
   RowSelectionState,
 } from '@tanstack/react-table';
 import { FC, useMemo, useState } from 'react';
 import { getGenomeAttribs } from '../../../common/api/collectionsApi';
-import { Table } from '../../../common/components/Table';
+import { Table, useTableColumns } from '../../../common/components/Table';
 import { useAppDispatch, useAppSelector } from '../../../common/hooks';
 import { useAppParam } from '../../params/hooks';
 import { setUserSelection } from '../collectionsSlice';
@@ -84,29 +82,52 @@ export const GenomeAttribs: FC<{
       requestSort.desc,
     ]
   );
-  const { data, isFetching } = getGenomeAttribs.useQuery(attribParams);
-
   const countParams = useMemo(
     () => ({ ...attribParams, count: true }),
     [attribParams]
   );
+  // Current Data
+  const { data, isFetching } = getGenomeAttribs.useQuery(attribParams);
   const { data: countData } = getGenomeAttribs.useQuery(countParams);
+
+  // Prefetch requests
+  const nextParams = useMemo(
+    () => ({
+      ...attribParams,
+      skip: Math.min(
+        (countData?.count || pagination.pageSize) - pagination.pageSize,
+        attribParams.skip + pagination.pageSize
+      ),
+    }),
+    [attribParams, countData?.count, pagination.pageSize]
+  );
+  getGenomeAttribs.useQuery(nextParams, {
+    skip: !data || !countData || isFetching,
+  });
+  const prevParams = useMemo(
+    () => ({
+      ...attribParams,
+      skip: Math.max(0, attribParams.skip - pagination.pageSize),
+    }),
+    [attribParams, pagination.pageSize]
+  );
+  getGenomeAttribs.useQuery(prevParams, {
+    skip: !data || isFetching,
+  });
 
   // Table setup
   const matchIndex =
     data?.fields.findIndex((f) => f.name === '__match__') || -1;
   const idIndex = data?.fields.findIndex((f) => f.name === 'kbase_id') || -1;
 
-  const columns = useAttribColumns(createColumnHelper(), {
-    fieldNames: data?.fields.map((field) => field.name),
-    order: ['kbase_id', 'genome_size'],
-    exclude: ['__match__'],
-  });
-
   const table = useReactTable<unknown[]>({
     data: data?.table || [],
-    columns,
     getRowId: (row) => String(row[idIndex]),
+    columns: useTableColumns({
+      fieldNames: data?.fields.map((field) => field.name),
+      order: ['kbase_id', 'genome_size'],
+      exclude: ['__match__'],
+    }),
 
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -143,56 +164,5 @@ export const GenomeAttribs: FC<{
         };
       }}
     />
-  );
-};
-
-const useAttribColumns = (
-  colHelper: ColumnHelper<unknown[]>,
-  {
-    fieldNames = [],
-    order = [],
-    exclude = [],
-  }: {
-    fieldNames?: string[];
-    order?: string[];
-    exclude?: string[];
-  }
-) => {
-  const accessors: {
-    [fieldName: string]: <RowData extends unknown[]>(
-      rowData: RowData
-    ) => RowData[number];
-  } = {};
-  fieldNames.forEach((fieldName, index) => {
-    accessors[fieldName] = (rowData) => rowData[index];
-  });
-
-  const fieldOrder = fieldNames
-    .filter((name) => !exclude.includes(name))
-    .sort((a, b) => {
-      const aOrder = order.indexOf(a);
-      const bOrder = order.indexOf(b);
-      if (aOrder !== -1 && bOrder !== -1) {
-        return aOrder - bOrder;
-      } else if (aOrder !== -1) {
-        return -1;
-      } else if (bOrder !== -1) {
-        return 1;
-      } else {
-        return fieldNames.indexOf(a) - fieldNames.indexOf(b);
-      }
-    });
-
-  return useMemo(
-    () =>
-      fieldOrder.map((fieldName) =>
-        colHelper.accessor(accessors[fieldName], {
-          header: fieldName.replace(/_/g, ' ').trim(),
-          id: fieldName,
-        })
-      ),
-    // We only want to remake the columns if fieldNames or fieldOrder have new values
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [JSON.stringify(fieldNames), JSON.stringify(fieldOrder)]
   );
 };

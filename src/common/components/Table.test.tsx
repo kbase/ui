@@ -283,7 +283,12 @@ describe('Table', () => {
 
   test('renders empty dynamic Table', () => {
     render(
-      <OldTable data={[]} pageCount={0} pageSize={10} onTableChange={jest.fn()} />
+      <OldTable
+        data={[]}
+        pageCount={0}
+        pageSize={10}
+        onTableChange={jest.fn()}
+      />
     );
     const table = screen.getByTestId('table');
     expect(table).toHaveClass(classes['table-container']);
