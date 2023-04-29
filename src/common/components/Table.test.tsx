@@ -1,49 +1,46 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import classes from './Table.module.scss';
-import { OldTable } from './Table';
+import { Table } from './Table';
 import * as Stories from '../../stories/components/Table.stories';
+import {
+  createColumnHelper,
+  getCoreRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
+import { useEffect, useMemo } from 'react';
 
 describe('Table', () => {
   test('renders Table', () => {
-    render(
-      <OldTable
-        data={[
+    const Wrapper = () => {
+      const data = useMemo(
+        () => [
           { a: 1, b: 2, c: 3 },
           { a: 4, b: 5, c: 6 },
-        ]}
-      />
-    );
-    const table = screen.getByTestId('table');
-    expect(table).toHaveClass(classes['table-container']);
-    expect(table.querySelectorAll('th').length).toBe(3);
-    expect(table.querySelectorAll('td').length).toBe(6);
-  });
+        ],
+        []
+      );
+      const helper = createColumnHelper<typeof data[number]>();
+      const table = useReactTable({
+        data,
+        columns: Object.keys(data[0]).map((k) =>
+          helper.accessor(k as keyof typeof data[number], {
+            header: k,
+          })
+        ),
+        getCoreRowModel: getCoreRowModel(),
+        enableRowSelection: false,
+      });
 
-  test('renders Table from 2d array', () => {
-    render(
-      <OldTable
-        data={[
-          [1, 2, 3, 4],
-          [5, 6, 7, 8],
-        ]}
-      />
-    );
-    const table = screen.getByTestId('table');
-    expect(table).toHaveClass(classes['table-container']);
-    expect(table.querySelectorAll('th').length).toBe(4);
-    expect(table.querySelectorAll('td').length).toBe(8);
-  });
+      return <Table table={table} />;
+    };
 
-  test('throws error for non-array non-object data array', () => {
-    const consoleError = jest.spyOn(console, 'error');
-    consoleError.mockImplementation(() => undefined);
-    expect(() =>
-      render(<OldTable data={['some', 1, 'weird', 0, 'array']} />)
-    ).toThrowError(
-      'Cannot automatically create columns from data, use the columnDefs prop'
-    );
-    expect(consoleError).toBeCalled(); // As this results in an uncaught error
-    consoleError.mockRestore();
+    render(<Wrapper />);
+    const tableEle = screen.getByTestId('table');
+    expect(tableEle).toHaveClass(classes['table-container']);
+    expect(tableEle.querySelectorAll('th').length).toBe(3);
+    expect(tableEle.querySelectorAll('td').length).toBe(6);
   });
 
   test('renders header-less Table', () => {
@@ -77,38 +74,74 @@ describe('Table', () => {
   });
 
   test('renders paginated Table', () => {
-    render(
-      <OldTable
-        data={[
+    const Wrapper = () => {
+      const data = useMemo(
+        () => [
           [1, 2, 3, 4],
           [5, 6, 7, 8],
           [10, 11, 12],
-        ]}
-        pageSize={2}
-      />
-    );
-    const table = screen.getByTestId('table');
-    expect(table).toHaveClass(classes['table-container']);
+        ],
+        []
+      );
+
+      const helper = createColumnHelper<typeof data[number]>();
+      const table = useReactTable({
+        data,
+        columns: data[0].map((v, i) =>
+          helper.accessor((row) => row[i], {
+            header: String(i),
+          })
+        ),
+        getCoreRowModel: getCoreRowModel(),
+        getPaginationRowModel: getPaginationRowModel(),
+      });
+
+      useEffect(() => table.setPageSize(2), [table]);
+
+      return <Table table={table} />;
+    };
+
+    render(<Wrapper />);
+    const tableEle = screen.getByTestId('table');
+    expect(tableEle).toHaveClass(classes['table-container']);
     const pagination = screen.getByTestId('pagination');
     expect(pagination).toBeInTheDocument();
   });
 
   test('Table sorts when sortable headers are clicked', async () => {
-    render(
-      <OldTable
-        data={[
+    const Wrapper = () => {
+      const data = useMemo(
+        () => [
           ['5', '2', '11', '4'],
           ['1', '6', '7', '8'],
           ['10', '3', '12', 'foo'],
-        ]}
-      />
-    );
-    const table = screen.getByTestId('table');
-    expect(table).toHaveClass(classes['table-container']);
-    const headers = Array.from(table.querySelectorAll('th'));
+        ],
+        []
+      );
+
+      const helper = createColumnHelper<typeof data[number]>();
+      const table = useReactTable({
+        data,
+        columns: data[0].map((v, i) =>
+          helper.accessor((row) => row[i], {
+            header: String(i),
+          })
+        ),
+        getCoreRowModel: getCoreRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+        enableRowSelection: false,
+      });
+
+      return <Table table={table} />;
+    };
+
+    render(<Wrapper />);
+    const tableEle = screen.getByTestId('table');
+    expect(tableEle).toHaveClass(classes['table-container']);
+    const headers = Array.from(tableEle.querySelectorAll('th'));
     const getRenderedTable = () => {
       const rendered: string[][] = [];
-      table.querySelectorAll('tbody tr').forEach((tr) => {
+      tableEle.querySelectorAll('tbody tr').forEach((tr) => {
         const row: string[] = [];
         tr.querySelectorAll('td').forEach((td) => {
           row.push(td.textContent || '');
@@ -275,22 +308,26 @@ describe('Table', () => {
     });
   });
 
-  test('renders empty static Table', () => {
-    render(<OldTable data={[]} />);
-    const table = screen.getByTestId('table');
-    expect(table).toHaveClass(classes['table-container']);
-  });
+  test('renders empty Table', () => {
+    const Wrapper = () => {
+      const data: unknown[][] = useMemo(() => [], []);
 
-  test('renders empty dynamic Table', () => {
-    render(
-      <OldTable
-        data={[]}
-        pageCount={0}
-        pageSize={10}
-        onTableChange={jest.fn()}
-      />
-    );
-    const table = screen.getByTestId('table');
-    expect(table).toHaveClass(classes['table-container']);
+      const helper = createColumnHelper<typeof data[number]>();
+      const table = useReactTable({
+        data,
+        columns: (data[0] ?? []).map((v, i) =>
+          helper.accessor((row) => row[i], {
+            header: String(i),
+          })
+        ),
+        getCoreRowModel: getCoreRowModel(),
+      });
+
+      return <Table table={table} />;
+    };
+
+    render(<Wrapper />);
+    const tableEle = screen.getByTestId('table');
+    expect(tableEle).toHaveClass(classes['table-container']);
   });
 });
