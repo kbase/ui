@@ -5,11 +5,13 @@ import {
 } from '../../common/api/collectionsApi';
 import styles from './Collections.module.scss';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Select, SelectOption } from '../../common/components';
+import { Button, Select, SelectOption } from '../../common/components';
 import { listObjects, listWorkspaceInfo } from '../../common/api/workspaceApi';
 import { parseError } from '../../common/api/utils/parseError';
 import { useAppParam, useUpdateAppParams } from '../params/hooks';
-import { useBackoff } from '../../common/hooks';
+import { useAppDispatch, useAppSelector, useBackoff } from '../../common/hooks';
+import { setUserSelection } from './collectionsSlice';
+import { store } from '../../app/store';
 
 export const MatchPane = ({ collectionId }: { collectionId: string }) => {
   const matchId = useAppParam('match');
@@ -23,8 +25,12 @@ export const MatchPane = ({ collectionId }: { collectionId: string }) => {
 };
 
 const ViewMatch = () => {
+  const dispatch = useAppDispatch();
   const matchId = useAppParam('match');
   const updateAppParams = useUpdateAppParams();
+  const selectionSize = useAppSelector(
+    (s) => s.collections.selection.current.length
+  );
 
   const matchQuery = usePollMatch(matchId);
   const match = matchQuery.data;
@@ -37,6 +43,31 @@ const ViewMatch = () => {
 
   const handleClear = () => {
     updateAppParams({ match: null });
+  };
+
+  const handleSelectAll = () => {
+    if (match?.state !== 'complete') return;
+    dispatch(
+      setUserSelection({
+        selection: Array.from(
+          new Set([
+            ...store.getState().collections.selection.current,
+            ...match.matches,
+          ])
+        ),
+      })
+    );
+  };
+  const handleDeselectAll = () => {
+    if (match?.state !== 'complete') return;
+    const matchSet = new Set(match.matches);
+    dispatch(
+      setUserSelection({
+        selection: store
+          .getState()
+          .collections.selection.current.filter((sel) => !matchSet.has(sel)),
+      })
+    );
   };
 
   return (
@@ -55,7 +86,22 @@ const ViewMatch = () => {
           ) : null}
         </ul>
       )}
-      <button onClick={handleClear}>Clear Match</button>
+      <Button onClick={handleClear}>Clear Match</Button>
+      <Button
+        onClick={handleSelectAll}
+        disabled={
+          match?.state !== 'complete' ||
+          selectionSize + match.matches.length > 10000
+        }
+      >
+        Select All Matched
+      </Button>
+      <Button
+        onClick={handleDeselectAll}
+        disabled={match?.state !== 'complete'}
+      >
+        Deselect All Matched
+      </Button>
     </div>
   );
 };
@@ -180,14 +226,14 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
         loading={dataObjQuery.isFetching}
         onChange={(opts) => setDataObjSel(opts)}
       />
-      <button
+      <Button
         disabled={
           !(matcherSelected && narrativeSelected && dataObjSel.length > 0)
         }
         onClick={handleCreate}
       >
         Create Match
-      </button>
+      </Button>
       <br></br>
       <code>{matchErr}</code>
     </div>
