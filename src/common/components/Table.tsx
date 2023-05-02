@@ -1,27 +1,11 @@
-import {
-  CSSProperties,
-  HTMLProps,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { CSSProperties, useMemo } from 'react';
 import {
   createColumnHelper,
-  ColumnHelper,
   ColumnDef,
-  useReactTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  getPaginationRowModel,
   flexRender,
-  SortingState,
-  PaginationState,
   HeaderGroup,
-  DeepKeys,
   Table as TableType,
   Row,
-  RowSelectionState,
 } from '@tanstack/react-table';
 import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -34,6 +18,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import classes from './Table.module.scss';
 import { Button } from './Button';
+import { CheckBox } from './CheckBox';
 
 export const Table = <Datum,>({
   table,
@@ -73,7 +58,7 @@ export const Table = <Datum,>({
               <tr key={row.id} style={rowStyle(row)}>
                 {table.options.enableRowSelection ? (
                   <td>
-                    <SelectBox
+                    <CheckBox
                       checked={row.getIsSelected()}
                       disabled={!row.getCanSelect()}
                       partial={row.getIsSomeSelected()}
@@ -94,7 +79,7 @@ export const Table = <Datum,>({
           {shouldRenderFooter ? <TableFooter table={table} /> : undefined}
         </table>
         {isLoading ? (
-          <div className={classes['loader']}>
+          <div className={classes['loader']} data-testid="table-loader">
             <FAIcon icon={faSpinner} spin size={'2x'} />
           </div>
         ) : null}
@@ -194,7 +179,8 @@ const TableHeader = <Datum,>({ table }: { table: TableType<Datum> }) => (
       <tr key={headerGroup.id}>
         {table.options.enableRowSelection ? (
           <th>
-            <SelectBox
+            <CheckBox
+              title="Select all items on this page"
               checked={table.getIsAllPageRowsSelected()}
               partial={table.getIsSomePageRowsSelected()}
               onChange={table.getToggleAllPageRowsSelectedHandler()}
@@ -241,7 +227,8 @@ const TableFooter = <Datum,>({ table }: { table: TableType<Datum> }) => (
       <tr key={footerGroup.id}>
         {table.options.enableRowSelection ? (
           <th>
-            <SelectBox
+            <CheckBox
+              title="Select all items on this page"
               checked={table.getIsAllPageRowsSelected()}
               partial={table.getIsSomePageRowsSelected()}
               onChange={table.getToggleAllPageRowsSelectedHandler()}
@@ -279,72 +266,6 @@ const someHeaderDefines = <T,>(
     )
   );
 };
-
-/**
- * Determines a reasonable default for column definitions.
- */
-const useDefaultColumnDefs = <Datum,>(
-  firstRowDatum: Datum
-): ColumnDefs<Datum> => {
-  return useMemo(
-    () => (columns) => {
-      if (!firstRowDatum) {
-        return [];
-      } else if (typeof firstRowDatum === 'object') {
-        if (Array.isArray(firstRowDatum)) {
-          // array datum
-          return firstRowDatum.map((col, index) =>
-            columns.accessor(
-              (row) => (row as typeof firstRowDatum as unknown[])[index],
-              {
-                header: String(index),
-              }
-            )
-          );
-        } else {
-          // object datum
-          return (
-            Object.keys(
-              firstRowDatum as unknown as { [key: string]: unknown }
-            ) as (keyof typeof firstRowDatum)[]
-          ).map((col) =>
-            columns.accessor(col as DeepKeys<Datum>, {
-              header: String(col),
-            })
-          );
-        }
-      }
-      throw new Error(
-        `Cannot automatically create columns from data, use the columnDefs prop`
-      );
-    },
-    [firstRowDatum]
-  );
-};
-
-function SelectBox({
-  partial,
-  className = '',
-  ...rest
-}: { partial?: boolean } & HTMLProps<HTMLInputElement>) {
-  const ref = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (typeof partial === 'boolean' && ref.current) {
-      ref.current.indeterminate = !rest.checked && partial;
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ref, partial]);
-
-  return (
-    <input
-      type="checkbox"
-      ref={ref}
-      className={className + ' cursor-pointer'}
-      {...rest}
-    />
-  );
-}
 
 export const useTableColumns = ({
   fieldNames = [],
@@ -393,138 +314,5 @@ export const useTableColumns = ({
     // We only want to remake the columns if fieldNames or fieldsOrdered have new values
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [JSON.stringify(fieldNames), JSON.stringify(fieldsOrdered)]
-  );
-};
-
-export type ColumnDefs<Datum> = (
-  columnHelper: ColumnHelper<Datum>
-) => ColumnDef<Datum, any>[]; // eslint-disable-line @typescript-eslint/no-explicit-any
-
-interface StaticTableProps {
-  pageSize?: number;
-  pageCount?: never;
-  maxPage?: never;
-  showLoader?: never;
-  onTableChange?: never;
-}
-
-interface DynamicTableProps {
-  pageSize: number;
-  pageCount: number;
-  maxPage?: number;
-  showLoader?: boolean;
-  onTableChange: (state: {
-    sortBy?: string;
-    sortDesc: boolean;
-    pageIndex: number;
-    pageSize: number;
-    selected: Record<string, boolean>;
-  }) => void;
-}
-
-type TableProps<Datum> = {
-  data: Datum[];
-  getRowId?: (row: Datum, index: number) => string;
-  columnDefs?: ColumnDefs<Datum>;
-  className?: string;
-  rowStyle?: (row: Row<Datum>) => CSSProperties;
-  selectable?: boolean;
-  selected?: Record<string, boolean>;
-} & (DynamicTableProps | StaticTableProps);
-
-/**
- * Table component based on
- * [TanStack/table](https://tanstack.com/table/v8/docs/) see those docs for
- * detailed documentation on column definitions.
- */
-export const OldTable = <Datum,>({
-  data,
-  getRowId,
-  columnDefs,
-  className,
-  pageSize = Number.MAX_SAFE_INTEGER,
-  pageCount,
-  showLoader,
-  onTableChange,
-  maxPage = Number.MAX_SAFE_INTEGER,
-  rowStyle = () => ({}),
-  selectable,
-  selected,
-}: TableProps<Datum>) => {
-  const isDynamic = onTableChange ? true : false;
-
-  const defaultColumnDefs = useDefaultColumnDefs<Datum>(data[0]);
-  const currentColumnDefs = columnDefs || defaultColumnDefs;
-  const columns = useMemo(() => {
-    return currentColumnDefs(createColumnHelper<Datum>());
-  }, [currentColumnDefs]);
-
-  const [sortState, setSortState] = useState<SortingState>([]);
-  const [pageState, setPageState] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize,
-  });
-  const [selectState, setSelectState] = useState<RowSelectionState>(
-    selected || {}
-  );
-
-  const tableChangeRef = useRef(onTableChange);
-  tableChangeRef.current = onTableChange;
-  useEffect(() => {
-    if (tableChangeRef.current)
-      tableChangeRef.current({
-        ...pageState,
-        sortBy: sortState[0]?.id,
-        sortDesc: sortState[0]?.desc ?? true,
-        selected: selectState,
-      });
-  }, [pageState, sortState, selectState]);
-
-  const table = useReactTable({
-    data,
-    columns,
-    state: {
-      sorting: sortState,
-      pagination: pageState,
-      rowSelection: selectState,
-    },
-    getCoreRowModel: getCoreRowModel(),
-    getRowId: getRowId,
-
-    getSortedRowModel: getSortedRowModel(),
-    onSortingChange: setSortState,
-    manualSorting: isDynamic,
-
-    getPaginationRowModel: getPaginationRowModel(),
-    onPaginationChange: setPageState,
-    manualPagination: isDynamic,
-    pageCount: pageCount,
-    enableRowSelection: selectable,
-    onRowSelectionChange: setSelectState,
-  });
-
-  useEffect(() => {
-    // Should show pagination buttons if pageSize is set on a table, but not if
-    // the table is dynamic without a pageCount >=1
-    let paginated = pageSize !== Number.MAX_SAFE_INTEGER;
-    if (paginated && pageCount !== undefined) {
-      paginated = pageCount >= 1;
-    }
-    // If pagination is disabled, set the tanstack page size to MAX_SAFE_INTEGER
-    table.setPageSize(pageSize);
-  }, [isDynamic, pageCount, pageSize, table]);
-
-  useEffect(() => {
-    setSelectState(selected || {});
-  }, [selected]);
-
-  return (
-    <Table
-      table={table}
-      className={className}
-      rowStyle={rowStyle}
-      isLoading={showLoader}
-      maxPage={maxPage}
-    />
   );
 };

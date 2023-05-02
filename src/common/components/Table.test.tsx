@@ -1,6 +1,6 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import classes from './Table.module.scss';
-import { Table } from './Table';
+import { Table, useTableColumns } from './Table';
 import * as Stories from '../../stories/components/Table.stories';
 import {
   createColumnHelper,
@@ -108,6 +108,43 @@ describe('Table', () => {
     expect(pagination).toBeInTheDocument();
   });
 
+  test('renders loading Table', () => {
+    const Wrapper = ({ isLoading }: { isLoading: boolean }) => {
+      const data = useMemo(
+        () => [
+          [1, 2, 3, 4],
+          [5, 6, 7, 8],
+          [10, 11, 12],
+        ],
+        []
+      );
+
+      const helper = createColumnHelper<typeof data[number]>();
+      const table = useReactTable({
+        data,
+        columns: data[0].map((v, i) =>
+          helper.accessor((row) => row[i], {
+            header: String(i),
+          })
+        ),
+        getCoreRowModel: getCoreRowModel(),
+        getPaginationRowModel: getPaginationRowModel(),
+      });
+
+      return <Table table={table} isLoading={isLoading} />;
+    };
+
+    const { rerender } = render(<Wrapper isLoading={false} />);
+    let tableEle = screen.getByTestId('table');
+    expect(tableEle).toHaveClass(classes['table-container']);
+    expect(screen.queryByTestId('table-loader')).not.toBeInTheDocument();
+
+    rerender(<Wrapper isLoading={true} />);
+    tableEle = screen.getByTestId('table');
+    expect(tableEle).toHaveClass(classes['table-container']);
+    expect(screen.queryByTestId('table-loader')).toBeInTheDocument();
+  });
+
   test('Table sorts when sortable headers are clicked', async () => {
     const Wrapper = () => {
       const data = useMemo(
@@ -188,7 +225,7 @@ describe('Table', () => {
   });
 
   test('Table pagination buttons act as expected', () => {
-    const { getByTestId } = render(<Stories.PaginatedWithStaticData />);
+    const { getByTestId } = render(<Stories.PageSize />);
     const table = getByTestId('table');
     const pagination = getByTestId('pagination');
     // Test helpers
@@ -237,77 +274,6 @@ describe('Table', () => {
     expect(currentPageButton()?.innerText).toBe(last.innerText);
   });
 
-  test('Table pagination and sort buttons trigger calls to onTableChange for dynamic tables', async () => {
-    const onTableChange = jest.fn();
-    const { getByTestId } = render(
-      <Stories.PaginatedWithDynamicData onTableChange={onTableChange} />
-    );
-    const table = getByTestId('table');
-    const pagination = () => getByTestId('pagination');
-    // Test helpers
-    const buttons = () => Array.from(pagination().querySelectorAll('button'));
-    const prevButton = () => buttons()[0];
-    const nextButton = () => buttons()[buttons().length - 1];
-
-    expect(table).toBeInTheDocument();
-    expect(table).toHaveClass(classes['table-container']);
-    await waitFor(() => expect(pagination()).toBeInTheDocument());
-    expect(onTableChange).toHaveBeenLastCalledWith({
-      pageIndex: 0,
-      pageSize: 10,
-      sortBy: undefined,
-      sortDesc: true,
-    });
-
-    // Test that pagination triggers onTableChange
-    nextButton().click();
-    await waitFor(() => expect(onTableChange).toHaveBeenCalled());
-    expect(onTableChange).toHaveBeenLastCalledWith({
-      pageIndex: 1,
-      pageSize: 10,
-      sortBy: undefined,
-      sortDesc: true,
-    });
-
-    prevButton().click();
-    await waitFor(() => expect(onTableChange).toHaveBeenCalled());
-    expect(onTableChange).toHaveBeenLastCalledWith({
-      pageIndex: 0,
-      pageSize: 10,
-      sortBy: undefined,
-      sortDesc: true,
-    });
-
-    // Test that sorting triggers onTableChange
-    const headers = Array.from(table.querySelectorAll('th'));
-    fireEvent.click(headers[0]);
-    await waitFor(() => expect(onTableChange).toHaveBeenCalled());
-    expect(onTableChange).toHaveBeenLastCalledWith({
-      pageIndex: 0,
-      pageSize: 10,
-      sortBy: 'genome_name',
-      sortDesc: false,
-    });
-
-    fireEvent.click(headers[0]);
-    await waitFor(() => expect(onTableChange).toHaveBeenCalled());
-    expect(onTableChange).toHaveBeenLastCalledWith({
-      pageIndex: 0,
-      pageSize: 10,
-      sortBy: 'genome_name',
-      sortDesc: true,
-    });
-
-    fireEvent.click(headers[5]);
-    await waitFor(() => expect(onTableChange).toHaveBeenCalled());
-    expect(onTableChange).toHaveBeenLastCalledWith({
-      pageIndex: 0,
-      pageSize: 10,
-      sortBy: 'ncbi_species_taxid',
-      sortDesc: true,
-    });
-  });
-
   test('renders empty Table', () => {
     const Wrapper = () => {
       const data: unknown[][] = useMemo(() => [], []);
@@ -330,4 +296,91 @@ describe('Table', () => {
     const tableEle = screen.getByTestId('table');
     expect(tableEle).toHaveClass(classes['table-container']);
   });
+});
+
+test('row selection behaves as expected', () => {
+  const selectionSpy = jest.fn();
+  render(<Stories.RowSelection onSelectionChange={selectionSpy} />);
+  const table = screen.getByTestId('table');
+  const allBox = () =>
+    within(table).getAllByTitle('Select all items on this page')[0];
+  const rowBoxes = () =>
+    Array.from(
+      table.querySelectorAll('td input[type="checkbox"]')
+    ) as HTMLInputElement[];
+  expect(allBox()).toBeInTheDocument();
+  expect(rowBoxes().length).toBe(10);
+  allBox().click();
+  expect(selectionSpy).toHaveBeenLastCalledWith([
+    '0',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+  ]);
+  rowBoxes()[7].click();
+  expect(selectionSpy).toHaveBeenLastCalledWith([
+    '0',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '8',
+    '9',
+  ]);
+  allBox().click();
+  allBox().click();
+  expect(selectionSpy).toHaveBeenLastCalledWith([]);
+  rowBoxes()[1].click();
+  rowBoxes()[3].click();
+  expect(selectionSpy).toHaveBeenLastCalledWith(['1', '3']);
+});
+
+test('useTableColumns hook makes appropriate headers from string lists', () => {
+  const colSpy = jest.fn();
+  const Wrapper = () => {
+    const cols = useTableColumns({
+      fieldNames: ['a', 'b', 'c', 'd', 'q', 'x'],
+      exclude: ['b', 'z'],
+      order: ['c', 'a', 'q'],
+    });
+    useEffect(() => colSpy(cols), [cols]);
+    return <></>;
+  };
+
+  render(<Wrapper />);
+  // Correct header order
+  expect(colSpy.mock.calls[0][0]).toMatchObject([
+    { header: 'c', id: 'c' },
+    { header: 'a', id: 'a' },
+    { header: 'q', id: 'q' },
+    { header: 'd', id: 'd' },
+    { header: 'x', id: 'x' },
+  ]);
+  // Correct header accessor
+  const rowData = ['aValue', 'bValue', 'cValue', 'dValue', 'qValue', 'xValue'];
+  expect(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    colSpy.mock.calls[0][0].map((col: any) => col.accessorFn?.(rowData))
+  ).toEqual(['cValue', 'aValue', 'qValue', 'dValue', 'xValue']);
+});
+
+test('Empty useTableColumns hook returns empty column list', () => {
+  const colSpy = jest.fn();
+  const Wrapper = () => {
+    const cols = useTableColumns({});
+    useEffect(() => colSpy(cols), [cols]);
+    return <></>;
+  };
+
+  render(<Wrapper />);
+  // Correct header order
+  expect(colSpy.mock.calls[0][0]).toEqual([]);
 });
