@@ -164,6 +164,8 @@ interface CollectionsParams {
     output_table?: true; // will only this query style for now, for clearer types
     match_id?: string;
     match_mark?: boolean;
+    selection_id?: string;
+    selection_mark?: boolean;
     count?: boolean;
     load_ver_override?: string;
   };

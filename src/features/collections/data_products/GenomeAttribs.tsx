@@ -9,6 +9,7 @@ import {
 } from '@tanstack/react-table';
 import { FC, useMemo, useState } from 'react';
 import { getGenomeAttribs } from '../../../common/api/collectionsApi';
+import { CheckBox } from '../../../common/components/CheckBox';
 import { Table, useTableColumns } from '../../../common/components/Table';
 import { useAppDispatch, useAppSelector } from '../../../common/hooks';
 import { useAppParam } from '../../params/hooks';
@@ -22,7 +23,12 @@ export const GenomeAttribs: FC<{
 
   // State Management
   const matchId = useAppParam('match');
-  const [matchMark, setMatchMark] = useState(false);
+  const [matchMark, setMatchMark] = useState(true);
+  const selectionId = useAppSelector(
+    (s) => s.collections.selection.id ?? s.collections.selection.pendingId
+  );
+  const [selectMark, setSelectMark] = useState(true);
+
   const [sorting, setSorting] = useState<SortingState>([]);
   const requestSort = useMemo(() => {
     return {
@@ -70,12 +76,17 @@ export const GenomeAttribs: FC<{
       sort_desc: requestSort.desc,
       skip: pagination.pageIndex * pagination.pageSize,
       limit: pagination.pageSize,
-      ...(matchId ? { match_id: matchId, match_mark: !matchMark } : {}),
+      ...(matchId ? { match_id: matchId, match_mark: matchMark } : {}),
+      ...(selectionId
+        ? { selection_id: selectionId, selection_mark: selectMark }
+        : {}),
     }),
     [
       collection_id,
       matchId,
       matchMark,
+      selectionId,
+      selectMark,
       pagination.pageIndex,
       pagination.pageSize,
       requestSort.by,
@@ -117,8 +128,8 @@ export const GenomeAttribs: FC<{
 
   // Table setup
   const matchIndex =
-    data?.fields.findIndex((f) => f.name === '__match__') || -1;
-  const idIndex = data?.fields.findIndex((f) => f.name === 'kbase_id') || -1;
+    data?.fields.findIndex((f) => f.name === '__match__') ?? -1;
+  const idIndex = data?.fields.findIndex((f) => f.name === 'kbase_id') ?? -1;
 
   const table = useReactTable<unknown[]>({
     data: data?.table || [],
@@ -151,18 +162,40 @@ export const GenomeAttribs: FC<{
   });
 
   return (
-    <Table
-      table={table}
-      isLoading={isFetching}
-      rowStyle={(row) => {
-        if (matchIndex === -1) return {};
-        return {
-          background:
-            matchIndex !== undefined && row.original[matchIndex]
-              ? 'yellow'
-              : undefined,
-        };
-      }}
-    />
+    <>
+      <div>
+        {matchId ? (
+          <span>
+            <CheckBox
+              checked={matchMark}
+              onChange={() => setMatchMark((v) => !v)}
+            />{' '}
+            Show Unmatched
+          </span>
+        ) : undefined}
+        {selectionId ? (
+          <span>
+            <CheckBox
+              checked={selectMark}
+              onChange={() => setSelectMark((v) => !v)}
+            />{' '}
+            Show Unselected
+          </span>
+        ) : undefined}
+      </div>
+      <Table
+        table={table}
+        isLoading={isFetching}
+        rowStyle={(row) => {
+          if (matchIndex === -1) return {};
+          return {
+            background:
+              matchIndex !== undefined && row.original[matchIndex]
+                ? 'yellow'
+                : undefined,
+          };
+        }}
+      />
+    </>
   );
 };

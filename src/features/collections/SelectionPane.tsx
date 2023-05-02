@@ -8,6 +8,7 @@ import {
   setUserSelection,
 } from './collectionsSlice';
 import { createSelection, getSelection } from '../../common/api/collectionsApi';
+import { Button } from '../../common/components';
 
 export const SelectionPane = ({ collectionId }: { collectionId: string }) => {
   const dispatch = useAppDispatch();
@@ -28,9 +29,9 @@ export const SelectionPane = ({ collectionId }: { collectionId: string }) => {
         <li>Selection ID: {selection.id}</li>
         <li>Selection: {[...selection.current].join(', ')}</li>
       </ul>
-      <button onClick={() => dispatch(setUserSelection({ selection: [] }))}>
+      <Button onClick={() => dispatch(setUserSelection({ selection: [] }))}>
         Clear Selection
-      </button>
+      </Button>
     </>
   );
 };
