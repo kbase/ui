@@ -11,8 +11,7 @@ export const CheckBox = ({
     if (typeof partial === 'boolean' && ref.current) {
       ref.current.indeterminate = !rest.checked && partial;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ref, partial]);
+  }, [ref, partial, rest.checked]);
 
   return <input type="checkbox" ref={ref} className={className} {...rest} />;
 };

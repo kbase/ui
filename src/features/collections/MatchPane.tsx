@@ -3,7 +3,7 @@ import {
   getCollectionMatchers,
   getMatch,
 } from '../../common/api/collectionsApi';
-import styles from './Collections.module.scss';
+import classes from './Collections.module.scss';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button, Select, SelectOption } from '../../common/components';
 import { listObjects, listWorkspaceInfo } from '../../common/api/workspaceApi';
@@ -29,7 +29,7 @@ const ViewMatch = () => {
   const matchId = useAppParam('match');
   const updateAppParams = useUpdateAppParams();
   const selectionSize = useAppSelector(
-    (s) => s.collections.selection.current.length
+    (state) => state.collections.selection.current.length
   );
 
   const matchQuery = usePollMatch(matchId);
@@ -70,6 +70,9 @@ const ViewMatch = () => {
     );
   };
 
+  const matchTooLargeForSelection =
+    match?.state === 'complete' && selectionSize + match.matches.length > 10000;
+
   return (
     <div>
       {matchQuery.isLoading ? (
@@ -81,17 +84,25 @@ const ViewMatch = () => {
           {match?.state === 'complete' ? (
             <li>
               You input a total of <strong>{upaCount}</strong> data objects,
-              matching <strong>{matchCount}</strong> collection items.
+              matching{' '}
+              <strong className={classes['match-highlight']}>
+                {matchCount}
+              </strong>{' '}
+              collection items.
             </li>
-          ) : null}
+          ) : (
+            <></>
+          )}
         </ul>
       )}
       <Button onClick={handleClear}>Clear Match</Button>
       <Button
         onClick={handleSelectAll}
-        disabled={
-          match?.state !== 'complete' ||
-          selectionSize + match.matches.length > 10000
+        disabled={match?.state !== 'complete' || matchTooLargeForSelection}
+        title={
+          matchTooLargeForSelection
+            ? 'Cannot select this match (too many items)'
+            : ''
         }
       >
         Select All Matched
@@ -194,7 +205,7 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
   }, [createMatchResult.isSuccess, createdMatchId, updateAppParams]);
 
   return (
-    <div className={styles['matching']}>
+    <div className={classes['matching']}>
       <Select
         placeholder="Select Matcher..."
         disabled={!matchersQuery.data}

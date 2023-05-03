@@ -14,6 +14,7 @@ import { Table, useTableColumns } from '../../../common/components/Table';
 import { useAppDispatch, useAppSelector } from '../../../common/hooks';
 import { useAppParam } from '../../params/hooks';
 import { setUserSelection } from '../collectionsSlice';
+import classes from './../Collections.module.scss';
 
 export const GenomeAttribs: FC<{
   collection_id: string;
@@ -172,7 +173,9 @@ export const GenomeAttribs: FC<{
             />{' '}
             Show Unmatched
           </span>
-        ) : undefined}
+        ) : (
+          <></>
+        )}
         {selectionId ? (
           <span>
             <CheckBox
@@ -181,19 +184,20 @@ export const GenomeAttribs: FC<{
             />{' '}
             Show Unselected
           </span>
-        ) : undefined}
+        ) : (
+          <></>
+        )}
       </div>
       <Table
         table={table}
         isLoading={isFetching}
-        rowStyle={(row) => {
-          if (matchIndex === -1) return {};
-          return {
-            background:
-              matchIndex !== undefined && row.original[matchIndex]
-                ? 'yellow'
-                : undefined,
-          };
+        rowClass={(row) => {
+          // match highlights
+          return matchIndex !== undefined &&
+            matchIndex !== -1 &&
+            row.original[matchIndex]
+            ? classes['match-highlight']
+            : '';
         }}
       />
     </>

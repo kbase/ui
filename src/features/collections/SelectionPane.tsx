@@ -20,7 +20,7 @@ export const SelectionPane = ({ collectionId }: { collectionId: string }) => {
     <>
       <h3>
         Selection Options{' '}
-        {selection.pendingId ? <FAIcon icon={faSpinner} spin /> : undefined}
+        {selection.pendingId ? <FAIcon icon={faSpinner} spin /> : <></>}
       </h3>
       <ul>
         <li>

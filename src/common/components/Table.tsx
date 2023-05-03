@@ -1,4 +1,4 @@
-import { CSSProperties, useMemo } from 'react';
+import { useMemo } from 'react';
 import {
   createColumnHelper,
   ColumnDef,
@@ -23,13 +23,13 @@ import { CheckBox } from './CheckBox';
 export const Table = <Datum,>({
   table,
   className = '',
-  rowStyle = () => ({}),
+  rowClass = () => '',
   isLoading = false,
   maxPage = Number.MAX_SAFE_INTEGER,
 }: {
   table: TableType<Datum>;
   className?: string;
-  rowStyle?: (row: Row<Datum>) => CSSProperties;
+  rowClass?: (row: Row<Datum>) => string;
   isLoading?: boolean;
   maxPage?: number;
 }) => {
@@ -52,10 +52,10 @@ export const Table = <Datum,>({
     >
       <div className={classes['table-wrapper']}>
         <table>
-          {shouldRenderHeader ? <TableHeader table={table} /> : undefined}
+          {shouldRenderHeader ? <TableHeader table={table} /> : <></>}
           <tbody>
             {table.getRowModel().rows.map((row) => (
-              <tr key={row.id} style={rowStyle(row)}>
+              <tr key={row.id} className={rowClass(row)}>
                 {table.options.enableRowSelection ? (
                   <td>
                     <CheckBox
@@ -65,7 +65,9 @@ export const Table = <Datum,>({
                       onChange={row.getToggleSelectedHandler()}
                     />
                   </td>
-                ) : undefined}
+                ) : (
+                  <></>
+                )}
                 {row.getVisibleCells().map((cell) => (
                   <td key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -74,19 +76,23 @@ export const Table = <Datum,>({
               </tr>
             ))}
             {/* Add an empty <tr> for empty state to prevent header/footer stretching */}
-            {table.getRowModel().rows.length < 1 ? <tr /> : undefined}
+            {table.getRowModel().rows.length < 1 ? <tr /> : <></>}
           </tbody>
-          {shouldRenderFooter ? <TableFooter table={table} /> : undefined}
+          {shouldRenderFooter ? <TableFooter table={table} /> : <></>}
         </table>
         {isLoading ? (
           <div className={classes['loader']} data-testid="table-loader">
             <FAIcon icon={faSpinner} spin size={'2x'} />
           </div>
-        ) : null}
+        ) : (
+          <></>
+        )}
       </div>
       {shouldRenderPagination ? (
         <Pagination maxPage={maxPage} table={table} />
-      ) : undefined}
+      ) : (
+        <></>
+      )}
     </div>
   );
 };
@@ -186,7 +192,9 @@ const TableHeader = <Datum,>({ table }: { table: TableType<Datum> }) => (
               onChange={table.getToggleAllPageRowsSelectedHandler()}
             />
           </th>
-        ) : undefined}
+        ) : (
+          <></>
+        )}
         {headerGroup.headers.map((header) => (
           <th
             key={header.id}
@@ -210,10 +218,14 @@ const TableHeader = <Datum,>({ table }: { table: TableType<Datum> }) => (
                   }
                 />
               </span>
-            ) : null}
-            {header.isPlaceholder
-              ? null
-              : flexRender(header.column.columnDef.header, header.getContext())}
+            ) : (
+              <></>
+            )}
+            {header.isPlaceholder ? (
+              <></>
+            ) : (
+              flexRender(header.column.columnDef.header, header.getContext())
+            )}
           </th>
         ))}
       </tr>
@@ -234,7 +246,9 @@ const TableFooter = <Datum,>({ table }: { table: TableType<Datum> }) => (
               onChange={table.getToggleAllPageRowsSelectedHandler()}
             />
           </th>
-        ) : undefined}
+        ) : (
+          <></>
+        )}
         {footerGroup.headers.map((footer) => (
           <th key={footer.id} colSpan={footer.colSpan}>
             {footer.isPlaceholder

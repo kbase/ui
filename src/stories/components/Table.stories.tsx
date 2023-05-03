@@ -154,6 +154,7 @@ export const NoHeader = () => {
       .slice(0, 6)
       .map((col) =>
         columns.accessor(col, {
+          // removes the default column header
           header: undefined,
         })
       ),
