@@ -78,3 +78,7 @@ $border: 1px solid use-color("base-lighter");
     padding: 4px;
   }
 }
+
+.match-highlight {
+  background-color: use-color("warning-lighter");
+}

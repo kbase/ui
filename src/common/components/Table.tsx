@@ -1,17 +1,9 @@
-import { CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo } from 'react';
 import {
   createColumnHelper,
-  ColumnHelper,
   ColumnDef,
-  useReactTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  getPaginationRowModel,
   flexRender,
-  SortingState,
-  PaginationState,
   HeaderGroup,
-  DeepKeys,
   Table as TableType,
   Row,
 } from '@tanstack/react-table';
@@ -26,113 +18,21 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import classes from './Table.module.scss';
 import { Button } from './Button';
+import { CheckBox } from './CheckBox';
 
-export type ColumnDefs<Datum> = (
-  columnHelper: ColumnHelper<Datum>
-) => ColumnDef<Datum, any>[]; // eslint-disable-line @typescript-eslint/no-explicit-any
-
-interface StaticTableProps {
-  pageSize?: number;
-  pageCount?: never;
-  maxPage?: never;
-  showLoader?: never;
-  onTableChange?: never;
-}
-
-interface DynamicTableProps {
-  pageSize: number;
-  pageCount: number;
-  maxPage?: number;
-  showLoader?: boolean;
-  onTableChange: (state: {
-    sortBy?: string;
-    sortDesc: boolean;
-    pageIndex: number;
-    pageSize: number;
-  }) => void;
-}
-
-type TableProps<Datum> = {
-  data: Datum[];
-  columnDefs?: ColumnDefs<Datum>;
-  className?: string;
-  rowStyle?: (row: Row<Datum>) => CSSProperties;
-} & (DynamicTableProps | StaticTableProps);
-
-/**
- * Table component based on
- * [TanStack/table](https://tanstack.com/table/v8/docs/) see those docs for
- * detailed documentation on column definitions.
- */
 export const Table = <Datum,>({
-  data,
-  columnDefs,
-  className,
-  pageSize = Number.MAX_SAFE_INTEGER,
-  pageCount,
-  showLoader,
-  onTableChange,
+  table,
+  className = '',
+  rowClass = () => '',
+  isLoading = false,
   maxPage = Number.MAX_SAFE_INTEGER,
-  rowStyle = () => ({}),
-}: TableProps<Datum>) => {
-  const isDynamic = onTableChange ? true : false;
-
-  const defaultColumnDefs = useDefaultColumnDefs<Datum>(data[0]);
-  const currentColumnDefs = columnDefs || defaultColumnDefs;
-  const columns = useMemo(() => {
-    const columnHelper = createColumnHelper<Datum>();
-    return currentColumnDefs(columnHelper);
-  }, [currentColumnDefs]);
-
-  const [sortState, setSortState] = useState<SortingState>([]);
-  const [pageState, setPageState] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize,
-  });
-
-  const tableChangeRef = useRef(onTableChange);
-  tableChangeRef.current = onTableChange;
-  useEffect(() => {
-    if (tableChangeRef.current)
-      tableChangeRef.current({
-        ...pageState,
-        sortBy: sortState[0]?.id,
-        sortDesc: sortState[0]?.desc ?? true,
-      });
-  }, [pageState, sortState]);
-
-  const table = useReactTable({
-    data,
-    columns,
-    state: {
-      sorting: sortState,
-      pagination: pageState,
-    },
-    getCoreRowModel: getCoreRowModel(),
-
-    getSortedRowModel: getSortedRowModel(),
-    onSortingChange: setSortState,
-    manualSorting: isDynamic,
-
-    getPaginationRowModel: getPaginationRowModel(),
-    onPaginationChange: setPageState,
-    manualPagination: isDynamic,
-    pageCount: pageCount,
-  });
-
-  const [shouldPaginate, setShouldPaginate] = useState(false);
-  useEffect(() => {
-    // Should show pagination buttons if pageSize is set on a table, but not if
-    // the table is dynamic without a pageCount >=1
-    let paginated = pageSize !== Number.MAX_SAFE_INTEGER;
-    if (paginated && pageCount !== undefined) {
-      paginated = pageCount >= 1;
-    }
-    // If pagination is disabled, set the tanstack page size to MAX_SAFE_INTEGER
-    table.setPageSize(pageSize);
-    setShouldPaginate(paginated);
-  }, [isDynamic, pageCount, pageSize, table]);
-
+}: {
+  table: TableType<Datum>;
+  className?: string;
+  rowClass?: (row: Row<Datum>) => string;
+  isLoading?: boolean;
+  maxPage?: number;
+}) => {
   const shouldRenderHeader = someHeaderDefines(
     'header',
     table.getFooterGroups()
@@ -143,6 +43,8 @@ export const Table = <Datum,>({
     table.getFooterGroups()
   );
 
+  const shouldRenderPagination = table.getPageCount() > 1;
+
   return (
     <div
       className={[className, classes['table-container']].join(' ')}
@@ -150,10 +52,22 @@ export const Table = <Datum,>({
     >
       <div className={classes['table-wrapper']}>
         <table>
-          {shouldRenderHeader ? <TableHeader table={table} /> : undefined}
+          {shouldRenderHeader ? <TableHeader table={table} /> : <></>}
           <tbody>
             {table.getRowModel().rows.map((row) => (
-              <tr key={row.id} style={rowStyle(row)}>
+              <tr key={row.id} className={rowClass(row)}>
+                {table.options.enableRowSelection ? (
+                  <td>
+                    <CheckBox
+                      checked={row.getIsSelected()}
+                      disabled={!row.getCanSelect()}
+                      partial={row.getIsSomeSelected()}
+                      onChange={row.getToggleSelectedHandler()}
+                    />
+                  </td>
+                ) : (
+                  <></>
+                )}
                 {row.getVisibleCells().map((cell) => (
                   <td key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -162,19 +76,23 @@ export const Table = <Datum,>({
               </tr>
             ))}
             {/* Add an empty <tr> for empty state to prevent header/footer stretching */}
-            {table.getRowModel().rows.length < 1 ? <tr /> : undefined}
+            {table.getRowModel().rows.length < 1 ? <tr /> : <></>}
           </tbody>
-          {shouldRenderFooter ? <TableFooter table={table} /> : undefined}
+          {shouldRenderFooter ? <TableFooter table={table} /> : <></>}
         </table>
-        {showLoader ? (
-          <div className={classes['loader']}>
+        {isLoading ? (
+          <div className={classes['loader']} data-testid="table-loader">
             <FAIcon icon={faSpinner} spin size={'2x'} />
           </div>
-        ) : null}
+        ) : (
+          <></>
+        )}
       </div>
-      {shouldPaginate ? (
+      {shouldRenderPagination ? (
         <Pagination maxPage={maxPage} table={table} />
-      ) : undefined}
+      ) : (
+        <></>
+      )}
     </div>
   );
 };
@@ -265,6 +183,18 @@ const TableHeader = <Datum,>({ table }: { table: TableType<Datum> }) => (
   <thead>
     {table.getHeaderGroups().map((headerGroup) => (
       <tr key={headerGroup.id}>
+        {table.options.enableRowSelection ? (
+          <th>
+            <CheckBox
+              title="Select all items on this page"
+              checked={table.getIsAllPageRowsSelected()}
+              partial={table.getIsSomePageRowsSelected()}
+              onChange={table.getToggleAllPageRowsSelectedHandler()}
+            />
+          </th>
+        ) : (
+          <></>
+        )}
         {headerGroup.headers.map((header) => (
           <th
             key={header.id}
@@ -288,10 +218,14 @@ const TableHeader = <Datum,>({ table }: { table: TableType<Datum> }) => (
                   }
                 />
               </span>
-            ) : null}
-            {header.isPlaceholder
-              ? null
-              : flexRender(header.column.columnDef.header, header.getContext())}
+            ) : (
+              <></>
+            )}
+            {header.isPlaceholder ? (
+              <></>
+            ) : (
+              flexRender(header.column.columnDef.header, header.getContext())
+            )}
           </th>
         ))}
       </tr>
@@ -303,6 +237,18 @@ const TableFooter = <Datum,>({ table }: { table: TableType<Datum> }) => (
   <tfoot>
     {table.getFooterGroups().map((footerGroup) => (
       <tr key={footerGroup.id}>
+        {table.options.enableRowSelection ? (
+          <th>
+            <CheckBox
+              title="Select all items on this page"
+              checked={table.getIsAllPageRowsSelected()}
+              partial={table.getIsSomePageRowsSelected()}
+              onChange={table.getToggleAllPageRowsSelectedHandler()}
+            />
+          </th>
+        ) : (
+          <></>
+        )}
         {footerGroup.headers.map((footer) => (
           <th key={footer.id} colSpan={footer.colSpan}>
             {footer.isPlaceholder
@@ -335,44 +281,52 @@ const someHeaderDefines = <T,>(
   );
 };
 
-/**
- * Determines a reasonable default for column definitions.
- */
-const useDefaultColumnDefs = <Datum,>(
-  firstRowDatum: Datum
-): ColumnDefs<Datum> => {
-  return useMemo(
-    () => (columns) => {
-      if (!firstRowDatum) {
-        return [];
-      } else if (typeof firstRowDatum === 'object') {
-        if (Array.isArray(firstRowDatum)) {
-          // array datum
-          return firstRowDatum.map((col, index) =>
-            columns.accessor(
-              (row) => (row as typeof firstRowDatum as unknown[])[index],
-              {
-                header: String(index),
-              }
-            )
-          );
-        } else {
-          // object datum
-          return (
-            Object.keys(
-              firstRowDatum as unknown as { [key: string]: unknown }
-            ) as (keyof typeof firstRowDatum)[]
-          ).map((col) =>
-            columns.accessor(col as DeepKeys<Datum>, {
-              header: String(col),
-            })
-          );
-        }
+export const useTableColumns = ({
+  fieldNames = [],
+  order = [],
+  exclude = [],
+}: {
+  fieldNames?: string[];
+  order?: string[];
+  exclude?: string[];
+}) => {
+  const accessors: {
+    [fieldName: string]: <RowData extends unknown[]>(
+      rowData: RowData
+    ) => RowData[number];
+  } = {};
+  fieldNames.forEach((fieldName, index) => {
+    accessors[fieldName] = (rowData) => rowData[index];
+  });
+
+  const fieldsOrdered = fieldNames
+    .filter((name) => !exclude.includes(name))
+    .sort((a, b) => {
+      const aOrder = order.indexOf(a);
+      const bOrder = order.indexOf(b);
+      if (aOrder !== -1 && bOrder !== -1) {
+        return aOrder - bOrder;
+      } else if (aOrder !== -1) {
+        return -1;
+      } else if (bOrder !== -1) {
+        return 1;
+      } else {
+        return fieldNames.indexOf(a) - fieldNames.indexOf(b);
       }
-      throw new Error(
-        `Cannot automatically create columns from data, use the columnDefs prop`
+    });
+
+  return useMemo(
+    () => {
+      const columns = createColumnHelper<unknown[]>();
+      return fieldsOrdered.map((fieldName) =>
+        columns.accessor(accessors[fieldName], {
+          header: fieldName.replace(/_/g, ' ').trim(),
+          id: fieldName,
+        })
       );
     },
-    [firstRowDatum]
+    // We only want to remake the columns if fieldNames or fieldsOrdered have new values
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [JSON.stringify(fieldNames), JSON.stringify(fieldsOrdered)]
   );
 };

@@ -83,10 +83,14 @@ export const TaxaCount: FC<{
               <div className={classes['name']}>{name}</div>
               {matchId ? (
                 <div className={classes['sub-name']}>Matched</div>
-              ) : undefined}
+              ) : (
+                <></>
+              )}
               {hasSelection ? (
                 <div className={classes['sub-name']}>Selected</div>
-              ) : undefined}
+              ) : (
+                <></>
+              )}
             </Fragment>
           ))}
         </div>
@@ -105,14 +109,18 @@ export const TaxaCount: FC<{
                     width={matchWidth}
                     count={match_count || 0}
                   />
-                ) : undefined}
+                ) : (
+                  <></>
+                )}
                 {hasSelection ? (
                   <Bar
                     className={classes['selected']}
                     width={selWidth}
                     count={sel_count || 0}
                   />
-                ) : undefined}
+                ) : (
+                  <></>
+                )}
               </Fragment>
             );
           })}
@@ -141,9 +149,15 @@ const Bar = ({
       >
         {width > 50 ? (
           <div className={classes['label-light']}>{count}</div>
-        ) : null}
+        ) : (
+          <></>
+        )}
       </div>
-      {width < 50 ? <div className={classes['label-dark']}>{count}</div> : null}
+      {width < 50 ? (
+        <div className={classes['label-dark']}>{count}</div>
+      ) : (
+        <></>
+      )}
     </div>
   );
 };
