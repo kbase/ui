@@ -23,6 +23,7 @@ import {
   isKBaseDataCell,
   isMarkdownCell,
   MarkdownCell,
+  NarrativeDoc,
 } from '../../common/types/NarrativeDoc';
 import AppCellIcon from '../../features/icons/AppCellIcon';
 import TypeIcon from '../../features/icons/TypeIcon';
@@ -30,9 +31,10 @@ import {
   getParams,
   generatePathWithSearchParams,
 } from '../../features/params/paramsSlice';
-import { searchParams } from './common';
+import { corruptCellError, searchParams } from './common';
 import { useCells } from './hooks';
-import { wsObjects } from './navigatorSlice';
+import { cellsLoaded, narrativeDocsLookup, wsObjects } from './navigatorSlice';
+import NarrativeMetadata from './NarrativeMetadata';
 import classes from './Navigator.module.scss';
 
 const DOMPurify = createDOMPurify(window);
@@ -42,7 +44,6 @@ const sanitize = (markdown: string) =>
   });
 
 const NarrativeControlMenu = PlaceholderFactory('NarrativeVersionControlMenu');
-const NarrativeMetadata = PlaceholderFactory('NarrativeMetadata');
 const NarrativeVersionSelection = PlaceholderFactory(
   'NarrativeVersionSelection'
 );
@@ -103,15 +104,15 @@ const MarkdownCellCard: FC<{ cell: MarkdownCell }> = ({ cell }) => {
 
 const CellCard: FC<{
   cell: Cell;
-}> = ({ cell }) => {
+  index: number;
+}> = ({ cell, index }) => {
   if (isMarkdownCell(cell)) {
     return <MarkdownCellCard cell={cell} />;
   }
   if (!isCodeCell(cell)) {
     // This will only happen in exceptional circumstances, e.g. a corrupted
     // narrative, so perhaps this should throw a more obnoxious error?
-    // eslint-disable-next-line no-console
-    console.error('Corrupted narrative object detected.');
+    corruptCellError(cell, index);
     return (
       <Card
         image={<DefaultIcon cellType={cell.cell_type} />}
@@ -120,6 +121,15 @@ const CellCard: FC<{
     );
   }
   const kbaseData = cell.metadata.kbase;
+  if (!kbaseData || !kbaseData.attributes) {
+    corruptCellError(cell, index);
+    return (
+      <Card
+        image={<DefaultIcon cellType={cell.cell_type} />}
+        title={cell.source}
+      />
+    );
+  }
   const title = kbaseData.attributes.title;
   const subtitle = kbaseData.attributes.subtitle;
   if (isKBaseAppCell(kbaseData)) {
@@ -137,6 +147,8 @@ const CellCard: FC<{
   const cellType = isKBaseCodeTypeCell(kbaseData)
     ? kbaseData.type
     : cell.cell_type;
+  // eslint-disable-next-line no-console
+  console.warn('Using default preview for', { cell, index });
   return (
     <Card
       image={<DefaultIcon cellType={cellType} />}
@@ -146,34 +158,59 @@ const CellCard: FC<{
   );
 };
 
-interface NarrativePreviewProps {
-  wsId: number;
-  cells: Cell[];
-}
+const CellCardCollection: FC<{
+  cellCards: JSX.Element[];
+  extraCells: number;
+}> = ({ cellCards, extraCells }) => (
+  <ul>
+    <li>
+      <CardList>{cellCards}</CardList>
+    </li>
+    {extraCells > 0 ? (
+      <li>
+        + {extraCells} more cell{extraCells === 1 ? '' : 's'}.
+      </li>
+    ) : (
+      <></>
+    )}
+  </ul>
+);
 
+interface NarrativePreviewProps {
+  cells: Cell[];
+  narrativeDoc: NarrativeDoc;
+  wsId: number;
+}
+export const noPreviewMessage =
+  'There is no preview available for this narrative.';
+export const noWorkspaceCellsMessage =
+  'No cells from the workspace can be previewed.';
 export const NarrativePreview: FC<NarrativePreviewProps> = ({
-  wsId,
   cells,
+  narrativeDoc,
+  wsId,
 }) => {
   const limit = 16;
   const extraCells = Math.max(0, cells.length - limit);
   const cellCards = cells
     .slice(0, 16)
-    .map((cell, ix) => <CellCard cell={cell} key={ix} />);
+    .map((cell, ix) => <CellCard cell={cell} index={ix} key={ix} />);
+  const NoPreviewAvailable: FC = () => {
+    // eslint-disable-next-line no-console
+    console.log(
+      noWorkspaceCellsMessage,
+      /* `There are ${narrativeDoc.cells.length} cached.`, */
+      { wsId, cells, narrativeDoc }
+    );
+    return <>{noPreviewMessage}</>;
+  };
   return (
     <section className={classes.preview}>
-      <ul>
-        <li>
-          <CardList>{cellCards}</CardList>
-        </li>
-        {extraCells > 0 ? (
-          <li>
-            + {extraCells} more cell{extraCells === 1 ? '' : 's'}.
-          </li>
-        ) : (
-          <></>
-        )}
-      </ul>
+      {cells.length === 0 ? (
+        <NoPreviewAvailable />
+      ) : (
+        <CellCardCollection cellCards={cellCards} extraCells={extraCells} />
+      )}
       <a href={`https://ci.kbase.us/narrative/${wsId}`}>
         View the full narrative.
       </a>
@@ -181,34 +218,54 @@ export const NarrativePreview: FC<NarrativePreviewProps> = ({
   );
 };
 
-/* NarrativeView should take (at least) a narrative upa as prop, but if it is
-   null then it should show a message saying there is no narrative selected.
-*/
+/* NarrativeView takes a narrative UPA and a view. */
 const NarrativeView: FC<{
-  view: string;
   narrativeUPA: string;
+  view: string;
 }> = ({ narrativeUPA, view }) => {
-  const wsId = +narrativeUPA.split('/')[0];
+  const wsId = Number(narrativeUPA.split('/')[0]);
+  /*
+    We retreive the cells from the workspace to get details of the cell not
+    stored in searchapi2. This does not always work because older narrative
+    objects in the ws adhere to a different schema.
+  */
   const cells = useCells({ narrativeUPA });
+  const cellsLoadedStatus = useAppSelector(cellsLoaded) && Array.isArray(cells);
   const dataObjectsLookup = useAppSelector(wsObjects);
+  const narrativeDocsFound = useAppSelector(narrativeDocsLookup);
+  /* This narrativeDocFound is a NarrativeDoc from searchapi2 which is a
+     distinct type from a narrative object from the workspace.
+  */
+  const narrativeDocFound = narrativeDocsFound[wsId];
+  const NarrativeViewCurrent: FC = () => {
+    return view === 'data' ? (
+      <DataView wsId={wsId} dataObjects={dataObjectsLookup[wsId]} />
+    ) : (
+      <NarrativePreview
+        cells={cells}
+        narrativeDoc={narrativeDocFound}
+        wsId={wsId}
+      />
+    );
+  };
   return (
-    <>
-      <section className={classes.view}>
-        <div>
-          <div className={classes.control}>
-            <NarrativeVersionSelection narrativeUPA={narrativeUPA} />
-            <NarrativeControlMenu narrativeUPA={narrativeUPA} />
+    <section className={classes.view}>
+      {narrativeDocFound ? (
+        <>
+          <div>
+            <div className={classes.control}>
+              <NarrativeVersionSelection narrativeUPA={narrativeUPA} />
+              <NarrativeControlMenu narrativeUPA={narrativeUPA} />
+            </div>
+            <NarrativeMetadata cells={cells} narrativeDoc={narrativeDocFound} />
+            <NarrativeViewTabs view={view} />
           </div>
-          <NarrativeMetadata narrativeUPA={narrativeUPA} />
-          <NarrativeViewTabs view={view} />
-        </div>
-        {view === 'data' ? (
-          <DataView wsId={wsId} dataObjects={dataObjectsLookup[wsId]} />
-        ) : (
-          <NarrativePreview wsId={wsId} cells={cells} />
-        )}
-      </section>
-    </>
+          {cellsLoadedStatus ? <NarrativeViewCurrent /> : <>Loading...</>}
+        </>
+      ) : (
+        <></>
+      )}
+    </section>
   );
 };
 
