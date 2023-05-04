@@ -54,6 +54,7 @@ export const iconSlice = createSlice({
     builder.addMatcher(
       getMethodBriefInfo.matchFulfilled,
       (state, { payload, meta }) => {
+        if (!payload) return;
         // Update Icon Cache when getMethodBriefInfo succeeds
         const appIds = meta.arg.originalArgs[0].ids;
         const appTags = meta.arg.originalArgs[0].ids;
