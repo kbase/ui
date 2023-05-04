@@ -1,11 +1,13 @@
+import { Cell, NarrativeDoc } from '../../common/types/NarrativeDoc';
 import { generatePathWithSearchParams } from '../../features/params/paramsSlice';
+import { MockParams } from 'jest-fetch-mock';
 
 export const narrativeSelectedPath = '/narratives/:id/:obj/:ver';
 export const narrativeSelectedPathWithCategory =
   '/narratives/:category/:id/:obj/:ver';
 // Types and typeguards
 export const navigatorParams = ['limit', 'search', 'sort', 'view'];
-export const searchParams = ['search', 'sort'];
+export const searchParams = ['limit', 'search', 'sort'];
 
 export const sortNames = {
   '-updated': 'Recently updated',
@@ -40,6 +42,21 @@ export type SortString = keyof typeof Sort;
 export const isSortString = (key: string): key is SortString => key in Sort;
 
 // Other functions
+export const corruptCellError = (cell: Cell, index: number) => {
+  // eslint-disable-next-line no-console
+  console.error('Corrupted narrative cell detected.', { cell, index });
+};
+
+export const corruptNarrativeError = (
+  narrativeUPA: string,
+  narrative?: unknown
+) => {
+  // eslint-disable-next-line no-console
+  console.error(`Corrupted narrative object detected: ${narrativeUPA}`, {
+    narrative,
+  });
+};
+
 export const narrativePath = (parameters: {
   categoryPath: CategoryString | null;
   id: string;
@@ -64,3 +81,13 @@ export const narrativePath = (parameters: {
     ...extraParams,
   });
 };
+
+export const testResponseOKFactory = (
+  narrativeDoc: NarrativeDoc
+): [string, MockParams] => [
+  JSON.stringify({
+    jsonrpc: '2.0',
+    result: [{ data: [{ data: narrativeDoc }] }],
+  }),
+  { status: 200 },
+];

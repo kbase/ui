@@ -1,10 +1,20 @@
 import { useEffect, useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from '../../common/hooks';
+import { getUsers } from '../../common/api/authService';
 import { getNarratives, SearchParams } from '../../common/api/searchApi';
 import { getwsNarrative } from '../../common/api/workspaceApi';
 import { Cell } from '../../common/types/NarrativeDoc';
-import { Category, Sort } from './common';
-import { cells, narratives, setCells, setNarratives } from './navigatorSlice';
+import { authToken } from '../auth/authSlice';
+import { Category, Sort, corruptNarrativeError } from './common';
+import {
+  cells,
+  narrativeDocs,
+  setCells,
+  setCellsLoaded,
+  setNarrativeDocs,
+  updateUsers,
+  users,
+} from './navigatorSlice';
 
 const categoryField = (category: Category, username: string) => {
   const { own, public: public_, shared, tutorials } = Category;
@@ -84,23 +94,37 @@ const makeGetNarrativesParams = (
 export const useCells = ({ narrativeUPA }: { narrativeUPA: string }) => {
   const dispatch = useAppDispatch();
   const cellsPrevious = useAppSelector(cells);
+  const cellsPreviousSerialized = JSON.stringify(cellsPrevious);
   const narrativeQuery = getwsNarrative.useQuery({ upa: narrativeUPA });
   useEffect(() => {
+    dispatch(setCellsLoaded(false));
     if (narrativeQuery.isSuccess) {
       const data = narrativeQuery.data;
       if (!data || !data[0]) {
         throw narrativeQuery.error;
       }
-      const cells: Cell[] = data[0].data[0].data.cells;
+      const narrative = data[0].data[0].data;
+      const cells: Cell[] = narrative.cells;
+      if (!cells || cells.length === 0) {
+        corruptNarrativeError(narrativeUPA, narrative);
+        dispatch(setCells([]));
+        return;
+      }
       dispatch(setCells(cells));
     }
-  }, [dispatch, cellsPrevious, narrativeQuery, narrativeUPA]);
+  }, [
+    dispatch,
+    cellsPrevious.length,
+    cellsPreviousSerialized,
+    narrativeQuery,
+    narrativeUPA,
+  ]);
   return cellsPrevious;
 };
 
 export const useNarratives = (params: getNarrativesParams) => {
   const dispatch = useAppDispatch();
-  const narrativesPrevious = useAppSelector(narratives);
+  const narrativesPrevious = useAppSelector(narrativeDocs);
   const searchAPIParams = useMemo(
     () => makeGetNarrativesParams(params),
     [params]
@@ -109,7 +133,25 @@ export const useNarratives = (params: getNarrativesParams) => {
   useEffect(() => {
     if (searchAPIQuery.isSuccess && searchAPIQuery.data) {
       const data = searchAPIQuery.data;
-      dispatch(setNarratives(data));
+      dispatch(setNarrativeDocs(data));
     }
   }, [dispatch, narrativesPrevious, searchAPIQuery, searchAPIParams]);
+};
+
+export const useUsers = (params: { users: string[] }) => {
+  const dispatch = useAppDispatch();
+  const token = useAppSelector(authToken);
+  const usersCurrent = useAppSelector(users);
+  const authAPIQuery = token ? getUsers.useQuery({ token, ...params }) : null;
+  useEffect(() => {
+    if (authAPIQuery && authAPIQuery.isSuccess && authAPIQuery.data) {
+      const data = authAPIQuery.data;
+      const usersUpdated = Object.keys(data).every(
+        (key) => usersCurrent[key] === data[key]
+      );
+      if (!usersUpdated) {
+        dispatch(updateUsers(data));
+      }
+    }
+  }, [authAPIQuery, dispatch, params, token, usersCurrent]);
 };
