@@ -4,7 +4,11 @@ export const testDataObjects = [
     obj_type: 'KBaseGenomes.Genome-1.0',
   },
   {
-    name: 'FBA_model_6000',
+    name: 'FBA_model_9000',
+    obj_type: 'KBaseFBA.FBAModel',
+  },
+  {
+    name: 'FBA_model_9001',
     obj_type: 'KBaseFBA.FBAModel',
   },
   {
