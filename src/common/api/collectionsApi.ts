@@ -2,6 +2,8 @@ import { uriEncodeTemplateTag as encode } from '../utils/stringUtils';
 import { baseApi } from './index';
 import { httpService } from './utils/serviceHelpers';
 import { store } from '../../app/store';
+import { KBaseBaseQueryError } from './utils/kbaseBaseQuery';
+import { SerializedError } from '@reduxjs/toolkit';
 
 const collectionsService = httpService({
   url: 'services/collections',
@@ -86,6 +88,66 @@ interface CompleteSelection extends BaseSelection {
 }
 
 type Selection = IncompleteSelection | CompleteSelection;
+
+interface ClientError {
+  error: {
+    httpcode: number;
+    httpstatus: string;
+    time: string;
+    message?: string;
+    appcode?: number;
+    apperror?: string;
+    request_validation_detail?: {
+      loc: (string | number)[];
+      msg: string;
+      type: string;
+    }[];
+  };
+}
+
+interface ServerError {
+  error: {
+    httpcode: number;
+    httpstatus: string;
+    time: string;
+    message?: string;
+  };
+}
+
+type CollectionsError = ClientError | ServerError;
+
+const isCollectionsError = (data: unknown): data is CollectionsError => {
+  const e = data as CollectionsError;
+  if (typeof e !== 'object' || e === null) return false;
+  if (typeof e.error !== 'object' || e.error === null) return false;
+  const errorShape = {
+    httpcode: 'number',
+    httpstatus: 'string',
+    time: 'string',
+  } as Record<keyof CollectionsError['error'], string>;
+  if (
+    Object.entries(errorShape).some(
+      ([key, type]) =>
+        !(key in e.error) ||
+        typeof e.error[key as keyof CollectionsError['error']] !== type
+    )
+  )
+    return false;
+  if ('message' in e.error && typeof e.error.message !== 'string') return false;
+  return true;
+};
+
+export const parseCollectionsError = (
+  errorData: KBaseBaseQueryError | SerializedError | undefined
+) => {
+  if (!errorData) return false;
+  if ('status' in errorData) {
+    if (isCollectionsError(errorData.data)) {
+      return errorData.data as CollectionsError;
+    }
+  }
+  return false;
+};
 
 interface CollectionsResults {
   status: {

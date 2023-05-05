@@ -2,10 +2,12 @@ import { useMemo, useState } from 'react';
 import {
   exportSelection,
   getSelectionTypes,
+  parseCollectionsError,
 } from '../../common/api/collectionsApi';
 import { getNarratives } from '../../common/api/searchApi';
 import { Select, Input, Button, SelectOption } from '../../common/components';
 import { useAppSelector } from '../../common/hooks';
+import { uriEncodeTemplateTag as encode } from '../../common/utils/stringUtils';
 import { useParamsForNarrativeDropdown } from './hooks';
 
 export const ExportPane = () => {
@@ -47,6 +49,14 @@ export const ExportPane = () => {
     });
   };
 
+  const exportError = parseCollectionsError(exportResult.error);
+  const exportErrorUnknown = exportResult.error && !exportError;
+  const exportErrorText = exportErrorUnknown
+    ? 'An unknown error occurred while saving to the narrative.'
+    : exportError
+    ? `${exportError.error.httpcode}: ${exportError.error.message}`
+    : undefined;
+
   const complete =
     selectionId && typeSel?.value && narrativeSelected?.access_group && name;
   return (
@@ -77,9 +87,38 @@ export const ExportPane = () => {
         onChange={(e) => setDesc(e.currentTarget.value)}
         label={<>Object description (optional)</>}
       />
-      <Button disabled={!complete} onClick={handleExport}>
+      <Button
+        disabled={!complete || exportResult.isLoading}
+        onClick={handleExport}
+      >
         Save to Narrative
       </Button>
+      {exportErrorText ? <p className="">{exportErrorText}</p> : <></>}
+      {exportResult.data ? (
+        <p className="">
+          <strong>Data object created!</strong>
+          <ul>
+            <li> {exportResult.data.set.type}</li>
+            <li>{exportResult.data.set.upa}</li>
+            <li>
+              <a
+                href={encode`/narrative/${
+                  exportResult.data.set.upa.split('/')[0]
+                }`}
+              >
+                Go to Narrative
+              </a>
+            </li>
+            <li>
+              <a href={`/#dataview/${exportResult.data.set.upa}`}>
+                Go to DataView
+              </a>
+            </li>
+          </ul>
+        </p>
+      ) : (
+        <></>
+      )}
     </>
   );
 };
