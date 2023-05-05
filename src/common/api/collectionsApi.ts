@@ -103,6 +103,15 @@ interface CollectionsResults {
   getMatch: Match;
   createSelection: BaseSelection;
   getSelection: Selection;
+  getSelectionTypes: {
+    types: string[];
+  };
+  exportSelection: {
+    set: {
+      upa: string;
+      type: string;
+    };
+  };
   listTaxaCountRanks: { data: string[] };
   getTaxaCountRank: {
     data: {
@@ -146,6 +155,16 @@ interface CollectionsParams {
   };
   getSelection: {
     selection_id: string;
+  };
+  getSelectionTypes: {
+    selection_id: string;
+  };
+  exportSelection: {
+    selection_id: string;
+    workspace_id: string;
+    object_name: string;
+    ws_type: string;
+    description: string;
   };
   listTaxaCountRanks: { collection_id: string; load_ver_override?: string };
   getTaxaCountRank: {
@@ -303,6 +322,38 @@ export const collectionsApi = baseApi.injectEndpoints({
         }),
     }),
 
+    getSelectionTypes: builder.query<
+      CollectionsResults['getSelectionTypes'],
+      CollectionsParams['getSelectionTypes']
+    >({
+      query: ({ selection_id }) =>
+        collectionsService({
+          method: 'GET',
+          url: encode`/selections/${selection_id}/types`,
+          params: {
+            verbose: true,
+          },
+          headers: {
+            authorization: `Bearer ${store.getState().auth.token}`,
+          },
+        }),
+    }),
+
+    exportSelection: builder.mutation<
+      CollectionsResults['exportSelection'],
+      CollectionsParams['exportSelection']
+    >({
+      query: ({ selection_id, workspace_id, object_name, ws_type, ...body }) =>
+        collectionsService({
+          method: 'POST',
+          url: encode`/selections/${selection_id}/toset/${workspace_id}/obj/${object_name}/type/${ws_type}`,
+          body: body,
+          headers: {
+            authorization: `Bearer ${store.getState().auth.token}`,
+          },
+        }),
+    }),
+
     listTaxaCountRanks: builder.query<
       CollectionsResults['listTaxaCountRanks'],
       CollectionsParams['listTaxaCountRanks']
@@ -367,6 +418,8 @@ export const {
   getMatch,
   createSelection,
   getSelection,
+  getSelectionTypes,
+  exportSelection,
   listTaxaCountRanks,
   getTaxaCountRank,
   getGenomeAttribs,
