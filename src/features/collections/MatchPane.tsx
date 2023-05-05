@@ -31,7 +31,7 @@ const ViewMatch = () => {
   const matchId = useAppParam('match');
   const updateAppParams = useUpdateAppParams();
   const selectionSize = useAppSelector(
-    (state) => state.collections.selection.current.length
+    (state) => state.collections.currentSelection.length
   );
 
   const matchQuery = usePollMatch(matchId);
@@ -50,25 +50,25 @@ const ViewMatch = () => {
   const handleSelectAll = () => {
     if (match?.state !== 'complete') return;
     dispatch(
-      setUserSelection({
-        selection: Array.from(
+      setUserSelection(
+        Array.from(
           new Set([
-            ...store.getState().collections.selection.current,
+            ...store.getState().collections.currentSelection,
             ...match.matches,
           ])
-        ),
-      })
+        )
+      )
     );
   };
   const handleDeselectAll = () => {
     if (match?.state !== 'complete') return;
     const matchSet = new Set(match.matches);
     dispatch(
-      setUserSelection({
-        selection: store
+      setUserSelection(
+        store
           .getState()
-          .collections.selection.current.filter((sel) => !matchSet.has(sel)),
-      })
+          .collections.currentSelection.filter((sel) => !matchSet.has(sel))
+      )
     );
   };
 

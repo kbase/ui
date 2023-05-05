@@ -6,12 +6,12 @@ import {
 } from '../../common/api/collectionsApi';
 import { getNarratives } from '../../common/api/searchApi';
 import { Select, Input, Button, SelectOption } from '../../common/components';
-import { useAppSelector } from '../../common/hooks';
 import { uriEncodeTemplateTag as encode } from '../../common/utils/stringUtils';
+import { useSelectionId } from './collectionsSlice';
 import { useParamsForNarrativeDropdown } from './hooks';
 
-export const ExportPane = () => {
-  const selectionId = useAppSelector((state) => state.collections.selection.id);
+export const ExportPane = ({ collectionId }: { collectionId: string }) => {
+  const selectionId = useSelectionId(collectionId);
   const [name, setName] = useState<string>('');
   const [desc, setDesc] = useState<string>('');
   const [narrativeSel, setNarrativeSel] = useState<SelectOption | undefined>();

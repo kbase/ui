@@ -71,7 +71,7 @@ export const CollectionDetail = () => {
       <div className={styles['collection_detail']}>
         <MatchPane collectionId={collection.id} />
         <SelectionPane collectionId={collection.id} />
-        <ExportPane />
+        <ExportPane collectionId={collection.id} />
       </div>
       <div className={styles['data_products']}>
         <CardList className={styles['data_product_list']}>

@@ -1,77 +1,37 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { useEffect } from 'react';
+import { createSelection, getSelection } from '../../common/api/collectionsApi';
+import { useAppDispatch, useAppSelector, useBackoff } from '../../common/hooks';
 
 interface CollectionState {
-  selection: {
-    id: string | undefined;
-    pendingId: string | undefined;
-    history: string[];
-    current: string[];
-  };
+  currentSelection: string[];
+  _pendingSelectionId?: string;
+  _verifiedSelectionId?: string;
 }
 
 const initialState: CollectionState = {
-  selection: {
-    id: undefined,
-    pendingId: undefined,
-    current: [],
-    history: [],
-  },
+  currentSelection: [],
 };
 
 export const CollectionSlice = createSlice({
   name: 'Collection',
   initialState,
   reducers: {
-    setUserSelection: (
-      state,
-      {
-        payload,
-      }: PayloadAction<{
-        selection: string[];
-      }>
-    ) => {
-      if (payload.selection.length < 1) {
-        // nothing selected, clear
-        // clear but keep history (for debugging atm)
-        state.selection = {
-          ...initialState.selection,
-          history: [
-            ...state.selection.history,
-            state.selection.id ?? '',
-          ].filter(Boolean),
-        };
-        return;
-      }
-
-      if (selectionChanged(state.selection.current, payload.selection)) {
-        if (state.selection.id)
-          state.selection.history.push(state.selection.id);
-        state.selection.id = undefined;
-        state.selection.current = [...payload.selection];
-      }
-    },
-    setServerSelection: (
-      state,
-      {
-        payload,
-      }: PayloadAction<{
-        id: CollectionState['selection']['id'];
-        selection: CollectionState['selection']['current'];
-      }>
-    ) => {
-      if (!selectionChanged(payload.selection, state.selection.current)) {
-        // don't store the server selection id unless it matches the current state and has contents
-        state.selection.id = payload.id;
-      }
+    setSelectionId: (state, { payload }: PayloadAction<string | undefined>) => {
+      state._verifiedSelectionId = payload;
     },
     setPendingSelectionId: (
       state,
       { payload }: PayloadAction<string | undefined>
     ) => {
-      state.selection.pendingId = payload;
+      state._pendingSelectionId = payload;
     },
-    clearSelectionHistory: (state) => {
-      state.selection.history = [];
+    setUserSelection: (state, { payload }: PayloadAction<string[]>) => {
+      if (selectionChanged(state.currentSelection, payload)) {
+        state.currentSelection = [...payload];
+        state._verifiedSelectionId = undefined;
+        state._pendingSelectionId = undefined;
+      }
     },
   },
 });
@@ -80,9 +40,104 @@ const selectionChanged = (list1: string[], list2: string[]) =>
   list1.length !== list2.length || list1.some((upa) => !list2.includes(upa));
 
 export default CollectionSlice.reducer;
-export const {
-  setUserSelection,
-  setServerSelection,
-  clearSelectionHistory,
-  setPendingSelectionId,
-} = CollectionSlice.actions;
+export const { setUserSelection, setSelectionId, setPendingSelectionId } =
+  CollectionSlice.actions;
+
+export const useSelectionId = (
+  collectionId: string,
+  { skip = false }: { skip?: boolean } = {}
+) => {
+  const dispatch = useAppDispatch();
+
+  const currentSelection = useAppSelector(
+    (state) => state.collections.currentSelection
+  );
+  const _verifiedSelectionId = useAppSelector(
+    (state) => state.collections._verifiedSelectionId
+  );
+  const _pendingSelectionId = useAppSelector(
+    (state) => state.collections._pendingSelectionId
+  );
+
+  const [createSelectionMutation, createSelectionResult] =
+    createSelection.useMutation();
+
+  const shouldSkipCreation =
+    skip || _verifiedSelectionId || currentSelection.length < 1;
+
+  useEffect(() => {
+    if (!shouldSkipCreation) {
+      createSelectionMutation({
+        collection_id: collectionId,
+        selection_ids: currentSelection,
+      });
+    }
+  }, [
+    collectionId,
+    createSelectionMutation,
+    currentSelection,
+    shouldSkipCreation,
+  ]);
+
+  useEffect(() => {
+    if (!skip && createSelectionResult.data) {
+      dispatch(setPendingSelectionId(createSelectionResult.data.selection_id));
+    }
+  }, [createSelectionResult, dispatch, skip]);
+
+  const shouldSkipValidation = skip || !_pendingSelectionId;
+
+  // Poll for completed selection
+  const backoff = useBackoff();
+  useEffect(() => {
+    backoff.reset();
+    backoff.toggle(!shouldSkipValidation);
+  }, [shouldSkipValidation, backoff]);
+
+  const getMatchQuery = getSelection.useQuery(
+    { selection_id: _pendingSelectionId || '' },
+    {
+      skip: shouldSkipValidation,
+      pollingInterval: backoff.duration,
+    }
+  );
+
+  useEffect(
+    () => backoff.increment(),
+    [getMatchQuery.startedTimeStamp, backoff]
+  );
+
+  const pollDone =
+    getMatchQuery.error || getMatchQuery.data?.state !== 'processing';
+
+  useEffect(() => {
+    if (pollDone) {
+      backoff.toggle(false);
+      dispatch(setPendingSelectionId(undefined));
+      if (getMatchQuery.data && getMatchQuery.data.state === 'complete') {
+        if (
+          !selectionChanged(currentSelection, getMatchQuery.data.selection_ids)
+        ) {
+          dispatch(setSelectionId(getMatchQuery.data.selection_id));
+        }
+      } else {
+        // eslint-disable-next-line no-console
+        console.error(
+          'Error creating selection',
+          getMatchQuery.error,
+          getMatchQuery.data
+        );
+        dispatch(setSelectionId(undefined));
+      }
+    }
+  }, [
+    backoff,
+    currentSelection,
+    dispatch,
+    getMatchQuery.data,
+    getMatchQuery.error,
+    pollDone,
+  ]);
+
+  return _verifiedSelectionId;
+};

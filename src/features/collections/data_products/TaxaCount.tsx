@@ -4,9 +4,10 @@ import {
   listTaxaCountRanks,
 } from '../../../common/api/collectionsApi';
 import { Select, SelectOption } from '../../../common/components/Select';
-import { useAppSelector, useBackoff } from '../../../common/hooks';
+import { useBackoff } from '../../../common/hooks';
 import { snakeCaseToHumanReadable } from '../../../common/utils/stringUtils';
 import { useAppParam } from '../../params/hooks';
+import { useSelectionId } from '../collectionsSlice';
 import classes from './TaxaCount.module.scss';
 
 export const TaxaCount: FC<{
@@ -28,9 +29,7 @@ export const TaxaCount: FC<{
 
   // Counts
   const matchId = useAppParam('match');
-  const selectionId = useAppSelector((state) => state.collections.selection.id);
-  const hasSelection =
-    useAppSelector((state) => state.collections.selection.current.length) > 0;
+  const selectionId = useSelectionId(collection_id);
   const countsParams = useMemo(
     () => ({
       collection_id,
@@ -86,7 +85,7 @@ export const TaxaCount: FC<{
               ) : (
                 <></>
               )}
-              {hasSelection ? (
+              {selectionId ? (
                 <div className={classes['sub-name']}>Selected</div>
               ) : (
                 <></>
@@ -112,7 +111,7 @@ export const TaxaCount: FC<{
                 ) : (
                   <></>
                 )}
-                {hasSelection ? (
+                {selectionId ? (
                   <Bar
                     className={classes['selected']}
                     width={selWidth}
