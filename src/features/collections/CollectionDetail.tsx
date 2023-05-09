@@ -8,6 +8,7 @@ import { DataProduct } from './DataProduct';
 import { snakeCaseToHumanReadable } from '../../common/utils/stringUtils';
 import { MatchPane } from './MatchPane';
 import { SelectionPane } from './SelectionPane';
+import { ExportPane } from './ExportPane';
 
 export const detailPath = ':id';
 export const detailDataProductPath = ':id/:data_product';
@@ -70,6 +71,7 @@ export const CollectionDetail = () => {
       <div className={styles['collection_detail']}>
         <MatchPane collectionId={collection.id} />
         <SelectionPane collectionId={collection.id} />
+        <ExportPane collectionId={collection.id} />
       </div>
       <div className={styles['data_products']}>
         <CardList className={styles['data_product_list']}>

@@ -13,7 +13,7 @@ import { CheckBox } from '../../../common/components/CheckBox';
 import { Table, useTableColumns } from '../../../common/components/Table';
 import { useAppDispatch, useAppSelector } from '../../../common/hooks';
 import { useAppParam } from '../../params/hooks';
-import { setUserSelection } from '../collectionsSlice';
+import { setUserSelection, useSelectionId } from '../collectionsSlice';
 import classes from './../Collections.module.scss';
 
 export const GenomeAttribs: FC<{
@@ -25,10 +25,10 @@ export const GenomeAttribs: FC<{
   // State Management
   const matchId = useAppParam('match');
   const [matchMark, setMatchMark] = useState(true);
-  const selectionId = useAppSelector(
-    (s) => s.collections.selection.id ?? s.collections.selection.pendingId
-  );
   const [selectMark, setSelectMark] = useState(true);
+  // we don't use the server marks to show the selected state,
+  // so no need to fetch the selection unless we are filtering the table
+  const selectionId = useSelectionId(collection_id, { skip: selectMark });
 
   const [sorting, setSorting] = useState<SortingState>([]);
   const requestSort = useMemo(() => {
@@ -42,7 +42,7 @@ export const GenomeAttribs: FC<{
     pageSize: 8,
   });
   const currentSelection = useAppSelector(
-    (state) => state.collections.selection.current
+    (state) => state.collections.currentSelection
   );
   const [selection, setSelection] = [
     useMemo(
@@ -60,11 +60,11 @@ export const GenomeAttribs: FC<{
           ? updaterOrValue(selection)
           : updaterOrValue;
       dispatch(
-        setUserSelection({
-          selection: Object.entries(value)
+        setUserSelection(
+          Object.entries(value)
             .filter(([k, v]) => v)
-            .map(([k, v]) => k),
-        })
+            .map(([k, v]) => k)
+        )
       );
     },
   ];
@@ -138,7 +138,7 @@ export const GenomeAttribs: FC<{
     columns: useTableColumns({
       fieldNames: data?.fields.map((field) => field.name),
       order: ['kbase_id', 'genome_size'],
-      exclude: ['__match__'],
+      exclude: ['__match__', '__sel__'],
     }),
 
     getCoreRowModel: getCoreRowModel(),
@@ -165,28 +165,21 @@ export const GenomeAttribs: FC<{
   return (
     <>
       <div>
-        {matchId ? (
-          <span>
-            <CheckBox
-              checked={matchMark}
-              onChange={() => setMatchMark((v) => !v)}
-            />{' '}
-            Show Unmatched
-          </span>
-        ) : (
-          <></>
-        )}
-        {selectionId ? (
-          <span>
-            <CheckBox
-              checked={selectMark}
-              onChange={() => setSelectMark((v) => !v)}
-            />{' '}
-            Show Unselected
-          </span>
-        ) : (
-          <></>
-        )}
+        <span>
+          <CheckBox
+            checked={matchMark}
+            onChange={() => setMatchMark((v) => !v)}
+          />{' '}
+          Show Unmatched
+        </span>
+
+        <span>
+          <CheckBox
+            checked={selectMark}
+            onChange={() => setSelectMark((v) => !v)}
+          />{' '}
+          Show Unselected
+        </span>
       </div>
       <Table
         table={table}

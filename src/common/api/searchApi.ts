@@ -11,7 +11,7 @@ interface SearchGetNarrativesParams {
     only_public: boolean;
   };
   filters: {
-    operator: 'AND';
+    operator: 'AND' | 'OR';
     fields: {
       field: string;
       term?: string | boolean;

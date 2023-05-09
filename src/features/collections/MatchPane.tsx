@@ -6,12 +6,14 @@ import {
 import classes from './Collections.module.scss';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button, Select, SelectOption } from '../../common/components';
-import { listObjects, listWorkspaceInfo } from '../../common/api/workspaceApi';
+import { listObjects } from '../../common/api/workspaceApi';
+import { getNarratives } from '../../common/api/searchApi';
 import { parseError } from '../../common/api/utils/parseError';
 import { useAppParam, useUpdateAppParams } from '../params/hooks';
 import { useAppDispatch, useAppSelector, useBackoff } from '../../common/hooks';
 import { setUserSelection } from './collectionsSlice';
 import { store } from '../../app/store';
+import { useParamsForNarrativeDropdown } from './hooks';
 
 export const MatchPane = ({ collectionId }: { collectionId: string }) => {
   const matchId = useAppParam('match');
@@ -29,7 +31,7 @@ const ViewMatch = () => {
   const matchId = useAppParam('match');
   const updateAppParams = useUpdateAppParams();
   const selectionSize = useAppSelector(
-    (state) => state.collections.selection.current.length
+    (state) => state.collections.currentSelection.length
   );
 
   const matchQuery = usePollMatch(matchId);
@@ -48,25 +50,25 @@ const ViewMatch = () => {
   const handleSelectAll = () => {
     if (match?.state !== 'complete') return;
     dispatch(
-      setUserSelection({
-        selection: Array.from(
+      setUserSelection(
+        Array.from(
           new Set([
-            ...store.getState().collections.selection.current,
+            ...store.getState().collections.currentSelection,
             ...match.matches,
           ])
-        ),
-      })
+        )
+      )
     );
   };
   const handleDeselectAll = () => {
     if (match?.state !== 'complete') return;
     const matchSet = new Set(match.matches);
     dispatch(
-      setUserSelection({
-        selection: store
+      setUserSelection(
+        store
           .getState()
-          .collections.selection.current.filter((sel) => !matchSet.has(sel)),
-      })
+          .collections.currentSelection.filter((sel) => !matchSet.has(sel))
+      )
     );
   };
 
@@ -144,16 +146,15 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
   }, [matchers]);
 
   // Narrative selection
+  const [narrativeSearch, setNarrativeSearch] = useState('');
   const [narrativeSel, setNarrativeSel] = useState<SelectOption | undefined>();
-
-  const narrativeQuery = listWorkspaceInfo.useQuery({});
-
-  const narrativeOptions = (narrativeQuery?.data?.[0] || []).map((ws) => ({
-    value: ws[0],
-    label: ws[1],
-    data: ws,
+  const narrativeSearchParams = useParamsForNarrativeDropdown(narrativeSearch);
+  const narrativeQuery = getNarratives.useQuery(narrativeSearchParams);
+  const narrativeOptions = (narrativeQuery?.data?.hits || []).map((hit) => ({
+    value: [hit.access_group, hit.obj_id, hit.version].join('/'),
+    label: hit.narrative_title,
+    data: hit,
   }));
-
   const narrativeSelected = narrativeOptions.find(
     (d) => d.value === narrativeSel?.value
   )?.data;
@@ -162,7 +163,9 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
   const [dataObjSel, setDataObjSel] = useState<SelectOption[]>([]);
 
   const dataObjQuery = listObjects.useQuery({
-    ids: narrativeSelected?.[0] ? [narrativeSelected?.[0]] : [],
+    ids: narrativeSelected?.access_group
+      ? [narrativeSelected?.access_group]
+      : [],
   });
 
   const allTypes = [
@@ -172,7 +175,7 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
 
   const dataObjOptions = (dataObjQuery?.data?.[0] || [])
     .map((objInfo) => ({
-      value: `${narrativeSelected?.[0]}/${objInfo[0]}/${objInfo[4]}`,
+      value: `${narrativeSelected?.access_group}/${objInfo[0]}/${objInfo[4]}`,
       label: objInfo[1],
       data: objInfo,
     }))
@@ -223,6 +226,7 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
         value={narrativeSel}
         options={narrativeOptions}
         loading={narrativeQuery.isFetching}
+        onSearch={setNarrativeSearch}
         onChange={(opt) => {
           setNarrativeSel(opt[0]);
           setDataObjSel([]);

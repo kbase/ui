@@ -87,6 +87,54 @@ interface CompleteSelection extends BaseSelection {
 
 type Selection = IncompleteSelection | CompleteSelection;
 
+interface ClientError {
+  error: {
+    httpcode: number;
+    httpstatus: string;
+    time: string;
+    message?: string;
+    appcode?: number;
+    apperror?: string;
+    request_validation_detail?: {
+      loc: (string | number)[];
+      msg: string;
+      type: string;
+    }[];
+  };
+}
+
+interface ServerError {
+  error: {
+    httpcode: number;
+    httpstatus: string;
+    time: string;
+    message?: string;
+  };
+}
+
+type CollectionsError = ClientError | ServerError;
+
+const isCollectionsError = (data: unknown): data is CollectionsError => {
+  const e = data as CollectionsError;
+  if (typeof e !== 'object' || e === null) return false;
+  if (typeof e.error !== 'object' || e.error === null) return false;
+  const errorShape = {
+    httpcode: 'number',
+    httpstatus: 'string',
+    time: 'string',
+  } as Record<keyof CollectionsError['error'], string>;
+  if (
+    Object.entries(errorShape).some(
+      ([key, type]) =>
+        !(key in e.error) ||
+        typeof e.error[key as keyof CollectionsError['error']] !== type
+    )
+  )
+    return false;
+  if ('message' in e.error && typeof e.error.message !== 'string') return false;
+  return true;
+};
+
 interface CollectionsResults {
   status: {
     service_name: string;
@@ -103,6 +151,15 @@ interface CollectionsResults {
   getMatch: Match;
   createSelection: BaseSelection;
   getSelection: Selection;
+  getSelectionTypes: {
+    types: string[];
+  };
+  exportSelection: {
+    set: {
+      upa: string;
+      type: string;
+    };
+  };
   listTaxaCountRanks: { data: string[] };
   getTaxaCountRank: {
     data: {
@@ -146,6 +203,16 @@ interface CollectionsParams {
   };
   getSelection: {
     selection_id: string;
+  };
+  getSelectionTypes: {
+    selection_id: string;
+  };
+  exportSelection: {
+    selection_id: string;
+    workspace_id: string;
+    object_name: string;
+    ws_type: string;
+    description: string;
   };
   listTaxaCountRanks: { collection_id: string; load_ver_override?: string };
   getTaxaCountRank: {
@@ -303,6 +370,38 @@ export const collectionsApi = baseApi.injectEndpoints({
         }),
     }),
 
+    getSelectionTypes: builder.query<
+      CollectionsResults['getSelectionTypes'],
+      CollectionsParams['getSelectionTypes']
+    >({
+      query: ({ selection_id }) =>
+        collectionsService({
+          method: 'GET',
+          url: encode`/selections/${selection_id}/types`,
+          params: {
+            verbose: true,
+          },
+          headers: {
+            authorization: `Bearer ${store.getState().auth.token}`,
+          },
+        }),
+    }),
+
+    exportSelection: builder.mutation<
+      CollectionsResults['exportSelection'],
+      CollectionsParams['exportSelection']
+    >({
+      query: ({ selection_id, workspace_id, object_name, ws_type, ...body }) =>
+        collectionsService({
+          method: 'POST',
+          url: encode`/selections/${selection_id}/toset/${workspace_id}/obj/${object_name}/type/${ws_type}`,
+          body: body,
+          headers: {
+            authorization: `Bearer ${store.getState().auth.token}`,
+          },
+        }),
+    }),
+
     listTaxaCountRanks: builder.query<
       CollectionsResults['listTaxaCountRanks'],
       CollectionsParams['listTaxaCountRanks']
@@ -356,6 +455,32 @@ export const collectionsApi = baseApi.injectEndpoints({
   }),
 });
 
+export const parseCollectionsError = (
+  /**result.error object from any collections query.
+   * The type definition is unfortunately a bit visually hairy.
+   * But all the typedef is doing is extracting the error type.*/
+  error:
+    | Extract<
+        Awaited<
+          ReturnType<
+            ReturnType<
+              typeof collectionsApi['endpoints'][keyof typeof collectionsApi['endpoints']]['initiate']
+            >
+          >
+        >,
+        { error: unknown }
+      >['error']
+    | undefined
+) => {
+  if (!error) return undefined;
+  if ('data' in error) {
+    if (isCollectionsError(error.data)) {
+      return error.data as CollectionsError;
+    }
+  }
+  return undefined;
+};
+
 export const {
   collectionsStatus: status,
   listCollections,
@@ -367,6 +492,8 @@ export const {
   getMatch,
   createSelection,
   getSelection,
+  getSelectionTypes,
+  exportSelection,
   listTaxaCountRanks,
   getTaxaCountRank,
   getGenomeAttribs,
