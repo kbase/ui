@@ -2,8 +2,6 @@ import { uriEncodeTemplateTag as encode } from '../utils/stringUtils';
 import { baseApi } from './index';
 import { httpService } from './utils/serviceHelpers';
 import { store } from '../../app/store';
-import { KBaseBaseQueryError } from './utils/kbaseBaseQuery';
-import { SerializedError } from '@reduxjs/toolkit';
 
 const collectionsService = httpService({
   url: 'services/collections',
@@ -135,18 +133,6 @@ const isCollectionsError = (data: unknown): data is CollectionsError => {
     return false;
   if ('message' in e.error && typeof e.error.message !== 'string') return false;
   return true;
-};
-
-export const parseCollectionsError = (
-  errorData: KBaseBaseQueryError | SerializedError | undefined
-) => {
-  if (!errorData) return false;
-  if ('status' in errorData) {
-    if (isCollectionsError(errorData.data)) {
-      return errorData.data as CollectionsError;
-    }
-  }
-  return false;
 };
 
 interface CollectionsResults {
@@ -468,6 +454,32 @@ export const collectionsApi = baseApi.injectEndpoints({
     }),
   }),
 });
+
+export const parseCollectionsError = (
+  /**result.error object from any collections query.
+   * The type definition is unfortunately a bit visually hairy.
+   * But all the typedef is doing is extracting the error type.*/
+  error:
+    | Extract<
+        Awaited<
+          ReturnType<
+            ReturnType<
+              typeof collectionsApi['endpoints'][keyof typeof collectionsApi['endpoints']]['initiate']
+            >
+          >
+        >,
+        { error: unknown }
+      >['error']
+    | undefined
+) => {
+  if (!error) return undefined;
+  if ('data' in error) {
+    if (isCollectionsError(error.data)) {
+      return error.data as CollectionsError;
+    }
+  }
+  return undefined;
+};
 
 export const {
   collectionsStatus: status,

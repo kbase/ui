@@ -49,13 +49,13 @@ export const ExportPane = ({ collectionId }: { collectionId: string }) => {
     });
   };
 
-  const exportError = parseCollectionsError(exportResult.error);
-  const exportErrorUnknown = exportResult.error && !exportError;
-  const exportErrorText = exportErrorUnknown
-    ? 'An unknown error occurred while saving to the narrative.'
-    : exportError
-    ? `${exportError.error.httpcode}: ${exportError.error.message}`
-    : undefined;
+  let exportError = '';
+  const parsedErr = parseCollectionsError(exportResult.error);
+  if (parsedErr) {
+    exportError = `${parsedErr.error.httpcode}: ${parsedErr.error.message}`;
+  } else if (exportResult.error) {
+    exportError = 'An unknown error occurred while saving to the narrative.';
+  }
 
   const complete =
     selectionId && typeSel?.value && narrativeSelected?.access_group && name;
@@ -93,7 +93,7 @@ export const ExportPane = ({ collectionId }: { collectionId: string }) => {
       >
         Save to Narrative
       </Button>
-      {exportErrorText ? <p className="">{exportErrorText}</p> : <></>}
+      {exportError ? <p className="">{exportError}</p> : <></>}
       {exportResult.data ? (
         <p className="">
           <strong>Data object created!</strong>
