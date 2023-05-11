@@ -45,28 +45,3 @@ test('NarrativeList displays loading circle', async () => {
   expect(container.querySelectorAll('.narrative_item_outer')).toHaveLength(0);
   expect(screen.getByText('Loading...')).toBeInTheDocument();
 });
-
-test('NarrativeList can load more items', async () => {
-  const onLoadMoreItemsSpy = jest.fn();
-  const { container } = render(
-    <Provider store={createTestStore()}>
-      <Router>
-        <NarrativeList
-          hasMoreItems={true}
-          items={testItems}
-          itemsRemaining={42}
-          loading={false}
-          narrativeUPA={null}
-          nextLimit={''}
-          onLoadMoreItems={onLoadMoreItemsSpy}
-          showVersionDropdown={true}
-        />
-      </Router>
-    </Provider>
-  );
-  expect(container.querySelector('.list_footer')).toBeInTheDocument();
-  const button = screen.getByText('Load more (42 remaining)');
-  expect(button).toBeInTheDocument();
-  button.click();
-  expect(onLoadMoreItemsSpy).toHaveBeenCalledTimes(1);
-});

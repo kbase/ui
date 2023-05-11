@@ -31,7 +31,8 @@ import {
   getParams,
   generatePathWithSearchParams,
 } from '../../features/params/paramsSlice';
-import { corruptCellError, searchParams } from './common';
+import NarrativeViewItem from './NarrativeList/NarrativeViewItem';
+import { corruptCellError, narrativeURL, searchParams } from './common';
 import { useCells } from './hooks';
 import { cellsLoaded, narrativeDocsLookup, wsObjects } from './navigatorSlice';
 import NarrativeMetadata from './NarrativeMetadata';
@@ -44,9 +45,20 @@ const sanitize = (markdown: string) =>
   });
 
 const NarrativeControlMenu = PlaceholderFactory('NarrativeVersionControlMenu');
-const NarrativeVersionSelection = PlaceholderFactory(
-  'NarrativeVersionSelection'
-);
+
+const NarrativeVersionSelection: FC<{ narrativeDoc: NarrativeDoc }> = ({
+  narrativeDoc,
+}) => {
+  return (
+    <NarrativeViewItem
+      activeOverride={true}
+      idx={0}
+      linkToNarrative={true}
+      narrativeDoc={narrativeDoc}
+      showVersionDropdown={true}
+    />
+  );
+};
 
 const NarrativeViewTabs: FC<{
   view: string;
@@ -87,7 +99,8 @@ const DefaultIcon: FC<{ cellType: string }> = ({ cellType }) => {
 };
 
 const MarkdownCellCard: FC<{ cell: MarkdownCell }> = ({ cell }) => {
-  const title = cell.metadata.kbase.attributes.title;
+  const title =
+    cell.metadata?.kbase?.attributes?.title || cell.source.split('\n')[0];
   let subtitleRaw = cell.source;
   if (subtitleRaw.startsWith(title)) {
     subtitleRaw = subtitleRaw.slice(title.length);
@@ -211,9 +224,7 @@ export const NarrativePreview: FC<NarrativePreviewProps> = ({
       ) : (
         <CellCardCollection cellCards={cellCards} extraCells={extraCells} />
       )}
-      <a href={`https://ci.kbase.us/narrative/${wsId}`}>
-        View the full narrative.
-      </a>
+      <a href={narrativeURL(wsId)}>View the full narrative.</a>
     </section>
   );
 };
@@ -254,8 +265,8 @@ const NarrativeView: FC<{
         <>
           <div>
             <div className={classes.control}>
-              <NarrativeVersionSelection narrativeUPA={narrativeUPA} />
-              <NarrativeControlMenu narrativeUPA={narrativeUPA} />
+              <NarrativeVersionSelection narrativeDoc={narrativeDocFound} />
+              <NarrativeControlMenu />
             </div>
             <NarrativeMetadata cells={cells} narrativeDoc={narrativeDocFound} />
             <NarrativeViewTabs view={view} />

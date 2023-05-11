@@ -10,8 +10,8 @@ import Auth from '../features/auth/Auth';
 import Count from '../features/count/Counter';
 import Legacy, { LEGACY_BASE_ROUTE } from '../features/legacy/Legacy';
 import Navigator, {
-  narrativeSelectedPath,
-  narrativeSelectedPathWithCategory,
+  navigatorPath,
+  navigatorPathWithCategory,
 } from '../features/navigator/Navigator';
 import PageNotFound from '../features/layout/PageNotFound';
 import ProfileWrapper from '../features/profile/Profile';
@@ -48,7 +48,7 @@ const Routes: FC = () => {
 
       {/* Navigator */}
       <Route
-        path={narrativeSelectedPath}
+        path={navigatorPath}
         element={<Authed element={<Navigator />} />}
       />
       <Route
@@ -56,7 +56,7 @@ const Routes: FC = () => {
         element={<Authed element={<Navigator />} />}
       />
       <Route
-        path={narrativeSelectedPathWithCategory}
+        path={navigatorPathWithCategory}
         element={<Authed element={<Navigator />} />}
       />
       <Route path="/narratives" element={<Authed element={<Navigator />} />} />

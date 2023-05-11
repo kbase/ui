@@ -1,3 +1,4 @@
+import { MockParams } from 'jest-fetch-mock';
 import { usernameRequested } from '../common';
 import { testDataObjects } from '../../common/components/DataView.fixture';
 import {
@@ -207,6 +208,13 @@ export const testCells: (MarkdownCell | CodeCell)[] = [
     source: '# some python\nimport this',
   },
   {
+    // Old: kbase key does not exist in metadata attribute.
+    cell_type: 'markdown',
+    // @ts-expect-error No kbase key.
+    metadata: {},
+    source: `Welcome to KBase's Narrative Interface!\nWhat's a Narrative?`,
+  },
+  {
     // Corrupt: cell_type is not markdown or code.
     // @ts-expect-error A corrupted cell.
     cell_type: 'corrupt',
@@ -281,3 +289,13 @@ export const initialTestStateFactory = ({
 });
 
 export const initialTestState = initialTestStateFactory({});
+
+export const testResponseOKFactory = (
+  narrativeDoc: NarrativeDoc
+): [string, MockParams] => [
+  JSON.stringify({
+    jsonrpc: '2.0',
+    result: [{ data: [{ data: narrativeDoc }] }],
+  }),
+  { status: 200 },
+];

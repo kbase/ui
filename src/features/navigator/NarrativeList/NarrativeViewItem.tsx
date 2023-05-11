@@ -4,23 +4,28 @@ import * as timeago from 'timeago.js';
 import { useAppSelector } from '../../../common/hooks';
 import { NarrativeDoc } from '../../../common/types/NarrativeDoc';
 import { getParams } from '../../../features/params/paramsSlice';
-import { narrativePath, navigatorParams } from '../common';
+import {
+  generateNavigatorPath,
+  narrativeURL,
+  navigatorParams,
+} from '../common';
 import { categorySelected } from '../navigatorSlice';
 import NarrativeItemDropdown from './NarrativeItemDropdown';
 import classes from './NarrativeList.module.scss';
 
 export interface NarrativeViewItemProps {
   idx: number;
-  item: NarrativeDoc;
+  narrativeDoc: NarrativeDoc;
   showVersionDropdown: boolean;
-  onSelectItem?: (idx: number) => void;
-  onUpaChange?: (upa: string) => void;
+  activeOverride?: boolean;
+  linkToNarrative?: boolean;
 }
 
 const NarrativeViewItem: FC<NarrativeViewItemProps> = ({
+  activeOverride,
   idx,
-  item,
-  onUpaChange,
+  linkToNarrative,
+  narrativeDoc,
   showVersionDropdown,
 }) => {
   const categorySet = useAppSelector(categorySelected);
@@ -31,46 +36,45 @@ const NarrativeViewItem: FC<NarrativeViewItemProps> = ({
     ver = null,
   } = useParams<{ id: string; obj: string; ver: string }>();
   const { access_group, creator, narrative_title, obj_id, timestamp, version } =
-    item;
-  const upa = `${access_group}/${obj_id}/${version}`;
-  const active =
-    access_group.toString() === id && obj_id.toString() === obj && ver;
+    narrativeDoc;
+  const wsId = access_group.toString();
+  const upa = `${wsId}/${obj_id}/${version}`;
+  const active = wsId === id && obj_id.toString() === obj;
   const status = active ? 'active' : 'inactive';
   // Note: timeago expects milliseconds
   const timeElapsed = timeago.format(timestamp);
-  function handleVersionSelect(version: number) {
-    onUpaChange?.(`${access_group}/${obj_id}/${version}`);
-  }
 
   const navigatorParamsCurrent = Object.fromEntries(
     navigatorParams.map((param) => [param, europaParams[param]])
   );
   const narrativeViewItemPath = (version: number) => {
-    const categoryPath = categorySet !== 'own' ? categorySet : null;
-    return narrativePath({
+    const categoryPath = categorySet !== 'own' ? categorySet : '';
+    return generateNavigatorPath({
       categoryPath,
       extraParams: navigatorParamsCurrent,
-      id: access_group.toString(),
+      id: wsId,
       obj: obj_id.toString(),
       ver: version.toString(),
     });
   };
 
-  const pathVersion = active ? +ver : version;
-  const path = narrativeViewItemPath(pathVersion);
+  const pathVersion = active ? Number(ver) : version;
+  const path = linkToNarrative
+    ? narrativeURL(wsId)
+    : narrativeViewItemPath(pathVersion);
   return (
     <section key={idx}>
       <Link
         to={path}
         className={`${classes.narrative_item_outer} ${classes[status]}`}
+        target={linkToNarrative ? '_blank' : ''}
       >
         <div className={classes.narrative_item_inner}>
           <div className={classes.narrative_item_text}>
             <div>{narrative_title}</div>
             <NarrativeItemDropdown
               narrative={upa}
-              onVersionSelect={(e) => handleVersionSelect(e)}
-              visible={Boolean(showVersionDropdown && active)}
+              visible={showVersionDropdown}
               version={pathVersion}
             />
           </div>

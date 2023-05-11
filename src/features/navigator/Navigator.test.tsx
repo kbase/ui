@@ -18,12 +18,17 @@ import Routes from '../../app/Routes';
 import { baseApi } from '../../common/api';
 import { usernameRequested } from '../common';
 import { ignoredParameterWarning } from '../../common/hooks';
-import { initialTestState, testItems, testNarrativeDoc } from './fixtures';
+import {
+  initialTestState,
+  testItems,
+  testNarrativeDoc,
+  testResponseOKFactory,
+} from './fixtures';
 import classes from './NarrativeList/NarrativeList.module.scss';
-import { Category, testResponseOKFactory } from './common';
+import { Category } from './common';
 import Navigator, {
-  narrativeSelectedPath,
-  narrativeSelectedPathWithCategory,
+  navigatorPath,
+  navigatorPathWithCategory,
 } from './Navigator';
 
 let testStore = createTestStore({ navigator: initialTestState });
@@ -200,7 +205,7 @@ describe('The <Navigator /> component...', () => {
         <Router initialEntries={['/narratives/tutorials/10002/2/3']}>
           <RRRoutes>
             <Route
-              path={narrativeSelectedPathWithCategory}
+              path={navigatorPathWithCategory}
               element={
                 <ErrorBoundary
                   FallbackComponent={TestingError}
@@ -230,7 +235,7 @@ describe('The <Navigator /> component...', () => {
       <Provider store={createTestStore()}>
         <Router initialEntries={['/narratives/0/0/0']}>
           <RRRoutes>
-            <Route path={narrativeSelectedPath} element={<Navigator />} />
+            <Route path={navigatorPath} element={<Navigator />} />
           </RRRoutes>
         </Router>
       </Provider>
@@ -290,7 +295,7 @@ describe('The <Navigator /> component...', () => {
           <Router initialEntries={[`/narratives/${wsId}/2/3?view=preview`]}>
             <RRRoutes>
               <Route
-                path={narrativeSelectedPath}
+                path={navigatorPath}
                 element={
                   <ErrorBoundary
                     FallbackComponent={TestingError}

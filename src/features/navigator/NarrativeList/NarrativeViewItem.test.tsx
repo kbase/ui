@@ -4,7 +4,7 @@ import { MemoryRouter as Router, Route, Routes } from 'react-router-dom';
 import { createTestStore } from '../../../app/store';
 import { testItems } from '../fixtures';
 import NarrativeViewItem from './NarrativeViewItem';
-import { narrativeSelectedPath } from '../Navigator';
+import { navigatorPath } from '../Navigator';
 
 const testDoc = testItems[0];
 const { access_group, creator, obj_id, version } = testDoc;
@@ -14,7 +14,11 @@ test('NarrativeViewItem renders', () => {
   const { container } = render(
     <Provider store={createTestStore()}>
       <Router>
-        <NarrativeViewItem idx={0} item={testDoc} showVersionDropdown={true} />
+        <NarrativeViewItem
+          idx={0}
+          narrativeDoc={testDoc}
+          showVersionDropdown={true}
+        />
       </Router>
     </Provider>
   );
@@ -34,11 +38,11 @@ test('NarrativeViewItem displays active class', () => {
       <Router initialEntries={[`/narratives/${testDocUPA}`]}>
         <Routes>
           <Route
-            path={narrativeSelectedPath}
+            path={navigatorPath}
             element={
               <NarrativeViewItem
                 idx={0}
-                item={testDoc}
+                narrativeDoc={testDoc}
                 showVersionDropdown={true}
               />
             }
