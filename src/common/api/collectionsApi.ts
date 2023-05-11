@@ -8,6 +8,10 @@ const collectionsService = httpService({
 });
 
 type ProcessState = 'processing' | 'failed' | 'complete';
+type UPA = string;
+// Collections-specific item ID strings (not an UPA or Data Object)
+type KBaseId = string;
+type KBaseType = string;
 
 export interface DataProduct {
   product: string;
@@ -39,8 +43,8 @@ export interface Collection extends UnsavedCollection {
 
 interface Matcher {
   id: string;
-  types: string[];
-  set_types: string[];
+  types: KBaseType[];
+  set_types: KBaseType[];
   description: string;
   required_data_products: string;
   user_parameters: unknown;
@@ -62,8 +66,8 @@ interface IncompleteMatch extends BaseMatch {
 
 interface CompleteMatch extends BaseMatch {
   state: 'complete';
-  upas: string[];
-  matches: string[];
+  upas: UPA[];
+  matches: KBaseId[];
 }
 
 type Match = IncompleteMatch | CompleteMatch;
@@ -81,11 +85,36 @@ interface IncompleteSelection extends BaseSelection {
 
 interface CompleteSelection extends BaseSelection {
   state: 'complete';
-  selection_ids: string[];
-  unmatched_ids: string[];
+  selection_ids: KBaseId[];
+  unmatched_ids: KBaseId[];
 }
 
 type Selection = IncompleteSelection | CompleteSelection;
+
+interface HeatMapCell {
+  celid: string;
+  colid: HeatMapColumn['id'];
+  val: unknown;
+}
+
+interface HeatMapRow {
+  match: boolean;
+  sel: boolean;
+  kbase_id: KBaseId;
+  cells: HeatMapCell[];
+}
+
+interface HeatMapColumnCategory {
+  category: string;
+  columns: HeatMapColumn[];
+}
+
+interface HeatMapColumn {
+  id: string;
+  name: string;
+  description: string;
+  type: 'float' | 'int' | 'string' | 'bool';
+}
 
 interface ClientError {
   error: {
@@ -152,12 +181,12 @@ interface CollectionsResults {
   createSelection: BaseSelection;
   getSelection: Selection;
   getSelectionTypes: {
-    types: string[];
+    types: KBaseType[];
   };
   exportSelection: {
     set: {
-      upa: string;
-      type: string;
+      upa: UPA;
+      type: KBaseType;
     };
   };
   listTaxaCountRanks: { data: string[] };
@@ -179,6 +208,30 @@ interface CollectionsResults {
     data?: null;
     count?: number;
   };
+  getMicroTrait: {
+    description: string;
+    heatmap_match_state: ProcessState;
+    heatmap_selection_state: ProcessState;
+    data: HeatMapRow[];
+    min_value: number;
+    max_value: number;
+    count: number;
+  };
+  getMicroTraitMeta: {
+    categories: HeatMapColumnCategory[];
+    min_value: number;
+    max_value: number;
+  };
+  getMicroTraitCell: {
+    celid: string;
+    values: { id: string; value: number | boolean }[];
+  };
+  getMicroTraitMissing: {
+    heatmap_match_state: ProcessState;
+    heatmap_selection_state: ProcessState;
+    match_missing: KBaseId[];
+    selection_missing: KBaseId[];
+  };
 }
 
 interface CollectionsParams {
@@ -193,48 +246,77 @@ interface CollectionsParams {
   createMatch: {
     collection_id: Collection['id'];
     matcher_id: Matcher['id'];
-    upas: string[];
+    upas: UPA[];
     parameters: Match['user_parameters'];
   };
-  getMatch: string;
+  getMatch: Match['match_id'];
   createSelection: {
     collection_id: Collection['id'];
-    selection_ids: string[];
+    selection_ids: Selection['selection_id'][];
   };
   getSelection: {
-    selection_id: string;
+    selection_id: Selection['selection_id'];
   };
   getSelectionTypes: {
-    selection_id: string;
+    selection_id: Selection['selection_id'];
   };
   exportSelection: {
-    selection_id: string;
+    selection_id: Selection['selection_id'];
     workspace_id: string;
     object_name: string;
-    ws_type: string;
+    ws_type: KBaseType;
     description: string;
   };
-  listTaxaCountRanks: { collection_id: string; load_ver_override?: string };
+  listTaxaCountRanks: {
+    collection_id: Collection['id'];
+    load_ver_override?: Collection['ver_tag'];
+  };
   getTaxaCountRank: {
-    collection_id: string;
+    collection_id: Collection['id'];
     rank: string;
-    load_ver_override?: string;
-    match_id?: string;
-    selection_id?: string;
+    load_ver_override?: Collection['ver_tag'];
+    match_id?: Match['match_id'];
+    selection_id?: Selection['selection_id'];
   };
   getGenomeAttribs: {
-    collection_id: string;
+    collection_id: Collection['id'];
     sort_on?: string;
     sort_desc?: boolean;
     skip?: number;
     limit?: number;
     output_table?: true; // will only this query style for now, for clearer types
-    match_id?: string;
+    match_id?: Match['match_id'];
     match_mark?: boolean;
-    selection_id?: string;
+    selection_id?: Selection['selection_id'];
     selection_mark?: boolean;
     count?: boolean;
-    load_ver_override?: string;
+    load_ver_override?: Collection['ver_tag'];
+  };
+  getMicroTrait: {
+    collection_id: Collection['id'];
+    start_after?: KBaseId;
+    limit?: number;
+    count?: boolean;
+    match_id?: Match['match_id'];
+    match_mark?: boolean;
+    selection_id?: Selection['selection_id'];
+    selection_mark?: boolean;
+    status_only?: boolean;
+    load_ver_override?: Collection['ver_tag'];
+  };
+  getMicroTraitMeta: {
+    collection_id: Collection['id'];
+    load_ver_override?: Collection['ver_tag'];
+  };
+  getMicroTraitCell: {
+    collection_id: Collection['id'];
+    cell_id: HeatMapCell['celid'];
+    load_ver_override?: Collection['ver_tag'];
+  };
+  getMicroTraitMissing: {
+    collection_id: Collection['id'];
+    match_id?: Match['match_id'];
+    selection_id?: Selection['selection_id'];
   };
 }
 
@@ -394,7 +476,7 @@ export const collectionsApi = baseApi.injectEndpoints({
       query: ({ selection_id, workspace_id, object_name, ws_type, ...body }) =>
         collectionsService({
           method: 'POST',
-          url: encode`/selections/${selection_id}/toset/${workspace_id}/obj/${object_name}/type/${ws_type}`,
+          url: encode`/selections/${selection_id}/toSet/${workspace_id}/obj/${object_name}/type/${ws_type}`,
           body: body,
           headers: {
             authorization: `Bearer ${store.getState().auth.token}`,
@@ -452,6 +534,66 @@ export const collectionsApi = baseApi.injectEndpoints({
           },
         }),
     }),
+
+    getMicroTrait: builder.query<
+      CollectionsResults['getMicroTrait'],
+      CollectionsParams['getMicroTrait']
+    >({
+      query: ({ collection_id, ...options }) =>
+        collectionsService({
+          method: 'GET',
+          url: encode`/collections/${collection_id}/data_products/microtrait/`,
+          params: options,
+          headers: {
+            authorization: `Bearer ${store.getState().auth.token}`,
+          },
+        }),
+    }),
+
+    getMicroTraitMeta: builder.query<
+      CollectionsResults['getMicroTraitMeta'],
+      CollectionsParams['getMicroTraitMeta']
+    >({
+      query: ({ collection_id, ...options }) =>
+        collectionsService({
+          method: 'GET',
+          url: encode`/collections/${collection_id}/data_products/microtrait/meta`,
+          params: options,
+          headers: {
+            authorization: `Bearer ${store.getState().auth.token}`,
+          },
+        }),
+    }),
+
+    getMicroTraitCell: builder.query<
+      CollectionsResults['getMicroTraitCell'],
+      CollectionsParams['getMicroTraitCell']
+    >({
+      query: ({ collection_id, cell_id, ...options }) =>
+        collectionsService({
+          method: 'GET',
+          url: encode`/collections/${collection_id}/data_products/microtrait/cell/${cell_id}`,
+          params: options,
+          headers: {
+            authorization: `Bearer ${store.getState().auth.token}`,
+          },
+        }),
+    }),
+
+    getMicroTraitMissing: builder.query<
+      CollectionsResults['getMicroTraitMissing'],
+      CollectionsParams['getMicroTraitMissing']
+    >({
+      query: ({ collection_id, ...options }) =>
+        collectionsService({
+          method: 'GET',
+          url: encode`/collections/${collection_id}/data_products/microtrait/missing`,
+          params: options,
+          headers: {
+            authorization: `Bearer ${store.getState().auth.token}`,
+          },
+        }),
+    }),
   }),
 });
 
@@ -497,4 +639,8 @@ export const {
   listTaxaCountRanks,
   getTaxaCountRank,
   getGenomeAttribs,
+  getMicroTrait,
+  getMicroTraitMeta,
+  getMicroTraitCell,
+  getMicroTraitMissing,
 } = collectionsApi.endpoints;
