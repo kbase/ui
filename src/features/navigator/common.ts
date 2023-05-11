@@ -1,10 +1,39 @@
-import { Cell, NarrativeDoc } from '../../common/types/NarrativeDoc';
+import { Cell } from '../../common/types/NarrativeDoc';
 import { generatePathWithSearchParams } from '../../features/params/paramsSlice';
-import { MockParams } from 'jest-fetch-mock';
 
-export const narrativeSelectedPath = '/narratives/:id/:obj/:ver';
-export const narrativeSelectedPathWithCategory =
-  '/narratives/:category/:id/:obj/:ver';
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+export const emptyFunction = () => {};
+
+// Narrative and Navigator paths
+export const narrativeURL = (wsId: number | string) =>
+  `https://ci.kbase.us/narrative/${wsId}`;
+export const navigatorPath = '/narratives/:id/:obj/:ver';
+export const navigatorPathWithCategory = '/narratives/:category/:id/:obj/:ver';
+export const generateNavigatorPath = (parameters: {
+  categoryPath: CategoryString | '';
+  id: string;
+  obj: string;
+  ver: string;
+  extraParams?: Record<string, string>;
+}) => {
+  const { categoryPath, extraParams, id, obj, ver } = parameters;
+  if (categoryPath) {
+    return generatePathWithSearchParams(navigatorPathWithCategory, {
+      category: categoryPath,
+      id,
+      obj,
+      ver,
+      ...extraParams,
+    });
+  }
+  return generatePathWithSearchParams(navigatorPath, {
+    id,
+    obj,
+    ver,
+    ...extraParams,
+  });
+};
+
 // Types and typeguards
 export const navigatorParams = ['limit', 'search', 'sort', 'view'];
 export const searchParams = ['limit', 'search', 'sort'];
@@ -56,38 +85,3 @@ export const corruptNarrativeError = (
     narrative,
   });
 };
-
-export const narrativePath = (parameters: {
-  categoryPath: CategoryString | null;
-  id: string;
-  obj: string;
-  ver: string;
-  extraParams?: Record<string, string>;
-}) => {
-  const { categoryPath, extraParams, id, obj, ver } = parameters;
-  if (categoryPath) {
-    return generatePathWithSearchParams(narrativeSelectedPathWithCategory, {
-      category: categoryPath,
-      id,
-      obj,
-      ver,
-      ...extraParams,
-    });
-  }
-  return generatePathWithSearchParams(narrativeSelectedPath, {
-    id,
-    obj,
-    ver,
-    ...extraParams,
-  });
-};
-
-export const testResponseOKFactory = (
-  narrativeDoc: NarrativeDoc
-): [string, MockParams] => [
-  JSON.stringify({
-    jsonrpc: '2.0',
-    result: [{ data: [{ data: narrativeDoc }] }],
-  }),
-  { status: 200 },
-];

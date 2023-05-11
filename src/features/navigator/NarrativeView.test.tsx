@@ -8,11 +8,12 @@ import { Provider } from 'react-redux';
 import { MemoryRouter as Router } from 'react-router-dom';
 import { createTestStore } from '../../app/store';
 import { NarrativePreviewTemplate } from '../../stories/components/NarrativePreview.stories';
-import { testResponseOKFactory } from './common';
+import { emptyFunction } from './common';
 import {
   initialTestState,
   testNarrativeDoc,
   testNarrativeDocsLookup,
+  testResponseOKFactory,
 } from './fixtures';
 import NarrativeView, {
   noPreviewMessage,
@@ -36,15 +37,13 @@ const testResponseError: [string, MockParams] = [
   { status: 500 },
 ];
 
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-const emptyFunc = () => {};
 // NOTE: In this suite we supresses console error, log and warn calls.
 const consoleError = jest.spyOn(console, 'error');
 const consoleLog = jest.spyOn(console, 'log');
 const consoleWarn = jest.spyOn(console, 'warn');
-consoleError.mockImplementation(emptyFunc);
-consoleLog.mockImplementation(emptyFunc);
-consoleWarn.mockImplementation(emptyFunc);
+consoleError.mockImplementation(emptyFunction);
+consoleLog.mockImplementation(emptyFunction);
+consoleWarn.mockImplementation(emptyFunction);
 
 describe('The <NarrativeView /> component...', () => {
   beforeAll(() => {

@@ -13,7 +13,6 @@ interface NarrativeListProps {
   narrativeUPA: string | null;
   nextLimit: string;
   showVersionDropdown: boolean;
-  onLoadMoreItems?: () => void;
   sort?: string; // do we need it
 }
 
@@ -22,8 +21,9 @@ export interface SelectItemEvent {
   idx: number;
 }
 function NarrativeList(props: NarrativeListProps) {
-  if (!props.items.length) {
-    if (props.loading) {
+  const { items, loading, narrativeUPA, showVersionDropdown } = props;
+  if (!items.length) {
+    if (loading) {
       return (
         <div className={classes.narrative_list_loading_outer}>
           <div className={classes.narrative_list_loading_inner}>
@@ -46,14 +46,8 @@ function NarrativeList(props: NarrativeListProps) {
     );
   }
 
-  function hasMoreButton() {
-    const {
-      itemsRemaining,
-      hasMoreItems,
-      loading,
-      onLoadMoreItems,
-      nextLimit,
-    } = props;
+  const hasMore = () => {
+    const { itemsRemaining, hasMoreItems, loading, nextLimit } = props;
     if (!hasMoreItems) {
       return <span className={classes.list_footer}>No more results.</span>;
     }
@@ -72,30 +66,29 @@ function NarrativeList(props: NarrativeListProps) {
     return (
       <Link
         className={`${classes.list_footer} ${classes.link_action}`}
-        onClick={onLoadMoreItems}
         to={nextLimit}
       >
         Load more ({itemsRemaining} remaining)
       </Link>
     );
-  }
+  };
 
   return (
     <>
-      {props.items.map((item, idx) => {
+      {items.map((item, idx) => {
+        const selected = Boolean(
+          narrativeUPA && narrativeUPA.startsWith(`${item.access_group}/`)
+        );
         return (
           <NarrativeViewItem
             idx={idx}
-            item={item}
+            narrativeDoc={item}
             key={idx}
-            onUpaChange={
-              (upa) => console.log(upa) /* eslint-disable-line no-console */
-            }
-            showVersionDropdown={props.showVersionDropdown}
+            showVersionDropdown={showVersionDropdown && selected}
           />
         );
       })}
-      {hasMoreButton()}
+      {hasMore()}
     </>
   );
 }

@@ -21,8 +21,8 @@ import {
   Sort,
   isCategoryString,
   isSortString,
-  narrativeSelectedPath,
-  narrativeSelectedPathWithCategory,
+  navigatorPath,
+  navigatorPathWithCategory,
   searchParams,
 } from './common';
 import { useNarratives } from './hooks';
@@ -248,5 +248,5 @@ const Navigator: FC = () => {
   );
 };
 
-export { narrativeSelectedPath, narrativeSelectedPathWithCategory };
+export { navigatorPath, navigatorPathWithCategory };
 export default Navigator;

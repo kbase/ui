@@ -6,20 +6,18 @@ import { useAppSelector } from '../../../common/hooks';
 import { Dropdown } from '../../../common/components/Dropdown';
 import { SelectOption } from '../../../common/components/Select';
 import { getParams } from '../../../features/params/paramsSlice';
-import { narrativePath, navigatorParams } from '../common';
+import { generateNavigatorPath, navigatorParams } from '../common';
 import { categorySelected, navigatorSelected } from '../navigatorSlice';
 import classes from './NarrativeList.module.scss';
 
 type NarrativeItemDropdownProps = {
   narrative: string;
-  onVersionSelect: (e: number) => void;
   version: number;
   visible: boolean;
 };
 
 const NarrativeItemDropdown: FC<NarrativeItemDropdownProps> = ({
   narrative,
-  onVersionSelect,
   version,
   visible,
 }) => {
@@ -36,12 +34,12 @@ const NarrativeItemDropdown: FC<NarrativeItemDropdownProps> = ({
   if (!visible) {
     return <div className={classes.dropdown_wrapper}></div>;
   }
+  const categoryPath = categorySet !== 'own' ? categorySet : '';
   const navigatorParamsCurrent = Object.fromEntries(
     navigatorParams.map((param) => [param, europaParams[param]])
   );
   const versionPath = (version: number) => {
-    const categoryPath = categorySet !== 'own' ? categorySet : null;
-    return narrativePath({
+    return generateNavigatorPath({
       id,
       obj,
       categoryPath,
@@ -82,7 +80,6 @@ const NarrativeItemDropdown: FC<NarrativeItemDropdownProps> = ({
   const handleDropdownChange = (event: SelectOption[]) => {
     const versionSelected = +event[0].value;
     const path = versionPath(versionSelected);
-    onVersionSelect(versionSelected);
     navigate(path);
   };
   return (

@@ -11,8 +11,7 @@ import fetchMock, {
 } from 'jest-fetch-mock';
 import { NarrativeMetadataTemplate } from '../../stories/components/NarrativeMetadata.stories';
 import { usernameRequested, usernameOtherRequested } from '../common';
-import { testResponseOKFactory } from './common';
-import { testNarrativeDoc } from './fixtures';
+import { testNarrativeDoc, testResponseOKFactory } from './fixtures';
 import classes from './Navigator.module.scss';
 
 const consoleError = jest.spyOn(console, 'error');

@@ -1,4 +1,4 @@
-import { screen, render, getByTestId, fireEvent } from '@testing-library/react';
+import { screen, render } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { MemoryRouter as Router } from 'react-router-dom';
 import { GroupBase } from 'react-select';
@@ -48,13 +48,11 @@ jest.mock('../../../common/components/Dropdown', () => ({
 }));
 
 test('NarrativeItemDropdown renders', async () => {
-  const versionSelectSpy = jest.fn();
   const { container } = render(
     <Provider store={createTestStore()}>
       <Router>
         <NarrativeItemDropdown
           narrative={'1/2/400'}
-          onVersionSelect={versionSelectSpy}
           version={400}
           visible={true}
         />
@@ -71,7 +69,6 @@ test('NarrativeItemDropdown populates right number of versions', () => {
       <Router>
         <NarrativeItemDropdown
           narrative={'1/2/123'}
-          onVersionSelect={jest.fn()}
           version={123}
           visible={true}
         />
@@ -83,24 +80,4 @@ test('NarrativeItemDropdown populates right number of versions', () => {
   expect(select.querySelectorAll('option')).toHaveLength(123);
 
   expect(container).toBeTruthy();
-});
-
-test('NarrativeItemDropdown calls onVersionSelect', () => {
-  const versionSelectSpy = jest.fn();
-  const { container } = render(
-    <Provider store={createTestStore()}>
-      <Router>
-        <NarrativeItemDropdown
-          narrative={'1/2/42'}
-          onVersionSelect={versionSelectSpy}
-          version={42}
-          visible={true}
-        />
-      </Router>
-    </Provider>
-  );
-  fireEvent.click(getByTestId(container, '34'));
-  // callback should be numeric version
-  expect(versionSelectSpy).toHaveBeenCalledWith(34);
-  expect(versionSelectSpy).toHaveBeenCalledTimes(1);
 });
