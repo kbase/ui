@@ -13,7 +13,6 @@ import { Link } from 'react-router-dom';
 import { marked } from 'marked';
 import { Card, CardList } from '../../common/components/Card';
 import DataView from '../../common/components/DataView';
-import { PlaceholderFactory } from '../../common/components/PlaceholderFactory';
 import { useAppSelector } from '../../common/hooks';
 import {
   Cell,
@@ -35,6 +34,7 @@ import NarrativeViewItem from './NarrativeList/NarrativeViewItem';
 import { corruptCellError, narrativeURL, searchParams } from './common';
 import { useCells } from './hooks';
 import { cellsLoaded, narrativeDocsLookup, wsObjects } from './navigatorSlice';
+import NarrativeControl from './NarrativeControl';
 import NarrativeMetadata from './NarrativeMetadata';
 import classes from './Navigator.module.scss';
 
@@ -43,8 +43,6 @@ const sanitize = (markdown: string) =>
   DOMPurify.sanitize(marked(markdown), {
     ALLOWED_TAGS: [],
   });
-
-const NarrativeControlMenu = PlaceholderFactory('NarrativeVersionControlMenu');
 
 const NarrativeVersionSelection: FC<{ narrativeDoc: NarrativeDoc }> = ({
   narrativeDoc,
@@ -266,7 +264,7 @@ const NarrativeView: FC<{
           <div>
             <div className={classes.control}>
               <NarrativeVersionSelection narrativeDoc={narrativeDocFound} />
-              <NarrativeControlMenu />
+              <NarrativeControl narrativeDoc={narrativeDocFound} />
             </div>
             <NarrativeMetadata cells={cells} narrativeDoc={narrativeDocFound} />
             <NarrativeViewTabs view={view} />
