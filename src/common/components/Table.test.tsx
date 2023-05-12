@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import classes from './Table.module.scss';
 import { Table, useTableColumns } from './Table';
 import * as Stories from '../../stories/components/Table.stories';
@@ -195,28 +195,36 @@ describe('Table', () => {
     ]);
     // Click first header
     // these sort as strings not numbers
-    fireEvent.click(headers[0]);
+    act(() => {
+      fireEvent.click(headers[0]);
+    });
     expect(getRenderedTable()).toEqual([
       ['1', '6', '7', '8'],
       ['10', '3', '12', 'foo'],
       ['5', '2', '11', '4'],
     ]);
     // Click first header
-    fireEvent.click(headers[0]);
+    act(() => {
+      fireEvent.click(headers[0]);
+    });
     expect(getRenderedTable()).toEqual([
       ['5', '2', '11', '4'],
       ['10', '3', '12', 'foo'],
       ['1', '6', '7', '8'],
     ]);
     // Click fourth header
-    fireEvent.click(headers[3]);
+    act(() => {
+      fireEvent.click(headers[3]);
+    });
     expect(getRenderedTable()).toEqual([
       ['5', '2', '11', '4'],
       ['1', '6', '7', '8'],
       ['10', '3', '12', 'foo'],
     ]);
     // Click fourth header
-    fireEvent.click(headers[3]);
+    act(() => {
+      fireEvent.click(headers[3]);
+    });
     expect(getRenderedTable()).toEqual([
       ['10', '3', '12', 'foo'],
       ['1', '6', '7', '8'],
@@ -247,30 +255,46 @@ describe('Table', () => {
     expect(currentPageButton()?.textContent).toBe('1');
 
     // Next
-    nextButton().click();
+    act(() => {
+      nextButton().click();
+    });
     expect(currentPageButton()?.textContent).toBe('2');
-    nextButton().click();
+    act(() => {
+      nextButton().click();
+    });
     expect(currentPageButton()?.textContent).toBe('3');
 
     // Prev
-    prevButton().click();
+    act(() => {
+      prevButton().click();
+    });
     expect(currentPageButton()?.textContent).toBe('2');
-    prevButton().click();
+    act(() => {
+      prevButton().click();
+    });
     expect(currentPageButton()?.textContent).toBe('1');
     // Prev should do nothing as we're on the first page
     expect(prevButton()).toBeDisabled();
-    prevButton().click();
+    act(() => {
+      prevButton().click();
+    });
     expect(currentPageButton()?.textContent).toBe('1');
 
     // Click the last visible page button
-    resetPagination();
+    act(() => {
+      resetPagination();
+    });
     expect(currentPageButton()?.textContent).toBe('1');
     const last = pageButtons()[pageButtons().length - 1];
-    last.click();
+    act(() => {
+      last.click();
+    });
     expect(currentPageButton()?.innerText).toBe(last.innerText);
     // Next should do nothing as we're on the last page
     expect(nextButton()).toBeDisabled();
-    nextButton().click();
+    act(() => {
+      nextButton().click();
+    });
     expect(currentPageButton()?.innerText).toBe(last.innerText);
   });
 
@@ -310,7 +334,9 @@ test('row selection behaves as expected', () => {
     ) as HTMLInputElement[];
   expect(allBox()).toBeInTheDocument();
   expect(rowBoxes().length).toBe(10);
-  allBox().click();
+  act(() => {
+    allBox().click();
+  });
   expect(selectionSpy).toHaveBeenLastCalledWith([
     '0',
     '1',
@@ -323,7 +349,9 @@ test('row selection behaves as expected', () => {
     '8',
     '9',
   ]);
-  rowBoxes()[7].click();
+  act(() => {
+    rowBoxes()[7].click();
+  });
   expect(selectionSpy).toHaveBeenLastCalledWith([
     '0',
     '1',
@@ -335,11 +363,15 @@ test('row selection behaves as expected', () => {
     '8',
     '9',
   ]);
-  allBox().click();
-  allBox().click();
+  act(() => {
+    allBox().click();
+    allBox().click();
+  });
   expect(selectionSpy).toHaveBeenLastCalledWith([]);
-  rowBoxes()[1].click();
-  rowBoxes()[3].click();
+  act(() => {
+    rowBoxes()[1].click();
+    rowBoxes()[3].click();
+  });
   expect(selectionSpy).toHaveBeenLastCalledWith(['1', '3']);
 });
 

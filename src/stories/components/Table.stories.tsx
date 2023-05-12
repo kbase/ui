@@ -190,7 +190,9 @@ export const PageSize = () => {
 
   // Sets tanstack/table page size without controlling pagination,
   // see PaginatedWithQueriedData story for controlled behavior
-  useEffect(() => table.setPageSize(6), [table]);
+  useEffect(() => {
+    return table.setPageSize(6);
+  }, [table]);
 
   return <Table table={table} />;
 };

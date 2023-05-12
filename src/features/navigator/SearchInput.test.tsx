@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { MemoryRouter as Router } from 'react-router-dom';
@@ -29,7 +29,9 @@ test('SearchChangeHandler is called', async () => {
   const inputElement = screen.getByLabelText('Input', {
     exact: false,
   });
-  await userEvent.type(inputElement, 'taco');
+  await act(async () => {
+    await userEvent.type(inputElement, 'taco');
+  });
 });
 
 test('SearchChangeHandler is called and unsets query parameter', async () => {
@@ -44,5 +46,7 @@ test('SearchChangeHandler is called and unsets query parameter', async () => {
   const inputElement = screen.getByLabelText('Input', {
     exact: false,
   });
-  await userEvent.type(inputElement, '[Backspace]taco');
+  await act(async () => {
+    await userEvent.type(inputElement, '[Backspace]taco');
+  });
 });

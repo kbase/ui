@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { MemoryRouter as Router } from 'react-router-dom';
@@ -28,7 +28,11 @@ test('SortSelectOnChange is called ', async () => {
   expect(container).toBeTruthy();
   const selectControl = container.querySelector('.react-select__control');
   expect(selectControl).toBeInTheDocument();
-  selectControl && (await userEvent.click(selectControl));
+  await act(async () => {
+    selectControl && (await userEvent.click(selectControl));
+  });
   const opt = await screen.findByText('Reverse', { exact: false });
-  opt && (await userEvent.click(opt));
+  await act(async () => {
+    opt && (await userEvent.click(opt));
+  });
 });

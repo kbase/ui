@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import App from './App';
 
 import { Provider } from 'react-redux';
@@ -22,7 +22,9 @@ test('Auth page link works', async () => {
     </Provider>
   );
   const linkElement = screen.getByText(/Auth/i);
-  linkElement.click();
+  act(() => {
+    linkElement.click();
+  });
   const LoginStatusText = await screen.findByText(/You are not logged in/);
   expect(LoginStatusText).toBeInTheDocument();
 });
