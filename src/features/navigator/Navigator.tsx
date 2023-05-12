@@ -35,10 +35,10 @@ import {
 } from './navigatorSlice';
 import NarrativeList from './NarrativeList/NarrativeList';
 import NarrativeView from './NarrativeView';
-import classes from './Navigator.module.scss';
 import RefreshButton from './RefreshButton';
 import SearchInput from './SearchInput';
 import SortSelect from './SortSelect';
+import classes from './Navigator.module.scss';
 
 const NarrativeNewButton: FC = () => (
   <a href="/#narrativemanager/new" rel="noopener noreferrer" target="_blank">
