@@ -9,6 +9,8 @@ import { snakeCaseToHumanReadable } from '../../common/utils/stringUtils';
 import { MatchPane } from './MatchPane';
 import { SelectionPane } from './SelectionPane';
 import { ExportPane } from './ExportPane';
+import { useMicrotrait } from './hooks'; /*temp*/
+import { Table } from '../../common/components/Table'; /*temp*/
 
 export const detailPath = ':id';
 export const detailDataProductPath = ':id/:data_product';
@@ -45,6 +47,8 @@ export const CollectionDetail = () => {
     location.search,
   ]);
 
+  const mt = useMicrotrait(collection?.id); /*temp*/
+
   if (!collection) return <>loading...</>;
   return (
     <div className={styles['collection_wrapper']}>
@@ -69,6 +73,7 @@ export const CollectionDetail = () => {
         </ul>
       </div>
       <div className={styles['collection_detail']}>
+        <Table table={mt.table} /> {/*temp*/}
         <MatchPane collectionId={collection.id} />
         <SelectionPane collectionId={collection.id} />
         <ExportPane collectionId={collection.id} />
