@@ -20,6 +20,7 @@ export type OptionsArray = OptionsOrGroups<
 >;
 
 export interface SelectProps {
+  children?: React.ReactNode;
   /** Sets a className attribute on the outer component */
   className?: string;
   /** If true, adds a clickable icon for clearing the select */

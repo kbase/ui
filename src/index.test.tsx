@@ -1,11 +1,9 @@
-import ReactDOM from 'react-dom';
-import * as Europa from '.';
-
-jest.mock('react-dom');
+import { render } from '@testing-library/react';
+import Root from '.';
 
 describe('Europa...', () => {
   test('exists.', () => {
-    expect(Europa).toBeTruthy();
-    expect(ReactDOM.render).toBeCalled();
+    const { container } = render(<Root />);
+    expect(container).toBeTruthy();
   });
 });
