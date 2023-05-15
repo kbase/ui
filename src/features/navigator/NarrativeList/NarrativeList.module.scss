@@ -1,32 +1,7 @@
-.narrative_item_outer {
-  border-bottom: 1px solid #ccc;
-  display: block;
-  padding-left: 1rem;
-  padding-right: 1rem;
-
-  &.active {
-    background: #cdecff;
-  }
-
-  &.inactive {
-    background: transparent;
-  }
-
-  &:hover:not(.active):not(.dropdown_wrapper) {
-    background: #eee;
-    transition: background 0.15s ease-in;
-  }
-}
-
-.narrative_list_loading_outer {
-  color: rgba(0, 0, 0, 0.5);
-  text-align: center;
-  width: 100%;
-}
-
-.narrative_list_loading_inner {
-  padding-bottom: 4rem;
-  padding-top: 4rem;
+.dropdown_wrapper {
+  display: flex;
+  justify-content: right;
+  width: 100px;
 }
 
 .list_footer {
@@ -48,15 +23,20 @@
   }
 }
 
+.narrative_item {
+  color: rgba(0, 0, 0, 0.7);
+  text-decoration: none;
+}
+
+.narrative_item_details {
+  color: #666;
+  font-size: 0.8rem;
+}
+
 .narrative_item_inner {
   padding-bottom: 1rem;
   padding-right: 1rem;
   padding-top: 1rem;
-}
-
-.narrative_item {
-  color: rgba(0, 0, 0, 0.7);
-  text-decoration: none;
 }
 
 .narrative_item_text {
@@ -68,15 +48,46 @@
   padding: 0;
 }
 
-.dropdown_wrapper {
-  display: flex;
-  justify-content: right;
-  width: 100px;
+.narrative_item_outer {
+  border-bottom: 1px solid #ccc;
+  display: block;
+  padding-left: 1rem;
+  padding-right: 1rem;
+
+  &.active {
+    background: #cdecff;
+  }
+
+  &.inactive {
+    background: transparent;
+  }
+
+  &:hover:not(.active):not(.dropdown_wrapper) {
+    background: #eee;
+    transition: background 0.15s ease-in;
+  }
 }
 
-.narrative_item_details {
-  color: #666;
-  font-size: 0.8rem;
+.narrative_list_loading_inner {
+  padding-bottom: 4rem;
+  padding-top: 4rem;
+}
+
+.narrative_list_loading_outer {
+  color: rgba(0, 0, 0, 0.5);
+  text-align: center;
+  width: 100%;
+}
+
+.title {
+  align-items: center;
+  display: flex;
+}
+
+.title .narrative_item_inner::before {
+  content: "\f08e";
+  // content: $fa-font-path;
+  font: normal 900 1em/1 "Font Awesome 6 Solid";
 }
 
 .version_dropdown {
