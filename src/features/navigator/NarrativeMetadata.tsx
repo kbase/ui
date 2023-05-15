@@ -138,14 +138,12 @@ const NarrativeMetadata: NarrativeMetadataType = ({ cells, narrativeDoc }) => {
           </ul>
         </div>
         <div className={classes.column}>
-          <div className={classes.column}>
-            <ul>
-              <li>Total cells: {cells.length}</li>
-              <li>App cells: {cellTypeCounts.kbase_app}</li>
-              <li>Markdown cells: {cellTypeCounts.markdown}</li>
-              <li>Code cells: {cellTypeCounts.code_cell}</li>
-            </ul>
-          </div>
+          <ul>
+            <li>Total cells: {cells.length}</li>
+            <li>App cells: {cellTypeCounts.kbase_app}</li>
+            <li>Markdown cells: {cellTypeCounts.markdown}</li>
+            <li>Code cells: {cellTypeCounts.code_cell}</li>
+          </ul>
         </div>
       </div>
       <div>

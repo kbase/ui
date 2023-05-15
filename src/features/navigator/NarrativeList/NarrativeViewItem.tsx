@@ -1,3 +1,5 @@
+import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
+import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
 import { FC } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import * as timeago from 'timeago.js';
@@ -62,8 +64,10 @@ const NarrativeViewItem: FC<NarrativeViewItemProps> = ({
   const path = linkToNarrative
     ? narrativeURL(wsId)
     : narrativeViewItemPath(pathVersion);
+  const titleClass = linkToNarrative ? classes.title : '';
   return (
-    <section key={idx}>
+    <section className={titleClass} key={idx}>
+      {linkToNarrative ? <FAIcon icon={faArrowUpRightFromSquare} /> : <></>}
       <Link
         to={path}
         className={`${classes.narrative_item_outer} ${classes[status]}`}
