@@ -84,12 +84,6 @@
   display: flex;
 }
 
-.title .narrative_item_inner::before {
-  content: "\f08e";
-  // content: $fa-font-path;
-  font: normal 900 1em/1 "Font Awesome 6 Solid";
-}
-
 .version_dropdown {
   a {
     height: 100%;
