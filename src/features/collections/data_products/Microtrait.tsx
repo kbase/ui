@@ -10,6 +10,7 @@ import {
   getMicroTrait,
   getMicroTraitCell,
   getMicroTraitMeta,
+  HeatMapCell,
 } from '../../../common/api/collectionsApi';
 import { useBackoffPolling } from '../../../common/hooks';
 import { useAppParam } from '../../params/hooks';
@@ -21,13 +22,20 @@ export const Microtrait: FC<{
 }> = ({ collection_id }) => {
   const { table } = useMicrotrait(collection_id);
 
+  const [hoverCell, setHoverCell] = useState<HeatMapCell | undefined>(
+    undefined
+  );
+  const [hoverRow, setHoverRow] = useState<string>('');
   let canvasTitle = ''; // Using the html title as a dynamic tooltip for now
-  const [triggerCellQuery, cellQuery] = getMicroTraitCell.useLazyQuery();
+  const cellQuery = getMicroTraitCell.useQuery(
+    { collection_id, cell_id: hoverCell?.cell_id || '' },
+    { skip: !hoverCell }
+  );
   if (cellQuery.currentData) {
     const values = cellQuery.currentData.values
       .map(({ id, val }) => `  - ${id}:${val}`)
       .join('\n');
-    canvasTitle = `Cell:${cellQuery.currentData.cell_id}\n${values}`;
+    canvasTitle = `Cell:${hoverRow},${hoverCell?.col_id}\nValue:${hoverCell?.val}\n${values}`;
   }
 
   return (
@@ -37,9 +45,10 @@ export const Microtrait: FC<{
           table={table}
           rowNameAccessor={(row) => row.kbase_id}
           title={canvasTitle}
-          onCellHover={({ cell_id }) =>
-            triggerCellQuery({ collection_id, cell_id })
-          }
+          onCellHover={(cell, row) => {
+            setHoverCell(cell);
+            setHoverRow(row);
+          }}
         />
       </div>
     </div>

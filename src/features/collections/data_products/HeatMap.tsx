@@ -5,7 +5,7 @@ import {
   HeatMapColumn,
   HeatMapRow,
 } from '../../../common/api/collectionsApi';
-import classes from './Microtrait.module.scss';
+import classes from './HeatMap.module.scss';
 
 /**
  * Generic Collections HeatMap viz, accepts a table with cell values of 0-1
@@ -18,7 +18,7 @@ export const HeatMap = ({
 }: {
   table: Table<HeatMapRow>;
   rowNameAccessor: (row: HeatMapRow, index: number) => string;
-  onCellHover: (cell: HeatMapCell, x: number, y: number) => void;
+  onCellHover: (cell: HeatMapCell, row: string, x: number, y: number) => void;
   title: string;
 }) => {
   const rows = table.getRowModel().rows;
@@ -28,6 +28,9 @@ export const HeatMap = ({
 
   const width = columnHeaders.length;
   const height = rows.length;
+
+  const hasSomeSelected = rows.some((row) => row.original.sel);
+  const hasSomeMatched = rows.some((row) => row.original.match);
 
   if (
     rows[0] &&
@@ -70,23 +73,23 @@ export const HeatMap = ({
             return (
               <div className={classes['label-wrapper']} key={header.id}>
                 <div
+                  title={colType}
+                  className={[
+                    classes['label-indicator'],
+                    classes[
+                      colType === 'count'
+                        ? 'label-indicator--info-dark'
+                        : 'label-indicator--warning-dark'
+                    ],
+                  ].join(' ')}
+                />
+                <div
                   className={classes['label']}
                   title={flexRender(
                     header.column.columnDef.header,
                     header.getContext()
                   )?.toString()}
                 >
-                  <div
-                    title={colType}
-                    className={[
-                      classes['indicator'],
-                      classes[
-                        colType === 'count'
-                          ? 'indicator--info-dark'
-                          : 'indicator--warning-dark'
-                      ],
-                    ].join(' ')}
-                  />
                   {flexRender(
                     header.column.columnDef.header,
                     header.getContext()
@@ -104,21 +107,31 @@ export const HeatMap = ({
                 title={rowNameAccessor(row.original, index)}
               >
                 {rowNameAccessor(row.original, index)}
+              </div>
+              {hasSomeSelected ? (
                 <div
                   className={[
-                    classes['indicator'],
-                    row.original.match ? classes['indicator--accent-warm'] : '',
-                  ].join(' ')}
-                  title={row.original.match ? 'Matched' : ''}
-                />
-                <div
-                  className={[
-                    classes['indicator'],
-                    row.original.sel ? classes['indicator--primary'] : '',
+                    classes['label-indicator'],
+                    row.original.sel ? classes['label-indicator--primary'] : '',
                   ].join(' ')}
                   title={row.original.sel ? 'Selected' : ''}
                 />
-              </div>
+              ) : (
+                <></>
+              )}
+              {hasSomeMatched ? (
+                <div
+                  className={[
+                    classes['label-indicator'],
+                    row.original.match
+                      ? classes['label-indicator--accent-warm']
+                      : '',
+                  ].join(' ')}
+                  title={row.original.match ? 'Matched' : ''}
+                />
+              ) : (
+                <></>
+              )}
             </div>
           ))}
         </div>
@@ -138,6 +151,7 @@ export const HeatMap = ({
               );
               onCellHover(
                 rows[y].original.cells[x],
+                rows[y].original.kbase_id,
                 e.clientX - canvas.x,
                 e.clientY - canvas.y
               );
@@ -148,11 +162,11 @@ export const HeatMap = ({
     </>
   );
 };
-const _normCol = (val: number, c: number) => (255 - c) * val + c;
+const _normCol = (val: number, c: number) => (255 - c) * (1 - val) + c;
 const normValToRGBA = (val: number): Uint8Array =>
   new Uint8Array([
-    _normCol(val, 2),
-    _normCol(val, 109),
-    _normCol(val, 170),
+    _normCol(val, 182),
+    _normCol(val, 21),
+    _normCol(val, 28),
     255,
   ]);
