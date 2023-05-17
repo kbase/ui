@@ -1,7 +1,9 @@
-import { FC } from 'react';
+import { FC, useContext } from 'react';
 import { useParams } from 'react-router-dom';
+import { ModalContext } from '../../app/App';
 import { Button, Dropdown } from '../../common/components';
 import { NarrativeDoc } from '../../common/types/NarrativeDoc';
+import appClasses from '../../app/App.module.scss';
 import classes from './NarrativeControl.module.scss';
 
 interface ControlProps {
@@ -25,9 +27,13 @@ const deleteDialogToggle = () => {
     return dialog.close();
   }
   console.log({ dialog }); // eslint-disable-line no-console
-  return dialog.showModal();
+  dialog.close();
+  dialog.showModal();
 };
 
+/* TODO: It seems DeleteDialog is working but the ModalContext is not... why?
+    rerendering?
+ */
 const DeleteDialog: FC = () => {
   const closeHandler = () => {
     const dialog = getDeleteDialog();
@@ -44,8 +50,19 @@ const DeleteDialog: FC = () => {
   // return <div onClick={clickHandler}>Delete {dialog} </div>;
 };
 
+const modalToggle = () => {
+  // const dialog = getModal();
+  const dialog: HTMLDialogElement | null = document.querySelector(
+    `.${appClasses['kbase-modal']}`
+  );
+  console.log('modalToggle', { dialog }); // eslint-disable-line no-console
+  if (!dialog || !dialog.close) return;
+  dialog.close();
+  dialog.showModal();
+};
+
 const controlLatestOptions = [
-  <li>Manage Sharing</li>,
+  <div onClick={modalToggle}>Manage Sharing</div>,
   <li>Copy this Narrative</li>,
   <li>Rename</li>,
   <li>Link to Organization</li>,
@@ -57,13 +74,22 @@ const controlLatestOptions = [
 }));
 
 const ControlLatest: FC<ControlProps> = ({ narrativeDoc }) => {
+  const { modalContents, setModalContents } = useContext(ModalContext);
   return (
     <>
       <Dropdown
         horizontalMenuAlign={'right'}
         options={[{ options: controlLatestOptions }]}
         onChange={(opt) => {
-          console.log({ opt }); // eslint-disable-line no-console
+          setModalContents(<span>Some content! {opt[0].label}</span>);
+          const dialog: HTMLDialogElement | null = document.querySelector(
+            `.${appClasses['kbase-modal']}`
+          );
+          console.log('modalToggle', { dialog }); // eslint-disable-line no-console
+          if (!dialog || !dialog.close) return;
+          dialog.close();
+          dialog.showModal();
+          console.log({ modalContents, opt }); // eslint-disable-line no-console
         }}
       >
         <div>Latest</div>
