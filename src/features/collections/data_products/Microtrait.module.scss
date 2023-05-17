@@ -35,7 +35,7 @@
   }
 
   .columns {
-    align-items: end;
+    align-items: flex-end;
     display: flex;
     flex-direction: row;
     grid-area: top / leftMargin / topMargin / right;
@@ -48,7 +48,7 @@
   }
 
   .rows {
-    align-items: end;
+    align-items: flex-end;
     display: flex;
     flex-direction: column;
     grid-area: topMargin / left / bottom / leftMargin;
