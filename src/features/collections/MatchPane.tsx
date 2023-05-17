@@ -10,7 +10,11 @@ import { listObjects } from '../../common/api/workspaceApi';
 import { getNarratives } from '../../common/api/searchApi';
 import { parseError } from '../../common/api/utils/parseError';
 import { useAppParam, useUpdateAppParams } from '../params/hooks';
-import { useAppDispatch, useAppSelector, useBackoff } from '../../common/hooks';
+import {
+  useAppDispatch,
+  useAppSelector,
+  useBackoffPolling,
+} from '../../common/hooks';
 import { setUserSelection } from './collectionsSlice';
 import { store } from '../../app/store';
 import { useParamsForNarrativeDropdown } from './hooks';
@@ -34,7 +38,13 @@ const ViewMatch = () => {
     (state) => state.collections.currentSelection.length
   );
 
-  const matchQuery = usePollMatch(matchId);
+  const matchQuery = getMatch.useQuery(matchId || '', {
+    skip: !matchId,
+  });
+  useBackoffPolling(
+    matchQuery,
+    (result) => !!(result.error || result.data?.state !== 'processing')
+  );
   const match = matchQuery.data;
 
   const matchCount = match?.state === 'complete' ? match.matches.length : 0;
@@ -253,31 +263,4 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
       <code>{matchErr}</code>
     </div>
   );
-};
-
-const usePollMatch = (matchId: string | undefined) => {
-  const backoff = useBackoff();
-  useEffect(() => {
-    backoff.reset();
-    backoff.toggle(!!matchId);
-  }, [matchId, backoff]);
-
-  const getMatchQuery = getMatch.useQuery(matchId || '', {
-    skip: !matchId,
-    pollingInterval: backoff.duration,
-  });
-
-  useEffect(
-    () => backoff.increment(),
-    [getMatchQuery.startedTimeStamp, backoff]
-  );
-
-  const pollDone =
-    getMatchQuery.error || getMatchQuery.data?.state !== 'processing';
-
-  useEffect(() => {
-    backoff.toggle(!pollDone);
-  }, [backoff, pollDone]);
-
-  return getMatchQuery;
 };

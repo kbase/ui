@@ -1,7 +1,11 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { useEffect } from 'react';
 import { createSelection, getSelection } from '../../common/api/collectionsApi';
-import { useAppDispatch, useAppSelector, useBackoff } from '../../common/hooks';
+import {
+  useAppDispatch,
+  useAppSelector,
+  useBackoffPolling,
+} from '../../common/hooks';
 
 interface CollectionState {
   currentSelection: string[];
@@ -87,32 +91,22 @@ export const useSelectionId = (
 
   const shouldSkipValidation = skip || !_pendingSelectionId;
 
-  // Poll for completed selection
-  const backoff = useBackoff();
-  useEffect(() => {
-    backoff.reset();
-    backoff.toggle(!shouldSkipValidation);
-  }, [shouldSkipValidation, backoff]);
-
   const getMatchQuery = getSelection.useQuery(
     { selection_id: _pendingSelectionId || '' },
     {
       skip: shouldSkipValidation,
-      pollingInterval: backoff.duration,
     }
   );
-
-  useEffect(
-    () => backoff.increment(),
-    [getMatchQuery.startedTimeStamp, backoff]
-  );
+  useBackoffPolling(getMatchQuery, (result) => {
+    if (result.data?.state === 'processing') return true;
+    return false;
+  });
 
   const pollDone =
     getMatchQuery.error || getMatchQuery.data?.state !== 'processing';
 
   useEffect(() => {
     if (pollDone) {
-      backoff.toggle(false);
       dispatch(setPendingSelectionId(undefined));
       if (getMatchQuery.data && getMatchQuery.data.state === 'complete') {
         if (
@@ -131,7 +125,6 @@ export const useSelectionId = (
       }
     }
   }, [
-    backoff,
     currentSelection,
     dispatch,
     getMatchQuery.data,
