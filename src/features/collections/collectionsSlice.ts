@@ -114,14 +114,6 @@ export const useSelectionId = (
         ) {
           dispatch(setSelectionId(getMatchQuery.data.selection_id));
         }
-      } else {
-        // eslint-disable-next-line no-console
-        console.error(
-          'Error creating selection',
-          getMatchQuery.error,
-          getMatchQuery.data
-        );
-        dispatch(setSelectionId(undefined));
       }
     }
   }, [

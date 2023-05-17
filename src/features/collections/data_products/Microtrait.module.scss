@@ -6,9 +6,9 @@
 
   grid-template-columns: [left] auto [leftMargin] 1fr [right];
   grid-template-rows: [top] auto [topMargin] 1fr [bottom];
+  min-width: 100%;
   overflow-x: scroll;
   overflow-y: clip;
-  min-width: 100%;
 
   .indicator {
     display: inline-block;
@@ -25,6 +25,7 @@
 
   .label-wrapper {
     white-space: nowrap;
+
     .label {
       display: block;
       overflow: hidden;

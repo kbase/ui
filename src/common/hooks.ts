@@ -27,7 +27,7 @@ export const useBackoffPolling = <
   const shouldPollCallback = useRef<typeof pollCondition>(pollCondition);
   shouldPollCallback.current = pollCondition;
 
-  useEffect(() => setCount((c) => c + 1), [result.startedTimeStamp]);
+  useEffect(() => setCount((c) => c + 1), [result.fulfilledTimeStamp]);
   const shouldPoll = useCallback(() => {
     const should = !opts.skipPoll && shouldPollCallback.current(result, count);
     if (!should) setCount(0);
@@ -40,7 +40,7 @@ export const useBackoffPolling = <
       const now = Date.now();
       const duration = Math.max(
         0,
-        pollTime - now + (result.startedTimeStamp || now)
+        pollTime - now + (result.fulfilledTimeStamp || now)
       );
       const timeout = setTimeout(
         () => (shouldPoll() ? result.refetch() : undefined),
