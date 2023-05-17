@@ -91,13 +91,13 @@ interface CompleteSelection extends BaseSelection {
 
 type Selection = IncompleteSelection | CompleteSelection;
 
-interface HeatMapCell {
-  celid: string;
-  colid: HeatMapColumn['id'];
-  val: unknown;
+export interface HeatMapCell {
+  cell_id: string;
+  col_id: HeatMapColumn['col_id'];
+  val: number | boolean;
 }
 
-interface HeatMapRow {
+export interface HeatMapRow {
   match: boolean;
   sel: boolean;
   kbase_id: KBaseId;
@@ -109,11 +109,11 @@ interface HeatMapColumnCategory {
   columns: HeatMapColumn[];
 }
 
-interface HeatMapColumn {
-  id: string;
+export interface HeatMapColumn {
+  col_id: string;
   name: string;
   description: string;
-  type: 'float' | 'int' | 'string' | 'bool';
+  type: 'float' | 'int' | 'bool' | 'count';
 }
 
 interface ClientError {
@@ -223,8 +223,8 @@ interface CollectionsResults {
     max_value: number;
   };
   getMicroTraitCell: {
-    celid: string;
-    values: { id: string; value: number | boolean }[];
+    cell_id: string;
+    values: { id: string; val: number | boolean }[];
   };
   getMicroTraitMissing: {
     heatmap_match_state: ProcessState;
@@ -310,7 +310,7 @@ interface CollectionsParams {
   };
   getMicroTraitCell: {
     collection_id: Collection['id'];
-    cell_id: HeatMapCell['celid'];
+    cell_id: HeatMapCell['cell_id'];
     load_ver_override?: Collection['ver_tag'];
   };
   getMicroTraitMissing: {

@@ -1,0 +1,67 @@
+@import "../../../common/colors";
+
+.heatmap-wrapper {
+  display: grid;
+  font-size: 6px;
+
+  grid-template-columns: [left] auto [leftMargin] 1fr [right];
+  grid-template-rows: [top] auto [topMargin] 1fr [bottom];
+  overflow-x: scroll;
+  overflow-y: clip;
+  min-width: 100%;
+
+  .indicator {
+    display: inline-block;
+    height: 0.8em;
+    line-height: inherit;
+    margin: 1px;
+    width: 0.8em;
+    @each $color, $_ in $palette {
+      &--#{$color} {
+        background-color: use-color($color);
+      }
+    }
+  }
+
+  .label-wrapper {
+    white-space: nowrap;
+    .label {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .columns {
+    align-items: end;
+    display: flex;
+    flex-direction: row;
+    grid-area: top / leftMargin / topMargin / right;
+    justify-content: space-around;
+
+    .label {
+      writing-mode: sideways-lr;
+    }
+
+  }
+
+  .rows {
+    align-items: end;
+    display: flex;
+    flex-direction: column;
+    grid-area: topMargin / left / bottom / leftMargin;
+    justify-content: space-around;
+  }
+
+  .heatmap {
+    grid-area: topMargin / leftMargin / bottom / right;
+
+    canvas {
+      display: block;
+      height: 100%;
+      image-rendering: pixelated;
+      width: 100%;
+    }
+  }
+}
