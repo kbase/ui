@@ -2,7 +2,14 @@ import classes from './App.module.scss';
 
 import { BrowserRouter as Router } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../common/hooks';
-import { useEffect } from 'react';
+import {
+  Dispatch,
+  FC,
+  SetStateAction,
+  createContext,
+  useEffect,
+  useState,
+} from 'react';
 import { setEnvironment } from '../features/layout/layoutSlice';
 import {
   authInitialized,
@@ -36,26 +43,54 @@ const useInitApp = () => {
   return { isLoading: !initialized };
 };
 
+export const getModal = () => {
+  let dialog: HTMLDialogElement | null = document.querySelector(
+    `.${classes['kbase-modal']}`
+  );
+  // This should not happen, but if it does then we can recover.
+  if (!dialog) {
+    dialog = document.createElement('dialog');
+    document.body.appendChild(dialog);
+  }
+  return dialog;
+};
+
+const ModalContextDefault: {
+  modalContents: JSX.Element;
+  setModalContents: Dispatch<SetStateAction<JSX.Element>>;
+} = { modalContents: <></>, setModalContents: () => ({}) };
+
+export const ModalContext = createContext(ModalContextDefault);
+
 export default function App() {
   const { isLoading } = useInitApp();
+  const [modalContents, setModalContents] = useState(<></>);
+  const ModalContextValue = { modalContents, setModalContents };
+
+  const Modal: FC = () => {
+    return <dialog className={classes['kbase-modal']}>{modalContents}</dialog>;
+  };
 
   return (
     <Router basename={process.env.PUBLIC_URL}>
-      <div className={classes.container}>
-        <div className={classes.topbar}>
-          <TopBar />
-        </div>
-        <div className={classes.site_content}>
-          <div className={classes.left_navbar}>
-            <LeftNavBar />
+      <Modal />
+      <ModalContext.Provider value={ModalContextValue}>
+        <div className={classes.container}>
+          <div className={classes.topbar}>
+            <TopBar />
           </div>
-          <div className={classes.page_content}>
-            <ErrorBoundary FallbackComponent={ErrorPage}>
-              {isLoading ? 'Loading...' : <Routes />}
-            </ErrorBoundary>
+          <div className={classes.site_content}>
+            <div className={classes.left_navbar}>
+              <LeftNavBar />
+            </div>
+            <div className={classes.page_content}>
+              <ErrorBoundary FallbackComponent={ErrorPage}>
+                {isLoading ? 'Loading...' : <Routes />}
+              </ErrorBoundary>
+            </div>
           </div>
         </div>
-      </div>
+      </ModalContext.Provider>
     </Router>
   );
 }

@@ -40,6 +40,8 @@ export interface SelectProps {
   multiple?: boolean;
   /** onChange callback, triggered when the selected value changes */
   onChange?: (value: SelectOption[]) => void;
+  /** onClick */
+  onClick?: () => void;
   /** onSearch callback, triggered when the user types in the suggest box */
   onSearch?: (value: string) => void;
   /** The array of options & option groups (see react-select documentation) */
