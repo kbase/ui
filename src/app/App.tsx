@@ -62,12 +62,36 @@ const ModalContextDefault: {
 
 export const ModalContext = createContext(ModalContextDefault);
 
+export const modalToggle = () => {
+  const dialog: HTMLDialogElement | null = document.querySelector(
+    `.${classes['kbase-modal']}`
+  );
+  if (!dialog || !dialog.close) return;
+  if (dialog.open) {
+    dialog.close();
+  }
+  dialog.showModal();
+};
+
 export default function App() {
   const { isLoading } = useInitApp();
   const [modalContents, setModalContents] = useState(<></>);
-  const ModalContextValue = { modalContents, setModalContents };
+  const [initial, setInitial] = useState(true);
+  const setModalContentsDownstream: typeof setModalContents = (element) => {
+    setInitial(false);
+    setModalContents(element);
+  };
+  const ModalContextValue = {
+    modalContents,
+    setModalContents: setModalContentsDownstream,
+  };
 
   const Modal: FC = () => {
+    useEffect(() => {
+      if (initial) return;
+      console.log({ modalContents }); // eslint-disable-line no-console
+      modalToggle();
+    });
     return <dialog className={classes['kbase-modal']}>{modalContents}</dialog>;
   };
 
