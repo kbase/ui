@@ -1,0 +1,90 @@
+@import "../../../common/colors";
+
+.heatmap-wrapper {
+  display: grid;
+  font-size: 6px;
+
+  grid-template-columns: [left] auto [leftMargin] 1fr [right];
+  grid-template-rows: [top] auto [topMargin] 1fr [bottom];
+  min-width: 100%;
+  overflow-x: scroll;
+  overflow-y: clip;
+
+  .label-indicator {
+    display: inline-block;
+    height: 100%;
+    line-height: inherit;
+    width: 100%;
+    @each $color, $_ in $palette {
+      &--#{$color} {
+        background-color: use-color($color);
+      }
+    }
+  }
+
+  .label-wrapper {
+    display: flex;
+    flex-flow: row nowrap;
+    height: 100%;
+    white-space: nowrap;
+    width: 100%;
+
+    .label {
+      display: block;
+      flex-grow: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .columns {
+    align-items: flex-end;
+    display: flex;
+    flex-direction: row;
+    grid-area: top / leftMargin / topMargin / right;
+    justify-content: space-around;
+
+    .label-indicator {
+      height: 1em;
+    }
+
+    .label-wrapper {
+      flex-flow: column-reverse nowrap;
+    }
+
+    .label {
+      margin-bottom: 0.5em;
+      writing-mode: sideways-lr;
+    }
+
+  }
+
+  .rows {
+    align-items: flex-end;
+    display: flex;
+    flex-direction: column;
+    grid-area: topMargin / left / bottom / leftMargin;
+    justify-content: space-around;
+
+    .label-indicator {
+      width: 1em;
+    }
+
+    .label {
+      margin-right: 0.5em;
+      text-align: right;
+    }
+  }
+
+  .heatmap {
+    grid-area: topMargin / leftMargin / bottom / right;
+
+    canvas {
+      display: block;
+      height: 100%;
+      image-rendering: pixelated;
+      width: 100%;
+    }
+  }
+}
