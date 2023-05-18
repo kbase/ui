@@ -3,7 +3,6 @@ import { useParams } from 'react-router-dom';
 import { ModalContext } from '../../app/App';
 import { Button, Dropdown } from '../../common/components';
 import { NarrativeDoc } from '../../common/types/NarrativeDoc';
-import appClasses from '../../app/App.module.scss';
 import classes from './NarrativeControl.module.scss';
 
 interface ControlProps {
@@ -50,19 +49,8 @@ const DeleteDialog: FC = () => {
   // return <div onClick={clickHandler}>Delete {dialog} </div>;
 };
 
-const modalToggle = () => {
-  // const dialog = getModal();
-  const dialog: HTMLDialogElement | null = document.querySelector(
-    `.${appClasses['kbase-modal']}`
-  );
-  console.log('modalToggle', { dialog }); // eslint-disable-line no-console
-  if (!dialog || !dialog.close) return;
-  dialog.close();
-  dialog.showModal();
-};
-
 const controlLatestOptions = [
-  <div onClick={modalToggle}>Manage Sharing</div>,
+  <li>Manage Sharing</li>,
   <li>Copy this Narrative</li>,
   <li>Rename</li>,
   <li>Link to Organization</li>,
@@ -74,7 +62,7 @@ const controlLatestOptions = [
 }));
 
 const ControlLatest: FC<ControlProps> = ({ narrativeDoc }) => {
-  const { modalContents, setModalContents } = useContext(ModalContext);
+  const { setModalContents } = useContext(ModalContext);
   return (
     <>
       <Dropdown
@@ -82,14 +70,6 @@ const ControlLatest: FC<ControlProps> = ({ narrativeDoc }) => {
         options={[{ options: controlLatestOptions }]}
         onChange={(opt) => {
           setModalContents(<span>Some content! {opt[0].label}</span>);
-          const dialog: HTMLDialogElement | null = document.querySelector(
-            `.${appClasses['kbase-modal']}`
-          );
-          console.log('modalToggle', { dialog }); // eslint-disable-line no-console
-          if (!dialog || !dialog.close) return;
-          dialog.close();
-          dialog.showModal();
-          console.log({ modalContents, opt }); // eslint-disable-line no-console
         }}
       >
         <div>Latest</div>
@@ -128,7 +108,7 @@ const NarrativeControl: FC<{ narrativeDoc: NarrativeDoc }> = ({
   const { version } = narrativeDoc;
   return (
     <>
-      {ver === version.toString() ? (
+      {!ver || ver === version.toString() ? (
         <ControlLatest narrativeDoc={narrativeDoc} />
       ) : (
         <ControlPrevious narrativeDoc={narrativeDoc} />
