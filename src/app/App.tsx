@@ -57,20 +57,33 @@ export const getModal = () => {
 
 const ModalContextDefault: {
   modalContents: JSX.Element;
+  getModalControls: () => Record<string, () => void>;
   setModalContents: Dispatch<SetStateAction<JSX.Element>>;
-} = { modalContents: <></>, setModalContents: () => ({}) };
+} = {
+  modalContents: <></>,
+  getModalControls: () => ({}),
+  setModalContents: () => ({}),
+};
 
 export const ModalContext = createContext(ModalContextDefault);
 
-export const modalToggle = () => {
-  const dialog: HTMLDialogElement | null = document.querySelector(
-    `.${classes['kbase-modal']}`
-  );
-  if (!dialog || !dialog.close) return;
-  if (dialog.open) {
+export const getModalControls = () => {
+  const modalClose = () => {
+    const dialog: HTMLDialogElement | null = document.querySelector(
+      `.${classes['kbase-modal']}`
+    );
+    if (!dialog || !dialog.close) return;
     dialog.close();
-  }
-  dialog.showModal();
+  };
+  const modalOpen = () => {
+    const dialog: HTMLDialogElement | null = document.querySelector(
+      `.${classes['kbase-modal']}`
+    );
+    if (!dialog || !dialog.close) return;
+    dialog.close();
+    dialog.showModal();
+  };
+  return { modalClose, modalOpen };
 };
 
 export default function App() {
@@ -83,14 +96,15 @@ export default function App() {
   };
   const ModalContextValue = {
     modalContents,
+    getModalControls,
     setModalContents: setModalContentsDownstream,
   };
 
   const Modal: FC = () => {
     useEffect(() => {
       if (initial) return;
-      console.log({ modalContents }); // eslint-disable-line no-console
-      modalToggle();
+      const { modalOpen } = getModalControls();
+      modalOpen();
     });
     return <dialog className={classes['kbase-modal']}>{modalContents}</dialog>;
   };

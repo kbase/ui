@@ -3,78 +3,74 @@ import { useParams } from 'react-router-dom';
 import { ModalContext } from '../../app/App';
 import { Button, Dropdown } from '../../common/components';
 import { NarrativeDoc } from '../../common/types/NarrativeDoc';
-import classes from './NarrativeControl.module.scss';
 
 interface ControlProps {
   narrativeDoc: NarrativeDoc;
 }
 
-const getDeleteDialog = () => {
-  let dialog: HTMLDialogElement | null = document.querySelector(
-    `.${classes['narrative-control']}.${classes.delete}`
-  );
-  if (!dialog) {
-    dialog = document.createElement('dialog');
-    document.body.appendChild(dialog);
-  }
-  return dialog;
-};
-
-const deleteDialogToggle = () => {
-  const dialog = getDeleteDialog();
-  if (dialog.open) {
-    return dialog.close();
-  }
-  console.log({ dialog }); // eslint-disable-line no-console
-  dialog.close();
-  dialog.showModal();
-};
-
-/* TODO: It seems DeleteDialog is working but the ModalContext is not... why?
-    rerendering?
- */
-const DeleteDialog: FC = () => {
-  const closeHandler = () => {
-    const dialog = getDeleteDialog();
-    dialog.close();
-  };
+const Delete: FC<{ no: () => void }> = ({ no }) => {
   return (
-    <dialog className={`${classes['narrative-control']} ${classes.delete}`}>
+    <>
       Are you sure you want to delete this narrative?
-      <Button onClick={closeHandler}>Close Dialog</Button>
       <Button>Yes</Button>
-      <Button onClick={closeHandler}>No</Button>
-    </dialog>
+      <Button onClick={no}>No</Button>
+    </>
   );
-  // return <div onClick={clickHandler}>Delete {dialog} </div>;
+};
+
+interface ControlResponses {
+  deleteNo: () => void;
+}
+
+const controlLatestDialogsFactory = ({ deleteNo }: ControlResponses) => {
+  const dialogs: Record<string, JSX.Element> = {
+    'Copy this Narrative': <>Copy this Narrative</>,
+    Delete: <Delete no={deleteNo} />,
+    'Link to Organization': <>Link to Organization</>,
+    'Manage Sharing': <>Manage Sharing</>,
+    Rename: <>Rename</>,
+  };
+  return dialogs;
 };
 
 const controlLatestOptions = [
-  <li>Manage Sharing</li>,
-  <li>Copy this Narrative</li>,
-  <li>Rename</li>,
-  <li>Link to Organization</li>,
-  <div onClick={deleteDialogToggle}>Delete</div>,
+  'Manage Sharing',
+  'Copy this Narrative',
+  'Rename',
+  'Link to Organization',
+  'Delete',
 ].map((option) => ({
-  value: '',
+  value: option,
   icon: undefined,
-  label: option,
+  label: <li>{option}</li>,
 }));
 
 const ControlLatest: FC<ControlProps> = ({ narrativeDoc }) => {
-  const { setModalContents } = useContext(ModalContext);
+  const { getModalControls, setModalContents } = useContext(ModalContext);
+  const { modalClose } = getModalControls();
+  const controlLatestDialogs = controlLatestDialogsFactory({
+    deleteNo: modalClose,
+  });
+  const closeHandler = () => {
+    modalClose();
+  };
+  const closeButton = <Button onClick={closeHandler}>Close Dialog</Button>;
   return (
     <>
       <Dropdown
         horizontalMenuAlign={'right'}
         options={[{ options: controlLatestOptions }]}
         onChange={(opt) => {
-          setModalContents(<span>Some content! {opt[0].label}</span>);
+          setModalContents(
+            <span>
+              {controlLatestDialogs[opt[0].value]}
+              {closeButton}
+            </span>
+          );
         }}
       >
         <div>Latest</div>
       </Dropdown>
-      <DeleteDialog />
     </>
   );
 };
