@@ -39,7 +39,7 @@ jobs:
           API_TOKEN_GITHUB: '${{ secrets.GHCR_TOKEN }}'
         with:
           source-directory: 'build'
-          destination-github-username: 'kbase}'
+          destination-github-username: 'kbase'
           destination-repository-name: 'static-content'
           user-email: 'sysadmins@lists.kbase.us'
           target-branch: main
