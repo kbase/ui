@@ -1,4 +1,4 @@
-import { ComponentProps, useCallback, useEffect, useId, useState } from 'react';
+import { ComponentProps, useId } from 'react';
 import { Select } from '../../common/components';
 import { SchemaObject, ErrorObject as AjvError } from 'ajv';
 
@@ -49,44 +49,24 @@ const GTDBLineageMatcherUserParameters = ({
     description = property?.['description'] ?? '';
   }
 
-  const [currentValue, setCurrentValue] = useState<
-    Record<string, unknown> | undefined
-  >(undefined);
-  const setIfChanged = useCallback(
-    (value: Record<string, unknown>) =>
-      setCurrentValue((currentValue) =>
-        JSON.stringify(currentValue) !== JSON.stringify(value)
-          ? value
-          : currentValue
-      ),
-    [setCurrentValue]
-  );
-  useEffect(
-    () => (value ? setIfChanged(value) : undefined),
-    [setIfChanged, value]
-  );
-  useEffect(
-    () => (onChange ? onChange(currentValue) : undefined),
-    [onChange, currentValue]
-  );
+  const currentValue = value ? (value as { gtdb_rank: string }) : undefined;
 
   const id = useId();
 
-  const currentSelection = currentValue
-    ? (currentValue as { gtdb_rank: string })['gtdb_rank']
-    : undefined;
   return (
     <>
       <label htmlFor={id}>{description}</label>
       <Select
         id={id}
         value={
-          currentSelection
-            ? { value: currentSelection, label: currentSelection }
+          currentValue
+            ? { value: currentValue.gtdb_rank, label: currentValue.gtdb_rank }
             : undefined
         }
         options={definition.enum.map((rank) => ({ value: rank, label: rank }))}
-        onChange={(opts) => setIfChanged({ gtdb_rank: String(opts[0].value) })}
+        onChange={(opts) =>
+          onChange ? onChange({ gtdb_rank: String(opts[0].value) }) : undefined
+        }
       />
       {value && errors ? (
         errors.map((err) => (
