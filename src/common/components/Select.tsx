@@ -66,7 +66,7 @@ export const handleChangeFactory = (
  * Select component that supports multiple selection, async options loading,
  * custom styling, and more.
  */
-export const Select: FC<SelectProps> = (props) => {
+export const Select: FC<SelectProps & { id?: string }> = (props) => {
   const options = props.options;
 
   // Detect how to format options based on if they have icons
@@ -112,6 +112,7 @@ export const Select: FC<SelectProps> = (props) => {
 
   return (
     <ReactSelect
+      id={props.id}
       placeholder={props.placeholder}
       className={classNames.join(' ')}
       /** classNamePrefix allows us to override the default styles by using global

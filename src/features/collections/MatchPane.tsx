@@ -4,7 +4,7 @@ import {
   getMatch,
 } from '../../common/api/collectionsApi';
 import classes from './Collections.module.scss';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useState } from 'react';
 import { Button, Select, SelectOption } from '../../common/components';
 import { listObjects } from '../../common/api/workspaceApi';
 import { getNarratives } from '../../common/api/searchApi';
@@ -14,6 +14,8 @@ import { useAppDispatch, useAppSelector, useBackoff } from '../../common/hooks';
 import { setUserSelection } from './collectionsSlice';
 import { store } from '../../app/store';
 import { useParamsForNarrativeDropdown } from './hooks';
+import { MatcherUserParams } from './MatcherUserParams';
+import { default as Ajv } from 'ajv';
 
 export const MatchPane = ({ collectionId }: { collectionId: string }) => {
   const matchId = useAppParam('match');
@@ -185,16 +187,38 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
 
   // Matches
   let matchErr = '';
-
   const [triggerCreateMatch, createMatchResult] = createMatch.useMutation();
+
+  const matchUserParams = matcherSelected?.user_parameters;
+  const [userParams, setUserParams] = useState<
+    Record<string, unknown> | undefined
+  >(undefined);
+  const validate = useMemo(
+    () => new Ajv({ strict: false }).compile(matchUserParams ?? {}),
+    [matchUserParams]
+  );
+  useEffect(() => {
+    validate(userParams);
+  }, [validate, userParams]);
+  const createReady = !(
+    matcherSelected &&
+    narrativeSelected &&
+    dataObjSel.length > 0
+  );
   const handleCreate = useCallback(() => {
     triggerCreateMatch({
       collection_id: collectionId,
       matcher_id: matcherSelected?.id || '',
       upas: dataObjSel.map((d) => d.value.toString()),
-      parameters: {},
+      parameters: userParams ?? {},
     });
-  }, [dataObjSel, collectionId, matcherSelected, triggerCreateMatch]);
+  }, [
+    dataObjSel,
+    collectionId,
+    matcherSelected,
+    triggerCreateMatch,
+    userParams,
+  ]);
   if (createMatchResult.isError) {
     matchErr += `Match request failed: ${
       parseError(createMatchResult.error).message
@@ -207,10 +231,14 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
       updateAppParams({ match: createdMatchId });
   }, [createMatchResult.isSuccess, createdMatchId, updateAppParams]);
 
+  const idMatcher = useId();
+  const idNarrative = useId();
+  const idDataObject = useId();
   return (
     <div className={classes['matching']}>
+      <label htmlFor={idMatcher}>Matcher</label>
       <Select
-        placeholder="Select Matcher..."
+        id={idMatcher}
         disabled={!matchersQuery.data}
         loading={matchersQuery.isFetching}
         value={matcherSel}
@@ -220,8 +248,9 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
           setDataObjSel([]);
         }}
       />
+      <label htmlFor={idNarrative}>Narrative</label>
       <Select
-        placeholder="Select Narrative..."
+        id={idNarrative}
         disabled={!matcherSelected}
         value={narrativeSel}
         options={narrativeOptions}
@@ -232,8 +261,9 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
           setDataObjSel([]);
         }}
       />
+      <label htmlFor={idDataObject}>Data Object(s)</label>
       <Select
-        placeholder="Select Data Objects..."
+        id={idDataObject}
         multiple={true}
         disabled={!narrativeSelected}
         value={dataObjSel}
@@ -241,12 +271,17 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
         loading={dataObjQuery.isFetching}
         onChange={(opts) => setDataObjSel(opts)}
       />
-      <Button
-        disabled={
-          !(matcherSelected && narrativeSelected && dataObjSel.length > 0)
-        }
-        onClick={handleCreate}
-      >
+      {matchUserParams ? (
+        <MatcherUserParams
+          params={matchUserParams}
+          value={userParams}
+          onChange={setUserParams}
+          errors={(!validate(userParams) && validate.errors) || []}
+        />
+      ) : (
+        <></>
+      )}
+      <Button disabled={createReady} onClick={handleCreate}>
         Create Match
       </Button>
       <br></br>
