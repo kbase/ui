@@ -21,6 +21,8 @@ export type OptionsArray = OptionsOrGroups<
 
 export interface SelectProps {
   children?: React.ReactNode;
+  /**html ID for integrating labels, etc */
+  id?: string;
   /** Sets a className attribute on the outer component */
   className?: string;
   /** If true, adds a clickable icon for clearing the select */
@@ -66,7 +68,7 @@ export const handleChangeFactory = (
  * Select component that supports multiple selection, async options loading,
  * custom styling, and more.
  */
-export const Select: FC<SelectProps & { id?: string }> = (props) => {
+export const Select: FC<SelectProps> = (props) => {
   const options = props.options;
 
   // Detect how to format options based on if they have icons
