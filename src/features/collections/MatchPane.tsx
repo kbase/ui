@@ -15,7 +15,7 @@ import { setUserSelection } from './collectionsSlice';
 import { store } from '../../app/store';
 import { useParamsForNarrativeDropdown } from './hooks';
 import { MatcherUserParams } from './MatcherUserParams';
-import { default as Ajv } from 'ajv';
+import Ajv from 'ajv';
 
 export const MatchPane = ({ collectionId }: { collectionId: string }) => {
   const matchId = useAppParam('match');
