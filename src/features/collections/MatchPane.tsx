@@ -85,6 +85,18 @@ const ViewMatch = () => {
         <ul>
           <li>Match ID: {match?.match_id}</li>
           <li>Match Status: {match?.state}</li>
+          <li>
+            Match Params:{' '}
+            <ul>
+              {Object.entries(match?.user_parameters || {}).map(
+                ([key, value]) => (
+                  <li>
+                    {key}: {JSON.stringify(value)}
+                  </li>
+                )
+              )}
+            </ul>
+          </li>
           {match?.state === 'complete' ? (
             <li>
               You input a total of <strong>{upaCount}</strong> data objects,
