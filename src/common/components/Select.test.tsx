@@ -14,6 +14,7 @@ test('The change handler does nothing when passed null.', () => {
 test('Select Renders', () => {
   const { container } = render(
     <Select
+      id="testing123"
       options={[
         { value: 'chocolate', label: 'Chocolate' },
         { value: 'strawberry', label: 'Strawberry' },

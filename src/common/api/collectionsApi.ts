@@ -2,6 +2,7 @@ import { uriEncodeTemplateTag as encode } from '../utils/stringUtils';
 import { baseApi } from './index';
 import { httpService } from './utils/serviceHelpers';
 import { store } from '../../app/store';
+import { SchemaObject } from 'ajv';
 
 const collectionsService = httpService({
   url: 'services/collections',
@@ -43,8 +44,8 @@ interface Matcher {
   set_types: string[];
   description: string;
   required_data_products: string;
-  user_parameters: unknown;
-  collection_parameters: unknown;
+  user_parameters: SchemaObject;
+  collection_parameters: SchemaObject;
 }
 
 interface BaseMatch {
@@ -52,7 +53,7 @@ interface BaseMatch {
   matcher_id: string;
   collection_id: string;
   collection_ver: number;
-  user_parameters: Record<string, never>;
+  user_parameters: Record<string, unknown>;
   state: ProcessState;
 }
 
