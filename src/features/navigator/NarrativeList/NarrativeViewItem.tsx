@@ -10,6 +10,7 @@ import {
   generateNavigatorPath,
   narrativeURL,
   navigatorParams,
+  normalizeVersion,
 } from '../common';
 import { categorySelected } from '../navigatorSlice';
 import NarrativeItemDropdown from './NarrativeItemDropdown';
@@ -32,11 +33,8 @@ const NarrativeViewItem: FC<NarrativeViewItemProps> = ({
 }) => {
   const categorySet = useAppSelector(categorySelected);
   const europaParams = useAppSelector(getParams);
-  const {
-    id = null,
-    obj = null,
-    ver = null,
-  } = useParams<{ id: string; obj: string; ver: string }>();
+  const { id, obj, ver: verRaw } = useParams();
+  const ver = normalizeVersion(verRaw);
   const { access_group, creator, narrative_title, obj_id, timestamp, version } =
     narrativeDoc;
   const wsId = access_group.toString();
@@ -60,7 +58,8 @@ const NarrativeViewItem: FC<NarrativeViewItemProps> = ({
     });
   };
 
-  const pathVersion = active ? Number(ver) : version;
+  const pathVer = ver ? Number(ver) : version;
+  const pathVersion = active ? pathVer : version;
   const path = linkToNarrative
     ? narrativeURL(wsId)
     : narrativeViewItemPath(pathVersion);

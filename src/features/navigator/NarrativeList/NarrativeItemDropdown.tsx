@@ -6,7 +6,11 @@ import { useAppSelector } from '../../../common/hooks';
 import { Dropdown } from '../../../common/components/Dropdown';
 import { SelectOption } from '../../../common/components/Select';
 import { getParams } from '../../../features/params/paramsSlice';
-import { generateNavigatorPath, navigatorParams } from '../common';
+import {
+  generateNavigatorPath,
+  navigatorParams,
+  normalizeVersion,
+} from '../common';
 import { categorySelected, navigatorSelected } from '../navigatorSlice';
 import classes from './NarrativeList.module.scss';
 
@@ -78,7 +82,7 @@ const NarrativeItemDropdown: FC<NarrativeItemDropdownProps> = ({
     });
 
   const handleDropdownChange = (event: SelectOption[]) => {
-    const versionSelected = +event[0].value;
+    const versionSelected = Number(normalizeVersion(event[0].value));
     const path = versionPath(versionSelected);
     navigate(path);
   };

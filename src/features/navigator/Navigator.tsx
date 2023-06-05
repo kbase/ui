@@ -23,6 +23,7 @@ import {
   isSortString,
   navigatorPath,
   navigatorPathWithCategory,
+  normalizeVersion,
   searchParams,
 } from './common';
 import { useNarratives } from './hooks';
@@ -151,9 +152,9 @@ const narrativesByAccessGroup = (narratives: NarrativeDoc[]) => {
   );
 };
 const getNarrativeSelected = (parameters: {
-  id: string | undefined;
-  obj: string | undefined;
-  ver: string | undefined;
+  id?: string;
+  obj?: string;
+  ver?: string;
   items: NarrativeDoc[];
 }) => {
   const { id, obj, ver, items } = parameters;
@@ -169,7 +170,8 @@ const Navigator: FC = () => {
   /* general hooks */
   usePageTitle('Narrative Navigator');
   const loc = useLocation();
-  const { category, id, obj, ver } = useParams();
+  const { category, id, obj, ver: verRaw } = useParams();
+  const ver = normalizeVersion(verRaw);
   const categoryFilter =
     category && isCategoryString(category)
       ? Category[category]

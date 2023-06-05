@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { ModalContext } from '../../app/App';
 import { Button, Dropdown } from '../../common/components';
 import { NarrativeDoc } from '../../common/types/NarrativeDoc';
+import { normalizeVersion } from './common';
 
 interface ControlLatestProps {
   narrativeDoc: NarrativeDoc;
@@ -198,12 +199,12 @@ const ControlPrevious: FC<ControlPreviousProps> = ({
 const NarrativeControl: FC<{ narrativeDoc: NarrativeDoc }> = ({
   narrativeDoc,
 }) => {
-  const { ver } = useParams();
+  const { ver: verRaw } = useParams();
+  const ver = Number(normalizeVersion(verRaw));
   const { version } = narrativeDoc;
-  // TODO: Do something about bad version values, but higher up.
   return (
     <>
-      {!ver || ver === version.toString() ? (
+      {!ver || ver === version ? (
         <ControlLatest narrativeDoc={narrativeDoc} />
       ) : (
         <ControlPrevious narrativeDoc={narrativeDoc} version={Number(ver)} />
