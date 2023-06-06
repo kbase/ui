@@ -52,7 +52,7 @@ test('NarrativeItemDropdown renders', async () => {
     <Provider store={createTestStore()}>
       <Router>
         <NarrativeItemDropdown
-          narrative={'1/2/400'}
+          narrativeUPA={'1/2/400'}
           version={400}
           visible={true}
         />
@@ -68,7 +68,7 @@ test('NarrativeItemDropdown populates right number of versions', () => {
     <Provider store={createTestStore()}>
       <Router>
         <NarrativeItemDropdown
-          narrative={'1/2/123'}
+          narrativeUPA={'1/2/123'}
           version={123}
           visible={true}
         />

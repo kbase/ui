@@ -34,9 +34,9 @@ const NarrativeViewItem: FC<NarrativeViewItemProps> = ({
   const categorySet = useAppSelector(categorySelected);
   const europaParams = useAppSelector(getParams);
   const { id, obj, ver: verRaw } = useParams();
-  const ver = normalizeVersion(verRaw);
   const { access_group, creator, narrative_title, obj_id, timestamp, version } =
     narrativeDoc;
+  const ver = Math.min(Number(normalizeVersion(verRaw)), version);
   const wsId = access_group.toString();
   const upa = `${wsId}/${obj_id}/${version}`;
   const active = wsId === id && obj_id.toString() === obj;
@@ -58,8 +58,7 @@ const NarrativeViewItem: FC<NarrativeViewItemProps> = ({
     });
   };
 
-  const pathVer = ver ? Number(ver) : version;
-  const pathVersion = active ? pathVer : version;
+  const pathVersion = active ? ver : version;
   const path = linkToNarrative
     ? narrativeURL(wsId)
     : narrativeViewItemPath(pathVersion);
@@ -76,7 +75,7 @@ const NarrativeViewItem: FC<NarrativeViewItemProps> = ({
           <div className={classes.narrative_item_text}>
             <div>{narrative_title}</div>
             <NarrativeItemDropdown
-              narrative={upa}
+              narrativeUPA={upa}
               visible={showVersionDropdown}
               version={pathVersion}
             />
