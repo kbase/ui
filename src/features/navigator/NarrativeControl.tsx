@@ -5,13 +5,30 @@ import { Button, Dropdown } from '../../common/components';
 import { NarrativeDoc } from '../../common/types/NarrativeDoc';
 import { normalizeVersion } from './common';
 
+// See also https://github.com/kbaseapps/NarrativeService/blob/main/lib/NarrativeService/NarrativeManager.py#L9
+// const MAX_WS_METADATA_VALUE_SIZE = 900;
+
 interface ControlLatestProps {
   narrativeDoc: NarrativeDoc;
 }
 
+const Copy: FC<{ no: () => void; yes: () => void }> = ({ no, yes }) => {
+  return (
+    <>
+      <p>Make a Copy</p>
+      <p>Enter a name for the new Narrative.</p>
+      <div>
+        <Button onClick={yes}>Delete</Button>
+        <Button onClick={no}>Cancel</Button>
+      </div>
+    </>
+  );
+};
+
 const Delete: FC<{ no: () => void; yes: () => void }> = ({ no, yes }) => {
   return (
     <>
+      <p>Delete Narrative?</p>
       <p>Deleting a Narrative will permanently remove it and all its data.</p>
       <p>This action cannot be undone!</p>
       <p>Continue?</p>
@@ -122,16 +139,20 @@ const Restore: FC<{ no: () => void; yes: () => void }> = ({ no, yes }) => {
 };
 
 interface ControlPreviousResponses {
+  copyNo: () => void;
+  copyYes: () => void;
   restoreNo: () => void;
   restoreYes: () => void;
 }
 
 const controlPreviousDialogsFactory = ({
+  copyNo,
+  copyYes,
   restoreNo,
   restoreYes,
 }: ControlPreviousResponses) => {
   const dialogs: Record<string, JSX.Element> = {
-    'Copy this version': <>Copy</>,
+    'Copy this version': <Copy no={copyNo} yes={copyYes} />,
     'Restore Version': <Restore no={restoreNo} yes={restoreYes} />,
   };
   return dialogs;
@@ -146,7 +167,7 @@ const controlPreviousOptions = ['Copy this version', 'Restore Version'].map(
 );
 
 const restoreNarrative = async (wsId: number, version: number) => {
-  const message = `Restore ${wsId}.`;
+  const message = `Restore version ${version} of ${wsId}.`;
   return new Promise((resolve) => {
     setTimeout(() => {
       // eslint-disable-next-line no-console
@@ -168,6 +189,8 @@ const ControlPrevious: FC<ControlPreviousProps> = ({
   const { getModalControls, setModalContents } = useContext(ModalContext);
   const { modalClose } = getModalControls();
   const controlPreviousDialogs = controlPreviousDialogsFactory({
+    copyNo: modalClose,
+    copyYes: modalClose,
     restoreNo: modalClose,
     restoreYes: async () => {
       await restoreNarrative(narrativeDoc.access_group, Number(version));
@@ -199,9 +222,9 @@ const ControlPrevious: FC<ControlPreviousProps> = ({
 const NarrativeControl: FC<{ narrativeDoc: NarrativeDoc }> = ({
   narrativeDoc,
 }) => {
-  const { ver: verRaw } = useParams();
-  const ver = Number(normalizeVersion(verRaw));
   const { version } = narrativeDoc;
+  const { ver: verRaw } = useParams();
+  const ver = Math.min(Number(normalizeVersion(verRaw)), version);
   return (
     <>
       {!ver || ver === version ? (
