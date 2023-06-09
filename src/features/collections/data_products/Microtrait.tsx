@@ -5,13 +5,14 @@ import {
   PaginationState,
   createColumnHelper,
 } from '@tanstack/react-table';
-import { FC, useCallback, useMemo, useState } from 'react';
+import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   getMicroTrait,
   getMicroTraitCell,
   getMicroTraitMeta,
   HeatMapCell,
 } from '../../../common/api/collectionsApi';
+import { Pagination } from '../../../common/components/Table';
 import { useBackoffPolling } from '../../../common/hooks';
 import { useAppParam } from '../../params/hooks';
 import { useSelectionId } from '../collectionsSlice';
@@ -50,6 +51,7 @@ export const Microtrait: FC<{
             setHoverRow(row);
           }}
         />
+        <Pagination table={table} maxPage={10000} />
       </div>
     </div>
   );
@@ -64,17 +66,35 @@ const useMicrotrait = (collection_id: string | undefined) => {
   const [selMark, setSelMark] = useState<boolean>(true);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
-    pageSize: 8,
+    pageSize: 85,
   });
+
+  const pageLastIdCache: Record<string, string> = useMemo(
+    () => ({}),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [collection_id, selMark, matchMark, pagination.pageSize]
+  );
 
   const heatMapParams = useMemo(
     () => ({
       collection_id: collection_id ?? '',
-      limit: 100,
+      limit: pagination.pageSize,
+      ...(pagination.pageIndex !== 0
+        ? { start_after: pageLastIdCache[pagination.pageIndex - 1] }
+        : {}),
       ...(matchId ? { match_id: matchId, match_mark: matchMark } : {}),
       ...(selId ? { selection_id: selId, selection_mark: selMark } : {}),
     }),
-    [collection_id, matchId, matchMark, selId, selMark]
+    [
+      collection_id,
+      matchId,
+      matchMark,
+      pageLastIdCache,
+      pagination.pageIndex,
+      pagination.pageSize,
+      selId,
+      selMark,
+    ]
   );
   const countParams = useMemo(
     () => ({ ...heatMapParams, count: true }),
@@ -100,6 +120,21 @@ const useMicrotrait = (collection_id: string | undefined) => {
     },
     { skipPoll: !collection_id || !(matchId || selId) }
   );
+
+  //cache last row of each page, we should implement better backend pagination this is silly
+  useEffect(() => {
+    if (!microtraitQuery.isFetching && microtraitQuery.data) {
+      pageLastIdCache[pagination.pageIndex] =
+        microtraitQuery.data.data[
+          microtraitQuery.data.data.length - 1
+        ].kbase_id;
+    }
+  }, [
+    microtraitQuery.data,
+    pagination.pageIndex,
+    microtraitQuery.isFetching,
+    pageLastIdCache,
+  ]);
 
   const { data: count, ...countQuery } = getMicroTrait.useQuery(countParams, {
     skip: !collection_id,

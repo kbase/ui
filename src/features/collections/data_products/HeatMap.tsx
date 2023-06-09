@@ -31,8 +31,8 @@ export const HeatMap = ({
   const width = columnHeaders.length;
   const height = rows.length;
 
-  // const hasSomeSelected = rows.some((row) => row.original.sel);
-  // const hasSomeMatched = rows.some((row) => row.original.match);
+  const hasSomeSelected = rows.some((row) => row.original.sel);
+  const hasSomeMatched = rows.some((row) => row.original.match);
 
   if (
     rows[0] &&
@@ -169,6 +169,7 @@ export const HeatMap = ({
                     row.original.sel ? classes['label-indicator--primary'] : '',
                   ].join(' ')}
                   title={row.original.sel ? 'Selected' : ''}
+                  style={{ display: hasSomeSelected ? undefined : 'none' }}
                 />
                 <div
                   className={[
@@ -178,6 +179,7 @@ export const HeatMap = ({
                       : '',
                   ].join(' ')}
                   title={row.original.match ? 'Matched' : ''}
+                  style={{ display: hasSomeMatched ? undefined : 'none' }}
                 />
                 <div className={classes['label']}>
                   {rowNameAccessor(row.original, index)}

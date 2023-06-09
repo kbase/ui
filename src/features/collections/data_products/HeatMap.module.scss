@@ -1,7 +1,8 @@
 @import "../../../common/colors";
 
+$label-len: 20em;
+
 .layout {
-  $label-len: 20em;
   display: flex;
   flex-flow: row nowrap;
   font-size: 10px;
