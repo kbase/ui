@@ -1,20 +1,92 @@
 @import "../../../common/colors";
 
-.heatmap-wrapper {
-  display: grid;
-  font-size: 6px;
+.layout {
+  $label-len: 20em;
+  display: flex;
+  flex-flow: row nowrap;
+  font-size: 10px;
+  width: 100%;
+}
 
-  grid-template-columns: [left] auto [leftMargin] 1fr [right];
-  grid-template-rows: [top] auto [topMargin] 1fr [bottom];
-  min-width: 100%;
-  overflow-x: scroll;
-  overflow-y: clip;
+.layout-left {
+  display: flex;
+  flex-flow: column nowrap;
+  flex-shrink: 0;
+  overflow: hidden;
+  width: $label-len;
+}
+
+.layout-right {
+  display: flex;
+  flex-flow: column nowrap;
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+.blank-origin {
+  flex-grow: 0;
+  flex-shrink: 0;
+  height: $label-len;
+  width: 100%;
+}
+
+.trait-names {
+  display: flex;
+  flex-flow: row nowrap;
+  flex-shrink: 0;
+  height: $label-len;
+  justify-content: space-around;
+  overflow: hidden;
+  width: 100%;
+
+  .label {
+    writing-mode: sideways-lr;
+  }
+
+  .label-wrapper {
+    flex-direction: column-reverse;
+  }
 
   .label-indicator {
-    display: inline-block;
-    height: 100%;
-    line-height: inherit;
+    height: 1em;
     width: 100%;
+  }
+}
+
+.row-names {
+  display: flex;
+  flex-flow: column nowrap;
+  height: 100%;
+  justify-content: space-around;
+  overflow: hidden;
+  width: $label-len;
+
+  .label {
+    flex-basis: 0;
+    line-height: 0px;
+    text-align: right;
+  }
+
+  .label-wrapper {
+    flex-direction: row-reverse;
+  }
+
+  .label-indicator {
+    height: 100%;
+    width: 1em;
+  }
+}
+
+.label-wrapper {
+  align-items: center;
+  display: flex;
+  flex-basis: 0;
+  flex-grow: 1;
+  flex-shrink: 1;
+
+  .label-indicator {
+    background-color: transparent;
+    display: block;
     @each $color, $_ in $palette {
       &--#{$color} {
         background-color: use-color($color);
@@ -22,69 +94,21 @@
     }
   }
 
-  .label-wrapper {
-    display: flex;
-    flex-flow: row nowrap;
-    height: 100%;
+  .label {
+    display: block;
+    flex-basis: 0;
+    flex-grow: 1;
+    overflow: hidden;
+    padding: 0.4em;
     white-space: nowrap;
-    width: 100%;
-
-    .label {
-      display: block;
-      flex-grow: 1;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
   }
+}
 
-  .columns {
-    align-items: flex-end;
-    display: flex;
-    flex-direction: row;
-    grid-area: top / leftMargin / topMargin / right;
-    justify-content: space-around;
-
-    .label-indicator {
-      height: 1em;
-    }
-
-    .label-wrapper {
-      flex-flow: column-reverse nowrap;
-    }
-
-    .label {
-      margin-bottom: 0.5em;
-      writing-mode: sideways-lr;
-    }
-
-  }
-
-  .rows {
-    align-items: flex-end;
-    display: flex;
-    flex-direction: column;
-    grid-area: topMargin / left / bottom / leftMargin;
-    justify-content: space-around;
-
-    .label-indicator {
-      width: 1em;
-    }
-
-    .label {
-      margin-right: 0.5em;
-      text-align: right;
-    }
-  }
+.heatmap-wrapper {
+  height: 100%;
+  width: 100%;
 
   .heatmap {
-    grid-area: topMargin / leftMargin / bottom / right;
-
-    canvas {
-      display: block;
-      height: 100%;
-      image-rendering: pixelated;
-      width: 100%;
-    }
+    width: 100%;
   }
 }

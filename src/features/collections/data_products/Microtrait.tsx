@@ -70,6 +70,7 @@ const useMicrotrait = (collection_id: string | undefined) => {
   const heatMapParams = useMemo(
     () => ({
       collection_id: collection_id ?? '',
+      limit: 100,
       ...(matchId ? { match_id: matchId, match_mark: matchMark } : {}),
       ...(selId ? { selection_id: selId, selection_mark: selMark } : {}),
     }),
