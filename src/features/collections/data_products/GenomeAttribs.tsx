@@ -10,7 +10,11 @@ import {
 import { FC, useMemo, useState } from 'react';
 import { getGenomeAttribs } from '../../../common/api/collectionsApi';
 import { CheckBox } from '../../../common/components/CheckBox';
-import { Table, useTableColumns } from '../../../common/components/Table';
+import {
+  Pagination,
+  Table,
+  useTableColumns,
+} from '../../../common/components/Table';
 import { useAppDispatch, useAppSelector } from '../../../common/hooks';
 import { useAppParam } from '../../params/hooks';
 import { setUserSelection, useSelectionId } from '../collectionsSlice';
@@ -146,8 +150,10 @@ export const GenomeAttribs: FC<{
     getPaginationRowModel: getPaginationRowModel(),
 
     manualSorting: true,
-    onSortingChange: setSorting,
-
+    onSortingChange: (update) => {
+      setPagination((pgn) => ({ ...pgn, pageIndex: 0 }));
+      setSorting(update);
+    },
     manualPagination: true,
     pageCount: Math.ceil((countData?.count || 0) / pagination.pageSize),
     onPaginationChange: setPagination,
@@ -193,6 +199,7 @@ export const GenomeAttribs: FC<{
             : '';
         }}
       />
+      <Pagination table={table} maxPage={10000 / pagination.pageSize} />
     </>
   );
 };

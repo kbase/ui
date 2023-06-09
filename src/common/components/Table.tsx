@@ -25,13 +25,11 @@ export const Table = <Datum,>({
   className = '',
   rowClass = () => '',
   isLoading = false,
-  maxPage = Number.MAX_SAFE_INTEGER,
 }: {
   table: TableType<Datum>;
   className?: string;
   rowClass?: (row: Row<Datum>) => string;
   isLoading?: boolean;
-  maxPage?: number;
 }) => {
   const shouldRenderHeader = someHeaderDefines(
     'header',
@@ -42,8 +40,6 @@ export const Table = <Datum,>({
     'footer',
     table.getFooterGroups()
   );
-
-  const shouldRenderPagination = table.getPageCount() > 1;
 
   return (
     <div
@@ -88,23 +84,30 @@ export const Table = <Datum,>({
           <></>
         )}
       </div>
-      {shouldRenderPagination ? (
-        <Pagination maxPage={maxPage} table={table} />
-      ) : (
-        <></>
-      )}
+      <div
+        style={{
+          display: 'block',
+          float: 'left',
+          clear: 'both',
+          height: '1em',
+        }}
+      />
     </div>
   );
 };
 
-const Pagination = <Datum,>({
+export const Pagination = <Datum,>({
   table,
   maxPage,
+  /**Odd, >=9*/
+  totalButtons = 9,
 }: {
   table: TableType<Datum>;
   maxPage: number;
+  totalButtons?: number;
 }) => {
-  const totalButtons = 9; // Odd, >=9
+  if (totalButtons < 9 || totalButtons % 2 !== 1)
+    throw new Error('Choose a valid total button number: Odd, >=9');
   const buttons: (number | ReturnType<typeof Button>)[] = [];
   const sideAmt = (totalButtons - 3) / 2; // how many buttons per side
 
@@ -212,7 +215,7 @@ const TableHeader = <Datum,>({ table }: { table: TableType<Datum> }) => (
               >
                 <FAIcon
                   icon={
-                    { asc: faCaretUp, desc: faCaretDown }[
+                    { asc: faCaretDown, desc: faCaretUp }[
                       header.column.getIsSorted() as string
                     ] ?? faSort
                   }
