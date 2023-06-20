@@ -119,7 +119,7 @@ const MinHashHomologyMatcherUserParameters = ({
         onChange={(e) => {
           if (onChange)
             onChange({
-              maximum_distance: !isNaN(parseFloat(e.currentTarget.value))
+              maximum_distance: !Number.isNaN(parseFloat(e.currentTarget.value))
                 ? parseFloat(e.currentTarget.value)
                 : e.currentTarget.value,
             });
