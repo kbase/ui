@@ -21,6 +21,8 @@ export type OptionsArray = OptionsOrGroups<
 
 export interface SelectProps {
   children?: React.ReactNode;
+  /**html ID for integrating labels, etc */
+  id?: string;
   /** Sets a className attribute on the outer component */
   className?: string;
   /** If true, adds a clickable icon for clearing the select */
@@ -112,6 +114,7 @@ export const Select: FC<SelectProps> = (props) => {
 
   return (
     <ReactSelect
+      id={props.id}
       placeholder={props.placeholder}
       className={classNames.join(' ')}
       /** classNamePrefix allows us to override the default styles by using global

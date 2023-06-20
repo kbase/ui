@@ -35,7 +35,8 @@ jobs:
       - name: Push to repository
         uses: cpina/github-action-push-to-another-repository@main
         env:
-          API_TOKEN_GITHUB: ${{ secrets.GHCR_TOKEN }}
+          USERNAME: '${{ secrets.GHCR_USERNAME }}'
+          API_TOKEN_GITHUB: '${{ secrets.GHCR_TOKEN }}'
         with:
           source-directory: 'build'
           destination-github-username: 'kbase'
