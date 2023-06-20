@@ -1,10 +1,10 @@
-import { FC, Fragment, useEffect, useMemo, useState } from 'react';
+import { FC, Fragment, useMemo, useState } from 'react';
 import {
   getTaxaCountRank,
   listTaxaCountRanks,
 } from '../../../common/api/collectionsApi';
 import { Select, SelectOption } from '../../../common/components/Select';
-import { useBackoff } from '../../../common/hooks';
+import { useBackoffPolling } from '../../../common/hooks';
 import { snakeCaseToHumanReadable } from '../../../common/utils/stringUtils';
 import { useAppParam } from '../../params/hooks';
 import { useSelectionId } from '../collectionsSlice';
@@ -39,33 +39,26 @@ export const TaxaCount: FC<{
     }),
     [collection_id, matchId, rank?.value, selectionId]
   );
-  const backoff = useBackoff();
-  useEffect(() => {
-    backoff.reset();
-    backoff.toggle(!!matchId);
-  }, [countsParams, matchId, backoff]);
 
   const countsQuery = getTaxaCountRank.useQuery(countsParams, {
     skip: !rank,
-    pollingInterval: backoff.duration,
   });
-
-  useEffect(() => backoff.increment(), [countsQuery.startedTimeStamp, backoff]);
-
-  useEffect(() => {
-    const pollDone =
-      countsQuery.error ||
-      (countsQuery.data?.taxa_count_match_state !== 'processing' &&
-        countsQuery.data?.taxa_count_selection_state !== 'processing');
-    backoff.toggle(!pollDone);
-  }, [backoff, countsQuery.data, countsQuery.error]);
+  useBackoffPolling(countsQuery, (result) => {
+    if (matchId && result?.data?.taxa_count_match_state === 'processing')
+      return true;
+    if (
+      selectionId &&
+      result?.data?.taxa_count_selection_state === 'processing'
+    )
+      return true;
+    return false;
+  });
 
   const taxa = countsQuery.data?.data || [];
 
   const max = taxa.reduce((max, { count }) => (max > count ? max : count), 0);
 
-  if (backoff.isPolling || ranksQuery.isLoading || countsQuery.isLoading)
-    return <>Loading...</>;
+  if (ranksQuery.isLoading || countsQuery.isLoading) return <>Loading...</>;
 
   return (
     <>

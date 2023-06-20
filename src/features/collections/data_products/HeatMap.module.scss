@@ -1,0 +1,115 @@
+@import "../../../common/colors";
+
+$label-len: 20em;
+
+.layout {
+  display: flex;
+  flex-flow: row nowrap;
+  font-size: 10px;
+  width: 100%;
+}
+
+.layout-left {
+  display: flex;
+  flex-flow: column nowrap;
+  flex-shrink: 0;
+  overflow: hidden;
+  width: $label-len;
+}
+
+.layout-right {
+  display: flex;
+  flex-flow: column nowrap;
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+.blank-origin {
+  flex-grow: 0;
+  flex-shrink: 0;
+  height: $label-len;
+  width: 100%;
+}
+
+.trait-names {
+  display: flex;
+  flex-flow: row nowrap;
+  flex-shrink: 0;
+  height: $label-len;
+  justify-content: space-around;
+  overflow: hidden;
+  width: 100%;
+
+  .label {
+    writing-mode: sideways-lr;
+  }
+
+  .label-wrapper {
+    flex-direction: column-reverse;
+  }
+
+  .label-indicator {
+    height: 1em;
+    width: 100%;
+  }
+}
+
+.row-names {
+  display: flex;
+  flex-flow: column nowrap;
+  height: 100%;
+  justify-content: space-around;
+  overflow: hidden;
+  width: $label-len;
+
+  .label {
+    flex-basis: 0;
+    line-height: 0px;
+    text-align: right;
+  }
+
+  .label-wrapper {
+    flex-direction: row-reverse;
+  }
+
+  .label-indicator {
+    height: 100%;
+    width: 1em;
+  }
+}
+
+.label-wrapper {
+  align-items: center;
+  display: flex;
+  flex-basis: 0;
+  flex-grow: 1;
+  flex-shrink: 1;
+
+  .label-indicator {
+    background-color: transparent;
+    display: block;
+    @each $color, $_ in $palette {
+      &--#{$color} {
+        background-color: use-color($color);
+      }
+    }
+  }
+
+  .label {
+    display: block;
+    flex-basis: 0;
+    flex-grow: 1;
+    overflow: hidden;
+    padding: 0.4em;
+    white-space: nowrap;
+  }
+}
+
+.heatmap-wrapper {
+  height: 100%;
+  width: 100%;
+
+  .heatmap {
+    width: 100%;
+  }
+}

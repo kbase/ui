@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import classes from './Table.module.scss';
-import { Table, useTableColumns } from './Table';
+import { Pagination, Table, useTableColumns } from './Table';
 import * as Stories from '../../stories/components/Table.stories';
 import {
   createColumnHelper,
@@ -98,7 +98,12 @@ describe('Table', () => {
 
       useEffect(() => table.setPageSize(2), [table]);
 
-      return <Table table={table} />;
+      return (
+        <>
+          <Table table={table} />
+          <Pagination table={table} maxPage={10000} />
+        </>
+      );
     };
 
     render(<Wrapper />);
@@ -415,4 +420,40 @@ test('Empty useTableColumns hook returns empty column list', () => {
   render(<Wrapper />);
   // Correct header order
   expect(colSpy.mock.calls[0][0]).toEqual([]);
+});
+
+test('throws error for bad pagination button number', () => {
+  const Wrapper = () => {
+    const data = useMemo(
+      () => [
+        [1, 2, 3, 4],
+        [5, 6, 7, 8],
+        [10, 11, 12],
+      ],
+      []
+    );
+
+    const helper = createColumnHelper<typeof data[number]>();
+    const table = useReactTable({
+      data,
+      columns: data[0].map((v, i) =>
+        helper.accessor((row) => row[i], {
+          header: String(i),
+        })
+      ),
+      getCoreRowModel: getCoreRowModel(),
+      getPaginationRowModel: getPaginationRowModel(),
+    });
+
+    useEffect(() => table.setPageSize(2), [table]);
+    return (
+      <>
+        <Table table={table} />
+        <Pagination table={table} maxPage={10000} totalButtons={8} />
+      </>
+    );
+  };
+  expect(() => {
+    render(<Wrapper />);
+  }).toThrow('Choose a valid total button number: Odd, >=9');
 });
