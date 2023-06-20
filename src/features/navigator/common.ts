@@ -85,3 +85,23 @@ export const corruptNarrativeError = (
     narrative,
   });
 };
+
+export const normalizeVersion = (verRaw?: number | string) => {
+  if (typeof verRaw === 'undefined') {
+    return;
+  }
+  const verNumber = Number(verRaw);
+  if (!Number.isFinite(verNumber)) {
+    throw Error('Version must be finite if specified.');
+  }
+  if (!Number.isInteger(verNumber)) {
+    throw Error('Version must be an integer if specified.');
+  }
+  if (verNumber < 1) {
+    throw Error('Version must be positive if specified.');
+  }
+  if (verNumber > Number.MAX_SAFE_INTEGER) {
+    throw Error('Version not supported.');
+  }
+  return verNumber.toString();
+};

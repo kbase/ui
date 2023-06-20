@@ -235,7 +235,17 @@ describe('The <Navigator /> component...', () => {
       <Provider store={createTestStore()}>
         <Router initialEntries={['/narratives/0/0/0']}>
           <RRRoutes>
-            <Route path={navigatorPath} element={<Navigator />} />
+            <Route
+              path={navigatorPath}
+              element={
+                <ErrorBoundary
+                  FallbackComponent={TestingError}
+                  onError={logError}
+                >
+                  <Navigator />
+                </ErrorBoundary>
+              }
+            />
           </RRRoutes>
         </Router>
       </Provider>
