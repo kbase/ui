@@ -6,18 +6,22 @@ import { useAppSelector } from '../../../common/hooks';
 import { Dropdown } from '../../../common/components/Dropdown';
 import { SelectOption } from '../../../common/components/Select';
 import { getParams } from '../../../features/params/paramsSlice';
-import { generateNavigatorPath, navigatorParams } from '../common';
+import {
+  generateNavigatorPath,
+  navigatorParams,
+  normalizeVersion,
+} from '../common';
 import { categorySelected, navigatorSelected } from '../navigatorSlice';
 import classes from './NarrativeList.module.scss';
 
 type NarrativeItemDropdownProps = {
-  narrative: string;
+  narrativeUPA: string;
   version: number;
   visible: boolean;
 };
 
 const NarrativeItemDropdown: FC<NarrativeItemDropdownProps> = ({
-  narrative,
+  narrativeUPA,
   version,
   visible,
 }) => {
@@ -25,7 +29,7 @@ const NarrativeItemDropdown: FC<NarrativeItemDropdownProps> = ({
   const categorySet = useAppSelector(categorySelected);
   const europaParams = useAppSelector(getParams);
   const navigate = useNavigate();
-  const [id, obj, ver] = narrative.split('/');
+  const [id, obj, ver] = narrativeUPA.split('/');
   const versionLatest = +ver;
   const [versionSelected] = (
     narrativeSelected ? narrativeSelected.split('/') : [null, null, null]
@@ -78,7 +82,7 @@ const NarrativeItemDropdown: FC<NarrativeItemDropdownProps> = ({
     });
 
   const handleDropdownChange = (event: SelectOption[]) => {
-    const versionSelected = +event[0].value;
+    const versionSelected = Number(normalizeVersion(event[0].value));
     const path = versionPath(versionSelected);
     navigate(path);
   };
@@ -100,7 +104,9 @@ const NarrativeItemDropdown: FC<NarrativeItemDropdownProps> = ({
             v{versionSelected} of {versionLatest}
           </span>
         ) : (
-          <span>v&nbsp; of {versionLatest}</span>
+          <span>
+            v{versionLatest} of {versionLatest}
+          </span>
         )}
         <FAIcon icon={faCaretDown} style={{ marginLeft: '5px' }} />
       </Dropdown>
