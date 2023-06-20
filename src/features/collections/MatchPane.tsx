@@ -136,6 +136,7 @@ const ViewMatch = () => {
 const MATCHER_LABELS = new Map<string, string>(
   Object.entries({
     gtdb_lineage: 'GTDB Lineage',
+    minhash_homology: 'MinHash Homology',
   })
 );
 const getMatcherLabel = (matcherId: string) =>
