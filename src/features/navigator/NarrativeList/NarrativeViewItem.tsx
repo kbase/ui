@@ -1,3 +1,5 @@
+import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
+import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
 import { FC } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import * as timeago from 'timeago.js';
@@ -8,6 +10,7 @@ import {
   generateNavigatorPath,
   narrativeURL,
   navigatorParams,
+  normalizeVersion,
 } from '../common';
 import { categorySelected } from '../navigatorSlice';
 import NarrativeItemDropdown from './NarrativeItemDropdown';
@@ -32,13 +35,10 @@ const NarrativeViewItem: FC<NarrativeViewItemProps> = ({
 }) => {
   const categorySet = useAppSelector(categorySelected);
   const europaParams = useAppSelector(getParams);
-  const {
-    id = null,
-    obj = null,
-    ver = null,
-  } = useParams<{ id: string; obj: string; ver: string }>();
+  const { id, obj, ver: verRaw } = useParams();
   const { access_group, creator, narrative_title, obj_id, timestamp, version } =
     narrativeDoc;
+  const ver = Math.min(Number(normalizeVersion(verRaw)), version);
   const wsId = access_group.toString();
   const upa = `${wsId}/${obj_id}/${version}`;
   const active = wsId === id && obj_id.toString() === obj;
@@ -60,12 +60,14 @@ const NarrativeViewItem: FC<NarrativeViewItemProps> = ({
     });
   };
 
-  const pathVersion = active ? Number(ver) : version;
+  const pathVersion = active ? ver : version;
   const path = linkToNarrative
     ? narrativeURL(wsId)
     : narrativeViewItemPath(pathVersion);
+  const titleClass = linkToNarrative ? classes.title : '';
   return (
-    <section key={idx}>
+    <section className={titleClass} key={idx}>
+      {linkToNarrative ? <FAIcon icon={faArrowUpRightFromSquare} /> : <></>}
       <Link
         to={path}
         className={`${classes.narrative_item_outer} ${classes[status]} ${
@@ -79,7 +81,7 @@ const NarrativeViewItem: FC<NarrativeViewItemProps> = ({
               {narrative_title}
             </div>
             <NarrativeItemDropdown
-              narrative={upa}
+              narrativeUPA={upa}
               visible={showVersionDropdown}
               version={pathVersion}
             />
