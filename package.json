@@ -95,7 +95,10 @@
     ]
   },
   "jest": {
-    "resetMocks": false
+    "resetMocks": false,
+    "moduleNameMapper": {
+      "^d3-(.*)$": "d3-$1/dist/d3-$1"
+    }
   },
   "name": "ui-refresh-test",
   "private": true,
