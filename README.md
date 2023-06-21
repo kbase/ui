@@ -24,6 +24,36 @@ major decisions that change the course of the project. You can find the ADRs
 for this project in [`docs/adrs`](docs/adrs).
 
 
+## Getting Started
+
+First clone the repo into your working directory:
+
+```
+git clone git@github.com:kbase/ui.git
+```
+
+Install the dependencies:
+
+```
+npm install
+```
+
+Start the app:
+
+```
+npm start
+```
+
+### Troubleshooting
+
+- Ensure that your node version matches the version specified in `.nvmrc`. 
+We recommend using `nvm` to manage your node versions. 
+Run `nvm install` to install and use the node version from `.nvmrc`.
+- If you receive the following error message after running `npm start`: 
+`Invalid options object. Dev Server has been initialized using an options object that does not match the API schema.` 
+then you may need to set the following environment variable: `DANGEROUSLY_DISABLE_HOST_CHECK=true`
+
+
 ## Available Scripts
 
 In the project directory, you can run:
@@ -62,7 +92,7 @@ Runs eslint/prettier and shows errors/warnings. `npm run lint:fix` will fix
 files in-place where possible. `npm run lint:strict` will fail with any
 errors/warnings and is used as a pre-commit hook.
 
-## `npm run storybook`
+### `npm run storybook`
 
 Opens storybook locally. Builds and watches `*.stories.[tsx|mdx]` files and
 launches a local storybook server. The storybook contains component examples
