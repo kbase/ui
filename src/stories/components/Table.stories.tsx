@@ -11,7 +11,7 @@ import {
 } from '@tanstack/react-table';
 import { useEffect, useState } from 'react';
 
-import { Table } from '../../common/components/Table';
+import { Table, Pagination } from '../../common/components/Table';
 import { snakeCaseToHumanReadable } from '../../common/utils/stringUtils';
 
 import rows from './tableData.json';
@@ -194,7 +194,12 @@ export const PageSize = () => {
     return table.setPageSize(6);
   }, [table]);
 
-  return <Table table={table} />;
+  return (
+    <>
+      <Table table={table} />
+      <Pagination table={table} maxPage={10000} />
+    </>
+  );
 };
 
 export const DisablePagination = () => {

@@ -1,4 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { QueryDefinition } from '@reduxjs/toolkit/dist/query';
+import { UseQueryHookResult } from '@reduxjs/toolkit/dist/query/react/buildHooks';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { RootState, AppDispatch } from '../app/store';
@@ -12,37 +14,45 @@ import {
 export const useAppDispatch = () => useDispatch<AppDispatch>();
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 
-export const useBackoff = (baseInterval = 200, rate = 2, initPoll = true) => {
-  // backoff state
-  const [polling, setPolling] = useState(initPoll);
+export const useBackoffPolling = <
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  R extends UseQueryHookResult<QueryDefinition<unknown, any, any, unknown>>
+>(
+  result: R,
+  pollCondition: (result: R, count: number) => boolean,
+  options?: { baseInterval?: number; rate?: number; skipPoll?: boolean }
+) => {
+  const opts = { baseInterval: 200, rate: 2, skipPoll: false, ...options };
   const [count, setCount] = useState(0);
+  const shouldPollCallback = useRef<typeof pollCondition>(pollCondition);
+  shouldPollCallback.current = pollCondition;
 
-  // helpers to be used within useEffects
-  const reset = useCallback((count = 0) => setCount(count), []);
-  const increment = useCallback(() => setCount((count) => count + 1), []);
-  const toggle = useCallback(
-    (pollState?: boolean) => setPolling((p) => pollState ?? !p),
-    []
-  );
+  useEffect(() => setCount((c) => c + 1), [result.fulfilledTimeStamp]);
+  const shouldPoll = useCallback(() => {
+    const should = !opts.skipPoll && shouldPollCallback.current(result, count);
+    if (!should) setCount(0);
+    return should;
+  }, [count, opts.skipPoll, result]);
 
-  // Return object only changes if the callbacks do (for now they don't)
-  // this lets us easily use useBackoff return value in useEffect dep arrays
-  const backoff = useMemo(
-    () => ({
-      duration: 0,
-      increment,
-      toggle,
-      reset,
-      count: 0,
-      isPolling: false,
-    }),
-    [increment, reset, toggle]
-  );
-  backoff['duration'] = polling ? baseInterval * Math.pow(rate, count) : 0;
-  backoff['count'] = count;
-  backoff['isPolling'] = polling;
+  useEffect(() => {
+    if (shouldPoll()) {
+      const pollTime = opts.baseInterval * Math.pow(opts.rate, count);
+      const now = Date.now();
+      const duration = Math.max(
+        0,
+        pollTime - now + (result.fulfilledTimeStamp || now)
+      );
+      const timeout = setTimeout(
+        () => (shouldPoll() ? result.refetch() : undefined),
+        duration
+      );
+      return () => {
+        clearTimeout(timeout);
+      };
+    }
+  }, [opts.baseInterval, count, pollCondition, opts.rate, result, shouldPoll]);
 
-  return backoff;
+  return result;
 };
 
 export const ignoredParameterWarning = (ignored: string[]) =>
