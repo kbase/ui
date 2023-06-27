@@ -1,3 +1,5 @@
+# The nginx config needs to be search/replaced at container runtime, so let's
+# do that in the entrypoint.
 FROM bitnami/nginx:latest
 ARG BUILD_ENVIRONMENT=prod
 USER root
