@@ -12,7 +12,7 @@ export const PlaceholderFactory = (name: string) => {
   const Placeholder: FC<PlaceholderInterface> = (props) => {
     const invalidEnvironment =
       process.env.NODE_ENV === 'production' &&
-      process.env.REACT_APP_KBASE_ENV !== 'ci-europa';
+      process.env.REACT_APP_KBASE_DOMAIN !== 'ci-europa.kbase.us';
     if (invalidEnvironment) {
       throw new Error('Placeholder components may not be used in production.');
     }
