@@ -198,8 +198,8 @@ interface CollectionsResults {
       match_count?: number;
       sel_count?: number;
     }[];
-    taxa_count_match_state: ProcessState;
-    taxa_count_selection_state: ProcessState;
+    match_state: ProcessState;
+    selection_state: ProcessState;
   };
   getGenomeAttribs: {
     skip: number;
@@ -211,8 +211,8 @@ interface CollectionsResults {
   };
   getMicroTrait: {
     description: string;
-    heatmap_match_state: ProcessState;
-    heatmap_selection_state: ProcessState;
+    match_state: ProcessState;
+    selection_state: ProcessState;
     data: HeatMapRow[];
     min_value: number;
     max_value: number;
@@ -228,8 +228,8 @@ interface CollectionsResults {
     values: { id: string; val: number | boolean }[];
   };
   getMicroTraitMissing: {
-    heatmap_match_state: ProcessState;
-    heatmap_selection_state: ProcessState;
+    match_state: ProcessState;
+    selection_state: ProcessState;
     match_missing: KBaseId[];
     selection_missing: KBaseId[];
   };

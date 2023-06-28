@@ -44,12 +44,8 @@ export const TaxaCount: FC<{
     skip: !rank,
   });
   useBackoffPolling(countsQuery, (result) => {
-    if (matchId && result?.data?.taxa_count_match_state === 'processing')
-      return true;
-    if (
-      selectionId &&
-      result?.data?.taxa_count_selection_state === 'processing'
-    )
+    if (matchId && result?.data?.match_state === 'processing') return true;
+    if (selectionId && result?.data?.selection_state === 'processing')
       return true;
     return false;
   });

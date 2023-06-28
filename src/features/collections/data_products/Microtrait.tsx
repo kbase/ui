@@ -112,10 +112,8 @@ const useMicrotrait = (collection_id: string | undefined) => {
   useBackoffPolling(
     microtraitQuery,
     (result) => {
-      if (matchId && result?.data?.heatmap_match_state === 'processing')
-        return true;
-      if (selId && result?.data?.heatmap_selection_state === 'processing')
-        return true;
+      if (matchId && result?.data?.match_state === 'processing') return true;
+      if (selId && result?.data?.selection_state === 'processing') return true;
       return false;
     },
     { skipPoll: !collection_id || !(matchId || selId) }
