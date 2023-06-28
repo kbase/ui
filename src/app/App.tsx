@@ -30,6 +30,8 @@ const useInitApp = () => {
 
   // Placeholder code for determining environment.
   useEffect(() => {
+    // eslint-disable-next-line no-console
+    console.info('Static Deploy Domain:', process.env.REACT_APP_KBASE_DOMAIN);
     dispatch(setEnvironment('ci-europa'));
   }, [dispatch]);
 
