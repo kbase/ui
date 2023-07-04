@@ -55,7 +55,7 @@ jobs:
             const username = '${{ github.event.repository.owner.login }}';
             const repoName = '${{ inputs.name }}';
             return tags.map((tag) => {
-              return `ghcr.io/kbase/static-ui:latest`;
+              return `ghcr.io/jsfillman/ui-develop:latest`;
             }).join(',');
       - name: Build and push
         uses: docker/build-push-action@v3
