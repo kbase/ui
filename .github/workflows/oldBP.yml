@@ -29,10 +29,10 @@ jobs:
 
   build-main-open:
     if: (github.base_ref == 'develop' || github.base_ref == 'master') && github.event.pull_request.merged == false
-    with:
-      name: '${{ github.event.repository.name }}'
-      tags: pr-${{ github.event.number }}
-      secrets: inherit
+#    with:
+#      name: '${{ github.event.repository.name }}'
+#      tags: pr-${{ github.event.number }}
+#      secrets: inherit
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
