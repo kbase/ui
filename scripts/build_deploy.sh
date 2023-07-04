@@ -3,6 +3,7 @@
 
 declare -a enviroments=(
 # "<name>         <domain>                <legacy-domain>"
+  "ci             ci.kbase.us             legacy.kbase.us"
   "ci-europa      ci-europa.kbase.us      legacy.ci-europa.kbase.us"
   "narrative-dev  narrative-dev.kbase.us  legacy.narrative-dev.kbase.us"
 )
