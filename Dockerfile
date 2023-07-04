@@ -1,15 +1,15 @@
 FROM nginx:stable-alpine3.17-slim
-COPY build /usr/share/nginx/html
+#COPY build /usr/share/nginx/html
 
 #FROM bitnami/nginx:latest
-#USER root
+USER root
 #
 ## Copy built static files for all enviroments to image
-#COPY ./deploy /deploy/
+COPY ./deploy /deploy/
 #
 ## Copy nginx config template to image
-#COPY ./scripts/nginx.conf.tmpl /nginx.conf.tmpl
+COPY ./scripts/nginx.conf.tmpl /nginx.conf.tmpl
 #
-#COPY ./scripts/docker_entrypoint.sh /entrypoint.sh
-#USER 1001
-#ENTRYPOINT ["/entrypoint.sh"]
+COPY ./scripts/docker_entrypoint.sh /entrypoint.sh
+USER 1001
+ENTRYPOINT ["/entrypoint.sh"]
