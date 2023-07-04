@@ -2,11 +2,11 @@ name: Build Static Nginx Docker Image
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "mainf" ]
     # Publish semver tags as releases.
     tags: [ 'v*.*.*' ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "mainf" ]
   workflow_dispatch:
 
 env:
@@ -96,3 +96,24 @@ jobs:
         # This step uses the identity token to provision an ephemeral certificate
         # against the sigstore community Fulcio instance.
         run: echo "${{ steps.meta.outputs.tags }}" | xargs -I {} cosign sign {}@${{ steps.build-and-push.outputs.digest }}
+
+### Adding Triggers
+
+- Adding triggers for PR open/close
+
+#  build-main-open:
+#    if: (github.base_ref == 'main' || github.base_ref == 'master') && github.event.pull_request.merged == false
+#    uses: kbase/.github/.github/workflows/reusable_build-push.yml@main
+#    with:
+#      name: '${{ github.event.repository.name }}'
+#      tags: pr-${{ github.event.number }}
+#    secrets: inherit
+#  build-main-merge:
+#    if: (github.base_ref == 'main' || github.base_ref == 'master') && github.event.pull_request.merged == true
+#    uses: kbase/.github/.github/workflows/reusable_build-push.yml@main
+#    with:
+#      name: '${{ github.event.repository.name }}'
+#      tags: pr-${{ github.event.number }},latest-rc
+#    secrets: inherit
+
+- Temporarily changing original `build_image.yml` to only trigger off of "mainf" branch to disable
