@@ -21,7 +21,7 @@ on:
 jobs:
   build-develop-merge:
     if: github.base_ref == 'develop' && github.event.pull_request.merged == false
-    uses: .github/workflows/reusable_build-push.yml
+    uses: .github/workflows/reusable_build-push.yml@DEVOPS-1410-ui-builds
     with:
       name: '${{ github.event.repository.name }}-develop'
       tags: pr-${{ github.event.number }},latest
