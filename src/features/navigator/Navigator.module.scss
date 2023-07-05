@@ -1,3 +1,5 @@
+@import "../../common/colors";
+
 :root {
   --dark-green: #137752;
   --white: #fff;
@@ -7,21 +9,13 @@ pre {
   margin: 0;
 }
 
-.active {
-  background-color: #f0f;
-  color: #ff0;
+.navigator {
+  background-color: use-color("base-lightest");
+  padding: 1rem;
 }
 
-.button {
-  &.narrative-new {
-    height: 100%;
-    width: 100%;
-  }
-
-  &.refresh {
-    background-color: var(--dark-green);
-    color: var(--white);
-  }
+.navigator a {
+  text-decoration: none;
 }
 
 .column {
@@ -44,8 +38,13 @@ pre {
 }
 
 .header nav {
-  display: flex;
-  justify-content: space-between;
+  position: relative;
+}
+
+.narrative-new-button {
+  position: absolute;
+  right: 0;
+  top: 0;
 }
 
 .list {
@@ -120,4 +119,30 @@ ul.shared,
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+}
+
+.tabs {
+  border-bottom: 1px solid use_color("silver");
+  display: flex;
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+}
+
+.tabs > li {
+  padding: 1rem;
+}
+
+.tabs > li:not(:last-child) {
+  margin-right: 1rem;
+}
+
+.tabs .active {
+  border-bottom: 3px solid use_color("mid-green");
+  // color: use_color("mid-green");
+  // font-weight: bold;
+}
+
+.tabs a {
+  color: inherit;
 }

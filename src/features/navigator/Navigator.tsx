@@ -7,7 +7,6 @@ import {
   useParams,
   useSearchParams,
 } from 'react-router-dom';
-import { Button } from '../../common/components';
 import { useAppDispatch, useAppSelector } from '../../common/hooks';
 import { NarrativeDoc } from '../../common/types/NarrativeDoc';
 import { authUsername } from '../../features/auth/authSlice';
@@ -39,13 +38,18 @@ import classes from './Navigator.module.scss';
 import RefreshButton from './RefreshButton';
 import SearchInput from './SearchInput';
 import SortSelect from './SortSelect';
+import { LinkButton } from '../../common/components/LinkButton';
 
 const NarrativeNewButton: FC = () => (
-  <a href="/#narrativemanager/new" rel="noopener noreferrer" target="_blank">
-    <Button className={`${classes.button} ${classes['narrative-new']}`}>
-      <FAIcon icon={faPlus} /> New Narrative
-    </Button>
-  </a>
+  <LinkButton
+    href="/#narrativemanager/new"
+    rel="noopener noreferrer"
+    target="_blank"
+    color="blue"
+    className={classes['narrative-new-button']}
+  >
+    <FAIcon icon={faPlus} /> New Narrative
+  </LinkButton>
 );
 
 const HeaderTabs: FC<{ category: string }> = ({ category }) => {
@@ -59,24 +63,26 @@ const HeaderTabs: FC<{ category: string }> = ({ category }) => {
   const { own, shared, tutorials, public: public_ } = Category;
   return (
     <ul className={classes.tabs}>
-      <Link to={categoryPathWithSearchParams('/narratives/')}>
-        <li className={category === own ? classes.active : ''}>
+      <li className={category === own ? classes.active : ''}>
+        <Link to={categoryPathWithSearchParams('/narratives/')}>
           My Narratives
-        </li>
-      </Link>
-      <Link to={categoryPathWithSearchParams('/narratives/shared/')}>
-        <li className={category === shared ? classes.active : ''}>
+        </Link>
+      </li>
+      <li className={category === shared ? classes.active : ''}>
+        <Link to={categoryPathWithSearchParams('/narratives/shared/')}>
           Shared With Me
-        </li>
-      </Link>
-      <Link to={categoryPathWithSearchParams('/narratives/tutorials/')}>
-        <li className={category === tutorials ? classes.active : ''}>
+        </Link>
+      </li>
+      <li className={category === tutorials ? classes.active : ''}>
+        <Link to={categoryPathWithSearchParams('/narratives/tutorials/')}>
           Tutorials
-        </li>
-      </Link>
-      <Link to={categoryPathWithSearchParams('/narratives/public/')}>
-        <li className={category === public_ ? classes.active : ''}>Public</li>
-      </Link>
+        </Link>
+      </li>
+      <li className={category === public_ ? classes.active : ''}>
+        <Link to={categoryPathWithSearchParams('/narratives/public/')}>
+          Public
+        </Link>
+      </li>
     </ul>
   );
 };
