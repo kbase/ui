@@ -2,20 +2,28 @@
 
 .button {
   /*button styles*/
-  border-color: use_color("black");
+  border: 1px solid use_color("silver");
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
 
   &[disabled] {
     /*disabled button styles*/
     background-color: use_color("neutral");
     border-color: use_color("neutral");
     color: use_color("silver");
+    cursor: not-allowed;
   }
+}
+
+.icon {
+  margin-right: 0.5rem;
 }
 
 @each $state, $_ in $palette {
   .button--#{$state} {
     background-color: use-color($state);
-    @if (lightness(use-color($state)) > 33) {
+    @if (lightness(use-color($state)) > 40) {
       color: use-color("black");
     } @else {
       color: use-color("white");
