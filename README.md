@@ -1,4 +1,4 @@
-# UI Refresh Test Repo
+# UI
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app) (`npx create-react-app ui-refresh-test --template typescript`). It also includes the following:
 
@@ -46,11 +46,11 @@ npm start
 
 ### Troubleshooting
 
-- Ensure that your node version matches the version specified in `.nvmrc`. 
-We recommend using `nvm` to manage your node versions. 
+- Ensure that your node version matches the version specified in `.nvmrc`.
+We recommend using `nvm` to manage your node versions.
 Run `nvm install` to install and use the node version from `.nvmrc`.
-- If you receive the following error message after running `npm start`: 
-`Invalid options object. Dev Server has been initialized using an options object that does not match the API schema.` 
+- If you receive the following error message after running `npm start`:
+`Invalid options object. Dev Server has been initialized using an options object that does not match the API schema.`
 then you may need to set the following environment variable: `DANGEROUSLY_DISABLE_HOST_CHECK=true`
 
 
