@@ -1,0 +1,9 @@
+server {
+    listen 0.0.0.0:8080;
+
+    location / {
+        root   /deploy/__ENVIRONMENT__;
+        index  index.html;
+        try_files $uri $uri/ /index.html =404;
+    }
+}

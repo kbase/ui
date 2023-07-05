@@ -1,0 +1,46 @@
+name: Build and Push Images
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - closed
+    inputs:
+      name:
+        description: The image name
+        required: true
+        type: string
+      tags:
+        description: The image tags
+        required: true
+        type: string
+jobs:
+  build-main-open:
+    if: (github.base_ref == 'main' || github.base_ref == 'master') && github.event.pull_request.merged == false
+    uses: ./.github/workflows/reusable_build-push.yml
+    with:
+      name: '${{ github.event.repository.name }}'
+      tags: pr-${{ github.event.number }}
+    secrets: inherit
+  build-main-merge:
+    if: (github.base_ref == 'main' || github.base_ref == 'master') && github.event.pull_request.merged == true
+    uses: ./.github/workflows/reusable_build-push.yml
+    with:
+      name: '${{ github.event.repository.name }}'
+      tags: pr-${{ github.event.number }},latest-rc
+    secrets: inherit
+  trivy-scans:
+    if: (github.base_ref == 'develop' || github.base_ref == 'main' || github.base_ref == 'master' ) && github.event.pull_request.merged == false
+    uses: kbase/.github/.github/workflows/reusable_trivy-scans.yml@main
+    secrets: inherit
+#  build-develop-merge:
+#    if: github.base_ref == 'main' && github.event.pull_request.merged == true
+#    uses: ./.github/workflows/reusable_build-push.yml
+#    with:
+#      name: '${{ github.event.repository.name }}-develop'
+#      tags: pr-${{ github.event.number }},latest
+#    secrets: inherit
