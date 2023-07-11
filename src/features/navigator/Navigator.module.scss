@@ -18,8 +18,10 @@ pre {
   text-decoration: none;
 }
 
-.column {
-  border: 1px dashed #000;
+.column ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .columns {
@@ -38,6 +40,7 @@ pre {
 }
 
 .header nav {
+  margin-bottom: 1rem;
   position: relative;
 }
 
@@ -48,6 +51,10 @@ pre {
 }
 
 .list {
+  background-color: use-color("white");
+  border-bottom: 1px solid use-color("silver");
+  border-left: 1px solid use-color("silver");
+  border-top: 1px solid use-color("silver");
   flex-grow: 2;
   max-width: 600px;
 }
@@ -56,12 +63,15 @@ pre {
   border: 1px dashed #000;
 }
 
-.preview {
-  border: 1px dashed #000;
+.preview ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .search {
   display: flex;
+  margin-bottom: 1rem;
 
   > *:not(:last-child) {
     margin-right: 0.5rem;
@@ -109,9 +119,11 @@ ul.shared,
 }
 
 .view {
-  border: 1px dashed #000;
+  background-color: use-color("white");
+  border: 1px solid use-color("silver");
   display: flex;
   flex-direction: column;
+  padding: 1rem;
   width: 100%;
 }
 
@@ -125,16 +137,24 @@ ul.shared,
   justify-content: space-between;
 }
 
+.view .tabs {
+  margin-bottom: 1rem;
+}
+
 .tabs {
   border-bottom: 1px solid use_color("silver");
   display: flex;
   list-style: none;
-  margin: 0 0 1rem;
+  margin: 0;
   padding: 0;
 }
 
-.tabs > li {
-  padding: 1rem;
+// .tabs > li {
+//   transition: 0.25s;
+// }
+
+.tabs > li:hover {
+  color: use-color("grey");
 }
 
 .tabs > li:not(:last-child) {
@@ -149,4 +169,7 @@ ul.shared,
 
 .tabs a {
   color: inherit;
+  display: inline-block;
+  height: 100%;
+  padding: 1rem;
 }
