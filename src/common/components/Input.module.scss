@@ -1,9 +1,17 @@
 @import "../colors";
 
-.input {
-  border: 1px solid use-color("black");
-  margin: 1ex;
-  padding: 1ex;
+.input-container {
+  background-color: use-color("white");
+  border: 1px solid use-color("silver");
+  border-radius: 4px;
+  box-sizing: border-box;
+  display: flex;
+  padding: 0.5rem;
+
+  &.focus {
+    border: 1px solid use-color("mid-blue");
+    box-shadow: 0 0 0 1px use-color("mid-blue");
+  }
 
   &.error {
     background-color: use-color("error-lightest");
@@ -16,10 +24,17 @@
   }
 }
 
+.input {
+  border: 0;
+
+  &:focus {
+    outline: none;
+  }
+}
+
 .label {
   border: 1px solid transparent;
-  margin: 1ex;
-  padding: 1ex;
+  margin-right: 0.5rem;
 
   &.error {
     border: 1px solid use-color("error");

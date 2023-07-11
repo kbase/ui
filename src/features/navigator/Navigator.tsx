@@ -1,5 +1,5 @@
 import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faSearch } from '@fortawesome/free-solid-svg-icons';
 import { FC, useEffect } from 'react';
 import {
   Link,
@@ -108,7 +108,7 @@ const FilterContainer: FC<{ search: string; sort: string }> = ({
 }) => {
   return (
     <div className={classes.search}>
-      <SearchInput label={<></>} search={search} />
+      <SearchInput label={<FAIcon icon={faSearch} />} search={search} />
       <SortSelect sort={sort} />
       <RefreshButton />
     </div>
