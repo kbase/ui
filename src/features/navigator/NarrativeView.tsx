@@ -56,6 +56,7 @@ const NarrativeVersionSelection: FC<{ narrativeDoc: NarrativeDoc }> = ({
       linkToNarrative={true}
       narrativeDoc={narrativeDoc}
       showVersionDropdown={true}
+      isHeading={true}
     />
   );
 };
