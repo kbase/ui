@@ -1,0 +1,18 @@
+.label-value-table {
+  border-spacing: 0;
+  width: 100%;
+}
+
+.label-value-table td {
+  padding: 0;
+}
+
+.label-value-table td:first-child {
+  font-weight: bold;
+  padding-right: 2rem;
+}
+
+.label-value-table tr:not(:last-child) td {
+  padding-bottom: 0.5rem;
+  // border-bottom: 1px solid #eee;
+}
