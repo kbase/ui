@@ -5,6 +5,7 @@
   border: 1px solid use_color("silver");
   border-radius: 4px;
   cursor: pointer;
+  display: inline-block;
   padding: 0.5rem 0.75rem;
 
   &[disabled] {

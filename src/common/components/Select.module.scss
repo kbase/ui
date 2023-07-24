@@ -1,6 +1,8 @@
 @import "../colors";
 
 .react-select {
+  display: inline-block;
+
   // these prefixed global classnames are inserted by react-select
   :global(.react-select__option) {
     padding: 1.5px 20px;
