@@ -1,7 +1,7 @@
 /* NarrativeControlSharing */
 import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
 import { faLock, faUnlock } from '@fortawesome/free-solid-svg-icons';
-import { FC, useEffect, useId } from 'react';
+import { FC, useEffect, useId, useState } from 'react';
 import { authUsername } from '../auth/authSlice';
 import { getwsPermissions } from '../../common/api/workspaceApi';
 import { Button, Select, SelectOption } from '../../common/components';
@@ -68,6 +68,23 @@ export const UserPermissionControl: FC<{
   );
 };
 
+const SelectUser: FC<{}> = () => {
+  const [userSearch, setUserSearch] = useState('');
+  console.log({ userSearch }); // eslint-disable-line no-console
+  return (
+    <Select
+      options={[{ id: '1', name: 'one' }].map(({ id, name }) => ({
+        value: id,
+        label: name,
+      }))}
+      onSearch={setUserSearch}
+      onChange={(opts) => {
+        console.log({ value: opts[0].value }); // eslint-disable-line no-console
+      }}
+    />
+  );
+};
+
 export const Share: FC<{
   narrativeDoc: NarrativeDoc;
   modalClose: () => void;
@@ -113,15 +130,7 @@ export const Share: FC<{
         )
       </p>
       <p>{permissions[userPermission]}</p>
-      <Select
-        options={[{ id: '1', name: 'one' }].map(({ id, name }) => ({
-          value: id,
-          label: name,
-        }))}
-        onChange={(opts) => {
-          console.log({ value: opts[0].value }); // eslint-disable-line no-console
-        }}
-      />
+      <SelectUser />
       <ul>
         {Object.entries(userShares).map(([user, perm]) => (
           <UserPermissionControl
