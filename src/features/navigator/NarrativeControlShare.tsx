@@ -2,7 +2,8 @@
 import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
 import { faLock, faUnlock } from '@fortawesome/free-solid-svg-icons';
 import { FC, useEffect, useId, useState } from 'react';
-import { authUsername } from '../auth/authSlice';
+import { authToken, authUsername } from '../auth/authSlice';
+import { searchUsers } from '../../common/api/authService';
 import { getwsPermissions } from '../../common/api/workspaceApi';
 import { Button, Select, SelectOption } from '../../common/components';
 import { useAppDispatch, useAppSelector } from '../../common/hooks';
@@ -70,17 +71,30 @@ export const UserPermissionControl: FC<{
 
 const SelectUser: FC<{}> = () => {
   const [userSearch, setUserSearch] = useState('');
-  console.log({ userSearch }); // eslint-disable-line no-console
+  const token = useAppSelector(authToken);
+  const searchQuery = token
+    ? searchUsers.useQuery({ search: userSearch, token })
+    : null;
+  const searchResults = searchQuery?.data ? searchQuery.data : [];
+  console.log({ searchResults }); // eslint-disable-line no-console
+  const userOptions = Object.entries(searchResults).map(
+    ([username, realname]) => ({
+      value: username,
+      label: (
+        <>
+          {realname} ({username})
+        </>
+      ),
+    })
+  );
   return (
     <Select
-      options={[{ id: '1', name: 'one' }].map(({ id, name }) => ({
-        value: id,
-        label: name,
-      }))}
+      options={userOptions}
       onSearch={setUserSearch}
       onChange={(opts) => {
         console.log({ value: opts[0].value }); // eslint-disable-line no-console
       }}
+      placeholder={'Share with...'}
     />
   );
 };
