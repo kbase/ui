@@ -170,6 +170,7 @@ export const Pagination = <Datum,>({
           <Button
             key={button}
             disabled={button === curr || button > maxPage}
+            hidden={button > maxPage} // Hides the max page when we can't display it
             onClick={() => table.setPageIndex(button)}
           >
             {button + 1}
