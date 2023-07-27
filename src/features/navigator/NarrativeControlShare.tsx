@@ -1,7 +1,7 @@
 /* NarrativeControlSharing */
 import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
 import { faLock, faUnlock } from '@fortawesome/free-solid-svg-icons';
-import { FC, useEffect, useId, useState } from 'react';
+import { FC, ReactElement, useEffect, useId, useMemo, useState } from 'react';
 import { authToken, authUsername } from '../auth/authSlice';
 import { searchUsers } from '../../common/api/authService';
 import { getwsPermissions } from '../../common/api/workspaceApi';
@@ -13,16 +13,45 @@ import {
   setShares,
   setUserPermission,
   shares,
+  updateUsers,
   users,
 } from './navigatorSlice';
 import { isUserPermission, permissions, UserPermission } from './common';
 import classes from './NarrativeControl.module.scss';
 
+const permissionValues: Record<UserPermission, SelectOption> = {
+  a: { value: 'a', label: 'can view, edit, and share' },
+  n: { value: 'n', label: 'no permissions' },
+  r: { value: 'r', label: 'can view' },
+  w: { value: 'w', label: 'can view and edit' },
+};
+
+const UserPermissionSelection: FC<{
+  initialPerm?: UserPermission;
+  onChange: (opts: SelectOption[]) => Promise<void> | void;
+  username: string;
+  wsId: number;
+}> = ({ initialPerm, onChange, username, wsId }) => {
+  const permissionOptions = [
+    permissionValues.r,
+    permissionValues.w,
+    permissionValues.a,
+  ];
+  return (
+    <Select
+      options={permissionOptions}
+      onChange={onChange}
+      value={permissionValues[initialPerm || 'r']}
+    />
+  );
+};
+
 export const UserPermissionControl: FC<{
   perm: UserPermission;
   username: string;
   wsId: number;
-}> = ({ perm, username, wsId }) => {
+}> = (props) => {
+  const { perm, username, wsId } = props;
   const usersLoaded = useAppSelector(users);
   const dispatch = useAppDispatch();
   const removeShareHandler = async () => {
@@ -33,35 +62,27 @@ export const UserPermissionControl: FC<{
     });
     dispatch(removeShare({ username, wsId }));
   };
-  const permissionValues: Record<UserPermission, SelectOption> = {
-    a: { value: 'a', label: 'can view, edit, and share' },
-    n: { value: 'n', label: 'no permissions' },
-    r: { value: 'r', label: 'can view' },
-    w: { value: 'w', label: 'can view and edit' },
+  const onChange = async (opts: SelectOption[]) => {
+    const perm = opts[0].value.toString();
+    await new Promise<void>((resolve) => {
+      setTimeout(() => {
+        resolve();
+      }, 1000);
+    });
+    if (isUserPermission(perm)) {
+      dispatch(setUserPermission({ permission: perm, username, wsId }));
+    }
   };
-  const permissionOptions = [
-    permissionValues.r,
-    permissionValues.w,
-    permissionValues.a,
-  ];
   return (
     <li className={classes.permission}>
-      <span>{usersLoaded[username]}</span>
+      <span>
+        {usersLoaded[username]} ({username})
+      </span>
       <div>
-        <Select
-          options={permissionOptions}
-          onChange={async (opts) => {
-            const perm = opts[0].value.toString();
-            await new Promise<void>((resolve) => {
-              setTimeout(() => {
-                resolve();
-              }, 1000);
-            });
-            if (isUserPermission(perm)) {
-              dispatch(setUserPermission({ permission: perm, username, wsId }));
-            }
-          }}
-          value={permissionValues[perm]}
+        <UserPermissionSelection
+          initialPerm={perm}
+          onChange={onChange}
+          {...props}
         />
         <Button onClick={removeShareHandler}>Remove</Button>
       </div>
@@ -69,33 +90,90 @@ export const UserPermissionControl: FC<{
   );
 };
 
-const SelectUser: FC<{}> = () => {
-  const [userSearch, setUserSearch] = useState('');
+const emptyOptions: { value: string; label: ReactElement }[] = [];
+// const emptySearchResults: Record<string, string> = {};
+
+const SelectUser: FC<{ wsId: number }> = ({ wsId }) => {
+  const dispatch = useAppDispatch();
   const token = useAppSelector(authToken);
+  const [userOptions, setUserOptions] = useState(emptyOptions);
+  const [userSearch, setUserSearch] = useState('');
+  const [userSelected, setUserSelected] = useState('');
+  const [permSelected, setPermSelected] = useState('r');
+  const [searchResults, setSearchResults] = useState({});
   const searchQuery = token
     ? searchUsers.useQuery({ search: userSearch, token })
     : null;
-  const searchResults = searchQuery?.data ? searchQuery.data : [];
-  console.log({ searchResults }); // eslint-disable-line no-console
-  const userOptions = Object.entries(searchResults).map(
-    ([username, realname]) => ({
-      value: username,
-      label: (
-        <>
-          {realname} ({username})
-        </>
-      ),
-    })
-  );
+  useMemo(() => {
+    if (searchQuery?.data) {
+      setSearchResults(searchQuery.data);
+    }
+  }, [searchQuery?.data]);
+  useEffect(() => {
+    dispatch(updateUsers(searchResults));
+    setUserOptions(
+      Object.entries(searchResults).map(([username, realname]) => ({
+        value: username,
+        label: (
+          <>
+            {realname} ({username})
+          </>
+        ),
+      }))
+    );
+  }, [dispatch, searchResults]);
+  const addShareHandlerFactory =
+    ({ perm, username }: { perm: UserPermission; username: string }) =>
+    async () => {
+      if (!username) return;
+      await new Promise<void>((resolve) => {
+        setTimeout(() => {
+          resolve();
+        }, 1000);
+      });
+      dispatch(setUserPermission({ permission: perm, username, wsId }));
+      setUserSearch('');
+      setUserSelected('');
+      setSearchResults({});
+    };
+  const permSelection: UserPermission = isUserPermission(permSelected)
+    ? permSelected
+    : 'n';
+  const onChange = (opts: SelectOption[]) => {
+    const perm = opts[0].value.toString();
+    if (isUserPermission(perm)) {
+      setPermSelected(perm);
+    }
+  };
   return (
-    <Select
-      options={userOptions}
-      onSearch={setUserSearch}
-      onChange={(opts) => {
-        console.log({ value: opts[0].value }); // eslint-disable-line no-console
-      }}
-      placeholder={'Share with...'}
-    />
+    <>
+      <Select
+        className={classes['select-user']}
+        options={userOptions}
+        onSearch={setUserSearch}
+        onChange={(opts) => {
+          const username = opts[0].value.toString();
+          setUserSelected(username);
+        }}
+        placeholder={'Share with...'}
+        value={userOptions.filter((opt) => opt.value === userSelected)}
+      />
+      <UserPermissionSelection
+        initialPerm={permSelection}
+        onChange={onChange}
+        username={userSelected}
+        wsId={wsId}
+      />
+      <Button
+        disabled={!userSelected}
+        onClick={addShareHandlerFactory({
+          username: userSelected,
+          perm: permSelection,
+        })}
+      >
+        Apply
+      </Button>
+    </>
   );
 };
 
@@ -144,7 +222,7 @@ export const Share: FC<{
         )
       </p>
       <p>{permissions[userPermission]}</p>
-      <SelectUser />
+      <SelectUser wsId={wsId} />
       <ul>
         {Object.entries(userShares).map(([user, perm]) => (
           <UserPermissionControl
