@@ -48,30 +48,6 @@ export const SampleAttribs: FC<{
   const currentSelection = useAppSelector(
     (state) => state.collections.currentSelection
   );
-  const [selection, setSelectionFromSamples] = [
-    useMemo(
-      () => Object.fromEntries(currentSelection.map((k) => [k, true])),
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      [[...currentSelection].sort().join(', ')]
-    ),
-    (
-      updaterOrValue:
-        | RowSelectionState
-        | ((old: RowSelectionState) => RowSelectionState)
-    ) => {
-      const value =
-        typeof updaterOrValue == 'function'
-          ? updaterOrValue(selection)
-          : updaterOrValue;
-      const idList = Object.entries(value)
-        .filter(([k, v]) => v)
-        .map(([k, v]) => k.split('::')[0])
-        .filter((k, i, keys) => {
-          return keys.indexOf(k) === i;
-        });
-      dispatch(setUserSelection(idList));
-    },
-  ];
 
   // Requests
   const attribParams = useMemo(
@@ -142,16 +118,39 @@ export const SampleAttribs: FC<{
   const rowId = (row: unknown[]) =>
     [row[kbaseIdIndex], row[sampleIdIndex]].map(String).join('::');
 
-  const sampleSelection = Object.fromEntries(
-    Object.entries(selection)
-      .flatMap(([id, selected]) => {
-        if (!selected) return [];
-        return data?.table
-          .filter((row) => row[kbaseIdIndex] === id)
-          .map((row) => rowId(row));
-      })
-      .map((rowId) => [rowId, true])
-  );
+  const [sampleSelection, setSelectionFromSamples] = [
+    useMemo(
+      () =>
+        Object.fromEntries(
+          currentSelection
+            .flatMap((id) =>
+              data?.table
+                .filter((row) => row[kbaseIdIndex] === id)
+                .map((row) => rowId(row))
+            )
+            .map((id) => [id, true])
+        ),
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [[...currentSelection].sort().join(', ')]
+    ),
+    (
+      updaterOrValue:
+        | RowSelectionState
+        | ((old: RowSelectionState) => RowSelectionState)
+    ) => {
+      const value =
+        typeof updaterOrValue == 'function'
+          ? updaterOrValue(sampleSelection)
+          : updaterOrValue;
+      const idList = Object.entries(value)
+        .filter(([k, v]) => v)
+        .map(([k, v]) => k.split('::')[0])
+        .filter((k, i, keys) => {
+          return keys.indexOf(k) === i;
+        });
+      dispatch(setUserSelection(idList));
+    },
+  ];
 
   const table = useReactTable<unknown[]>({
     data: data?.table || [],
