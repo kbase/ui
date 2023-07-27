@@ -15,6 +15,12 @@ import {
   faBoxesStacked,
 } from '@fortawesome/free-solid-svg-icons';
 
+declare global {
+  interface Window {
+    dev: string;
+  }
+}
+
 export default function LeftNavBar() {
   return (
     <nav>
@@ -26,8 +32,14 @@ export default function LeftNavBar() {
         <NavItem path="/legacy/jobbrowser" desc="Jobs" icon={faSuitcase} />
         <NavItem path="/legacy/account" desc="Account" icon={faIdCard} />
         <NavItem path="/legacy/feeds" desc="Feeds" icon={faBullhorn} />
-        <NavItem path="/count" desc="Count" icon={faExclamation} />
-        <NavItem path="/auth" desc="Auth" icon={faExclamation} />
+        {window.dev ? (
+          <>
+            <NavItem path="/count" desc="Count" icon={faExclamation} />
+            <NavItem path="/auth" desc="Auth" icon={faExclamation} />
+          </>
+        ) : (
+          <></>
+        )}
         <NavItem path="/collections" desc="Collections" icon={faBoxesStacked} />
       </ul>
     </nav>

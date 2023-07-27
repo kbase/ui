@@ -5,7 +5,14 @@ import App from './App';
 import { Provider } from 'react-redux';
 import { createTestStore } from './store';
 
+declare global {
+  interface Window {
+    dev: string;
+  }
+}
+
 test('renders Auth page link', () => {
+  window.dev = 'dev';
   render(
     <Provider store={createTestStore()}>
       <App />
@@ -16,6 +23,7 @@ test('renders Auth page link', () => {
 });
 
 test('Auth page link works', async () => {
+  window.dev = 'dev';
   render(
     <Provider store={createTestStore()}>
       <App />

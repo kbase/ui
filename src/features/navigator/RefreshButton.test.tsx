@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { createTestStore } from '../../app/store';
 import RefreshButton from './RefreshButton';
@@ -10,5 +10,7 @@ test('RefreshButton renders', () => {
     </Provider>
   );
   expect(container).toBeTruthy();
-  expect(container.querySelector('.button.refresh')).toBeInTheDocument();
+  const Refresh = screen.getByText(/Refresh/, { exact: false });
+  screen.debug();
+  expect(Refresh).toBeInTheDocument();
 });
