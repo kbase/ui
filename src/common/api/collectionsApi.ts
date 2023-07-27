@@ -233,6 +233,14 @@ interface CollectionsResults {
     match_missing: KBaseId[];
     selection_missing: KBaseId[];
   };
+  getSampleAttribs: {
+    skip: number;
+    limit: number;
+    fields: { name: string }[];
+    table: unknown[][];
+    data?: null;
+    count?: number;
+  };
 }
 
 interface CollectionsParams {
@@ -318,6 +326,20 @@ interface CollectionsParams {
     collection_id: Collection['id'];
     match_id?: Match['match_id'];
     selection_id?: Selection['selection_id'];
+  };
+  getSampleAttribs: {
+    collection_id: Collection['id'];
+    sort_on?: string;
+    sort_desc?: boolean;
+    skip?: number;
+    limit?: number;
+    output_table?: true; // will only this query style for now, for clearer types
+    match_id?: Match['match_id'];
+    match_mark?: boolean;
+    selection_id?: Selection['selection_id'];
+    selection_mark?: boolean;
+    count?: boolean;
+    load_ver_override?: Collection['ver_tag'];
   };
 }
 
@@ -595,6 +617,21 @@ export const collectionsApi = baseApi.injectEndpoints({
           },
         }),
     }),
+
+    getSampleAttribs: builder.query<
+      CollectionsResults['getSampleAttribs'],
+      CollectionsParams['getSampleAttribs']
+    >({
+      query: ({ collection_id, ...options }) =>
+        collectionsService({
+          method: 'GET',
+          url: encode`/collections/${collection_id}/data_products/samples/`,
+          params: options,
+          headers: {
+            authorization: `Bearer ${store.getState().auth.token}`,
+          },
+        }),
+    }),
   }),
 });
 
@@ -644,4 +681,5 @@ export const {
   getMicroTraitMeta,
   getMicroTraitCell,
   getMicroTraitMissing,
+  getSampleAttribs,
 } = collectionsApi.endpoints;
