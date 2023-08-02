@@ -45,10 +45,12 @@ const NarrativeNewButton: FC = () => (
     href="/#narrativemanager/new"
     rel="noopener noreferrer"
     target="_blank"
-    color="blue"
+    color="primary"
+    size="large"
+    icon={<FAIcon icon={faPlus} />}
     className={classes['narrative-new-button']}
   >
-    <FAIcon icon={faPlus} /> New Narrative
+    New Narrative
   </LinkButton>
 );
 

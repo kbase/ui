@@ -12,7 +12,8 @@ const RefreshButton: FC = () => {
   };
   return (
     <Button
-      color="blue"
+      className="refresh"
+      color="primary"
       icon={<FAIcon icon={faRefresh} />}
       onClick={refreshHandler}
     >

@@ -8,7 +8,8 @@ interface LinkButtonProps
 
 export const LinkButton: FC<LinkButtonProps> = ({
   variant = 'contained',
-  color = 'white',
+  color = 'primary',
+  size = 'medium',
   className,
   ...props
 }) => {
@@ -16,6 +17,7 @@ export const LinkButton: FC<LinkButtonProps> = ({
     classes.button,
     className,
     classes[`button--${color}`],
+    classes[size],
   ].join(' ');
   return (
     <a className={classNames} {...props}>

@@ -1,19 +1,40 @@
 @import "../colors";
 
 .button {
-  /*button styles*/
-  border: 1px solid use_color("silver");
+  border: 0;
   border-radius: 4px;
   cursor: pointer;
-  padding: 0.5rem 0.75rem;
+  transition: 0.25s;
 
   &[disabled] {
-    /*disabled button styles*/
-    background-color: use_color("neutral");
-    border-color: use_color("neutral");
-    color: use_color("silver");
     cursor: not-allowed;
+    opacity: 0.5;
   }
+
+  // default hover effect if $state doesn't have dark variant
+  &:hover {
+    opacity: 0.8;
+  }
+
+  // default focus effect if $state doesn't have darker variant
+  &:focus {
+    opacity: 0.9;
+  }
+}
+
+.button.small {
+  font-size: 0.85rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.button.medium {
+  font-size: 1rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.button.large {
+  font-size: 1.15rem;
+  padding: 0.75rem 1rem;
 }
 
 .icon {
@@ -23,10 +44,26 @@
 @each $state, $_ in $palette {
   .button--#{$state} {
     background-color: use-color($state);
+
     @if (lightness(use-color($state)) > 40) {
       color: use-color("black");
     } @else {
       color: use-color("white");
+    }
+
+    @if (use-color($state + "-dark")) {
+      &:hover {
+        background-color: use-color($state + "-dark");
+        color: use-color("white");
+        opacity: 1;
+      }
+    }
+
+    @if (use-color($state + "-dark")) {
+      &:focus {
+        background-color: use-color($state + "-darker");
+        color: use-color("white");
+      }
     }
   }
 }

@@ -147,12 +147,8 @@ ul.shared,
   padding: 0;
 }
 
-// .tabs > li {
-//   transition: 0.25s;
-// }
-
 .tabs > li:hover {
-  color: use-color("grey");
+  border-bottom: 3px solid use_color("primary");
 }
 
 .tabs > li:not(:last-child) {
@@ -160,9 +156,9 @@ ul.shared,
 }
 
 .tabs .active {
-  border-bottom: 3px solid use_color("mid-green");
-  // color: use_color("mid-green");
-  // font-weight: bold;
+  border-bottom: 3px solid use_color("primary");
+  color: use-color("primary");
+  font-weight: bold;
 }
 
 .tabs a {

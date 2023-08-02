@@ -9,6 +9,7 @@ export interface CommonButtonProps {
   variant?: 'contained' | 'outlined' | 'text';
   color?: Color;
   icon?: React.ReactNode;
+  size?: 'small' | 'medium' | 'large';
 }
 
 interface ButtonProps
@@ -17,7 +18,8 @@ interface ButtonProps
 
 export const Button: FC<ButtonProps> = ({
   variant = 'contained',
-  color = 'white',
+  color = 'primary',
+  size = 'medium',
   className,
   ...props
 }) => {
@@ -25,6 +27,7 @@ export const Button: FC<ButtonProps> = ({
     classes.button,
     className,
     classes[`button--${color}`],
+    classes[size],
   ].join(' ');
   return (
     <button className={classNames} {...props}>
