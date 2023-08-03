@@ -15,6 +15,7 @@ import { corruptCellError } from './common';
 import { useUsers } from './hooks';
 import { users } from './navigatorSlice';
 import classes from './Navigator.module.scss';
+import { LabelValueTable } from '../../common/components/LabelValueTable';
 
 const cellType = (cell: Cell, index: number) => {
   if (isMarkdownCell(cell)) {
@@ -107,11 +108,10 @@ const NarrativeMetadata: NarrativeMetadataType = ({ cells, narrativeDoc }) => {
     .sort(sortCountDesc)
     .slice(0, 3);
   const dataTypesTop = dataPlaces.map(([dataType, count], ix) => {
-    return (
-      <li key={ix}>
-        {dataType}: <span>{count}</span>
-      </li>
-    );
+    return {
+      label: dataType,
+      value: count,
+    };
   });
   const usersSharedOther = usersSharedFiltered.filter(
     (user) => user !== narrativeDoc.creator
@@ -124,37 +124,74 @@ const NarrativeMetadata: NarrativeMetadataType = ({ cells, narrativeDoc }) => {
     <div className={classes.metadata}>
       <div className={classes.columns}>
         <div className={classes.column}>
-          <ul>
-            <li>Author: {profileLink(narrativeDoc.creator)}</li>
-            <li>Created on: {readableDate(narrativeDoc.creation_date)}</li>
-            <li>Last saved: {readableDate(narrativeDoc.timestamp)}</li>
-            <li>Visibility: {narrativeDoc.is_public ? 'Public' : 'Private'}</li>
-          </ul>
+          <LabelValueTable
+            data={[
+              {
+                label: 'Author',
+                value: profileLink(narrativeDoc.creator),
+              },
+              {
+                label: 'Created on',
+                value: readableDate(narrativeDoc.creation_date),
+              },
+              {
+                label: 'Last saved',
+                value: readableDate(narrativeDoc.timestamp),
+              },
+              {
+                label: 'Visibility',
+                value: narrativeDoc.is_public ? 'Public' : 'Private',
+              },
+            ]}
+          />
         </div>
         <div className={classes.column}>
-          <ul>
-            <li>Data objects: {dataObjects.length}</li>
-            {dataTypesTop}
-          </ul>
+          <LabelValueTable
+            data={[
+              {
+                label: 'Data objects',
+                value: dataObjects.length,
+              },
+              ...dataTypesTop,
+            ]}
+          />
         </div>
         <div className={classes.column}>
           <div className={classes.column}>
-            <ul>
-              <li>Total cells: {cells.length}</li>
-              <li>App cells: {cellTypeCounts.kbase_app}</li>
-              <li>Markdown cells: {cellTypeCounts.markdown}</li>
-              <li>Code cells: {cellTypeCounts.code_cell}</li>
-            </ul>
+            <LabelValueTable
+              data={[
+                {
+                  label: 'Total cells',
+                  value: cells.length,
+                },
+                {
+                  label: 'App cells',
+                  value: cellTypeCounts.kbase_app,
+                },
+                {
+                  label: 'Markdown cells',
+                  value: cellTypeCounts.markdown,
+                },
+                {
+                  label: 'Code cells',
+                  value: cellTypeCounts.code_cell,
+                },
+              ]}
+            />
           </div>
         </div>
       </div>
       <div>
-        <span>Shared with:</span>
-        <ul className={[finalLess, classes.shared].join(' ')}>
-          {usersSharedOther.slice(0, 10).map((user, ix) => (
-            <li key={ix}>{profileLink(user)}</li>
-          ))}
-        </ul>
+        <span>Shared with: </span>
+        {usersSharedOther && usersSharedOther.length > 0 ? (
+          <ul className={[finalLess, classes.shared].join(' ')}>
+            {usersSharedOther.slice(0, 10).map((user, ix) => (
+              <li key={ix}>{profileLink(user)}</li>
+            ))}
+          </ul>
+        ) : (
+          <span>None</span>
+        )}
         {usersMore ? (
           <>
             <input

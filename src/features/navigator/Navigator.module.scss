@@ -1,3 +1,5 @@
+@import "../../common/colors";
+
 :root {
   --dark-green: #137752;
   --white: #fff;
@@ -7,31 +9,21 @@ pre {
   margin: 0;
 }
 
-.active {
-  background-color: #f0f;
-  color: #ff0;
+.navigator {
+  background-color: use-color("base-lightest");
+  padding: 1rem;
 }
 
-.button {
-  &.narrative-new {
-    height: 100%;
-    width: 100%;
-  }
-
-  &.refresh {
-    background-color: var(--dark-green);
-    color: var(--white);
-  }
+.navigator a {
+  text-decoration: none;
 }
 
-.column {
-  border: 1px dashed #000;
-}
-
-.columns {
+.metadata .columns {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  margin-bottom: 1rem;
+  width: 75%;
 }
 
 .container {
@@ -44,25 +36,42 @@ pre {
 }
 
 .header nav {
-  display: flex;
-  justify-content: space-between;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.narrative-new-button {
+  position: absolute;
+  right: 0;
+  top: 0;
 }
 
 .list {
+  background-color: use-color("white");
+  border-bottom: 1px solid use-color("silver");
+  border-left: 1px solid use-color("silver");
+  border-top: 1px solid use-color("silver");
   flex-grow: 2;
-  max-width: 600px;
+  width: 600px;
 }
 
 .more {
   border: 1px dashed #000;
 }
 
-.preview {
-  border: 1px dashed #000;
+.preview ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .search {
   display: flex;
+  margin-bottom: 1rem;
+
+  > *:not(:last-child) {
+    margin-right: 0.5rem;
+  }
 }
 
 ul.shared,
@@ -106,9 +115,11 @@ ul.shared,
 }
 
 .view {
-  border: 1px dashed #000;
+  background-color: use-color("white");
+  border: 1px solid use-color("silver");
   display: flex;
   flex-direction: column;
+  padding: 1rem;
   width: 100%;
 }
 
@@ -120,4 +131,39 @@ ul.shared,
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+}
+
+.view .tabs {
+  border-top: 1px solid use-color("silver");
+  margin-bottom: 1rem;
+  margin-top: 1rem;
+}
+
+.tabs {
+  border-bottom: 1px solid use_color("silver");
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tabs > li:hover {
+  border-bottom: 3px solid use_color("primary");
+}
+
+.tabs > li:not(:last-child) {
+  margin-right: 1rem;
+}
+
+.tabs .active {
+  border-bottom: 3px solid use_color("primary");
+  color: use-color("primary");
+  font-weight: bold;
+}
+
+.tabs a {
+  color: inherit;
+  display: inline-block;
+  height: 100%;
+  padding: 1rem;
 }

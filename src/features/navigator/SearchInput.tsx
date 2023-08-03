@@ -26,7 +26,7 @@ const SearchInput: FC<SearchInterface> = ({
     <Input
       label={label}
       onChange={searchChangeHandler}
-      placeholder=":mag:"
+      placeholder="Search Narratives"
       value={search}
     />
   );

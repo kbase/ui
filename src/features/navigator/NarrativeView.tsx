@@ -56,6 +56,7 @@ const NarrativeVersionSelection: FC<{ narrativeDoc: NarrativeDoc }> = ({
       linkToNarrative={true}
       narrativeDoc={narrativeDoc}
       showVersionDropdown={true}
+      isHeading={true}
     />
   );
 };
@@ -73,11 +74,11 @@ const NarrativeViewTabs: FC<{
       view,
     });
   return (
-    <ul>
-      <li>
+    <ul className={classes.tabs}>
+      <li className={view === 'data' ? classes.active : ''}>
         <Link to={tabTo('data')}>Data</Link>
       </li>
-      <li>
+      <li className={view === 'preview' ? classes.active : ''}>
         <Link to={tabTo('preview')}>Preview</Link>
       </li>
     </ul>

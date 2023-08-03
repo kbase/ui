@@ -19,6 +19,7 @@ export interface NarrativeViewItemProps {
   showVersionDropdown: boolean;
   activeOverride?: boolean;
   linkToNarrative?: boolean;
+  isHeading?: boolean;
 }
 
 const NarrativeViewItem: FC<NarrativeViewItemProps> = ({
@@ -27,6 +28,7 @@ const NarrativeViewItem: FC<NarrativeViewItemProps> = ({
   linkToNarrative,
   narrativeDoc,
   showVersionDropdown,
+  isHeading,
 }) => {
   const categorySet = useAppSelector(categorySelected);
   const europaParams = useAppSelector(getParams);
@@ -66,12 +68,16 @@ const NarrativeViewItem: FC<NarrativeViewItemProps> = ({
     <section key={idx}>
       <Link
         to={path}
-        className={`${classes.narrative_item_outer} ${classes[status]}`}
+        className={`${classes.narrative_item_outer} ${classes[status]} ${
+          isHeading && classes.heading
+        }`}
         target={linkToNarrative ? '_blank' : ''}
       >
         <div className={classes.narrative_item_inner}>
           <div className={classes.narrative_item_text}>
-            <div>{narrative_title}</div>
+            <div className={classes.narrative_item_title}>
+              {narrative_title}
+            </div>
             <NarrativeItemDropdown
               narrative={upa}
               visible={showVersionDropdown}

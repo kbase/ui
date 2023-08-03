@@ -4,7 +4,13 @@
   padding-left: 1rem;
   padding-right: 1rem;
 
-  &.active {
+  &.heading {
+    background: none;
+    border: 0;
+    padding: 0;
+  }
+
+  &.active:not(.heading) {
     background: #cdecff;
   }
 
@@ -68,9 +74,15 @@
   padding: 0;
 }
 
+.narrative_item_outer.heading .narrative_item_title {
+  font-size: 1.5rem;
+}
+
 .dropdown_wrapper {
+  align-items: center;
   display: flex;
   justify-content: right;
+  margin-left: 1rem;
   width: 100px;
 }
 
@@ -114,8 +126,7 @@
     color: rgb(0, 0, 0);
     display: inline-block;
     min-height: 0;
-    min-width: 100px;
-    padding: 0;
+    min-width: 150px;
     text-align: center;
   }
 }
