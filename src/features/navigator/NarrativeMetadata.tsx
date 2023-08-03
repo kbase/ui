@@ -112,14 +112,6 @@ const NarrativeMetadata: NarrativeMetadataType = ({ cells, narrativeDoc }) => {
       label: dataType,
       value: count,
     };
-
-    // (
-
-    //   <tr key={ix}>
-    //     <td>{dataType}:</td>
-    //     <td>{count}</td>
-    //   </tr>
-    // );
   });
   const usersSharedOther = usersSharedFiltered.filter(
     (user) => user !== narrativeDoc.creator
