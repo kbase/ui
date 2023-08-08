@@ -6,6 +6,17 @@ const ws = jsonRpcService({
   url: '/services/ws',
 });
 
+/*
+Workspace permissions cheat sheet:
+https://kbase.us/services/ws/docs/workspaces.html#permissions
+Permission: Allows
+----------:----------
+         a: Admin access, set permissions of other users
+         n: No access
+         r: Read access
+         w: Write access, see permissions of other users
+*/
+type PermissionValue = 'a' | 'n' | 'r' | 'w';
 type TimeParams = (
   | { after?: never; after_epoch?: number }
   | { after_epoch?: never; after?: string }
@@ -18,6 +29,7 @@ type TimeParams = (
 interface wsParams {
   getwsNarrative: { upa: string };
   getwsObjectByName: { upa: string };
+  getwsPermissions: { wsId: number };
   listObjects: {
     ids?: number[];
     workspaces?: string[];
@@ -54,6 +66,9 @@ interface wsResults {
     }[];
   }[];
   getwsObjectByName: unknown;
+  getwsPermissions: {
+    perms: Record<string, PermissionValue>[];
+  }[];
   listWorkspaceInfo: [
     id: number,
     workspace: string,
@@ -102,6 +117,16 @@ const wsApi = baseApi.injectEndpoints({
           params: [{ objects: [{ ref: upa }] }],
         }),
     }),
+    getwsPermissions: builder.query<
+      wsResults['getwsPermissions'],
+      wsParams['getwsPermissions']
+    >({
+      query: ({ wsId }) =>
+        ws({
+          method: 'Workspace.get_permissions_mass',
+          params: [{ workspaces: [{ id: wsId }] }],
+        }),
+    }),
     listObjects: builder.query<
       wsResults['listObjects'],
       wsParams['listObjects']
@@ -128,6 +153,7 @@ const wsApi = baseApi.injectEndpoints({
 export const {
   getwsNarrative,
   getwsObjectByName,
+  getwsPermissions,
   listObjects,
   listWorkspaceInfo,
 } = wsApi.endpoints;
