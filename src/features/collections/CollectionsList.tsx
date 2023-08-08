@@ -10,11 +10,6 @@ export const CollectionsList = () => {
   const collections = listCollections.useQuery();
   return (
     <div className={classes['collection_wrapper']}>
-      <div>
-        Some text explaining to users what they are looking at would go here.
-        Between this and the list below, we may add search/sort/etc inputs. We
-        may also add some sort of pagination at the bottom of the list.
-      </div>
       <CardList>
         {collections.isSuccess
           ? collections.data?.data.map((collection) => {

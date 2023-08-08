@@ -66,4 +66,8 @@
       }
     }
   }
+
+  .button-text--#{$state} { // TODO temporary solution
+    color: use-color($state) !important;
+  }
 }

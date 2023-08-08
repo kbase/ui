@@ -36,6 +36,7 @@ $header-height: 2em;
   align-items: stretch;
   display: flex;
   flex-flow: row nowrap;
+  gap: 0.333em;
   justify-content: flex-start;
   max-width: 20em;
 
@@ -98,7 +99,11 @@ $header-height: 2em;
   th,
   td {
     border-top: $border;
+    max-width: 20em;
+    overflow: clip;
     padding: 5px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   td:not(:first-of-type),

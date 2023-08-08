@@ -143,7 +143,7 @@ const ViewMatch = () => {
   );
 };
 
-const MATCHER_LABELS = new Map<string, string>(
+export const MATCHER_LABELS = new Map<string, string>(
   Object.entries({
     gtdb_lineage: 'GTDB Lineage',
     minhash_homology: 'MinHash Homology',
