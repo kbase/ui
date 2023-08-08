@@ -21,10 +21,15 @@ interface AuthParams {
     token: string;
     users: string[];
   };
+  searchUsers: {
+    search: string;
+    token: string;
+  };
 }
 
 interface AuthResults {
   getUsers: Record<string, string>;
+  searchUsers: Record<string, string>;
 }
 
 // Auth does not use JSONRpc, so we use queryFn to make custom queries
@@ -51,6 +56,19 @@ export const authApi = baseApi.injectEndpoints({
           url: '/api/V2/users',
         }),
     }),
+    searchUsers: builder.query<
+      AuthResults['searchUsers'],
+      AuthParams['searchUsers']
+    >({
+      query: ({ search, token }) =>
+        authService({
+          headers: {
+            Authorization: token,
+          },
+          method: 'GET',
+          url: `/api/V2/users/search/${search}`,
+        }),
+    }),
     revokeToken: builder.mutation<boolean, string>({
       query: (tokenId) =>
         authService({
@@ -61,4 +79,5 @@ export const authApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { authFromToken, getUsers, revokeToken } = authApi.endpoints;
+export const { authFromToken, getUsers, searchUsers, revokeToken } =
+  authApi.endpoints;
