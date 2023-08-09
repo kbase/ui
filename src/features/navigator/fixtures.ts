@@ -277,6 +277,11 @@ export const initialTestStateFactory = ({
   cellsLoaded?: boolean;
 }) => ({
   category: Category['own'],
+  controlMenu: {
+    linkedOrgs: [],
+    shares: {},
+    sharesCount: 0,
+  },
   count: testItems.length,
   narrativeDocs: testItems,
   narrativeDocsLookup: testNarrativeDocsLookup,
