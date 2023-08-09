@@ -16,7 +16,7 @@ import Routes from './Routes';
 import LeftNavBar from '../features/layout/LeftNavBar';
 import TopBar from '../features/layout/TopBar';
 import ErrorPage from '../features/layout/ErrorPage';
-import { Modal } from '../features/layout/Modal';
+import { ModalProvider } from '../features/layout/Modal';
 
 const useInitApp = () => {
   const dispatch = useAppDispatch();
@@ -57,10 +57,9 @@ export default function App() {
               {isLoading ? (
                 'Loading...'
               ) : (
-                <>
+                <ModalProvider>
                   <Routes />
-                  <Modal />
-                </>
+                </ModalProvider>
               )}
             </ErrorBoundary>
           </div>

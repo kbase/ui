@@ -2,8 +2,15 @@ import { useAppDispatch, useAppSelector } from '../../common/hooks';
 import { setUserSelection } from './collectionsSlice';
 import { Button } from '../../common/components';
 import { useEffect } from 'react';
+import { useModal } from '../layout/Modal';
 
-export const SelectionPane = ({ collectionId }: { collectionId: string }) => {
+export const SelectionModal = ({
+  collectionId,
+  showExport,
+}: {
+  collectionId: string;
+  showExport: () => void;
+}) => {
   const dispatch = useAppDispatch();
 
   const currentSelection = useAppSelector(
@@ -18,9 +25,10 @@ export const SelectionPane = ({ collectionId }: { collectionId: string }) => {
     dispatch(setUserSelection([]));
   }, [collectionId, dispatch]);
 
-  return (
-    <>
-      <h3>Selection Options</h3>
+  const modal = useModal();
+  return modal.useContent({
+    title: 'Selection Options',
+    body: (
       <ul>
         <li>
           Your current selection includes {currentSelection.length} items.
@@ -28,9 +36,16 @@ export const SelectionPane = ({ collectionId }: { collectionId: string }) => {
         <li>Selection ID (if processed): {_verifiedSelectionId}</li>
         <li>Selection: {currentSelection.join(', ')}</li>
       </ul>
-      <Button onClick={() => dispatch(setUserSelection([]))}>
-        Clear Selection
-      </Button>
-    </>
-  );
+    ),
+    footer: (
+      <>
+        <Button color="danger" onClick={() => dispatch(setUserSelection([]))}>
+          Clear Selection
+        </Button>
+        <Button color="primary" onClick={() => showExport()}>
+          Save Selection to Narrative
+        </Button>
+      </>
+    ),
+  });
 };

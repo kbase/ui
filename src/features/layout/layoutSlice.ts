@@ -5,14 +5,10 @@ import { useAppDispatch } from '../../common/hooks';
 interface PageState {
   pageTitle: string;
   environment: 'unknown' | 'production' | 'ci' | 'appdev' | 'ci-europa';
-  modalVisible: boolean;
-  modalContent: React.ReactNode | JSX.Element;
 }
 export const initialState: PageState = {
   pageTitle: document.title || 'KBase',
   environment: 'unknown',
-  modalVisible: false,
-  modalContent: '',
 };
 
 export const pageSlice = createSlice({
@@ -28,28 +24,11 @@ export const pageSlice = createSlice({
     ) => {
       state.environment = action.payload;
     },
-    setModalVisible: (
-      state,
-      action: PayloadAction<PageState['modalVisible']>
-    ) => {
-      state.modalContent = action.payload;
-    },
-    setModalContent: (
-      state,
-      action: PayloadAction<PageState['modalContent']>
-    ) => {
-      state.modalContent = action.payload;
-    },
   },
 });
 
 export default pageSlice.reducer;
-export const {
-  setPageTitle,
-  setEnvironment,
-  setModalContent,
-  setModalVisible,
-} = pageSlice.actions;
+export const { setPageTitle, setEnvironment } = pageSlice.actions;
 
 // Hook to set the page & document title. Resets the title on unmount
 export const usePageTitle = (title: string) => {

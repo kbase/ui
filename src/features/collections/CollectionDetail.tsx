@@ -3,12 +3,12 @@ import { getCollection, getMatch } from '../../common/api/collectionsApi';
 import { usePageTitle } from '../layout/layoutSlice';
 import styles from './Collections.module.scss';
 import { Card, CardList } from '../../common/components/Card';
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { DataProduct } from './DataProduct';
 import { snakeCaseToHumanReadable } from '../../common/utils/stringUtils';
-import { MATCHER_LABELS, MatchPane } from './MatchPane';
-import { SelectionPane } from './SelectionPane';
-import { ExportPane } from './ExportPane';
+import { MATCHER_LABELS, MatchModal } from './MatchModal';
+import { SelectionModal } from './SelectionModal';
+import { ExportModal } from './ExportModal';
 import { Button } from '../../common/components';
 import { useAppSelector } from '../../common/hooks';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -18,6 +18,7 @@ import {
   faCircleCheck,
 } from '@fortawesome/free-solid-svg-icons';
 import { useAppParam } from '../params/hooks';
+import { useModal } from '../layout/Modal';
 
 export const detailPath = ':id';
 export const detailDataProductPath = ':id/:data_product';
@@ -70,6 +71,34 @@ export const CollectionDetail = () => {
     location.search,
   ]);
 
+  const modal = useModal();
+  type ModalView = 'match' | 'select' | 'export';
+  const [modalView, setModalView] = useState<ModalView>('match');
+  const modalViews = useMemo(
+    () =>
+      collection?.id
+        ? {
+            match: (
+              <MatchModal
+                key={[collection.id, matchId].join('|')}
+                collectionId={collection.id}
+              />
+            ),
+            select: (
+              <SelectionModal
+                key={collection.id}
+                collectionId={collection.id}
+                showExport={() => setModalView('export')}
+              />
+            ),
+            export: (
+              <ExportModal key={collection.id} collectionId={collection.id} />
+            ),
+          }
+        : {},
+    [collection?.id, matchId]
+  );
+
   if (!collection) return <>loading...</>;
   return (
     <div className={styles['collection_wrapper']}>
@@ -115,6 +144,10 @@ export const CollectionDetail = () => {
             variant="outlined"
             color={match ? 'primary' : 'primary-lighter'}
             textColor={match ? 'primary-lighter' : 'primary'}
+            onClick={() => {
+              setModalView('match');
+              modal?.show();
+            }}
           >
             {match
               ? `Matching by ${MATCHER_LABELS.get(match.matcher_id)}`
@@ -125,6 +158,10 @@ export const CollectionDetail = () => {
             variant="outlined"
             color={selection.length > 0 ? 'primary' : 'primary-lighter'}
             textColor={selection.length > 0 ? 'primary-lighter' : 'primary'}
+            onClick={() => {
+              setModalView('select');
+              modal?.show();
+            }}
           >
             {`${selection.length} items in selection`}
           </Button>
@@ -157,11 +194,7 @@ export const CollectionDetail = () => {
           ) : null}
         </div>
       </div>
-      <div className={styles['collection_detail']}>
-        <MatchPane collectionId={collection.id} />
-        <SelectionPane collectionId={collection.id} />
-        <ExportPane collectionId={collection.id} />
-      </div>
+      {modalViews[modalView]}
     </div>
   );
 };
