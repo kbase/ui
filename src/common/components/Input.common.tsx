@@ -9,6 +9,9 @@ import {
 
 import classes from '../../common/components/Input.module.scss';
 
+// See also https://github.com/kbaseapps/NarrativeService/blob/main/lib/NarrativeService/NarrativeManager.py#L9
+export const MAX_WS_METADATA_VALUE_SIZE = 900;
+
 export const _randomBackground = (evt: ChangeEvent<HTMLInputElement>) => {
   const classNames = Object.keys(classes);
   const randomIndex = Math.floor(classNames.length * Math.random());
