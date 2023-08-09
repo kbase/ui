@@ -20,12 +20,14 @@ export const LabelValueTable: FC<LabelValueTableProps> = (props) => {
 
   return (
     <table className={`${classes['label-value-table']} ${className || ''}`}>
-      {data?.map((row, i) => (
-        <tr>
-          <td>{row.label}</td>
-          <td>{row.value}</td>
-        </tr>
-      ))}
+      <tbody>
+        {data?.map((row, i) => (
+          <tr key={row.label}>
+            <td>{row.label}</td>
+            <td>{row.value}</td>
+          </tr>
+        ))}
+      </tbody>
     </table>
   );
 };
