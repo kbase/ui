@@ -6,7 +6,8 @@ import {
   NarrativeDoc,
 } from '../../common/types/NarrativeDoc';
 import { SearchResults } from '../../common/api/searchApi';
-import { Category } from './common';
+import { OrgInfo } from '../../common/api/orgsApi';
+import { Category, UserPermission } from './common';
 
 // Define a type for the slice state
 interface NavigatorState {
@@ -14,6 +15,11 @@ interface NavigatorState {
   cells: Cell[];
   cellsLoaded: boolean;
   count: number;
+  controlMenu: {
+    linkedOrgs: OrgInfo[];
+    shares: Record<string, UserPermission>;
+    sharesCount: number;
+  };
   narrativeDocs: NarrativeDoc[];
   narrativeDocsLookup: Record<number, NarrativeDoc>;
   search_time: number;
@@ -27,6 +33,11 @@ const initialState: NavigatorState = {
   category: Category['own'],
   cells: [],
   cellsLoaded: false,
+  controlMenu: {
+    linkedOrgs: [],
+    shares: {},
+    sharesCount: 0,
+  },
   count: 0,
   narrativeDocs: [],
   narrativeDocsLookup: {},
@@ -41,6 +52,65 @@ export const navigatorSlice = createSlice({
   // `createSlice` will infer the state type from the `initialState` argument
   initialState,
   reducers: {
+    copyNarrative: (
+      state,
+      action: PayloadAction<{ name: string; version: number; wsId: number }>
+    ) => {
+      const { name, version, wsId } = action.payload;
+      const message = `Copy version ${version} of ${wsId} with name ${name}.`;
+      console.log(message); // eslint-disable-line no-console
+    },
+    deleteNarrative: (state, action: PayloadAction<{ wsId: number }>) => {
+      const message = `Delete ${action.payload.wsId}.`;
+      console.log(message); // eslint-disable-line no-console
+    },
+    linkNarrative: (
+      state,
+      action: PayloadAction<{ org: string; wsId: number }>
+    ) => {
+      const message = `Link ${action.payload.wsId} to ${action.payload.org}.`;
+      console.log(message); // eslint-disable-line no-console
+    },
+    removeShare: (
+      state,
+      action: PayloadAction<{ username: string; wsId: number }>
+    ) => {
+      const { username, wsId } = action.payload;
+      const { selected } = state;
+      const selectedWsId = selected && Number(selected.split('/')[0]);
+      if (!selected || selectedWsId !== wsId) {
+        throw new Error('Cannot remove share from mismatched workspace.');
+      }
+      const filtered = Object.fromEntries(
+        Object.entries(state.controlMenu.shares).filter(
+          ([user]) => user !== username
+        )
+      );
+      const controlMenu = {
+        ...state.controlMenu,
+        shares: filtered,
+        sharesCount: Object.keys(filtered).length,
+      };
+      const newState = { ...state, controlMenu };
+      const message = `Remove ${username} permissions for ${wsId}.`;
+      console.log(message); // eslint-disable-line no-console
+      return newState;
+    },
+    renameNarrative: (
+      state,
+      action: PayloadAction<{ name: string; wsId: number }>
+    ) => {
+      const { name, wsId } = action.payload;
+      const message = `Rename ${wsId} to ${name}.`;
+      console.log(message); // eslint-disable-line no-console
+    },
+    restoreNarrative: (
+      state,
+      action: PayloadAction<{ version: number; wsId: number }>
+    ) => {
+      const message = `Restore version ${action.payload.version} of ${action.payload.wsId}.`;
+      console.log(message); // eslint-disable-line no-console
+    },
     select: (state, action: PayloadAction<NavigatorState['selected']>) => {
       state.selected = action.payload;
     },
@@ -57,6 +127,12 @@ export const navigatorSlice = createSlice({
     ) => {
       state.cellsLoaded = action.payload;
     },
+    setLinkedOrgs: (
+      state,
+      action: PayloadAction<NavigatorState['controlMenu']['linkedOrgs']>
+    ) => {
+      state.controlMenu.linkedOrgs = action.payload;
+    },
     setNarrativeDocs: (
       state,
       action: PayloadAction<SearchResults['getNarratives']>
@@ -70,6 +146,28 @@ export const navigatorSlice = createSlice({
         state.narrativeDocsLookup[hit.access_group] = hit;
       });
     },
+    setShares: (
+      state,
+      action: PayloadAction<NavigatorState['controlMenu']['shares']>
+    ) => {
+      state.controlMenu.shares = action.payload;
+      state.controlMenu.sharesCount = Object.keys(action.payload).length;
+      return state;
+    },
+    setUserPermission: (
+      state,
+      action: PayloadAction<{
+        permission: UserPermission;
+        username: string;
+        wsId: number;
+      }>
+    ) => {
+      const { permission, username, wsId } = action.payload;
+      state.controlMenu.shares[username] = permission;
+      const message = `Set ${username} permission on ${wsId} to ${permission}.`;
+      console.log(message); // eslint-disable-line no-console
+      return state;
+    },
     updateUsers: (state, action: PayloadAction<NavigatorState['users']>) => {
       state.users = { ...state.users, ...action.payload };
     },
@@ -78,11 +176,20 @@ export const navigatorSlice = createSlice({
 
 export default navigatorSlice.reducer;
 export const {
+  copyNarrative,
+  deleteNarrative,
+  linkNarrative,
+  removeShare,
+  renameNarrative,
+  restoreNarrative,
   select,
   setCategory,
   setCells,
   setCellsLoaded,
+  setLinkedOrgs,
   setNarrativeDocs,
+  setShares,
+  setUserPermission,
   updateUsers,
 } = navigatorSlice.actions;
 // Other code such as selectors can use the imported `RootState` type
@@ -94,6 +201,11 @@ export const narrativeDocs = (state: RootState) =>
 export const narrativeDocsLookup = (state: RootState) =>
   state.navigator.narrativeDocsLookup;
 export const narrativeDocsCount = (state: RootState) => state.navigator.count;
+export const narrativeLinkedOrgs = (state: RootState) =>
+  state.navigator.controlMenu.linkedOrgs;
 export const navigatorSelected = (state: RootState) => state.navigator.selected;
+export const shares = (state: RootState) => state.navigator.controlMenu.shares;
+export const sharesCount = (state: RootState) =>
+  state.navigator.controlMenu.sharesCount;
 export const users = (state: RootState) => state.navigator.users;
 export const wsObjects = (state: RootState) => state.navigator.wsObjects;
