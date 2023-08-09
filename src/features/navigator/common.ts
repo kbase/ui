@@ -70,6 +70,17 @@ export const isCategoryString = (key: string): key is CategoryString =>
 export type SortString = keyof typeof Sort;
 export const isSortString = (key: string): key is SortString => key in Sort;
 
+export type UserPermission = 'a' | 'n' | 'r' | 'w';
+export const isUserPermission = (key: string): key is UserPermission =>
+  new Set('anrw'.split('')).has(key);
+
+export const permissions = {
+  a: 'You can view, edit, and share this Narrative.',
+  n: 'You have no permissions on this Narrative.',
+  r: 'You can view this Narrative, but not edit or share it.',
+  w: 'You can view and edit this Narrative, but not share it.',
+};
+
 // Other functions
 export const corruptCellError = (cell: Cell, index: number) => {
   // eslint-disable-next-line no-console
@@ -105,3 +116,12 @@ export const normalizeVersion = (verRaw?: number | string) => {
   }
   return verNumber.toString();
 };
+
+export const TODOAddLoadingState = () =>
+  new Promise<void>((resolve) => {
+    setTimeout(() => {
+      resolve(
+        console.log('TODO: Add a loading state for this.') // eslint-disable-line no-console
+      );
+    }, 1000);
+  });
