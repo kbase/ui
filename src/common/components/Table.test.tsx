@@ -423,6 +423,11 @@ test('Empty useTableColumns hook returns empty column list', () => {
 });
 
 test('throws error for bad pagination button number', () => {
+  const consoleError = jest.spyOn(console, 'error');
+  // This mockImplementation supresses console.error calls.
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  consoleError.mockImplementation(() => {});
+
   const Wrapper = () => {
     const data = useMemo(
       () => [
