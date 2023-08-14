@@ -2,7 +2,7 @@ import { useAppDispatch, useAppSelector } from '../../common/hooks';
 import { setUserSelection } from './collectionsSlice';
 import { Button } from '../../common/components';
 import { useEffect } from 'react';
-import { useModal } from '../layout/Modal';
+import { Modal } from '../layout/Modal';
 
 export const SelectionModal = ({
   collectionId,
@@ -25,27 +25,28 @@ export const SelectionModal = ({
     dispatch(setUserSelection([]));
   }, [collectionId, dispatch]);
 
-  const modal = useModal();
-  return modal.useContent({
-    title: 'Selection Options',
-    body: (
-      <ul>
-        <li>
-          Your current selection includes {currentSelection.length} items.
-        </li>
-        <li>Selection ID (if processed): {_verifiedSelectionId}</li>
-        <li>Selection: {currentSelection.join(', ')}</li>
-      </ul>
-    ),
-    footer: (
-      <>
-        <Button color="danger" onClick={() => dispatch(setUserSelection([]))}>
-          Clear Selection
-        </Button>
-        <Button color="primary" onClick={() => showExport()}>
-          Save Selection to Narrative
-        </Button>
-      </>
-    ),
-  });
+  return (
+    <Modal
+      title={'Selection Options'}
+      body={
+        <ul>
+          <li>
+            Your current selection includes {currentSelection.length} items.
+          </li>
+          <li>Selection ID (if processed): {_verifiedSelectionId}</li>
+          <li>Selection: {currentSelection.join(', ')}</li>
+        </ul>
+      }
+      footer={
+        <>
+          <Button color="danger" onClick={() => dispatch(setUserSelection([]))}>
+            Clear Selection
+          </Button>
+          <Button color="primary" onClick={() => showExport()}>
+            Save Selection to Narrative
+          </Button>
+        </>
+      }
+    />
+  );
 };

@@ -3,7 +3,7 @@ import { getCollection, getMatch } from '../../common/api/collectionsApi';
 import { usePageTitle } from '../layout/layoutSlice';
 import styles from './Collections.module.scss';
 import { Card, CardList } from '../../common/components/Card';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { DataProduct } from './DataProduct';
 import { snakeCaseToHumanReadable } from '../../common/utils/stringUtils';
 import { MATCHER_LABELS, MatchModal } from './MatchModal';
@@ -18,7 +18,7 @@ import {
   faCircleCheck,
 } from '@fortawesome/free-solid-svg-icons';
 import { useAppParam } from '../params/hooks';
-import { useModal } from '../layout/Modal';
+import { useModalControls } from '../layout/Modal';
 
 export const detailPath = ':id';
 export const detailDataProductPath = ':id/:data_product';
@@ -71,33 +71,9 @@ export const CollectionDetail = () => {
     location.search,
   ]);
 
-  const modal = useModal();
+  const modal = useModalControls();
   type ModalView = 'match' | 'select' | 'export';
   const [modalView, setModalView] = useState<ModalView>('match');
-  const modalViews = useMemo(
-    () =>
-      collection?.id
-        ? {
-            match: (
-              <MatchModal
-                key={[collection.id, matchId].join('|')}
-                collectionId={collection.id}
-              />
-            ),
-            select: (
-              <SelectionModal
-                key={collection.id}
-                collectionId={collection.id}
-                showExport={() => setModalView('export')}
-              />
-            ),
-            export: (
-              <ExportModal key={collection.id} collectionId={collection.id} />
-            ),
-          }
-        : {},
-    [collection?.id, matchId]
-  );
 
   if (!collection) return <>loading...</>;
   return (
@@ -191,10 +167,27 @@ export const CollectionDetail = () => {
               dataProduct={currDataProduct}
               collection_id={collection.id}
             />
-          ) : null}
+          ) : (
+            <></>
+          )}
         </div>
       </div>
-      {modalViews[modalView]}
+      {modalView === 'match' ? (
+        <MatchModal
+          key={[collection.id, matchId].join('|')}
+          collectionId={collection.id}
+        />
+      ) : modalView === 'select' ? (
+        <SelectionModal
+          key={collection.id}
+          collectionId={collection.id}
+          showExport={() => setModalView('export')}
+        />
+      ) : modalView === 'export' ? (
+        <ExportModal key={collection.id} collectionId={collection.id} />
+      ) : (
+        <></>
+      )}
     </div>
   );
 };

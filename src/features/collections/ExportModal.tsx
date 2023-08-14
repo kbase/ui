@@ -7,7 +7,7 @@ import {
 import { getNarratives } from '../../common/api/searchApi';
 import { Select, Input, Button, SelectOption } from '../../common/components';
 import { uriEncodeTemplateTag as encode } from '../../common/utils/stringUtils';
-import { useModal } from '../layout/Modal';
+import { Modal } from '../layout/Modal';
 import { useSelectionId } from './collectionsSlice';
 import { useParamsForNarrativeDropdown } from './hooks';
 
@@ -60,71 +60,72 @@ export const ExportModal = ({ collectionId }: { collectionId: string }) => {
 
   const complete =
     selectionId && typeSel?.value && narrativeSelected?.access_group && name;
-  const modal = useModal();
-  return modal.useContent({
-    title: 'Save To Narrative',
-    body: (
-      <>
-        <Select
-          placeholder="Select export type..."
-          disabled={typesResult.isFetching}
-          onChange={(opts) => setTypeSel(opts[0])}
-          options={(typesResult.data?.types ?? []).map((type) => ({
-            value: type,
-            label: type,
-          }))}
-        />
-        <Select
-          placeholder="Select narrative..."
-          onSearch={setNarrativeSearch}
-          onChange={(opts) => setNarrativeSel(opts[0])}
-          options={narrativeOptions}
-        />
-        <Input
-          value={name}
-          onChange={(e) => setName(e.currentTarget.value)}
-          label={<>Object Name</>}
-        />
-        <Input
-          value={desc}
-          onChange={(e) => setDesc(e.currentTarget.value)}
-          label={<>Object description (optional)</>}
-        />
-        {exportError ? <p className="">{exportError}</p> : <></>}
-        {exportResult.data ? (
-          <p className="">
-            <strong>Data object created!</strong>
-            <ul>
-              <li> {exportResult.data.set.type}</li>
-              <li>{exportResult.data.set.upa}</li>
-              <li>
-                <a
-                  href={encode`/narrative/${
-                    exportResult.data.set.upa.split('/')[0]
-                  }`}
-                >
-                  Go to Narrative
-                </a>
-              </li>
-              <li>
-                <a href={`/#dataview/${exportResult.data.set.upa}`}>
-                  Go to DataView
-                </a>
-              </li>
-            </ul>
-          </p>
-        ) : (
-          <></>
-        )}
-      </>
-    ),
-    footer: (
-      <Button
-        disabled={!complete || exportResult.isLoading}
-        onClick={handleExport}
-      >
-        Save to Narrative
-      </Button>
-    ),
-  });
+  return (
+    <Modal
+      title={'Save To Narrative'}
+      body={
+        <>
+          <Select
+            placeholder="Select export type..."
+            disabled={typesResult.isFetching}
+            onChange={(opts) => setTypeSel(opts[0])}
+            options={(typesResult.data?.types ?? []).map((type) => ({
+              value: type,
+              label: type,
+            }))}
+          />
+          <Select
+            placeholder="Select narrative..."
+            onSearch={setNarrativeSearch}
+            onChange={(opts) => setNarrativeSel(opts[0])}
+            options={narrativeOptions}
+          />
+          <Input
+            value={name}
+            onChange={(e) => setName(e.currentTarget.value)}
+            label={<>Object Name</>}
+          />
+          <Input
+            value={desc}
+            onChange={(e) => setDesc(e.currentTarget.value)}
+            label={<>Object description (optional)</>}
+          />
+          {exportError ? <p className="">{exportError}</p> : <></>}
+          {exportResult.data ? (
+            <p className="">
+              <strong>Data object created!</strong>
+              <ul>
+                <li> {exportResult.data.set.type}</li>
+                <li>{exportResult.data.set.upa}</li>
+                <li>
+                  <a
+                    href={encode`/narrative/${
+                      exportResult.data.set.upa.split('/')[0]
+                    }`}
+                  >
+                    Go to Narrative
+                  </a>
+                </li>
+                <li>
+                  <a href={`/#dataview/${exportResult.data.set.upa}`}>
+                    Go to DataView
+                  </a>
+                </li>
+              </ul>
+            </p>
+          ) : (
+            <></>
+          )}
+        </>
+      }
+      footer={
+        <Button
+          disabled={!complete || exportResult.isLoading}
+          onClick={handleExport}
+        >
+          Save to Narrative
+        </Button>
+      }
+    />
+  );
 };

@@ -1,87 +1,28 @@
 import { faX } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  useEffect,
-  useId,
-  createContext,
-  useState,
-  useContext,
-  useCallback,
-  useMemo,
-} from 'react';
+import { useCallback, useEffect, useId } from 'react';
+import { createPortal } from 'react-dom';
 import { Button } from '../../common/components';
+import { useAppDispatch, useAppSelector } from '../../common/hooks';
+import { setModalDialogId } from './layoutSlice';
 import classes from './Modal.module.scss';
 
-interface Content {
+interface ModalProps {
   body: React.ReactNode;
   title?: React.ReactNode;
   subtitle?: React.ReactNode;
   footer?: React.ReactNode;
 }
 
-const ModalManagementContext = createContext<{
-  show: () => void;
-  hide: () => void;
-  toggle: (visible?: boolean) => void;
-  visible: boolean;
-  useContent: (content: Content) => JSX.Element;
-  /** Do not use within react render, sets state */
-  setContent: (content: Content) => void;
-}>({
-  show: () => {
-    /*noop*/
-  },
-  hide: () => {
-    /*noop*/
-  },
-  toggle: () => {
-    /*noop*/
-  },
-  visible: false,
-  useContent: (content: Content) => <></>,
-  /** Do not use within react render, sets state */
-  setContent: (content: Content) => undefined,
-});
+export const ModalDialog = () => {
+  const modalDialogId = useId();
 
-// Modal hook, used to set content and show/hide
-export const useModal = () => {
-  const modal = useContext(ModalManagementContext);
-  return modal;
-};
-
-// Renders the modal. One modal to rule them all.
-// Should only be used in the root layout
-export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
-  const [visible, setVisibility] = useState<boolean>(false);
-  const [content, setContent] = useState<Content>({ body: '' });
-
-  const dialogId = useId();
+  const dispatch = useAppDispatch();
   useEffect(() => {
-    const dialog = document.getElementById(dialogId) as HTMLDialogElement;
-    if (!dialog) return;
-    if (visible) {
-      dialog.showModal();
-    } else {
-      dialog.close();
-    }
-  }, [dialogId, visible]);
+    dispatch(setModalDialogId(modalDialogId));
+  }, [dispatch, modalDialogId]);
 
-  const modal = useMemo(
-    () => ({
-      useContent: (content: Content) => {
-        useEffect(() => {
-          setContent(content);
-        }, [content]);
-        return <></>;
-      },
-      setContent,
-      show: () => setVisibility(true),
-      hide: () => setVisibility(false),
-      toggle: (v?: boolean) => setVisibility(v ?? !visible),
-      visible,
-    }),
-    [visible]
-  );
+  const { dialogElement, close } = useModalControls();
 
   const clickOutHandler = useCallback<
     React.MouseEventHandler<HTMLDialogElement>
@@ -97,53 +38,74 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
         bounds.left <= e.clientX &&
         e.clientX <= bounds.left + bounds.width;
 
-      if (!clickedInside) modal.hide();
+      if (dialogElement && !clickedInside) close();
     },
-    [modal]
+    [close, dialogElement]
   );
-
   return (
-    <ModalManagementContext.Provider value={modal}>
-      <>
-        {children}
-        <div hidden={!visible}>
-          <dialog
-            id={dialogId}
-            className={classes['modal']}
-            onClick={clickOutHandler}
-          >
-            <div className={classes['header']}>
-              <div>
-                <h2>
-                  {content.title}
-                  {content.subtitle ? (
-                    <>
-                      <br />
-                      <small className={classes['subtitle']}>
-                        {content.subtitle}
-                      </small>
-                    </>
-                  ) : null}
-                </h2>
-              </div>
-              <Button
-                role="button"
-                color="base"
-                variant="text"
-                onClick={() => {
-                  modal.hide();
-                }}
-              >
-                <FontAwesomeIcon icon={faX} />
-              </Button>
-            </div>
-            <div className={classes['body']}>{content.body}</div>
-            {content.footer ? (
-              <div className={classes['footer']}>{content.footer}</div>
+    <dialog
+      id={modalDialogId}
+      className={classes['modal']}
+      onClick={clickOutHandler}
+    />
+  );
+};
+
+export const useModalControls = () => {
+  const modalDialogId = useAppSelector((state) => state.layout.modalDialogId);
+  const dialogElement = modalDialogId
+    ? (document.getElementById(modalDialogId) as HTMLDialogElement)
+    : undefined;
+  const noOp = () => {
+    /**noOp */
+  };
+  return {
+    dialogElement,
+    show: dialogElement?.showModal.bind(dialogElement) ?? noOp,
+    close: dialogElement?.close.bind(dialogElement) ?? noOp,
+  };
+};
+
+export const Modal = (props: ModalProps) => {
+  const { dialogElement, close } = useModalControls();
+  if (!dialogElement) {
+    // eslint-disable-next-line no-console
+    console.error(
+      'A modal with the following content was specified but the modal dialog element could not be found.',
+      props
+    );
+    return <></>;
+  }
+  return createPortal(
+    <>
+      <div className={classes['header']}>
+        <div>
+          <h2>
+            {props.title}
+            {props.subtitle ? (
+              <>
+                <br />
+                <small className={classes['subtitle']}>{props.subtitle}</small>
+              </>
             ) : null}
-          </dialog>
+          </h2>
         </div>
-      </>
-    </ModalManagementContext.Provider>
+        <Button
+          role="button"
+          color="base"
+          variant="text"
+          onClick={() => {
+            close();
+          }}
+        >
+          <FontAwesomeIcon icon={faX} />
+        </Button>
+      </div>
+      <div className={classes['body']}>{props.body}</div>
+      {props.footer ? (
+        <div className={classes['footer']}>{props.footer}</div>
+      ) : null}
+    </>,
+    dialogElement
   );
 };

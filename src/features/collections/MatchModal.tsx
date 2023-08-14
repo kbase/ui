@@ -20,7 +20,7 @@ import { store } from '../../app/store';
 import { useParamsForNarrativeDropdown } from './hooks';
 import { MatcherUserParams } from './MatcherUserParams';
 import Ajv from 'ajv';
-import { useModal } from '../layout/Modal';
+import { Modal } from '../layout/Modal';
 
 export const MatchModal = ({ collectionId }: { collectionId: string }) => {
   const matchId = useAppParam('match');
@@ -88,14 +88,14 @@ const ViewMatch = () => {
   const matchTooLargeForSelection =
     match?.state === 'complete' && selectionSize + match.matches.length > 10000;
 
-  const modal = useModal();
-  return modal.useContent({
-    title: 'Match Data Object',
-    subtitle:
-      'Match data objects in this collection to objects in a narrative.',
-    body: (
-      <>
-        {matchQuery.isLoading ? (
+  return (
+    <Modal
+      title={'Match Data Object'}
+      subtitle={
+        'Match data objects in this collection to objects in a narrative.'
+      }
+      body={
+        matchQuery.isLoading ? (
           'Loading...'
         ) : (
           <ul>
@@ -126,32 +126,32 @@ const ViewMatch = () => {
               <></>
             )}
           </ul>
-        )}
-      </>
-    ),
-    footer: (
-      <>
-        <Button onClick={handleClear}>Clear Match</Button>
-        <Button
-          onClick={handleSelectAll}
-          disabled={match?.state !== 'complete' || matchTooLargeForSelection}
-          title={
-            matchTooLargeForSelection
-              ? 'Cannot select this match (too many items)'
-              : ''
-          }
-        >
-          Select All Matched
-        </Button>
-        <Button
-          onClick={handleDeselectAll}
-          disabled={match?.state !== 'complete'}
-        >
-          Deselect All Matched
-        </Button>
-      </>
-    ),
-  });
+        )
+      }
+      footer={
+        <>
+          <Button onClick={handleClear}>Clear Match</Button>
+          <Button
+            onClick={handleSelectAll}
+            disabled={match?.state !== 'complete' || matchTooLargeForSelection}
+            title={
+              matchTooLargeForSelection
+                ? 'Cannot select this match (too many items)'
+                : ''
+            }
+          >
+            Select All Matched
+          </Button>
+          <Button
+            onClick={handleDeselectAll}
+            disabled={match?.state !== 'complete'}
+          >
+            Deselect All Matched
+          </Button>
+        </>
+      }
+    />
+  );
 };
 
 export const MATCHER_LABELS = new Map<string, string>(
@@ -271,76 +271,76 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
   const idNarrative = useId();
   const idDataObject = useId();
 
-  const modal = useModal();
-  return modal.useContent({
-    title: 'Match Data Object',
-    subtitle:
-      'Match data objects in this collection to objects in a narrative.',
-    body: (
-      <div className={classes['matching']}>
-        <label htmlFor={idMatcher}>Matcher</label>
-        <Select
-          id={idMatcher}
-          disabled={!matchersQuery.data}
-          loading={matchersQuery.isFetching}
-          value={matcherSel}
-          options={matcherOptions}
-          onChange={(opt) => {
-            setMatcherSel(opt[0]);
-            setDataObjSel([]);
-          }}
-        />
-        {matchUserParams ? (
-          <MatcherUserParams
-            key={matcherSelected.id}
-            params={matchUserParams}
-            value={userParams}
-            onChange={setUserParams}
-            errors={(!validate(userParams) && validate.errors) || []}
+  return (
+    <Modal
+      title={'Match Data Object'}
+      subtitle={
+        'Match data objects in this collection to objects in a narrative.'
+      }
+      body={
+        <div className={classes['matching']}>
+          <label htmlFor={idMatcher}>Matcher</label>
+          <Select
+            id={idMatcher}
+            disabled={!matchersQuery.data}
+            loading={matchersQuery.isFetching}
+            value={matcherSel}
+            options={matcherOptions}
+            onChange={(opt) => {
+              setMatcherSel(opt[0]);
+              setDataObjSel([]);
+            }}
           />
-        ) : (
-          <></>
-        )}
-        <label htmlFor={idNarrative}>Narrative</label>
-        <Select
-          id={idNarrative}
-          disabled={!matcherSelected}
-          value={narrativeSel}
-          options={narrativeOptions}
-          loading={narrativeQuery.isFetching}
-          onSearch={setNarrativeSearch}
-          onChange={(opt) => {
-            setNarrativeSel(opt[0]);
-            setDataObjSel([]);
-          }}
-        />
-        <label htmlFor={idDataObject}>Data Object(s)</label>
-        <Select
-          id={idDataObject}
-          key={narrativeSel?.value}
-          multiple={true}
-          disabled={!narrativeSelected}
-          value={dataObjSel}
-          options={dataObjOptions}
-          loading={dataObjQuery.isFetching}
-          onChange={(opts) => setDataObjSel(opts)}
-        />
-        <br></br>
-        {matchErr ? (
-          <>
-            <br />
-            <br />
-            <code>{matchErr}</code>
-          </>
-        ) : null}
-      </div>
-    ),
-    footer: (
-      <>
+          {matchUserParams ? (
+            <MatcherUserParams
+              key={matcherSelected.id}
+              params={matchUserParams}
+              value={userParams}
+              onChange={setUserParams}
+              errors={(!validate(userParams) && validate.errors) || []}
+            />
+          ) : (
+            <></>
+          )}
+          <label htmlFor={idNarrative}>Narrative</label>
+          <Select
+            id={idNarrative}
+            disabled={!matcherSelected}
+            value={narrativeSel}
+            options={narrativeOptions}
+            loading={narrativeQuery.isFetching}
+            onSearch={setNarrativeSearch}
+            onChange={(opt) => {
+              setNarrativeSel(opt[0]);
+              setDataObjSel([]);
+            }}
+          />
+          <label htmlFor={idDataObject}>Data Object(s)</label>
+          <Select
+            id={idDataObject}
+            key={narrativeSel?.value}
+            multiple={true}
+            disabled={!narrativeSelected}
+            value={dataObjSel}
+            options={dataObjOptions}
+            loading={dataObjQuery.isFetching}
+            onChange={(opts) => setDataObjSel(opts)}
+          />
+          <br></br>
+          {matchErr ? (
+            <>
+              <br />
+              <br />
+              <code>{matchErr}</code>
+            </>
+          ) : null}
+        </div>
+      }
+      footer={
         <Button disabled={createReady} onClick={handleCreate}>
           Create Match
         </Button>
-      </>
-    ),
-  });
+      }
+    />
+  );
 };
