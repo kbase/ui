@@ -241,6 +241,16 @@ interface CollectionsResults {
     data?: null;
     count?: number;
   };
+  getSampleLocations: {
+    match_state: ProcessState;
+    selection_state: ProcessState;
+    locs: {
+      lat: number;
+      lon: number;
+      count: number;
+      ids: string[];
+    }[];
+  };
 }
 
 interface CollectionsParams {
@@ -339,6 +349,14 @@ interface CollectionsParams {
     selection_id?: Selection['selection_id'];
     selection_mark?: boolean;
     count?: boolean;
+    load_ver_override?: Collection['ver_tag'];
+  };
+  getSampleLocations: {
+    collection_id: Collection['id'];
+    include_sample_ids?: boolean;
+    match_id?: Match['match_id'];
+    selection_id?: Selection['selection_id'];
+    status_only?: boolean;
     load_ver_override?: Collection['ver_tag'];
   };
 }
@@ -632,6 +650,20 @@ export const collectionsApi = baseApi.injectEndpoints({
           },
         }),
     }),
+    getSampleLocations: builder.query<
+      CollectionsResults['getSampleLocations'],
+      CollectionsParams['getSampleLocations']
+    >({
+      query: ({ collection_id, ...options }) =>
+        collectionsService({
+          method: 'GET',
+          url: encode`/collections/${collection_id}/data_products/samples/locations`,
+          params: options,
+          headers: {
+            authorization: `Bearer ${store.getState().auth.token}`,
+          },
+        }),
+    }),
   }),
 });
 
@@ -682,4 +714,5 @@ export const {
   getMicroTraitCell,
   getMicroTraitMissing,
   getSampleAttribs,
+  getSampleLocations,
 } = collectionsApi.endpoints;

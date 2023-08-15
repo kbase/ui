@@ -7,9 +7,13 @@ import {
   SortingState,
   RowSelectionState,
 } from '@tanstack/react-table';
-import { FC, useMemo, useState } from 'react';
-import { getSampleAttribs } from '../../../common/api/collectionsApi';
+import { FC, useEffect, useMemo, useState } from 'react';
+import {
+  getSampleAttribs,
+  getSampleLocations,
+} from '../../../common/api/collectionsApi';
 import { CheckBox } from '../../../common/components/CheckBox';
+import { LeafletMap, useLeaflet } from '../../../common/components/Map';
 import {
   Pagination,
   Table,
@@ -184,38 +188,77 @@ export const SampleAttribs: FC<{
     },
   });
 
+  const map = useLeaflet();
+  // Init map
+  useEffect(() => {
+    if (!map.leaflet) return;
+    map.leaflet.setView([37.87722, -122.2506], 13);
+    map.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      className: classes['grayscale'],
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    }).addTo(map.leaflet);
+  }, [map]);
+
+  const { data: locationData } = getSampleLocations.useQuery({ collection_id });
+
+  // Draw Markers
+  useEffect(() => {
+    const markers = locationData?.locs.flatMap((loc) => {
+      if (!map.leaflet) return [];
+      return map.L.circle([loc.lat, loc.lon], {
+        className: classes['circle_marker'],
+        radius: 50,
+      }).addTo(map.leaflet);
+    });
+    if ((markers?.length ?? 0) > 0)
+      map.leaflet?.fitBounds(map.L.featureGroup(markers).getBounds());
+    return () => {
+      markers?.forEach((marker) => {
+        if (!map.leaflet) return;
+        if (marker) marker.removeFrom(map.leaflet);
+      });
+    };
+  }, [locationData, map]);
+
   return (
-    <div>
-      <span>
-        <CheckBox
-          checked={matchMark}
-          onChange={() => setMatchMark((v) => !v)}
-        />{' '}
-        Show Unmatched
-      </span>
+    <div className={classes['dp_columns']}>
+      <div>
+        <span>
+          <CheckBox
+            checked={matchMark}
+            onChange={() => setMatchMark((v) => !v)}
+          />{' '}
+          Show Unmatched
+        </span>
 
-      <span>
-        <CheckBox
-          checked={selectMark}
-          onChange={() => setSelectMark((v) => !v)}
-        />{' '}
-        Show Unselected
-      </span>
+        <span>
+          <CheckBox
+            checked={selectMark}
+            onChange={() => setSelectMark((v) => !v)}
+          />{' '}
+          Show Unselected
+        </span>
 
-      <Table
-        table={table}
-        isLoading={isFetching}
-        rowClass={(row) => {
-          // match highlights
-          return matchIndex !== undefined &&
-            matchIndex !== -1 &&
-            row.original[matchIndex]
-            ? classes['match-highlight']
-            : '';
-        }}
-      />
+        <Table
+          table={table}
+          isLoading={isFetching}
+          rowClass={(row) => {
+            // match highlights
+            return matchIndex !== undefined &&
+              matchIndex !== -1 &&
+              row.original[matchIndex]
+              ? classes['match-highlight']
+              : '';
+          }}
+        />
 
-      <Pagination table={table} maxPage={10000 / pagination.pageSize} />
+        <Pagination table={table} maxPage={10000 / pagination.pageSize} />
+      </div>
+      <div>
+        <LeafletMap height={'800px'} map={map} />
+      </div>
     </div>
   );
 };
