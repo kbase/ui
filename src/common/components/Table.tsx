@@ -171,26 +171,24 @@ export const Pagination = <Datum,>({
       <FAIcon icon={faArrowRightLong} />
     </Button>
   );
-
+  const buttonList = buttons.map((button, ix) =>
+    typeof button === 'number' ? (
+      <Button
+        key={button}
+        color="base"
+        disabled={button === curr || button > maxPage}
+        hidden={button > maxPage} // Hides the max page when we can't display it
+        onClick={() => table.setPageIndex(button)}
+      >
+        {button + 1}
+      </Button>
+    ) : (
+      <div key={button && button.key}>{button}</div>
+    )
+  );
   return (
     <div className={classes['pagination']} data-testid="pagination">
-      {buttons.map((button) =>
-        typeof button === 'number' ? (
-          <>
-            <Button
-              key={button}
-              color="base"
-              disabled={button === curr || button > maxPage}
-              hidden={button > maxPage} // Hides the max page when we can't display it
-              onClick={() => table.setPageIndex(button)}
-            >
-              {button + 1}
-            </Button>
-          </>
-        ) : (
-          button
-        )
-      )}
+      {buttonList}
     </div>
   );
 };

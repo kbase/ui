@@ -38,8 +38,17 @@ jobs:
         with:
           node-version: '16'
 
+      - name: Install app
+        run: npm ci
+
+      - name: Run lint
+        run: npm run lint:strict
+
+      - name: Run tests
+        run: npm test . -- --coverage
+
       - name: Run multi-enviroment build
-        run: npm install && ./scripts/build_deploy.sh
+        run: ./scripts/build_deploy.sh
 
       - name: Create github action tags from image tags
         id: tags
