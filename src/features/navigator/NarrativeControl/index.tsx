@@ -6,7 +6,7 @@ import { NarrativeDoc } from '../../../common/types/NarrativeDoc';
 import { normalizeVersion } from '../common';
 import { Copy } from './Copy';
 import { Delete } from './Delete';
-import { Link as LinkOrg } from './Link';
+import { LinkOrg } from './LinkOrg';
 import { Restore } from './Restore';
 import { Rename } from './Rename';
 import { Share } from './Share';

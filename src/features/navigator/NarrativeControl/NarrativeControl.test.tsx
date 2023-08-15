@@ -6,7 +6,7 @@ import { testNarrativeDoc } from '../fixtures';
 import {
   CopyTemplate,
   DeleteTemplate,
-  LinkTemplate,
+  LinkOrgTemplate,
   NarrativeControlTemplate,
   RenameTemplate,
   RestoreTemplate,
@@ -54,10 +54,10 @@ describe('The <Delete /> component...', () => {
   });
 });
 
-describe('The <Link /> component...', () => {
+describe('The <LinkOrg /> component...', () => {
   test('renders.', () => {
     const { container } = render(
-      <LinkTemplate
+      <LinkOrgTemplate
         modalClose={emptyFunction}
         narrativeDoc={testNarrativeDoc}
       />

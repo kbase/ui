@@ -1,4 +1,4 @@
-/* NarrativeControl/Link */
+/* NarrativeControl/LinkOrg */
 import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
 import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
 import { FC, useEffect, useId, useState } from 'react';
@@ -21,7 +21,7 @@ export interface OrgsValues {
   narrativeOrgs: string[];
 }
 
-export const Link: FC<{
+export const LinkOrg: FC<{
   narrativeDoc: NarrativeDoc;
   modalClose: () => void;
 }> = ({ narrativeDoc, modalClose }) => {

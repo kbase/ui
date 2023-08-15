@@ -90,7 +90,7 @@ export const UserPermissionControl: FC<{
 const emptyOptions: { value: string; label: ReactElement }[] = [];
 const emptySearchResults: Record<string, string> = {};
 const emptyUsernamesIgnored: string[] = [];
-const ignoreUsernames = ({
+const filterUsernames = ({
   results,
   usernames,
 }: {
@@ -128,7 +128,7 @@ const SelectUser: FC<{ wsId: number }> = ({ wsId }) => {
     if (searchQuery?.data) {
       setSearchResults(
         Object.fromEntries(
-          ignoreUsernames({
+          filterUsernames({
             usernames,
             results: searchQuery.data,
           })
@@ -137,7 +137,7 @@ const SelectUser: FC<{ wsId: number }> = ({ wsId }) => {
     }
   }, [searchQuery?.data, usernameAuthed, usernamesShares]);
   useEffect(() => {
-    const usersOther = ignoreUsernames({
+    const usersOther = filterUsernames({
       results: searchResults,
       usernames: usernamesIgnored,
     });
@@ -253,7 +253,7 @@ export const Share: FC<{
       <p>{permissions[userPermission]}</p>
       <SelectUser wsId={wsId} />
       <ul>
-        {ignoreUsernames({
+        {filterUsernames({
           usernames,
           results: usernameShares,
         }).map(([username, permission]) => {

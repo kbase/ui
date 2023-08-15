@@ -9,7 +9,7 @@ import { testNarrativeDoc, initialTestState } from '../fixtures';
 import { ControlProps } from './common';
 import { Copy, CopyProps } from './Copy';
 import { Delete } from './Delete';
-import { Link } from './Link';
+import { LinkOrg } from './LinkOrg';
 import { Rename } from './Rename';
 import { Restore } from './Restore';
 import { Share } from './Share';
@@ -70,25 +70,25 @@ export const StoryDelete: ComponentMeta<typeof Delete> = {
   render: DeleteTemplate,
 };
 
-export const LinkTemplate: ComponentStory<FC<ControlStoryProps>> = ({
+export const LinkOrgTemplate: ComponentStory<FC<ControlStoryProps>> = ({
   initialState,
   ...args
 }) => {
   return (
     <Provider store={createTestStore(initialState)}>
-      <Link {...args} />
+      <LinkOrg {...args} />
     </Provider>
   );
 };
 
-export const StoryLink: ComponentMeta<typeof Link> = {
-  title: 'Components/NarrativeControl/Link',
-  component: Link,
+export const StoryLink: ComponentMeta<typeof LinkOrg> = {
+  title: 'Components/NarrativeControl/LinkOrg',
+  component: LinkOrg,
   args: {
     narrativeDoc: testNarrativeDoc,
     modalClose: emptyFunction,
   },
-  render: LinkTemplate,
+  render: LinkOrgTemplate,
 };
 
 export const RenameTemplate: ComponentStory<FC<ControlStoryProps>> = ({
