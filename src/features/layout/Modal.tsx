@@ -61,8 +61,8 @@ export const useModalControls = () => {
   };
   return {
     dialogElement,
-    show: dialogElement?.showModal.bind(dialogElement) ?? noOp,
-    close: dialogElement?.close.bind(dialogElement) ?? noOp,
+    show: dialogElement?.showModal?.bind(dialogElement) ?? noOp,
+    close: dialogElement?.close?.bind(dialogElement) ?? noOp,
   };
 };
 
