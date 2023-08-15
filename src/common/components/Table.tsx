@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { MouseEventHandler, useMemo } from 'react';
 import {
   createColumnHelper,
   ColumnDef,
@@ -41,6 +41,10 @@ export const Table = <Datum,>({
     table.getFooterGroups()
   );
 
+  const setCellTitle: MouseEventHandler<HTMLTableCellElement> = (e) => {
+    e.currentTarget.setAttribute('title', e.currentTarget.innerText);
+  };
+
   return (
     <div
       className={[className, classes['table-container']].join(' ')}
@@ -65,7 +69,10 @@ export const Table = <Datum,>({
                   <></>
                 )}
                 {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id}>
+                  <td
+                    key={cell.id}
+                    onMouseOver={setCellTitle} // TODO: Change this to a tooltip
+                  >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
                 ))}
@@ -129,7 +136,7 @@ export const Pagination = <Datum,>({
   if (buttons[0] !== start) {
     buttons[0] = start;
     buttons[1] = (
-      <Button key="etc-start" disabled>
+      <Button key="etc-start" color="base" disabled>
         {'...'}
       </Button>
     );
@@ -137,6 +144,7 @@ export const Pagination = <Datum,>({
   buttons.unshift(
     <Button
       key="prev"
+      color="base"
       disabled={!table.getCanPreviousPage()}
       onClick={() => table.previousPage()}
     >
@@ -148,7 +156,7 @@ export const Pagination = <Datum,>({
   if (buttons[buttons.length - 1] !== end) {
     buttons[buttons.length - 1] = end;
     buttons[buttons.length - 2] = (
-      <Button key="etc-end" disabled>
+      <Button key="etc-end" color="base" disabled>
         {'...'}
       </Button>
     );
@@ -156,6 +164,7 @@ export const Pagination = <Datum,>({
   buttons.push(
     <Button
       key="next"
+      color="base"
       disabled={!table.getCanNextPage() || curr >= maxPage}
       onClick={() => table.nextPage()}
     >
@@ -167,14 +176,17 @@ export const Pagination = <Datum,>({
     <div className={classes['pagination']} data-testid="pagination">
       {buttons.map((button) =>
         typeof button === 'number' ? (
-          <Button
-            key={button}
-            disabled={button === curr || button > maxPage}
-            hidden={button > maxPage} // Hides the max page when we can't display it
-            onClick={() => table.setPageIndex(button)}
-          >
-            {button + 1}
-          </Button>
+          <>
+            <Button
+              key={button}
+              color="base"
+              disabled={button === curr || button > maxPage}
+              hidden={button > maxPage} // Hides the max page when we can't display it
+              onClick={() => table.setPageIndex(button)}
+            >
+              {button + 1}
+            </Button>
+          </>
         ) : (
           button
         )

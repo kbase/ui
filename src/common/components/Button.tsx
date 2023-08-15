@@ -8,6 +8,7 @@ type Color = typeof colors[number];
 export interface CommonButtonProps {
   variant?: 'contained' | 'outlined' | 'text';
   color?: Color;
+  textColor?: Color;
   icon?: React.ReactNode;
   size?: 'small' | 'medium' | 'large';
 }
@@ -19,6 +20,7 @@ interface ButtonProps
 export const Button: FC<ButtonProps> = ({
   variant = 'contained',
   color = 'primary',
+  textColor,
   size = 'medium',
   className,
   ...props
@@ -27,6 +29,7 @@ export const Button: FC<ButtonProps> = ({
     classes.button,
     className,
     classes[`button--${color}`],
+    textColor ? classes[`button-text--${textColor}`] : '',
     classes[size],
   ].join(' ');
   return (

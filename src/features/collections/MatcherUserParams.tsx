@@ -73,7 +73,7 @@ const GTDBLineageMatcherUserParameters = ({
   const id = useId();
 
   return (
-    <>
+    <div style={{ paddingLeft: '2em' }}>
       <label htmlFor={id}>{description}</label>
       <Select
         id={id}
@@ -87,7 +87,7 @@ const GTDBLineageMatcherUserParameters = ({
           onChange ? onChange({ gtdb_rank: String(opts[0].value) }) : undefined
         }
       />
-    </>
+    </div>
   );
 };
 

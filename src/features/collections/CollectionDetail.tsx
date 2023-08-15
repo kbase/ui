@@ -1,14 +1,24 @@
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { getCollection } from '../../common/api/collectionsApi';
+import { getCollection, getMatch } from '../../common/api/collectionsApi';
 import { usePageTitle } from '../layout/layoutSlice';
 import styles from './Collections.module.scss';
 import { Card, CardList } from '../../common/components/Card';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { DataProduct } from './DataProduct';
 import { snakeCaseToHumanReadable } from '../../common/utils/stringUtils';
-import { MatchPane } from './MatchPane';
-import { SelectionPane } from './SelectionPane';
-import { ExportPane } from './ExportPane';
+import { MATCHER_LABELS, MatchModal } from './MatchModal';
+import { SelectionModal } from './SelectionModal';
+import { ExportModal } from './ExportModal';
+import { Button } from '../../common/components';
+import { useAppSelector } from '../../common/hooks';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faArrowRightArrowLeft,
+  faChevronLeft,
+  faCircleCheck,
+} from '@fortawesome/free-solid-svg-icons';
+import { useAppParam } from '../params/hooks';
+import { useModalControls } from '../layout/Modal';
 
 export const detailPath = ':id';
 export const detailDataProductPath = ':id/:data_product';
@@ -17,6 +27,16 @@ export const CollectionDetail = () => {
   const params = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const matchId = useAppParam('match');
+
+  const selection = useAppSelector(
+    (state) => state.collections.currentSelection
+  );
+
+  const matchQuery = getMatch.useQuery(matchId || '', {
+    skip: !matchId,
+  });
+  const match = matchQuery.data;
 
   const collectionQuery = getCollection.useQuery(params.id || '', {
     skip: params.id === undefined,
@@ -24,13 +44,19 @@ export const CollectionDetail = () => {
   const collection = collectionQuery.data;
   usePageTitle(`Data Collections`);
 
-  const currDataProduct = collection?.data_products.find(
-    (dp) => dp.product === params.data_product
-  );
+  // If the DataProduct is specified in the URL, show it, otherwise show the first DP.
+  const currDataProduct =
+    collection?.data_products.find(
+      (dp) => dp.product === params.data_product
+    ) || collection?.data_products[0];
 
   // Redirect if the data_product specified by the url DNE
   useEffect(() => {
-    if (params.data_product && collection && !currDataProduct) {
+    if (
+      params.data_product &&
+      (collection?.data_products.length ?? 0) > 0 &&
+      !currDataProduct
+    ) {
       navigate({
         pathname: `/collections/${params.id}`,
         search: location.search,
@@ -45,9 +71,27 @@ export const CollectionDetail = () => {
     location.search,
   ]);
 
+  const modal = useModalControls();
+  type ModalView = 'match' | 'select' | 'export';
+  const [modalView, setModalView] = useState<ModalView>('match');
+
   if (!collection) return <>loading...</>;
   return (
     <div className={styles['collection_wrapper']}>
+      <div className={styles['collection_detail']}>
+        <div>
+          <Button
+            variant="text"
+            role="link"
+            icon={<FontAwesomeIcon icon={faChevronLeft} />}
+            onClick={() => {
+              navigate('/collections');
+            }}
+          >
+            Back to Collections
+          </Button>
+        </div>
+      </div>
       <div className={styles['collection_detail']}>
         <div className={styles['detail_header']}>
           <img
@@ -68,11 +112,38 @@ export const CollectionDetail = () => {
           </li>
         </ul>
       </div>
+
       <div className={styles['collection_detail']}>
-        <MatchPane collectionId={collection.id} />
-        <SelectionPane collectionId={collection.id} />
-        <ExportPane collectionId={collection.id} />
+        <div className={styles['collection_toolbar']}>
+          <Button
+            icon={<FontAwesomeIcon icon={faArrowRightArrowLeft} />}
+            variant="outlined"
+            color={match ? 'primary' : 'primary-lighter'}
+            textColor={match ? 'primary-lighter' : 'primary'}
+            onClick={() => {
+              setModalView('match');
+              modal?.show();
+            }}
+          >
+            {match
+              ? `Matching by ${MATCHER_LABELS.get(match.matcher_id)}`
+              : `Match my Data`}
+          </Button>
+          <Button
+            icon={<FontAwesomeIcon icon={faCircleCheck} />}
+            variant="outlined"
+            color={selection.length > 0 ? 'primary' : 'primary-lighter'}
+            textColor={selection.length > 0 ? 'primary-lighter' : 'primary'}
+            onClick={() => {
+              setModalView('select');
+              modal?.show();
+            }}
+          >
+            {`${selection.length} items in selection`}
+          </Button>
+        </div>
       </div>
+
       <div className={styles['data_products']}>
         <CardList className={styles['data_product_list']}>
           {collection.data_products.map((dp) => (
@@ -97,12 +168,26 @@ export const CollectionDetail = () => {
               collection_id={collection.id}
             />
           ) : (
-            <div className={styles['data_product_placeholder']}>
-              <span>Select a Data Product</span>
-            </div>
+            <></>
           )}
         </div>
       </div>
+      {modalView === 'match' ? (
+        <MatchModal
+          key={[collection.id, matchId].join('|')}
+          collectionId={collection.id}
+        />
+      ) : modalView === 'select' ? (
+        <SelectionModal
+          key={collection.id}
+          collectionId={collection.id}
+          showExport={() => setModalView('export')}
+        />
+      ) : modalView === 'export' ? (
+        <ExportModal key={collection.id} collectionId={collection.id} />
+      ) : (
+        <></>
+      )}
     </div>
   );
 };

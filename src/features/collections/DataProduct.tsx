@@ -9,15 +9,16 @@ export const DataProduct: FC<{
   dataProduct: DataProductType;
   collection_id: string;
 }> = ({ dataProduct, collection_id }) => {
-  if (dataProduct.product === 'taxa_count') {
-    return <TaxaCount {...{ collection_id }} />;
-  } else if (dataProduct.product === 'genome_attribs') {
-    return <GenomeAttribs {...{ collection_id }} />;
-  } else if (dataProduct.product === 'microtrait') {
-    return <Microtrait {...{ collection_id }} />;
-  } else if (dataProduct.product === 'samples') {
-    return <SampleAttribs {...{ collection_id }} />;
-  } else {
-    return <>'Invalid Data Product Type'</>;
+  switch (dataProduct.product) {
+    case 'taxa_count':
+      return <TaxaCount {...{ collection_id }} />;
+    case 'genome_attribs':
+      return <GenomeAttribs {...{ collection_id }} />;
+    case 'microtrait':
+      return <Microtrait {...{ collection_id }} />;
+    case 'samples':
+      return <SampleAttribs {...{ collection_id }} />;
+    default:
+      return <>No view implemented for DataProduct '{dataProduct.product}'</>;
   }
 };

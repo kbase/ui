@@ -5,6 +5,7 @@ import { useAppDispatch } from '../../common/hooks';
 interface PageState {
   pageTitle: string;
   environment: 'unknown' | 'production' | 'ci' | 'appdev' | 'ci-europa';
+  modalDialogId?: string;
 }
 export const initialState: PageState = {
   pageTitle: document.title || 'KBase',
@@ -24,11 +25,18 @@ export const pageSlice = createSlice({
     ) => {
       state.environment = action.payload;
     },
+    setModalDialogId: (
+      state,
+      action: PayloadAction<PageState['modalDialogId']>
+    ) => {
+      state.modalDialogId = action.payload;
+    },
   },
 });
 
 export default pageSlice.reducer;
-export const { setPageTitle, setEnvironment } = pageSlice.actions;
+export const { setPageTitle, setEnvironment, setModalDialogId } =
+  pageSlice.actions;
 
 // Hook to set the page & document title. Resets the title on unmount
 export const usePageTitle = (title: string) => {

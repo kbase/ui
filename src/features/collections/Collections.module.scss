@@ -7,8 +7,10 @@ $border: 1px solid use-color("base-lighter");
   display: flex;
   flex-flow: column nowrap;
   gap: 10px;
-  height: 100%;
+  height: auto;
+  min-height: 100%;
   padding: 10px;
+  width: 100%;
 }
 
 .collection_detail,
@@ -62,23 +64,12 @@ $border: 1px solid use-color("base-lighter");
   }
 }
 
-.data_product_placeholder {
-  align-items: center;
-  display: flex;
-  flex-flow: column nowrap;
-  height: 100%;
-  justify-content: center;
-  width: 100%;
-
-  >* {
-    background-color: use-color("info-lightest");
-    border-radius: 4px;
-    color: use-color("info-dark");
-    font-weight: bold;
-    padding: 4px;
-  }
-}
-
 .match-highlight {
   background-color: use-color("warning-lighter");
+}
+
+.collection_toolbar {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
 }

@@ -43,7 +43,7 @@ export const GenomeAttribs: FC<{
   }, [sorting]);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
-    pageSize: 8,
+    pageSize: 20,
   });
   const currentSelection = useAppSelector(
     (state) => state.collections.currentSelection
@@ -169,24 +169,23 @@ export const GenomeAttribs: FC<{
   });
 
   return (
-    <>
-      <div>
-        <span>
-          <CheckBox
-            checked={matchMark}
-            onChange={() => setMatchMark((v) => !v)}
-          />{' '}
-          Show Unmatched
-        </span>
+    <div>
+      <span>
+        <CheckBox
+          checked={matchMark}
+          onChange={() => setMatchMark((v) => !v)}
+        />{' '}
+        Show Unmatched
+      </span>
 
-        <span>
-          <CheckBox
-            checked={selectMark}
-            onChange={() => setSelectMark((v) => !v)}
-          />{' '}
-          Show Unselected
-        </span>
-      </div>
+      <span>
+        <CheckBox
+          checked={selectMark}
+          onChange={() => setSelectMark((v) => !v)}
+        />{' '}
+        Show Unselected
+      </span>
+
       <Table
         table={table}
         isLoading={isFetching}
@@ -199,7 +198,8 @@ export const GenomeAttribs: FC<{
             : '';
         }}
       />
+
       <Pagination table={table} maxPage={10000 / pagination.pageSize} />
-    </>
+    </div>
   );
 };

@@ -1,0 +1,45 @@
+@import "../../common/colors";
+
+dialog.modal {
+  $padding: 1em;
+  $border: 1px solid use-color("base-light");
+  border: $border;
+  display: flex;
+  flex-flow: column nowrap;
+  overflow: visible;
+  padding: $padding;
+
+  .header {
+    align-items: flex-start;
+    display: flex;
+    flex-direction: row nowrap;
+    flex-shrink: 1;
+    justify-content: space-between;
+    width: 100%;
+
+    .subtitle {
+      color: use-color("base-light");
+      font-weight: normal;
+    }
+  }
+
+  .footer {
+    border-top: $border;
+    display: flex;
+    flex-direction: row;
+    gap: 0.333em;
+    justify-content: flex-end;
+    margin-left: -$padding;
+    margin-right: -$padding;
+    margin-top: $padding;
+    padding-left: $padding;
+    padding-right: $padding;
+    padding-top: $padding;
+
+  }
+
+  &::backdrop {
+    backdrop-filter: blur(0.75px);
+    background: rgba(0, 0, 0, 0.4);
+  }
+}
