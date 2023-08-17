@@ -19,6 +19,7 @@ import {
 import classes from './Table.module.scss';
 import { Button } from './Button';
 import { CheckBox } from './CheckBox';
+import { Loader } from './Loader';
 
 export const Table = <Datum,>({
   table,
@@ -83,13 +84,14 @@ export const Table = <Datum,>({
           </tbody>
           {shouldRenderFooter ? <TableFooter table={table} /> : <></>}
         </table>
-        {isLoading ? (
-          <div className={classes['loader']} data-testid="table-loader">
-            <FAIcon icon={faSpinner} spin size={'2x'} />
-          </div>
-        ) : (
-          <></>
-        )}
+        <Loader
+          loading={isLoading}
+          render={
+            <div className={classes['loader']} data-testid="table-loader">
+              <FAIcon icon={faSpinner} spin size={'2x'} />
+            </div>
+          }
+        />
       </div>
       <div
         style={{

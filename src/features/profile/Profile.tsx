@@ -3,6 +3,7 @@ import { Link, useLocation, useParams } from 'react-router-dom';
 import { getUserProfile } from '../../common/api/userProfileApi';
 import { parseError } from '../../common/api/utils/parseError';
 import { Button } from '../../common/components';
+import { Loader } from '../../common/components/Loader';
 import { useAppSelector } from '../../common/hooks';
 import { authUsername } from '../auth/authSlice';
 import { usePageTitle } from '../layout/layoutSlice';
@@ -155,9 +156,9 @@ export const ProfileWrapper: FC = () => {
         authentication state will need to be populated before displaying the
         profile for the current user.
     */
-    return <>Loading authentication state.</>;
+    return <Loader render={'Loading authentication state.'} />;
   } else if (profileQuery.isLoading) {
-    return <>Loading user profile.</>;
+    return <Loader render={'Loading user profile.'} />;
   } else if (
     profileQuery.isSuccess &&
     viewUsername &&

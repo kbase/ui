@@ -37,6 +37,7 @@ import { cellsLoaded, narrativeDocsLookup, wsObjects } from './navigatorSlice';
 import NarrativeControl from './NarrativeControl';
 import NarrativeMetadata from './NarrativeMetadata';
 import classes from './Navigator.module.scss';
+import { Loader } from '../../common/components/Loader';
 
 const DOMPurify = createDOMPurify(window);
 const sanitize = (markdown: string) =>
@@ -270,7 +271,11 @@ const NarrativeView: FC<{
             <NarrativeMetadata cells={cells} narrativeDoc={narrativeDocFound} />
             <NarrativeViewTabs view={view} />
           </div>
-          {cellsLoadedStatus ? <NarrativeViewCurrent /> : <>Loading...</>}
+          {cellsLoadedStatus ? (
+            <NarrativeViewCurrent />
+          ) : (
+            <Loader type="text" />
+          )}
         </>
       ) : (
         <></>

@@ -3,6 +3,7 @@ import {
   getTaxaCountRank,
   listTaxaCountRanks,
 } from '../../../common/api/collectionsApi';
+import { Loader } from '../../../common/components/Loader';
 import { Select, SelectOption } from '../../../common/components/Select';
 import { useBackoffPolling } from '../../../common/hooks';
 import { snakeCaseToHumanReadable } from '../../../common/utils/stringUtils';
@@ -54,7 +55,7 @@ export const TaxaCount: FC<{
 
   const max = taxa.reduce((max, { count }) => (max > count ? max : count), 0);
 
-  if (ranksQuery.isLoading || countsQuery.isLoading) return <>Loading...</>;
+  if (ranksQuery.isLoading || countsQuery.isLoading) return <Loader />;
 
   return (
     <>

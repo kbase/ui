@@ -6,10 +6,11 @@ import {
 import { Button } from '../../common/components';
 import { useAppSelector } from '../../common/hooks';
 import { authFromToken, revokeToken } from '../../common/api/authService';
-import { faCheck, faX, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { faCheck, faX } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
 import { parseError } from '../../common/api/utils/parseError';
 import { usePageTitle } from '../layout/layoutSlice';
+import { Loader } from '../../common/components/Loader';
 
 export default function Auth() {
   usePageTitle('Authentication');
@@ -131,10 +132,8 @@ const UserRealNameChanger = () => {
         JSON.stringify(profile.data?.[0][0])
       ) : profile.isError ? (
         JSON.stringify(profile.error)
-      ) : profile.isLoading ? (
-        <FAIcon icon={faSpinner} spin />
       ) : (
-        ' '
+        <Loader type="spinner" loading={profile.isLoading} />
       )}
       <br />
       <input
@@ -144,7 +143,7 @@ const UserRealNameChanger = () => {
         onInput={(e) => setNameText(e.currentTarget.value)}
       />
       <button onClick={() => changeName()}>Update</button>
-      {updateProfileResult.isLoading ? <FAIcon icon={faSpinner} spin /> : null}
+      <Loader type="spinner" loading={updateProfileResult.isLoading} />
       {updateProfileResult.isSuccess ? <FAIcon icon={faCheck} /> : null}
       {updateProfileResult.isError ? <FAIcon icon={faX} /> : null}
     </div>
