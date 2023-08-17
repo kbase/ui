@@ -73,3 +73,22 @@ $border: 1px solid use-color("base-lighter");
   flex-direction: row;
   justify-content: space-between;
 }
+
+.dp_columns {
+  display: flex;
+  flex-flow: row;
+  gap: 5px;
+  max-width: 100%;
+  overflow: hidden;
+
+  >* {
+    flex-basis: 1%;
+    flex-grow: 1;
+    flex-shrink: 0;
+    overflow: auto;
+  }
+}
+
+.grayscale {
+  filter: grayscale(100%);
+}
