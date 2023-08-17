@@ -188,39 +188,43 @@ export const SampleAttribs: FC<{
     },
   });
 
-  const map = useLeaflet();
-  // Init map
-  useEffect(() => {
-    if (!map.leaflet) return;
-    map.leaflet.setView([37.87722, -122.2506], 13);
-    map.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  const leaflet = useLeaflet((L, leafletMap) => {
+    // Map Init
+    leafletMap.setView([37.87722, -122.2506], 13);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       className: classes['grayscale'],
       attribution:
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    }).addTo(map.leaflet);
-  }, [map]);
+    }).addTo(leafletMap);
+  });
 
   const { data: locationData } = getSampleLocations.useQuery({ collection_id });
+  const { leafletMap, L } = leaflet;
+
+  const markers = useMemo(
+    () =>
+      locationData?.locs.flatMap((loc) => {
+        if (!leafletMap) return [];
+        return L.circle([loc.lat, loc.lon], {
+          className: classes['circle_marker'],
+          radius: 50,
+        }).addTo(leafletMap);
+      }),
+    [L, leafletMap, locationData?.locs]
+  );
 
   // Draw Markers
   useEffect(() => {
-    const markers = locationData?.locs.flatMap((loc) => {
-      if (!map.leaflet) return [];
-      return map.L.circle([loc.lat, loc.lon], {
-        className: classes['circle_marker'],
-        radius: 50,
-      }).addTo(map.leaflet);
-    });
-    if ((markers?.length ?? 0) > 0)
-      map.leaflet?.fitBounds(map.L.featureGroup(markers).getBounds());
-    return () => {
+    if (markers?.length && markers?.length > 0) {
+      leafletMap?.fitBounds(L.featureGroup(markers).getBounds());
+    }
+    return () =>
       markers?.forEach((marker) => {
-        if (!map.leaflet) return;
-        if (marker) marker.removeFrom(map.leaflet);
+        if (!leafletMap) return;
+        if (marker) marker.removeFrom(leafletMap);
       });
-    };
-  }, [locationData, map]);
+  }, [L, leafletMap, markers]);
 
   return (
     <div className={classes['dp_columns']}>
@@ -257,7 +261,7 @@ export const SampleAttribs: FC<{
         <Pagination table={table} maxPage={10000 / pagination.pageSize} />
       </div>
       <div>
-        <LeafletMap height={'800px'} map={map} />
+        <LeafletMap height={'800px'} map={leaflet} />
       </div>
     </div>
   );
