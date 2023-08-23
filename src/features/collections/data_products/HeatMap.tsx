@@ -8,6 +8,7 @@ import {
 import classes from './HeatMap.module.scss';
 import { zoom } from 'd3-zoom';
 import { select } from 'd3-selection';
+import { Loader } from '../../../common/components/Loader';
 
 /**
  * Generic Collections HeatMap viz, accepts a table with cell values of 0-1
@@ -145,7 +146,11 @@ export const HeatMap = ({
   }
 
   if (!heatMapImage) {
-    return <>Loading and generating heatmap...</>;
+    return (
+      <>
+        Loading and generating heatmap <Loader />
+      </>
+    );
   }
 
   return (

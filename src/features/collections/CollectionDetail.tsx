@@ -19,6 +19,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { useAppParam } from '../params/hooks';
 import { useModalControls } from '../layout/Modal';
+import { Loader } from '../../common/components/Loader';
 
 export const detailPath = ':id';
 export const detailDataProductPath = ':id/:data_product';
@@ -75,7 +76,7 @@ export const CollectionDetail = () => {
   type ModalView = 'match' | 'select' | 'export';
   const [modalView, setModalView] = useState<ModalView>('match');
 
-  if (!collection) return <>loading...</>;
+  if (!collection) return <Loader type="spinner" />;
   return (
     <div className={styles['collection_wrapper']}>
       <div className={styles['collection_detail']}>

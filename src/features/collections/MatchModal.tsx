@@ -21,6 +21,7 @@ import { useParamsForNarrativeDropdown } from './hooks';
 import { MatcherUserParams } from './MatcherUserParams';
 import Ajv from 'ajv';
 import { Modal } from '../layout/Modal';
+import { Loader } from '../../common/components/Loader';
 
 export const MatchModal = ({ collectionId }: { collectionId: string }) => {
   const matchId = useAppParam('match');
@@ -95,9 +96,7 @@ const ViewMatch = () => {
         'Match data objects in this collection to objects in a narrative.'
       }
       body={
-        matchQuery.isLoading ? (
-          'Loading...'
-        ) : (
+        <Loader type="spinner" loading={matchQuery.isLoading}>
           <ul>
             <li>Match ID: {match?.match_id}</li>
             <li>Match Status: {match?.state}</li>
@@ -126,7 +125,7 @@ const ViewMatch = () => {
               <></>
             )}
           </ul>
-        )
+        </Loader>
       }
       footer={
         <>
