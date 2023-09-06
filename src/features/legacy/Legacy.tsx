@@ -1,7 +1,7 @@
 import { RefObject, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { usePageTitle } from '../layout/layoutSlice';
-import { useTryAuthFromToken } from '../auth/authSlice';
+import { useTryAuthFromToken } from '../auth/hooks';
 
 export const LEGACY_BASE_ROUTE = '/legacy';
 

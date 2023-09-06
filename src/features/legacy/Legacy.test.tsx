@@ -8,7 +8,7 @@ import {
   useLocation,
 } from 'react-router-dom';
 import { createTestStore } from '../../app/store';
-import * as authSlice from '../auth/authSlice';
+import * as authHooks from '../auth/hooks';
 import * as layoutSlice from '../layout/layoutSlice';
 import Legacy, {
   formatLegacyUrl,
@@ -180,7 +180,7 @@ describe('Legacy', () => {
   });
 
   test('Legacy page component trys auth from token message', async () => {
-    const authSpy = jest.spyOn(authSlice, 'useTryAuthFromToken');
+    const authSpy = jest.spyOn(authHooks, 'useTryAuthFromToken');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     authSpy.mockImplementation((...args) => undefined as any);
 
