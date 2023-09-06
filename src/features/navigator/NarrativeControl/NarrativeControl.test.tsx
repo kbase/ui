@@ -1,11 +1,10 @@
 // Tests for <NarrativeControl />
 
 import { render, screen } from '@testing-library/react';
-import { emptyFunction } from '../common';
+import { noOp } from '../../common';
 import { testNarrativeDoc } from '../fixtures';
 import {
   CopyTemplate,
-  DeleteTemplate,
   LinkOrgTemplate,
   NarrativeControlTemplate,
   RenameTemplate,
@@ -27,7 +26,7 @@ describe('The <Copy /> component...', () => {
   test('renders.', () => {
     const { container } = render(
       <CopyTemplate
-        modalClose={emptyFunction}
+        modalClose={noOp}
         narrativeDoc={testNarrativeDoc}
         version={1}
       />
@@ -39,28 +38,10 @@ describe('The <Copy /> component...', () => {
   });
 });
 
-describe('The <Delete /> component...', () => {
-  test('renders.', () => {
-    const { container } = render(
-      <DeleteTemplate
-        modalClose={emptyFunction}
-        narrativeDoc={testNarrativeDoc}
-      />
-    );
-    expect(container).toBeTruthy();
-    expect(
-      screen.getByText('Delete Narrative', { exact: false })
-    ).toBeInTheDocument();
-  });
-});
-
 describe('The <LinkOrg /> component...', () => {
   test('renders.', () => {
     const { container } = render(
-      <LinkOrgTemplate
-        modalClose={emptyFunction}
-        narrativeDoc={testNarrativeDoc}
-      />
+      <LinkOrgTemplate modalClose={noOp} narrativeDoc={testNarrativeDoc} />
     );
     expect(container).toBeTruthy();
   });
@@ -69,10 +50,7 @@ describe('The <LinkOrg /> component...', () => {
 describe('The <Rename /> component...', () => {
   test('renders.', () => {
     const { container } = render(
-      <RenameTemplate
-        modalClose={emptyFunction}
-        narrativeDoc={testNarrativeDoc}
-      />
+      <RenameTemplate modalClose={noOp} narrativeDoc={testNarrativeDoc} />
     );
     expect(container).toBeTruthy();
     expect(
@@ -85,7 +63,7 @@ describe('The <Restore /> component...', () => {
   test('renders.', () => {
     const { container } = render(
       <RestoreTemplate
-        modalClose={emptyFunction}
+        modalClose={noOp}
         narrativeDoc={testNarrativeDoc}
         version={1}
       />
@@ -98,10 +76,7 @@ describe('The <Restore /> component...', () => {
 describe('The <Share /> component...', () => {
   test('renders.', () => {
     const { container } = render(
-      <ShareTemplate
-        modalClose={emptyFunction}
-        narrativeDoc={testNarrativeDoc}
-      />
+      <ShareTemplate modalClose={noOp} narrativeDoc={testNarrativeDoc} />
     );
     expect(container).toBeTruthy();
     expect(

@@ -3,8 +3,10 @@
 import { ComponentMeta, ComponentStory } from '@storybook/react';
 import { FC } from 'react';
 import { Provider } from 'react-redux';
+import { MemoryRouter as Router } from 'react-router-dom';
 import { createTestStore, RootState } from '../../../app/store';
-import { emptyFunction } from '../common';
+import { noOp } from '../../common';
+import { ModalDialog } from '../../layout/Modal';
 import { testNarrativeDoc, initialTestState } from '../fixtures';
 import { ControlProps } from './common';
 import { Copy, CopyProps } from './Copy';
@@ -43,7 +45,7 @@ export const StoryCopy: ComponentMeta<typeof Copy> = {
   component: CopyTemplate,
   args: {
     narrativeDoc: testNarrativeDoc,
-    modalClose: emptyFunction,
+    modalClose: noOp,
     version: 1,
   },
   render: CopyTemplate,
@@ -55,7 +57,9 @@ export const DeleteTemplate: ComponentStory<FC<ControlStoryProps>> = ({
 }) => {
   return (
     <Provider store={createTestStore(initialState)}>
-      <Delete {...args} />
+      <Router>
+        <Delete {...args} />
+      </Router>
     </Provider>
   );
 };
@@ -65,7 +69,7 @@ export const StoryDelete: ComponentMeta<typeof Delete> = {
   component: Delete,
   args: {
     narrativeDoc: testNarrativeDoc,
-    modalClose: emptyFunction,
+    modalClose: noOp,
   },
   render: DeleteTemplate,
 };
@@ -86,7 +90,7 @@ export const StoryLink: ComponentMeta<typeof LinkOrg> = {
   component: LinkOrg,
   args: {
     narrativeDoc: testNarrativeDoc,
-    modalClose: emptyFunction,
+    modalClose: noOp,
   },
   render: LinkOrgTemplate,
 };
@@ -107,7 +111,7 @@ export const StoryRename: ComponentMeta<typeof Rename> = {
   component: Rename,
   args: {
     narrativeDoc: testNarrativeDoc,
-    modalClose: emptyFunction,
+    modalClose: noOp,
   },
   render: RenameTemplate,
 };
@@ -128,7 +132,7 @@ export const StoryRestore: ComponentMeta<typeof Restore> = {
   component: Restore,
   args: {
     narrativeDoc: testNarrativeDoc,
-    modalClose: emptyFunction,
+    modalClose: noOp,
   },
   render: RestoreTemplate,
 };
@@ -149,7 +153,7 @@ export const StoryShare: ComponentMeta<typeof Share> = {
   component: Share,
   args: {
     narrativeDoc: testNarrativeDoc,
-    modalClose: emptyFunction,
+    modalClose: noOp,
   },
   render: ShareTemplate,
 };
@@ -162,6 +166,7 @@ export const NarrativeControlTemplate: ComponentStory<FC<StoryProps>> = ({
     <div style={{ textAlign: 'right' }}>
       <Provider store={createTestStore(initialState)}>
         <NarrativeControl {...args} />
+        <ModalDialog />
       </Provider>
     </div>
   );
