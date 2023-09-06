@@ -44,7 +44,8 @@ const RefreshButton: FC = () => {
   return (
     <Button
       className="refresh"
-      color={syncd ? 'primary' : 'warning'}
+      color="primary"
+      disabled={!syncd}
       icon={<FAIcon icon={faRefresh} />}
       onClick={refreshHandler}
     >

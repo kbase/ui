@@ -106,7 +106,7 @@ const wsApi = baseApi.injectEndpoints({
       query: ({ wsId, reqId }) =>
         ws({
           method: 'Workspace.delete_workspace',
-          params: [{ workspaces: [{ id: wsId }] }],
+          params: [{ id: wsId }],
         }),
     }),
     getwsNarrative: builder.query<
