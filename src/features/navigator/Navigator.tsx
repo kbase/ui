@@ -27,6 +27,7 @@ import {
 } from './common';
 import { useNarratives } from './hooks';
 import {
+  loading,
   navigatorSelected,
   narrativeDocs,
   narrativeDocsCount,
@@ -126,6 +127,7 @@ const MainContainer: FC<{
   view: string;
 }> = ({ limit, limitTemplate, items, narrativeUPA, view }) => {
   const narrativeDocsMatched = useAppSelector(narrativeDocsCount);
+  const loadingState = useAppSelector(loading);
   const nextLimit = limitTemplate(limit + 20);
   return (
     <div className={classes.main} /* main component */>
@@ -135,7 +137,7 @@ const MainContainer: FC<{
             hasMoreItems={narrativeDocsMatched > limit}
             items={items.slice(0, limit)}
             itemsRemaining={Math.max(narrativeDocsMatched - limit, 0)}
-            loading={false}
+            loading={loadingState}
             narrativeUPA={narrativeUPA}
             nextLimit={nextLimit}
             showVersionDropdown={true}

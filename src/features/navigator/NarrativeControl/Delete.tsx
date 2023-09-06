@@ -1,19 +1,56 @@
 /* NarrativeControl/Delete */
-import { FC } from 'react';
+import { FC, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { Button } from '../../../common/components';
-import { useAppDispatch } from '../../../common/hooks';
-import { TODOAddLoadingState } from '../common';
-import { deleteNarrative } from '../navigatorSlice';
+import { useAppDispatch, useAppSelector } from '../../../common/hooks';
+import { isKBaseBaseQueryError } from '../../../common/api/utils/kbaseBaseQuery';
+import { deleteWorkspace } from '../../../common/api/workspaceApi';
+import {
+  generatePathWithSearchParams,
+  getParams,
+} from '../../../features/params/paramsSlice';
+import { deleteNarrative, loading, setLoading } from '../navigatorSlice';
 import { ControlProps } from './common';
 
 export const Delete: FC<ControlProps> = ({ narrativeDoc, modalClose }) => {
   const dispatch = useAppDispatch();
-  const deleteNarrativeHandler = async () => {
-    await TODOAddLoadingState();
-    dispatch(deleteNarrative({ wsId: narrativeDoc.access_group }));
-    modalClose();
-  };
+  const loadState = useAppSelector(loading);
+  const params = useAppSelector(getParams);
+  const navigate = useNavigate();
+  const [userConfirmation, setUserConfirmation] = useState(false);
+  const [deleteTrigger] = deleteWorkspace.useMutation();
 
+  const wsId = narrativeDoc.access_group;
+  useEffect(() => {
+    if (loadState) return;
+    if (!userConfirmation) return;
+  });
+
+  const message = `Deleted narrative ${wsId}.`;
+  const deleteNarrativeHandler = async () => {
+    setUserConfirmation(true);
+    modalClose();
+    dispatch(deleteNarrative({ wsId }));
+    try {
+      await deleteTrigger({ wsId }).unwrap();
+      dispatch(setLoading(false));
+    } catch (err) {
+      if (!isKBaseBaseQueryError(err)) {
+        console.error({ err }); // eslint-disable-line no-console
+        toast(
+          <>
+            <span>There was an error! Guru meditation:</span>
+            <span>{JSON.stringify(err)}</span>
+          </>
+        );
+      }
+      dispatch(setLoading(false));
+      return;
+    }
+    toast(message);
+    navigate(generatePathWithSearchParams('/narratives', params));
+  };
   return (
     <>
       <p>Delete Narrative?</p>
@@ -21,7 +58,9 @@ export const Delete: FC<ControlProps> = ({ narrativeDoc, modalClose }) => {
       <p>This action cannot be undone!</p>
       <p>Continue?</p>
       <div>
-        <Button onClick={deleteNarrativeHandler}>Delete</Button>
+        <Button disabled={loadState} onClick={deleteNarrativeHandler}>
+          Delete
+        </Button>
         <Button onClick={modalClose}>Cancel</Button>
       </div>
     </>
