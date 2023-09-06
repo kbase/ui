@@ -1,8 +1,9 @@
-import { FC, useContext } from 'react';
+/* NarrativeControl */
+import { FC, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { ModalContext } from '../../../app/App';
-import { Button, Dropdown } from '../../../common/components';
+import { Dropdown } from '../../../common/components';
 import { NarrativeDoc } from '../../../common/types/NarrativeDoc';
+import { Modal, useModalControls } from '../../layout/Modal';
 import { normalizeVersion } from '../common';
 import { Copy } from './Copy';
 import { Delete } from './Delete';
@@ -27,8 +28,9 @@ interface ControlLatestProps {
 }
 
 const ControlLatest: FC<ControlLatestProps> = ({ narrativeDoc }) => {
-  const { getModalControls, setModalContents } = useContext(ModalContext);
-  const { modalClose } = getModalControls();
+  const [modalView, setModalView] = useState('Copy this Narrative');
+  const modal = useModalControls();
+  const modalClose = () => modal?.close();
   const { version } = narrativeDoc;
   const controlLatestDialogs: Record<string, JSX.Element> = {
     'Copy this Narrative': (
@@ -53,16 +55,13 @@ const ControlLatest: FC<ControlLatestProps> = ({ narrativeDoc }) => {
         horizontalMenuAlign={'right'}
         options={[{ options: controlLatestOptions }]}
         onChange={(opt) => {
-          setModalContents(
-            <span>
-              {controlLatestDialogs[opt[0].value]}
-              <Button onClick={modalClose}>Close Dialog</Button>
-            </span>
-          );
+          setModalView(opt[0].value.toString());
+          modal?.show();
         }}
       >
         <div>Latest</div>
       </Dropdown>
+      <Modal body={controlLatestDialogs[modalView]} title={modalView} />
     </>
   );
 };
@@ -83,8 +82,9 @@ const ControlPrevious: FC<ControlPreviousProps> = ({
   narrativeDoc,
   version,
 }) => {
-  const { getModalControls, setModalContents } = useContext(ModalContext);
-  const { modalClose } = getModalControls();
+  const [modalView, setModalView] = useState('Copy this Narrative');
+  const modal = useModalControls();
+  const modalClose = () => modal?.close();
   const controlPreviousDialogs: Record<string, JSX.Element> = {
     'Copy this version': (
       <Copy
@@ -102,20 +102,19 @@ const ControlPrevious: FC<ControlPreviousProps> = ({
     ),
   };
   return (
-    <Dropdown
-      horizontalMenuAlign={'right'}
-      options={[{ options: controlPreviousOptions }]}
-      onChange={(opt) => {
-        setModalContents(
-          <span>
-            {controlPreviousDialogs[opt[0].value]}
-            <Button onClick={modalClose}>Close Dialog</Button>
-          </span>
-        );
-      }}
-    >
-      <div>Previous</div>
-    </Dropdown>
+    <>
+      <Dropdown
+        horizontalMenuAlign={'right'}
+        options={[{ options: controlPreviousOptions }]}
+        onChange={(opt) => {
+          setModalView(opt[0].value.toString());
+          modal?.show();
+        }}
+      >
+        <div>Previous</div>
+      </Dropdown>
+      <Modal body={controlPreviousDialogs[modalView]} title={modalView} />
+    </>
   );
 };
 
