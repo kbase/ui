@@ -45,7 +45,7 @@ jobs:
         run: npm run lint:strict
 
       - name: Run tests
-        run: npm test . -- --coverage
+        run: npm test . -- --coverage --verbose
 
       - name: Run multi-enviroment build
         run: ./scripts/build_deploy.sh
