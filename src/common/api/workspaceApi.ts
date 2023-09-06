@@ -27,6 +27,7 @@ type TimeParams = (
   );
 
 interface wsParams {
+  deleteWorkspace: { reqId?: number | string; wsId: number };
   getwsNarrative: { upa: string };
   getwsObjectByName: { upa: string };
   getwsPermissions: { wsId: number };
@@ -58,6 +59,7 @@ interface wsParams {
 }
 
 interface wsResults {
+  deleteWorkspace: {};
   getwsNarrative: {
     data: {
       data: {
@@ -97,6 +99,16 @@ interface wsResults {
 
 const wsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    deleteWorkspace: builder.mutation<
+      wsResults['deleteWorkspace'],
+      wsParams['deleteWorkspace']
+    >({
+      query: ({ wsId, reqId }) =>
+        ws({
+          method: 'Workspace.delete_workspace',
+          params: [{ workspaces: [{ id: wsId }] }],
+        }),
+    }),
     getwsNarrative: builder.query<
       wsResults['getwsNarrative'],
       wsParams['getwsNarrative']
@@ -151,6 +163,7 @@ const wsApi = baseApi.injectEndpoints({
 });
 
 export const {
+  deleteWorkspace,
   getwsNarrative,
   getwsObjectByName,
   getwsPermissions,
