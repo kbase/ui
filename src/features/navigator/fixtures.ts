@@ -237,7 +237,11 @@ export const testCells: (MarkdownCell | CodeCell)[] = [
   ),
 ];
 
-export const testNarrativeDoc: NarrativeDoc = {
+export const testNarrativeDocFactory = ({
+  access_group = 1,
+}: {
+  access_group?: number;
+}) => ({
   access_group: 1,
   cells: testCells,
   copied: null,
@@ -259,7 +263,9 @@ export const testNarrativeDoc: NarrativeDoc = {
   timestamp: 0,
   total_cells: testCells.length,
   version: 0,
-};
+});
+
+export const testNarrativeDoc = testNarrativeDocFactory({});
 
 export const testItems: NarrativeDoc[] = narrativeTestDocs
   .map((partial) => factoryNarrativeDoc(partial))
@@ -272,9 +278,13 @@ export const testNarrativeDocsLookup = Object.fromEntries(
 export const initialTestStateFactory = ({
   cells = [],
   cellsLoaded = false,
+  synchronized = true,
+  synchronizedLast = Date.now(),
 }: {
   cells?: Cell[];
   cellsLoaded?: boolean;
+  synchronized?: boolean;
+  synchronizedLast?: number;
 }) => ({
   category: Category['own'],
   controlMenu: {
@@ -283,6 +293,7 @@ export const initialTestStateFactory = ({
     sharesCount: 0,
   },
   count: testItems.length,
+  loading: false,
   narrativeDocs: testItems,
   narrativeDocsLookup: testNarrativeDocsLookup,
   search_time: 0,
@@ -291,6 +302,8 @@ export const initialTestStateFactory = ({
   wsObjects: [],
   cells,
   cellsLoaded,
+  synchronized,
+  synchronizedLast,
 });
 
 export const initialTestState = initialTestStateFactory({});

@@ -20,10 +20,13 @@ interface NavigatorState {
     shares: Record<string, UserPermission>;
     sharesCount: number;
   };
+  loading: boolean;
   narrativeDocs: NarrativeDoc[];
   narrativeDocsLookup: Record<number, NarrativeDoc>;
   search_time: number;
   selected: string | null;
+  synchronized: boolean;
+  synchronizedLast: number;
   users: Record<string, string>;
   wsObjects: Record<number, DataObject[]>;
 }
@@ -39,10 +42,13 @@ const initialState: NavigatorState = {
     sharesCount: 0,
   },
   count: 0,
+  loading: false,
   narrativeDocs: [],
   narrativeDocsLookup: {},
   search_time: 0,
   selected: null,
+  synchronized: true,
+  synchronizedLast: Date.now(),
   users: {},
   wsObjects: {},
 };
@@ -61,8 +67,19 @@ export const navigatorSlice = createSlice({
       console.log(message); // eslint-disable-line no-console
     },
     deleteNarrative: (state, action: PayloadAction<{ wsId: number }>) => {
-      const message = `Delete ${action.payload.wsId}.`;
-      console.log(message); // eslint-disable-line no-console
+      const { wsId } = action.payload;
+      // set loading state
+      state.loading = true;
+      // remove the narrative from the list in narrativeDocs
+      state.narrativeDocs = state.narrativeDocs.filter(
+        (narrativeDoc) => narrativeDoc.access_group !== wsId
+      );
+      // remove the narrative from narrativeDocsLookup
+      delete state.narrativeDocsLookup[wsId];
+      // mark the client state as being (possibly) out of sync with KBase
+      state.synchronizedLast = Date.now();
+      state.synchronized = false;
+      return state;
     },
     linkNarrative: (
       state,
@@ -133,6 +150,9 @@ export const navigatorSlice = createSlice({
     ) => {
       state.controlMenu.linkedOrgs = action.payload;
     },
+    setLoading: (state, action: PayloadAction<NavigatorState['loading']>) => {
+      state.loading = action.payload;
+    },
     setNarrativeDocs: (
       state,
       action: PayloadAction<SearchResults['getNarratives']>
@@ -145,6 +165,18 @@ export const navigatorSlice = createSlice({
         state.wsObjects[hit.access_group] = hit.data_objects;
         state.narrativeDocsLookup[hit.access_group] = hit;
       });
+      state.synchronized = true;
+      state.synchronizedLast = Date.now();
+    },
+    setSynchronized: (
+      state,
+      action: PayloadAction<NavigatorState['synchronized']>
+    ) => {
+      const syncd = action.payload;
+      if (syncd) {
+        state.synchronizedLast = Date.now();
+      }
+      state.synchronized = action.payload;
     },
     setShares: (
       state,
@@ -187,8 +219,10 @@ export const {
   setCells,
   setCellsLoaded,
   setLinkedOrgs,
+  setLoading,
   setNarrativeDocs,
   setShares,
+  setSynchronized,
   setUserPermission,
   updateUsers,
 } = navigatorSlice.actions;
@@ -196,6 +230,7 @@ export const {
 export const categorySelected = (state: RootState) => state.navigator.category;
 export const cells = (state: RootState) => state.navigator.cells;
 export const cellsLoaded = (state: RootState) => state.navigator.cellsLoaded;
+export const loading = (state: RootState) => state.navigator.loading;
 export const narrativeDocs = (state: RootState) =>
   state.navigator.narrativeDocs;
 export const narrativeDocsLookup = (state: RootState) =>
@@ -207,5 +242,8 @@ export const navigatorSelected = (state: RootState) => state.navigator.selected;
 export const shares = (state: RootState) => state.navigator.controlMenu.shares;
 export const sharesCount = (state: RootState) =>
   state.navigator.controlMenu.sharesCount;
+export const synchronized = (state: RootState) => state.navigator.synchronized;
+export const synchronizedLast = (state: RootState) =>
+  state.navigator.synchronizedLast;
 export const users = (state: RootState) => state.navigator.users;
 export const wsObjects = (state: RootState) => state.navigator.wsObjects;

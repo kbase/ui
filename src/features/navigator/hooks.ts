@@ -12,6 +12,7 @@ import {
   setCells,
   setCellsLoaded,
   setNarrativeDocs,
+  synchronized,
   updateUsers,
   users,
 } from './navigatorSlice';
@@ -125,17 +126,18 @@ export const useCells = ({ narrativeUPA }: { narrativeUPA: string }) => {
 export const useNarratives = (params: getNarrativesParams) => {
   const dispatch = useAppDispatch();
   const narrativesPrevious = useAppSelector(narrativeDocs);
+  const syncd = useAppSelector(synchronized);
   const searchAPIParams = useMemo(
     () => makeGetNarrativesParams(params),
     [params]
   );
   const searchAPIQuery = getNarratives.useQuery(searchAPIParams);
   useEffect(() => {
-    if (searchAPIQuery.isSuccess && searchAPIQuery.data) {
+    if (syncd && searchAPIQuery.isSuccess && searchAPIQuery.data) {
       const data = searchAPIQuery.data;
       dispatch(setNarrativeDocs(data));
     }
-  }, [dispatch, narrativesPrevious, searchAPIQuery, searchAPIParams]);
+  }, [dispatch, narrativesPrevious, searchAPIQuery, searchAPIParams, syncd]);
 };
 
 export const useUsers = (params: { users: string[] }) => {
