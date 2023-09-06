@@ -7,8 +7,8 @@ import fetchMock, {
 import { Provider } from 'react-redux';
 import { MemoryRouter as Router } from 'react-router-dom';
 import { createTestStore } from '../../app/store';
+import { noOp } from '../common';
 import { NarrativePreviewTemplate } from '../../stories/components/NarrativePreview.stories';
-import { emptyFunction } from './common';
 import {
   initialTestState,
   testNarrativeDoc,
@@ -41,9 +41,9 @@ const testResponseError: [string, MockParams] = [
 const consoleError = jest.spyOn(console, 'error');
 const consoleLog = jest.spyOn(console, 'log');
 const consoleWarn = jest.spyOn(console, 'warn');
-consoleError.mockImplementation(emptyFunction);
-consoleLog.mockImplementation(emptyFunction);
-consoleWarn.mockImplementation(emptyFunction);
+consoleError.mockImplementation(noOp);
+consoleLog.mockImplementation(noOp);
+consoleWarn.mockImplementation(noOp);
 
 describe('The <NarrativeView /> component...', () => {
   beforeAll(() => {

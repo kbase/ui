@@ -1,8 +1,7 @@
 import { Cell } from '../../common/types/NarrativeDoc';
 import { generatePathWithSearchParams } from '../../features/params/paramsSlice';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-export const emptyFunction = () => {};
+export const AUTOMATIC_REFRESH_DELAY = 5000;
 
 // Narrative and Navigator paths
 export const narrativeURL = (wsId: number | string) =>
