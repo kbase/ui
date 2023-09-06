@@ -4,6 +4,7 @@ import { useCallback, useEffect, useId } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '../../common/components';
 import { useAppDispatch, useAppSelector } from '../../common/hooks';
+import { noOp } from '../common';
 import { setModalDialogId } from './layoutSlice';
 import classes from './Modal.module.scss';
 
@@ -56,10 +57,8 @@ export const useModalControls = () => {
   const dialogElement = modalDialogId
     ? (document.getElementById(modalDialogId) as HTMLDialogElement)
     : undefined;
-  const noOp = () => {
-    /**noOp */
-  };
   return {
+    dialogId: modalDialogId,
     dialogElement,
     show: dialogElement?.showModal?.bind(dialogElement) ?? noOp,
     close: dialogElement?.close?.bind(dialogElement) ?? noOp,
@@ -67,7 +66,10 @@ export const useModalControls = () => {
 };
 
 export const Modal = (props: ModalProps) => {
-  const { dialogElement, close } = useModalControls();
+  const { dialogId, dialogElement, close } = useModalControls();
+  if (!dialogId) {
+    return <></>;
+  }
   if (!dialogElement) {
     // eslint-disable-next-line no-console
     console.error(
