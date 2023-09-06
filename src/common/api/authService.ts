@@ -1,6 +1,7 @@
 import { baseApi } from './index';
 import { httpService } from './utils/serviceHelpers';
 import { uriEncodeTemplateTag as encode } from '../utils/stringUtils';
+import { Me } from '../types/auth';
 
 const authService = httpService({
   url: '/services/auth',
@@ -17,6 +18,9 @@ interface TokenResponse {
 }
 
 interface AuthParams {
+  getMe: {
+    token: string;
+  };
   getUsers: {
     token: string;
     users: string[];
@@ -28,6 +32,7 @@ interface AuthParams {
 }
 
 interface AuthResults {
+  getMe: Me;
   getUsers: Record<string, string>;
   searchUsers: Record<string, string>;
 }
@@ -43,6 +48,16 @@ export const authApi = baseApi.injectEndpoints({
           headers: {
             Authorization: token || '',
           },
+        }),
+    }),
+    getMe: builder.query<AuthResults['getMe'], AuthParams['getMe']>({
+      query: ({ token }) =>
+        authService({
+          headers: {
+            Authorization: token,
+          },
+          method: 'GET',
+          url: '/api/V2/me',
         }),
     }),
     getUsers: builder.query<AuthResults['getUsers'], AuthParams['getUsers']>({
@@ -79,5 +94,5 @@ export const authApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { authFromToken, getUsers, searchUsers, revokeToken } =
+export const { authFromToken, getMe, getUsers, searchUsers, revokeToken } =
   authApi.endpoints;

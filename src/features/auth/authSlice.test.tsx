@@ -1,12 +1,12 @@
-// Start a new test file for profileSlice specifically.
+/* auth/authSlice.test */
 import { render, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import fetchMock from 'jest-fetch-mock';
-
 import { createTestStore } from '../../app/store';
 import { authFromToken, revokeToken } from '../../common/api/authService';
-import { TokenInfo, useTokenCookie, useTryAuthFromToken } from './authSlice';
 import * as cookies from '../../common/cookie';
+import { TokenInfo } from './authSlice';
+import { useTokenCookie, useTryAuthFromToken } from './hooks';
 
 let testStore = createTestStore({});
 describe('authSlice', () => {

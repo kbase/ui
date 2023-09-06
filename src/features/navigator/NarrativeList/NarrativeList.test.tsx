@@ -43,5 +43,27 @@ test('NarrativeList displays loading circle', async () => {
     </Provider>
   );
   expect(container.querySelectorAll('.narrative_item_outer')).toHaveLength(0);
-  expect(screen.getByText('Loading...')).toBeInTheDocument();
+  expect(container.querySelectorAll('.fa-spinner')).toHaveLength(1);
+});
+
+test('NarrativeList displays loading circle when loading more.', async () => {
+  const { container } = render(
+    <Provider store={createTestStore()}>
+      <Router>
+        <NarrativeList
+          hasMoreItems={true}
+          items={testItems}
+          itemsRemaining={10}
+          loading={true}
+          narrativeUPA={null}
+          nextLimit={''}
+          showVersionDropdown={true}
+        />
+      </Router>
+    </Provider>
+  );
+  expect(container.querySelectorAll('.narrative_item_outer')).toHaveLength(
+    testItems.length
+  );
+  expect(container.querySelectorAll('.fa-spinner')).toHaveLength(1);
 });

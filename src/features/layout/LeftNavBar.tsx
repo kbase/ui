@@ -1,6 +1,4 @@
-import { FC } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import classes from './LeftNavBar.module.scss';
+/* LeftNavBar */
 import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
 import {
   faExclamation,
@@ -14,8 +12,15 @@ import {
   IconDefinition,
   faBoxesStacked,
 } from '@fortawesome/free-solid-svg-icons';
+import { FC } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { useAppSelector } from '../../common/hooks';
+import { authMe, authToken } from '../auth/authSlice';
+import { useAuthMe } from '../auth/hooks';
+import classes from './LeftNavBar.module.scss';
 
-export default function LeftNavBar() {
+const LeftNavBar: FC = () => {
+  const token = useAppSelector(authToken);
   return (
     <nav>
       <ul className={classes.nav_list}>
@@ -26,13 +31,30 @@ export default function LeftNavBar() {
         <NavItem path="/legacy/jobbrowser" desc="Jobs" icon={faSuitcase} />
         <NavItem path="/legacy/account" desc="Account" icon={faIdCard} />
         <NavItem path="/legacy/feeds" desc="Feeds" icon={faBullhorn} />
-        <NavItem path="/count" desc="Count" icon={faExclamation} />
-        <NavItem path="/auth" desc="Auth" icon={faExclamation} />
-        <NavItem path="/collections" desc="Collections" icon={faBoxesStacked} />
+        {token ? <DevNav /> : <></>}
       </ul>
     </nav>
   );
-}
+};
+
+const devDomains = new Set(['', 'ci-europa.kbase.us']);
+
+const DevNav: FC = () => {
+  const me = useAppSelector(authMe);
+  useAuthMe();
+  const devDomain = !devDomains.has(process.env.REACT_APP_KBASE_DOMAIN || '');
+  const customroles = me && new Set(me.customroles);
+  const devRole = customroles && customroles.has('UI_COLLECTIONS');
+  const dev = devDomain || devRole;
+  if (!dev) return <></>;
+  return (
+    <>
+      <NavItem path="/count" desc="Count" icon={faExclamation} />
+      <NavItem path="/auth" desc="Auth" icon={faExclamation} />
+      <NavItem path="/collections" desc="Collections" icon={faBoxesStacked} />
+    </>
+  );
+};
 
 const NavItem: FC<{ path: string; desc: string; icon: IconDefinition }> = ({
   path,
@@ -53,3 +75,5 @@ const NavItem: FC<{ path: string; desc: string; icon: IconDefinition }> = ({
     </li>
   );
 };
+
+export default LeftNavBar;

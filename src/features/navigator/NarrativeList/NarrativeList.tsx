@@ -1,6 +1,7 @@
 import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
 import { faCog } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
+import { Loader } from '../../../common/components/Loader';
 import { NarrativeDoc } from '../../../common/types/NarrativeDoc';
 import classes from './NarrativeList.module.scss';
 import NarrativeViewItem from './NarrativeViewItem';
@@ -32,7 +33,7 @@ function NarrativeList(props: NarrativeListProps) {
               spin={true}
               style={{ marginRight: '5px' }}
             ></FAIcon>
-            Loading...
+            <Loader type="spinner" />
           </div>
         </div>
       );
@@ -59,7 +60,7 @@ function NarrativeList(props: NarrativeListProps) {
             spin={true}
             style={{ marginRight: '5px' }}
           ></FAIcon>
-          Loading...
+          <Loader type="spinner" />
         </span>
       );
     }

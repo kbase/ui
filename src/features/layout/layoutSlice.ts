@@ -3,10 +3,11 @@ import { useEffect } from 'react';
 import { useAppDispatch } from '../../common/hooks';
 
 interface PageState {
-  pageTitle: string;
   environment: 'unknown' | 'production' | 'ci' | 'appdev' | 'ci-europa';
+  pageTitle: string;
   modalDialogId?: string;
 }
+
 export const initialState: PageState = {
   pageTitle: document.title || 'KBase',
   environment: 'unknown',
@@ -16,9 +17,6 @@ export const pageSlice = createSlice({
   name: 'page',
   initialState,
   reducers: {
-    setPageTitle: (state, action: PayloadAction<string>) => {
-      state.pageTitle = action.payload;
-    },
     setEnvironment: (
       state,
       action: PayloadAction<PageState['environment']>
@@ -31,12 +29,11 @@ export const pageSlice = createSlice({
     ) => {
       state.modalDialogId = action.payload;
     },
+    setPageTitle: (state, action: PayloadAction<string>) => {
+      state.pageTitle = action.payload;
+    },
   },
 });
-
-export default pageSlice.reducer;
-export const { setPageTitle, setEnvironment, setModalDialogId } =
-  pageSlice.actions;
 
 // Hook to set the page & document title. Resets the title on unmount
 export const usePageTitle = (title: string) => {
@@ -54,3 +51,7 @@ export const usePageTitle = (title: string) => {
   }, [dispatch, title]);
   return null;
 };
+export default pageSlice.reducer;
+
+export const { setEnvironment, setModalDialogId, setPageTitle } =
+  pageSlice.actions;
