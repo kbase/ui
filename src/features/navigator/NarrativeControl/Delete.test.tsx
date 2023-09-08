@@ -1,12 +1,9 @@
 /* Delete.test */
-import { FC } from 'react';
 import { act, render, screen } from '@testing-library/react';
 import fetchMock, {
-  //MockParams,
   disableFetchMocks,
   enableFetchMocks,
 } from 'jest-fetch-mock';
-import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
 import { noOp } from '../../common';
 import { testNarrativeDoc, testNarrativeDocFactory } from '../fixtures';
 import { DeleteTemplate } from './NarrativeControl.stories';
@@ -40,20 +37,10 @@ const testResponseErrorFactory = ({
   { status: 500 },
 ];
 
-const TestingError: FC<FallbackProps> = ({ error }) => {
-  return <>Error: {JSON.stringify(error)}</>;
-};
-
 const consoleError = jest.spyOn(console, 'error');
 // This mockImplementation supresses console.error calls.
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 consoleError.mockImplementation(() => {});
-
-const logError = (error: Error, info: { componentStack: string }) => {
-  console.log({ error }); // eslint-disable-line no-console
-  console.log(info.componentStack); // eslint-disable-line no-console
-  screen.debug();
-};
 
 describe('The <Delete /> component...', () => {
   beforeAll(() => {
@@ -122,12 +109,7 @@ describe('The <Delete /> component...', () => {
   test('throws an error if the delete request fails.', async () => {
     fetchMock.mockRejectedValue(null);
     const { container } = render(
-      <ErrorBoundary FallbackComponent={TestingError} onError={logError}>
-        <DeleteTemplate
-          modalClose={noOp}
-          narrativeDoc={testNarrativeDocError}
-        />
-      </ErrorBoundary>
+      <DeleteTemplate modalClose={noOp} narrativeDoc={testNarrativeDocError} />
     );
     expect(container).toBeTruthy();
     const buttonDelete = container.querySelector('button');

@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { Button } from '../../../common/components';
 import { useAppDispatch, useAppSelector } from '../../../common/hooks';
 import { isKBaseBaseQueryError } from '../../../common/api/utils/kbaseBaseQuery';
+import { parseError } from '../../../common/api/utils/parseError';
 import { deleteWorkspace } from '../../../common/api/workspaceApi';
 import {
   generatePathWithSearchParams,
@@ -12,6 +13,13 @@ import {
 } from '../../../features/params/paramsSlice';
 import { deleteNarrative, loading, setLoading } from '../navigatorSlice';
 import { ControlProps } from './common';
+
+const ErrorMessage: FC<{ err: unknown }> = ({ err }) => (
+  <>
+    <span>There was an error! Guru meditation:</span>
+    <span>{JSON.stringify(err)}</span>
+  </>
+);
 
 export const Delete: FC<ControlProps> = ({ narrativeDoc, modalClose }) => {
   const dispatch = useAppDispatch();
@@ -38,13 +46,10 @@ export const Delete: FC<ControlProps> = ({ narrativeDoc, modalClose }) => {
     } catch (err) {
       if (!isKBaseBaseQueryError(err)) {
         console.error({ err }); // eslint-disable-line no-console
-        toast(
-          <>
-            <span>There was an error! Guru meditation:</span>
-            <span>{JSON.stringify(err)}</span>
-          </>
-        );
+        toast(ErrorMessage({ err }));
+        return;
       }
+      toast(ErrorMessage({ err: parseError(err) }));
       dispatch(setLoading(false));
       return;
     }
