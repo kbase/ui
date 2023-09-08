@@ -1,7 +1,8 @@
+// import { store } from '../../app/store';
+import { Me } from '../types/auth';
+import { uriEncodeTemplateTag as encode } from '../utils/stringUtils';
 import { baseApi } from './index';
 import { httpService } from './utils/serviceHelpers';
-import { uriEncodeTemplateTag as encode } from '../utils/stringUtils';
-import { Me } from '../types/auth';
 
 const authService = httpService({
   url: '/services/auth',
@@ -51,14 +52,24 @@ export const authApi = baseApi.injectEndpoints({
         }),
     }),
     getMe: builder.query<AuthResults['getMe'], AuthParams['getMe']>({
-      query: ({ token }) =>
-        authService({
+      query: ({ token }) => {
+        /* I want to do
+        const token = store.getState().auth.token;
+        but authSlice imports revokeToken defined here,
+        so this becomes a circular depenency.
+        Specifically the error is:
+          7022: 'token' implicitly has type 'any' because it does not have a
+          type annotation and is referenced directly or indirectly in its own
+          initializer.
+        */
+        return authService({
           headers: {
             Authorization: token,
           },
           method: 'GET',
           url: '/api/V2/me',
-        }),
+        });
+      },
     }),
     getUsers: builder.query<AuthResults['getUsers'], AuthParams['getUsers']>({
       query: ({ token, users }) =>

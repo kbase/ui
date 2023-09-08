@@ -1,5 +1,5 @@
 /* NarrativeControl */
-import { FC, useState } from 'react';
+import { FC, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Dropdown } from '../../../common/components';
 import { NarrativeDoc } from '../../../common/types/NarrativeDoc';
@@ -30,25 +30,27 @@ interface ControlLatestProps {
 const ControlLatest: FC<ControlLatestProps> = ({ narrativeDoc }) => {
   const [modalView, setModalView] = useState('Copy this Narrative');
   const modal = useModalControls();
-  const modalClose = () => modal?.close();
-  const { version } = narrativeDoc;
-  const controlLatestDialogs: Record<string, JSX.Element> = {
-    'Copy this Narrative': (
-      <Copy
-        narrativeDoc={narrativeDoc}
-        modalClose={modalClose}
-        version={version}
-      />
-    ),
-    Delete: <Delete narrativeDoc={narrativeDoc} modalClose={modalClose} />,
-    'Link to Organization': (
-      <LinkOrg narrativeDoc={narrativeDoc} modalClose={modalClose} />
-    ),
-    'Manage Sharing': (
-      <Share narrativeDoc={narrativeDoc} modalClose={modalClose} />
-    ),
-    Rename: <Rename narrativeDoc={narrativeDoc} modalClose={modalClose} />,
-  };
+  const controlLatestDialogs: Record<string, JSX.Element> = useMemo(() => {
+    const modalClose = () => modal?.close();
+    const { version } = narrativeDoc;
+    return {
+      'Copy this Narrative': (
+        <Copy
+          narrativeDoc={narrativeDoc}
+          modalClose={modalClose}
+          version={version}
+        />
+      ),
+      Delete: <Delete narrativeDoc={narrativeDoc} modalClose={modalClose} />,
+      'Link to Organization': (
+        <LinkOrg narrativeDoc={narrativeDoc} modalClose={modalClose} />
+      ),
+      'Manage Sharing': (
+        <Share narrativeDoc={narrativeDoc} modalClose={modalClose} />
+      ),
+      Rename: <Rename narrativeDoc={narrativeDoc} modalClose={modalClose} />,
+    };
+  }, [modal, narrativeDoc]);
   return (
     <>
       <Dropdown
