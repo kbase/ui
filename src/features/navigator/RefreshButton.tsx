@@ -11,8 +11,9 @@ import {
   setSynchronized,
 } from './navigatorSlice';
 
+const delaySeconds = AUTOMATIC_REFRESH_DELAY / 1000;
 const RefreshButton: FC = () => {
-  const [count, setCount] = useState(5);
+  const [count, setCount] = useState(delaySeconds);
   const dispatch = useAppDispatch();
   const syncd = useAppSelector(synchronized);
   const syncdLast = useAppSelector(synchronizedLast);
@@ -20,7 +21,7 @@ const RefreshButton: FC = () => {
   const refreshHandler = useCallback(() => {
     dispatch(clearCacheAction);
     dispatch(setSynchronized(true));
-    setCount(5);
+    setCount(delaySeconds);
   }, [dispatch]);
 
   useEffect(() => {
@@ -28,7 +29,7 @@ const RefreshButton: FC = () => {
     const age = now - syncdLast;
     if (!syncd && age > AUTOMATIC_REFRESH_DELAY) {
       if (count > 0) {
-        setCount(count - 1);
+        setCount(Math.max(count - 1, 0));
         return;
       }
       refreshHandler();

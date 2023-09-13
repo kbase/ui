@@ -1,6 +1,7 @@
 // Tests for <NarrativeControl />
 
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter as Router } from 'react-router-dom';
 import { noOp } from '../../common';
 import { testNarrativeDoc } from '../fixtures';
 import {
@@ -62,11 +63,13 @@ describe('The <Rename /> component...', () => {
 describe('The <Restore /> component...', () => {
   test('renders.', () => {
     const { container } = render(
-      <RestoreTemplate
-        modalClose={noOp}
-        narrativeDoc={testNarrativeDoc}
-        version={1}
-      />
+      <Router>
+        <RestoreTemplate
+          modalClose={noOp}
+          narrativeDoc={testNarrativeDoc}
+          version={1}
+        />
+      </Router>
     );
     expect(container).toBeTruthy();
     expect(screen.getByText('Reverting', { exact: false })).toBeInTheDocument();
