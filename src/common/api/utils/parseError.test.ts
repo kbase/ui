@@ -1,6 +1,6 @@
 import { SerializedError } from '@reduxjs/toolkit';
 import { FetchBaseQueryError } from '@reduxjs/toolkit/dist/query';
-import { KBaseBaseQueryError } from './kbaseBaseQuery';
+import { KBaseBaseQueryError } from './common';
 import { parseError } from './parseError';
 
 describe('parseError', () => {
