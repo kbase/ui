@@ -9,6 +9,7 @@ import {
 import { Input } from '../../../common/components/Input';
 import { useAppDispatch } from '../../../common/hooks';
 import { TODOAddLoadingState } from '../common';
+import { useNarrativeServiceStatus } from '../hooks';
 import { copyNarrative } from '../navigatorSlice';
 import { ControlProps } from './common';
 
@@ -22,6 +23,7 @@ export interface CopyProps extends ControlProps {
 
 export const Copy: FC<CopyProps> = ({ narrativeDoc, modalClose, version }) => {
   const dispatch = useAppDispatch();
+  useNarrativeServiceStatus();
   const { formState, getValues, register } = useForm<CopyValues>({
     defaultValues: {
       narrativeCopyName: `${narrativeDoc.narrative_title} - Copy`,

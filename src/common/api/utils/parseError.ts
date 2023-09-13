@@ -1,5 +1,5 @@
 import { SerializedError } from '@reduxjs/toolkit';
-import { KBaseBaseQueryError } from './kbaseBaseQuery';
+import { KBaseBaseQueryError } from './common';
 
 export function parseError(error: KBaseBaseQueryError | SerializedError): {
   error: KBaseBaseQueryError | SerializedError;

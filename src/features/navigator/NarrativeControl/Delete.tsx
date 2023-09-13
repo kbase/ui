@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Button } from '../../../common/components';
 import { useAppDispatch, useAppSelector } from '../../../common/hooks';
-import { isKBaseBaseQueryError } from '../../../common/api/utils/kbaseBaseQuery';
+import { isKBaseBaseQueryError } from '../../../common/api/utils/common';
 import { parseError } from '../../../common/api/utils/parseError';
 import { deleteWorkspace } from '../../../common/api/workspaceApi';
 import {

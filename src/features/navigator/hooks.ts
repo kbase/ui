@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from '../../common/hooks';
 import { getUsers } from '../../common/api/authService';
 import { getNarratives, SearchParams } from '../../common/api/searchApi';
+import { getStatus } from '../../common/api/narrativeService';
 import { getwsNarrative } from '../../common/api/workspaceApi';
 import { Cell } from '../../common/types/NarrativeDoc';
 import { authToken } from '../auth/authSlice';
@@ -138,6 +139,16 @@ export const useNarratives = (params: getNarrativesParams) => {
       dispatch(setNarrativeDocs(data));
     }
   }, [dispatch, narrativesPrevious, searchAPIQuery, searchAPIParams, syncd]);
+};
+
+export const useNarrativeServiceStatus = () => {
+  const nsQuery = getStatus.useQuery();
+  useEffect(() => {
+    if (nsQuery.isSuccess && nsQuery.data) {
+      const data = nsQuery.data;
+      console.log({ data }); // eslint-disable-line no-console
+    }
+  }, [nsQuery.data, nsQuery.isSuccess]);
 };
 
 export const useUsers = (params: { users: string[] }) => {
