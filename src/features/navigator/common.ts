@@ -1,7 +1,7 @@
 import { Cell } from '../../common/types/NarrativeDoc';
 import { generatePathWithSearchParams } from '../../features/params/paramsSlice';
 
-export const AUTOMATIC_REFRESH_DELAY = 5000;
+export const AUTOMATIC_REFRESH_DELAY = 15000;
 
 // Narrative and Navigator paths
 export const narrativeURL = (wsId: number | string) =>

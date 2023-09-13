@@ -12,14 +12,7 @@ import {
   getParams,
 } from '../../../features/params/paramsSlice';
 import { deleteNarrative, loading, setLoading } from '../navigatorSlice';
-import { ControlProps } from './common';
-
-const ErrorMessage: FC<{ err: unknown }> = ({ err }) => (
-  <>
-    <span>There was an error! Guru meditation:</span>
-    <span>{JSON.stringify(err)}</span>
-  </>
-);
+import { ControlProps, ErrorMessage } from './common';
 
 export const Delete: FC<ControlProps> = ({ narrativeDoc, modalClose }) => {
   const dispatch = useAppDispatch();

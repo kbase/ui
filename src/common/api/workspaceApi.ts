@@ -27,7 +27,7 @@ type TimeParams = (
   );
 
 interface wsParams {
-  deleteWorkspace: { reqId?: number | string; wsId: number };
+  deleteWorkspace: { wsId: number };
   getwsNarrative: { upa: string };
   getwsObjectByName: { upa: string };
   getwsPermissions: { wsId: number };
@@ -103,7 +103,7 @@ const wsApi = baseApi.injectEndpoints({
       wsResults['deleteWorkspace'],
       wsParams['deleteWorkspace']
     >({
-      query: ({ wsId, reqId }) =>
+      query: ({ wsId }) =>
         ws({
           method: 'Workspace.delete_workspace',
           params: [{ id: wsId }],

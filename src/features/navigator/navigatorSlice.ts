@@ -123,10 +123,13 @@ export const navigatorSlice = createSlice({
     },
     restoreNarrative: (
       state,
-      action: PayloadAction<{ version: number; wsId: number }>
+      action: PayloadAction<{ objId: number; version: number; wsId: number }>
     ) => {
-      const message = `Restore version ${action.payload.version} of ${action.payload.wsId}.`;
+      const { objId, version, wsId } = action.payload;
+      const message = `Restore version ${version} of narrative object ${objId} in ${wsId}.`;
       console.log(message); // eslint-disable-line no-console
+      state.synchronizedLast = Date.now();
+      state.synchronized = false;
     },
     select: (state, action: PayloadAction<NavigatorState['selected']>) => {
       state.selected = action.payload;
