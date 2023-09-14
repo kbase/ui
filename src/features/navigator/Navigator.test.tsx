@@ -89,13 +89,17 @@ describe('The <Navigator /> component...', () => {
     testStore.dispatch(baseApi.util.resetApiState());
   });
 
-  test('renders.', () => {
-    const { container } = render(
-      <Provider store={createTestStore()}>
-        <Router>
-          <Navigator />
-        </Router>
-      </Provider>
+  test('renders.', async () => {
+    const { container } = await waitFor(() =>
+      render(
+        <Provider store={createTestStore()}>
+          <Router>
+            <ErrorBoundary FallbackComponent={TestingError} onError={logError}>
+              <Navigator />
+            </ErrorBoundary>
+          </Router>
+        </Provider>
+      )
     );
     expect(container).toBeTruthy();
     expect(container.querySelector('section.navigator')).toBeInTheDocument();

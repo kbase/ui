@@ -15,20 +15,23 @@ import { deleteNarrative, loading, setLoading } from '../navigatorSlice';
 import { ControlProps, ErrorMessage } from './common';
 
 export const Delete: FC<ControlProps> = ({ narrativeDoc, modalClose }) => {
+  /* hooks */
   const dispatch = useAppDispatch();
   const loadState = useAppSelector(loading);
   const params = useAppSelector(getParams);
   const navigate = useNavigate();
   const [userConfirmation, setUserConfirmation] = useState(false);
   const [deleteTrigger] = deleteWorkspace.useMutation();
-
-  const wsId = narrativeDoc.access_group;
   useEffect(() => {
     if (loadState) return;
     if (!userConfirmation) return;
   });
 
+  /* derived values */
+  const wsId = narrativeDoc.access_group;
   const message = `Deleted narrative ${wsId}.`;
+
+  /* delete narrative callback */
   const deleteNarrativeHandler = async () => {
     setUserConfirmation(true);
     modalClose();
@@ -49,6 +52,7 @@ export const Delete: FC<ControlProps> = ({ narrativeDoc, modalClose }) => {
     toast(message);
     navigate(generatePathWithSearchParams('/narratives', params));
   };
+  /* Delete component */
   return (
     <>
       <p>Delete Narrative?</p>
