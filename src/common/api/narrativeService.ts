@@ -9,16 +9,28 @@ const narrativeService = dynamicService({
 
 export interface NarrativeServiceParams {
   getStatus: void;
+  renameNarrative: { nameNew: string; narrativeRef: string };
   restoreNarrative: { objId: number; version: number; wsId: number };
 }
 
 interface NarrativeServiceResults {
-  getStatus: unknown;
+  getStatus: { state: string }[];
+  renameNarrative: unknown;
   restoreNarrative: unknown;
 }
 
 export const narrativeServiceApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    renameNarrative: builder.mutation<
+      NarrativeServiceResults['renameNarrative'],
+      NarrativeServiceParams['renameNarrative']
+    >({
+      query: ({ narrativeRef, nameNew }) =>
+        narrativeService({
+          method: 'NarrativeService.rename_narrative',
+          params: [{ narrative_ref: narrativeRef, new_name: nameNew }],
+        }),
+    }),
     restoreNarrative: builder.mutation<
       NarrativeServiceResults['restoreNarrative'],
       NarrativeServiceParams['restoreNarrative']
@@ -42,4 +54,5 @@ export const narrativeServiceApi = baseApi.injectEndpoints({
   }),
 });
 
-export const { getStatus, restoreNarrative } = narrativeServiceApi.endpoints;
+export const { getStatus, renameNarrative, restoreNarrative } =
+  narrativeServiceApi.endpoints;

@@ -117,17 +117,15 @@ export const navigatorSlice = createSlice({
       state,
       action: PayloadAction<{ name: string; wsId: number }>
     ) => {
-      const { name, wsId } = action.payload;
-      const message = `Rename ${wsId} to ${name}.`;
-      console.log(message); // eslint-disable-line no-console
+      // For now, wait until the page refreshes to reflect the changes.
+      state.synchronizedLast = Date.now();
+      state.synchronized = false;
     },
     restoreNarrative: (
       state,
       action: PayloadAction<{ objId: number; version: number; wsId: number }>
     ) => {
-      const { objId, version, wsId } = action.payload;
-      const message = `Restore version ${version} of narrative object ${objId} in ${wsId}.`;
-      console.log(message); // eslint-disable-line no-console
+      // For now, wait until the page refreshes to reflect the changes.
       state.synchronizedLast = Date.now();
       state.synchronized = false;
     },
