@@ -62,9 +62,9 @@ export const navigatorSlice = createSlice({
       state,
       action: PayloadAction<{ name: string; version: number; wsId: number }>
     ) => {
-      const { name, version, wsId } = action.payload;
-      const message = `Copy version ${version} of ${wsId} with name ${name}.`;
-      console.log(message); // eslint-disable-line no-console
+      // For now, wait until the page refreshes to reflect the changes.
+      state.synchronizedLast = Date.now();
+      state.synchronized = false;
     },
     deleteNarrative: (state, action: PayloadAction<{ wsId: number }>) => {
       const { wsId } = action.payload;

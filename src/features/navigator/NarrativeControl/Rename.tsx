@@ -66,6 +66,7 @@ export const Rename: FC<{
     }
     toast(message);
   };
+  /* Rename component */
   return (
     <>
       <p>Rename Narrative</p>

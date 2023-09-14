@@ -25,7 +25,10 @@ import {
   normalizeVersion,
   searchParams,
 } from './common';
-import { useNarratives } from './hooks';
+import {
+  useNarratives,
+  //useNarrativeServiceStatus // See below
+} from './hooks';
 import {
   loading,
   navigatorSelected,
@@ -210,6 +213,10 @@ const Navigator: FC = () => {
     term: search,
     username,
   });
+  /* This causes tests to hang which means there is probably a bug in the way
+     dynamic services are handled.
+  // useNarrativeServiceStatus();
+   */
   const items = useAppSelector(narrativeDocs);
   const narrativeSelected = getNarrativeSelected({ id, obj, verRaw, items });
   // hooks that update state
