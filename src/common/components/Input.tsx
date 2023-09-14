@@ -10,14 +10,15 @@ import { v4 as uuidv4 } from 'uuid';
 import classes from './Input.module.scss';
 
 interface InputInterface extends ComponentProps<'input'> {
-  label?: ReactElement;
   errors?: boolean;
+  label?: ReactElement;
+  maxLength?: number;
   validated?: boolean;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputInterface>(
   (props, ref) => {
-    const { className, errors, validated, label, ...rest } = props;
+    const { className, errors, label, maxLength, validated, ...rest } = props;
     const { name } = rest; // react-hook-form internals
     const idForLabel = useMemo(() => `input-${uuidv4()}`, []);
     const statusClass = errors ? classes.error : classes.success;
@@ -60,9 +61,10 @@ export const Input = forwardRef<HTMLInputElement, InputInterface>(
           {...rest}
           className={classes.input}
           id={idForLabel}
-          type={'text'}
-          onFocus={handleFocus}
+          maxLength={maxLength}
           onBlur={handleBlur}
+          onFocus={handleFocus}
+          type={'text'}
         />
       </span>
     );

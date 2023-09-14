@@ -146,7 +146,7 @@ export const useNarrativeServiceStatus = () => {
   useEffect(() => {
     if (nsQuery.isSuccess && nsQuery.data) {
       const data = nsQuery.data;
-      console.log({ data }); // eslint-disable-line no-console
+      console.log(`NarrativeService status: ${data[0].state}`); // eslint-disable-line no-console
     }
   }, [nsQuery.data, nsQuery.isSuccess]);
 };
