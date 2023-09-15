@@ -85,8 +85,9 @@ export const navigatorSlice = createSlice({
       state,
       action: PayloadAction<{ org: string; wsId: number }>
     ) => {
-      const message = `Link ${action.payload.wsId} to ${action.payload.org}.`;
-      console.log(message); // eslint-disable-line no-console
+      // For now, wait until the page refreshes to reflect the changes.
+      state.synchronizedLast = Date.now();
+      state.synchronized = false;
     },
     removeShare: (
       state,
