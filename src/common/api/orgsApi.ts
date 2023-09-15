@@ -23,11 +23,13 @@ export interface OrgMemberInfo {
 export interface OrgsParams {
   getNarrativeOrgs: number;
   getUserOrgs: void;
+  linkNarrative: { orgId: string; wsId: number };
 }
 
 export interface OrgsResults {
   getNarrativeOrgs: OrgInfo[];
   getUserOrgs: OrgMemberInfo[];
+  linkNarrative: unknown;
 }
 
 export const orgsApi = baseApi
@@ -56,8 +58,19 @@ export const orgsApi = baseApi
           }),
         providesTags: ['Orgs'],
       }),
+      linkNarrative: builder.mutation<
+        OrgsResults['linkNarrative'],
+        OrgsParams['linkNarrative']
+      >({
+        query: ({ orgId, wsId }) =>
+          orgsService({
+            method: 'POST',
+            url: `group/${orgId}/resource/workspace/${wsId}`,
+          }),
+      }),
     }),
   });
 
-export const { getNarrativeOrgs, getUserOrgs } = orgsApi.endpoints;
+export const { getNarrativeOrgs, getUserOrgs, linkNarrative } =
+  orgsApi.endpoints;
 export const clearCacheAction = orgsApi.util.invalidateTags(['Orgs']);

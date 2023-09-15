@@ -2,20 +2,25 @@
 import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
 import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
 import { FC, useEffect, useId, useState } from 'react';
+import toast from 'react-hot-toast';
+import { isKBaseBaseQueryError } from '../../../common/api/utils/common';
+import { parseError } from '../../../common/api/utils/parseError';
 import {
   getNarrativeOrgs,
   getUserOrgs,
+  linkNarrative,
   OrgInfo,
 } from '../../../common/api/orgsApi';
 import { Button, Select } from '../../../common/components';
 import { useAppDispatch, useAppSelector } from '../../../common/hooks';
 import { NarrativeDoc } from '../../../common/types/NarrativeDoc';
-import { TODOAddLoadingState } from '../common';
 import {
-  linkNarrative,
+  linkNarrative as linkAction,
   narrativeLinkedOrgs,
   setLinkedOrgs,
+  setLoading,
 } from '../navigatorSlice';
+import { ErrorMessage } from './common';
 
 export interface OrgsValues {
   narrativeOrgs: string[];
@@ -25,6 +30,7 @@ export const LinkOrg: FC<{
   narrativeDoc: NarrativeDoc;
   modalClose: () => void;
 }> = ({ narrativeDoc, modalClose }) => {
+  /* hooks */
   const dispatch = useAppDispatch();
   const [orgSelected, setOrgSelected] = useState('');
   const narrativeOrgs = useAppSelector(narrativeLinkedOrgs);
@@ -32,6 +38,7 @@ export const LinkOrg: FC<{
     narrativeDoc.access_group
   );
   const userOrgsQuery = getUserOrgs.useQuery();
+  const [linkTrigger] = linkNarrative.useMutation();
   useEffect(() => {
     if (narrativeOrgsQuery.isSuccess) {
       const narrativeOrgs = narrativeOrgsQuery.currentData;
@@ -41,18 +48,37 @@ export const LinkOrg: FC<{
     }
   });
   const orgSelectId = useId();
+  /* early exits */
   if (!narrativeOrgsQuery.currentData) {
     return <></>;
   }
+  /* derived values */
   const narrativeOrgsIds = narrativeOrgs.map(({ id }) => id);
+  const { access_group: wsId } = narrativeDoc;
+  const message = `Link ${wsId} to ${orgSelected}.`;
+  /* link narrative callback factory */
   const linkOrg =
     ({ orgSelected }: { orgSelected: string }) =>
     async () => {
-      await TODOAddLoadingState();
-      dispatch(
-        linkNarrative({ org: orgSelected, wsId: narrativeDoc.access_group })
-      );
       modalClose();
+      dispatch(linkAction({ org: orgSelected, wsId }));
+      try {
+        await linkTrigger({
+          orgId: orgSelected,
+          wsId,
+        }).unwrap();
+        dispatch(setLoading(false));
+      } catch (err) {
+        if (!isKBaseBaseQueryError(err)) {
+          console.error({ err }); // eslint-disable-line no-console
+          toast(ErrorMessage({ err }));
+          return;
+        }
+        toast(ErrorMessage({ err: parseError(err) }));
+        dispatch(setLoading(false));
+        return;
+      }
+      toast(message);
     };
   const orgsResults = userOrgsQuery.currentData
     ? userOrgsQuery.currentData
@@ -60,6 +86,7 @@ export const LinkOrg: FC<{
   const availableOrgs = orgsResults.filter(
     ({ id }) => narrativeOrgsIds.indexOf(id) === -1
   );
+  /* LinkOrg component */
   return (
     <>
       <p>Organizations</p>
@@ -72,7 +99,6 @@ export const LinkOrg: FC<{
             label: name,
           }))}
           onChange={(opts) => {
-            console.log({ value: opts[0].value }); // eslint-disable-line no-console
             const orgSelectedByUser = opts[0].value.toString();
             setOrgSelected(orgSelectedByUser);
           }}
