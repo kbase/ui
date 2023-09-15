@@ -19,28 +19,27 @@ const RefreshButton: FC = () => {
   const syncdLast = useAppSelector(synchronizedLast);
 
   const refreshHandler = useCallback(() => {
-    dispatch(clearCacheAction);
     dispatch(setSynchronized(true));
+    dispatch(clearCacheAction);
     setCount(delaySeconds);
   }, [dispatch]);
 
   useEffect(() => {
     const now = Date.now();
     const age = now - syncdLast;
-    if (!syncd && age > AUTOMATIC_REFRESH_DELAY) {
-      if (count > 0) {
-        setCount(Math.max(count - 1, 0));
-        return;
+    if (!syncd) {
+      if (age < AUTOMATIC_REFRESH_DELAY) {
+        if (count > 0) {
+          setTimeout(() => {
+            if (syncd) return;
+            setCount(Math.max(0, count - 1));
+          }, 1000);
+          return;
+        }
       }
       refreshHandler();
     }
   }, [count, refreshHandler, syncd, syncdLast]);
-
-  if (!syncd) {
-    setTimeout(() => {
-      setCount(Math.max(0, count - 1));
-    }, 1000);
-  }
 
   return (
     <Button
