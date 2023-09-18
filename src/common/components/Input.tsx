@@ -58,10 +58,10 @@ export const Input = forwardRef<HTMLInputElement, InputInterface>(
         <input
           name={name /* used by react-hook-form */}
           ref={ref /* used by react */}
+          maxLength={maxLength}
           {...rest}
           className={classes.input}
           id={idForLabel}
-          maxLength={maxLength}
           onBlur={handleBlur}
           onFocus={handleFocus}
           type={'text'}
