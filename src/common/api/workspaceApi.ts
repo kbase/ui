@@ -56,6 +56,12 @@ interface wsParams {
     showDeleted?: boolean;
     showOnlyDeleted?: boolean;
   } & TimeParams;
+  setwsGlobalPermissions: { permission: PermissionValue; wsId: number };
+  setwsUsersPermissions: {
+    permission: PermissionValue;
+    users: string[];
+    wsId: number;
+  };
 }
 
 interface wsResults {
@@ -95,6 +101,8 @@ interface wsResults {
     size: number,
     meta: Record<string, string>
   ][][];
+  setwsGlobalPermissions: unknown;
+  setwsUsersPermissions: unknown;
 }
 
 const wsApi = baseApi.injectEndpoints({
@@ -159,6 +167,26 @@ const wsApi = baseApi.injectEndpoints({
           params: [params],
         }),
     }),
+    setwsGlobalPermissions: builder.mutation<
+      wsResults['setwsGlobalPermissions'],
+      wsParams['setwsGlobalPermissions']
+    >({
+      query: ({ permission, wsId }) =>
+        ws({
+          method: 'Workspace.set_global_permission',
+          params: [{ id: wsId, new_permission: permission }],
+        }),
+    }),
+    setwsUsersPermissions: builder.mutation<
+      wsResults['setwsUsersPermissions'],
+      wsParams['setwsUsersPermissions']
+    >({
+      query: ({ permission, users, wsId }) =>
+        ws({
+          method: 'Workspace.set_permissions',
+          params: [{ users, id: wsId, new_permission: permission }],
+        }),
+    }),
   }),
 });
 
@@ -169,4 +197,6 @@ export const {
   getwsPermissions,
   listObjects,
   listWorkspaceInfo,
+  setwsGlobalPermissions,
+  setwsUsersPermissions,
 } = wsApi.endpoints;
