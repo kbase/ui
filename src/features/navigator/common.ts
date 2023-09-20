@@ -115,12 +115,3 @@ export const normalizeVersion = (verRaw?: number | string) => {
   }
   return verNumber.toString();
 };
-
-export const TODOAddLoadingState = () =>
-  new Promise<void>((resolve) => {
-    setTimeout(() => {
-      resolve(
-        console.log('TODO: Add a loading state for this.') // eslint-disable-line no-console
-      );
-    }, 1000);
-  });

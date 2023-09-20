@@ -109,7 +109,12 @@ export const navigatorSlice = createSlice({
         shares: filtered,
         sharesCount: Object.keys(filtered).length,
       };
-      const newState = { ...state, controlMenu };
+      const newState = {
+        ...state,
+        synchronizedLast: Date.now(),
+        synchronized: false,
+        controlMenu,
+      };
       const message = `Remove ${username} permissions for ${wsId}.`;
       console.log(message); // eslint-disable-line no-console
       return newState;
@@ -198,6 +203,8 @@ export const navigatorSlice = createSlice({
     ) => {
       const { permission, username, wsId } = action.payload;
       state.controlMenu.shares[username] = permission;
+      state.synchronizedLast = Date.now();
+      state.synchronized = false;
       const message = `Set ${username} permission on ${wsId} to ${permission}.`;
       console.log(message); // eslint-disable-line no-console
       return state;
