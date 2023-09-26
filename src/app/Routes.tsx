@@ -30,47 +30,49 @@ const Routes: FC = () => {
   useFilteredParams();
   return (
     <RRRoutes>
-      <Route path={`${LEGACY_BASE_ROUTE}/*`} element={<Legacy />} />
-      <Route
-        path="/profile/:usernameRequested/narratives"
-        element={<Authed element={<ProfileWrapper />} />}
-      />
-      <Route
-        path="/profile/:usernameRequested"
-        element={<Authed element={<ProfileWrapper />} />}
-      />
-      <Route
-        path="/profile"
-        element={<Authed element={<ProfileWrapper />} />}
-      />
-      <Route path="/count" element={<Authed element={<Count />} />} />
-      <Route path="/auth" element={<Auth />} />
+      <Route path={`${process.env.PUBLIC_URL}/*`}>
+        <Route path={`${LEGACY_BASE_ROUTE.slice(1)}/*`} element={<Legacy />} />
+        <Route
+          path="profile/:usernameRequested/narratives"
+          element={<Authed element={<ProfileWrapper />} />}
+        />
+        <Route
+          path="profile/:usernameRequested"
+          element={<Authed element={<ProfileWrapper />} />}
+        />
+        <Route
+          path="profile"
+          element={<Authed element={<ProfileWrapper />} />}
+        />
+        <Route path="count" element={<Authed element={<Count />} />} />
+        <Route path="auth" element={<Auth />} />
 
-      {/* Navigator */}
-      <Route
-        path={navigatorPath}
-        element={<Authed element={<Navigator />} />}
-      />
-      <Route
-        path={'/narratives/:category'}
-        element={<Authed element={<Navigator />} />}
-      />
-      <Route
-        path={navigatorPathWithCategory}
-        element={<Authed element={<Navigator />} />}
-      />
-      <Route path="/narratives" element={<Authed element={<Navigator />} />} />
+        {/* Navigator */}
+        <Route
+          path={navigatorPath.slice(1)}
+          element={<Authed element={<Navigator />} />}
+        />
+        <Route
+          path={'narratives/:category'}
+          element={<Authed element={<Navigator />} />}
+        />
+        <Route
+          path={navigatorPathWithCategory.slice(1)}
+          element={<Authed element={<Navigator />} />}
+        />
+        <Route path="narratives" element={<Authed element={<Navigator />} />} />
 
-      {/* Collections */}
-      <Route path="/collections">
-        <Route index element={<CollectionsList />} />
-        <Route path={detailPath} element={<CollectionDetail />} />
-        <Route path={detailDataProductPath} element={<CollectionDetail />} />
+        {/* Collections */}
+        <Route path="collections">
+          <Route index element={<CollectionsList />} />
+          <Route path={detailPath} element={<CollectionDetail />} />
+          <Route path={detailDataProductPath} element={<CollectionDetail />} />
+          <Route path="*" element={<PageNotFound />} />
+        </Route>
+
+        <Route path="" element={<HashRouteRedirect />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
-
-      <Route path="/" element={<HashRouteRedirect />} />
-      <Route path="*" element={<PageNotFound />} />
     </RRRoutes>
   );
 };
@@ -96,7 +98,7 @@ export const HashRouteRedirect = () => {
     return (
       <Navigate to={`${LEGACY_BASE_ROUTE}/${location.hash.slice(1)}`} replace />
     );
-  return <Navigate to={ROOT_REDIRECT_ROUTE} replace />;
+  return <Navigate to={ROOT_REDIRECT_ROUTE.slice(1)} replace />;
 };
 
 export default Routes;

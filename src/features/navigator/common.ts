@@ -4,8 +4,9 @@ import { generatePathWithSearchParams } from '../../features/params/paramsSlice'
 export const AUTOMATIC_REFRESH_DELAY = 15000;
 
 // Narrative and Navigator paths
+const KBASE_DOMAIN = process.env.REACT_APP_KBASE_DOMAIN || 'ci.kbase.us';
 export const narrativeURL = (wsId: number | string) =>
-  `https://ci.kbase.us/narrative/${wsId}`;
+  `https://${KBASE_DOMAIN}/narrative/${wsId}`;
 export const navigatorPath = '/narratives/:id/:obj/:ver';
 export const navigatorPathWithCategory = '/narratives/:category/:id/:obj/:ver';
 export const generateNavigatorPath = (parameters: {

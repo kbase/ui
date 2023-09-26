@@ -38,11 +38,14 @@ const useInitApp = () => {
   return { isLoading: !initialized };
 };
 
+/*
+    <Router basename={process.env.PUBLIC_URL}>
+*/
 export default function App() {
   const { isLoading } = useInitApp();
 
   return (
-    <Router basename={process.env.PUBLIC_URL}>
+    <Router>
       <div className={classes.container}>
         <div className={classes.topbar}>
           <TopBar />

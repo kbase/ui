@@ -5,6 +5,8 @@ import type { RootState } from '../../app/store';
 // Define a type for the slice state
 class ParamsClass {
   constructor(
+    // Legacy
+    // readonly n: string | null = '',
     // Search
     readonly limit: string | null = '20',
     readonly search: string | null = null,
