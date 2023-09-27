@@ -25,11 +25,8 @@ import {
   testResponseOKFactory,
 } from './fixtures';
 import classes from './NarrativeList/NarrativeList.module.scss';
-import { Category } from './common';
-import Navigator, {
-  navigatorPath,
-  navigatorPathWithCategory,
-} from './Navigator';
+import { Category, navigatorPath, navigatorPathWithCategory } from './common';
+import Navigator from './Navigator';
 
 let testStore = createTestStore({ navigator: initialTestState });
 

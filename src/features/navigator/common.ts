@@ -1,3 +1,4 @@
+import { PUBLIC_URL } from '../../app/Routes.common';
 import { Cell } from '../../common/types/NarrativeDoc';
 import { generatePathWithSearchParams } from '../../features/params/paramsSlice';
 
@@ -9,6 +10,7 @@ export const narrativeURL = (wsId: number | string) =>
   `https://${KBASE_DOMAIN}/narrative/${wsId}`;
 export const navigatorPath = '/narratives/:id/:obj/:ver';
 export const navigatorPathWithCategory = '/narratives/:category/:id/:obj/:ver';
+
 export const generateNavigatorPath = (parameters: {
   categoryPath: CategoryString | '';
   id: string;
@@ -18,15 +20,18 @@ export const generateNavigatorPath = (parameters: {
 }) => {
   const { categoryPath, extraParams, id, obj, ver } = parameters;
   if (categoryPath) {
-    return generatePathWithSearchParams(navigatorPathWithCategory, {
-      category: categoryPath,
-      id,
-      obj,
-      ver,
-      ...extraParams,
-    });
+    return generatePathWithSearchParams(
+      `${PUBLIC_URL}${navigatorPathWithCategory}`,
+      {
+        category: categoryPath,
+        id,
+        obj,
+        ver,
+        ...extraParams,
+      }
+    );
   }
-  return generatePathWithSearchParams(navigatorPath, {
+  return generatePathWithSearchParams(`${PUBLIC_URL}${navigatorPath}`, {
     id,
     obj,
     ver,

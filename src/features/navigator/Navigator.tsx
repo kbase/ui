@@ -7,6 +7,7 @@ import {
   useParams,
   useSearchParams,
 } from 'react-router-dom';
+import { PUBLIC_URL } from '../../app/Routes.common';
 import { useAppDispatch, useAppSelector } from '../../common/hooks';
 import { NarrativeDoc } from '../../common/types/NarrativeDoc';
 import { authUsername } from '../../features/auth/authSlice';
@@ -20,8 +21,6 @@ import {
   Sort,
   isCategoryString,
   isSortString,
-  navigatorPath,
-  navigatorPathWithCategory,
   normalizeVersion,
   searchParams,
 } from './common';
@@ -65,7 +64,10 @@ const HeaderTabs: FC<{ category: string }> = ({ category }) => {
     searchParams.map((param) => [param, europaParams[param]])
   );
   const categoryPathWithSearchParams = (pathSpec: string) => {
-    return generatePathWithSearchParams(pathSpec, searchParamsCurrent);
+    return generatePathWithSearchParams(
+      `${PUBLIC_URL}${pathSpec}`,
+      searchParamsCurrent
+    );
   };
   const { own, shared, tutorials, public: public_ } = Category;
   return (
@@ -267,5 +269,4 @@ const Navigator: FC = () => {
   );
 };
 
-export { navigatorPath, navigatorPathWithCategory };
 export default Navigator;

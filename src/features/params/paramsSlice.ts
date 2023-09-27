@@ -6,7 +6,7 @@ import type { RootState } from '../../app/store';
 class ParamsClass {
   constructor(
     // Legacy
-    // readonly n: string | null = '',
+    readonly n: string | null = '',
     // Search
     readonly limit: string | null = '20',
     readonly search: string | null = null,

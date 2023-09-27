@@ -2,9 +2,9 @@ import { screen, render } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { MemoryRouter as Router, Route, Routes } from 'react-router-dom';
 import { createTestStore } from '../../../app/store';
+import { navigatorPath } from '../common';
 import { testItems } from '../fixtures';
 import NarrativeViewItem from './NarrativeViewItem';
-import { navigatorPath } from '../Navigator';
 
 const testDoc = testItems[0];
 const { access_group, creator, obj_id, version } = testDoc;
