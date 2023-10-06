@@ -23,7 +23,7 @@ export const LabelValueTable: FC<LabelValueTableProps> = (props) => {
       <tbody>
         {data?.map((row, i) => (
           <tr key={row.label}>
-            <td>{row.label}</td>
+            <th>{row.label}</th>
             <td>{row.value}</td>
           </tr>
         ))}

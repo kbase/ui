@@ -1,16 +1,11 @@
 @import "../../common/colors";
 
-:root {
-  --dark-green: #137752;
-  --white: #fff;
-}
-
 pre {
   margin: 0;
 }
 
 .navigator {
-  background-color: use-color("base-lightest");
+  background-color: use-color("light-gray");
   padding: 1rem;
 }
 
@@ -18,12 +13,29 @@ pre {
   text-decoration: none;
 }
 
-.metadata .columns {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  margin-bottom: 1rem;
-  width: 75%;
+.metadata {
+  .columns {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-bottom: 0.25rem;
+
+    .column {
+      background-color: use-color("info-lightest");
+      border-radius: 0.5rem;
+      margin: 0.25rem;
+    }
+
+    >.column {
+      min-width: 12rem; /* too small: 10 < 12 < 15: too big */
+      width: 25%;
+    }
+  }
+
+  .shares {
+    background-color: use-color("info-lightest");
+    border-radius: 0.5rem;
+  }
 }
 
 .container {
@@ -56,7 +68,7 @@ pre {
 }
 
 .more {
-  border: 1px dashed #000;
+  //.more
 }
 
 .preview ul {
@@ -121,22 +133,49 @@ ul.shared,
   flex-direction: column;
   padding: 1rem;
   width: 100%;
-}
 
-.view pre {
-  border: 1px dashed #000;
-}
+  .control {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
 
-.view .control {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-}
+  .tabs-container {
+    //.tabs-container
+    border-bottom: 1px solid use_color("silver");
+    border-top: 1px solid use-color("silver");
+    margin-bottom: 1rem;
+    margin-top: 1rem;
+  }
 
-.view .tabs {
-  border-top: 1px solid use-color("silver");
-  margin-bottom: 1rem;
-  margin-top: 1rem;
+  .tabs {
+    border-bottom: 0;
+    display: flex;
+    font-weight: bold;
+    justify-content: space-evenly;
+    margin: 0 auto;
+    width: 50%;
+  }
+
+  pre {
+    border: 1px dashed #000;
+  }
+
+  :global(.react-select__control) {
+    //.react-select__control
+  }
+
+  :global(.react-select__indicator-separator) {
+    display: block;
+    height: 0;
+    opacity: 0;
+  }
+
+  :global(.react-select__value-container) {
+    display: block;
+    height: 0;
+    opacity: 0;
+  }
 }
 
 .tabs {
@@ -158,7 +197,6 @@ ul.shared,
 .tabs .active {
   border-bottom: 3px solid use_color("primary");
   color: use-color("primary");
-  font-weight: bold;
 }
 
 .tabs a {

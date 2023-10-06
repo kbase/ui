@@ -181,40 +181,42 @@ const NarrativeMetadata: NarrativeMetadataType = ({ cells, narrativeDoc }) => {
           </div>
         </div>
       </div>
-      <div>
-        <span>Shared with: </span>
-        {usersSharedOther && usersSharedOther.length > 0 ? (
+      {usersSharedOther && usersSharedOther.length > 0 ? (
+        <div className={classes.shares}>
+          <span>Shared with: </span>
           <ul className={[finalLess, classes.shared].join(' ')}>
             {usersSharedOther.slice(0, 10).map((user, ix) => (
               <li key={ix}>{profileLink(user)}</li>
             ))}
           </ul>
-        ) : (
-          <span>None</span>
-        )}
-        {usersMore ? (
-          <>
-            <input
-              className={classes['shared-toggle']}
-              id="shared-toggle"
-              type="checkbox"
-            />
-            <ul className={[finalMore, classes.more, classes.shared].join(' ')}>
-              {usersSharedOther.slice(10).map((user, ix) => (
-                <li key={ix}>{profileLink(user)}</li>
-              ))}
-            </ul>
-            <label className={classes.more} htmlFor="shared-toggle">
-              ... Show {usersSharedOther.length - 10} more.
-            </label>
-            <label className={classes.less} htmlFor="shared-toggle">
-              Show fewer.
-            </label>
-          </>
-        ) : (
-          <></>
-        )}
-      </div>
+          {usersMore ? (
+            <>
+              <input
+                className={classes['shared-toggle']}
+                id="shared-toggle"
+                type="checkbox"
+              />
+              <ul
+                className={[finalMore, classes.more, classes.shared].join(' ')}
+              >
+                {usersSharedOther.slice(10).map((user, ix) => (
+                  <li key={ix}>{profileLink(user)}</li>
+                ))}
+              </ul>
+              <label className={classes.more} htmlFor="shared-toggle">
+                ... Show {usersSharedOther.length - 10} more.
+              </label>
+              <label className={classes.less} htmlFor="shared-toggle">
+                Show fewer.
+              </label>
+            </>
+          ) : (
+            <></>
+          )}
+        </div>
+      ) : (
+        <></>
+      )}
     </div>
   );
 };

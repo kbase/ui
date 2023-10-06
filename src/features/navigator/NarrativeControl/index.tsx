@@ -1,4 +1,6 @@
 /* NarrativeControl */
+import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
+import { faGears } from '@fortawesome/free-solid-svg-icons';
 import { FC, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Dropdown } from '../../../common/components';
@@ -11,6 +13,7 @@ import { LinkOrg } from './LinkOrg';
 import { Restore } from './Restore';
 import { Rename } from './Rename';
 import { Share } from './Share';
+import classes from './NarrativeControl.module.scss';
 
 const controlLatestOptions = [
   'Manage Sharing',
@@ -54,6 +57,7 @@ const ControlLatest: FC<ControlLatestProps> = ({ narrativeDoc }) => {
   return (
     <>
       <Dropdown
+        className={classes.dropdown}
         horizontalMenuAlign={'right'}
         options={[{ options: controlLatestOptions }]}
         onChange={(opt) => {
@@ -61,7 +65,9 @@ const ControlLatest: FC<ControlLatestProps> = ({ narrativeDoc }) => {
           modal?.show();
         }}
       >
-        <div>Latest</div>
+        <div className={classes.button}>
+          <FAIcon icon={faGears} title="Latest"></FAIcon>
+        </div>
       </Dropdown>
       <Modal body={controlLatestDialogs[modalView]} title={modalView} />
     </>
@@ -113,7 +119,9 @@ const ControlPrevious: FC<ControlPreviousProps> = ({
           modal?.show();
         }}
       >
-        <div>Previous</div>
+        <div className={classes.button}>
+          <FAIcon icon={faGears} title="Previous"></FAIcon>
+        </div>
       </Dropdown>
       <Modal body={controlPreviousDialogs[modalView]} title={modalView} />
     </>
@@ -129,13 +137,13 @@ const NarrativeControl: FC<NarrativeControlProps> = ({ narrativeDoc }) => {
   const { ver: verRaw } = useParams();
   const ver = Math.min(Number(normalizeVersion(verRaw)), version);
   return (
-    <>
+    <div className={classes.menu}>
       {!ver || ver === version ? (
         <ControlLatest narrativeDoc={narrativeDoc} />
       ) : (
         <ControlPrevious narrativeDoc={narrativeDoc} version={Number(ver)} />
       )}
-    </>
+    </div>
   );
 };
 

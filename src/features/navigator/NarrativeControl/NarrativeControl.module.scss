@@ -1,3 +1,27 @@
+@import "../../../common/colors";
+
+.dropdown {
+  //.dropdown
+}
+
+.menu {
+  align-items: center;
+  display: flex;
+
+  .button {
+    align-items: center;
+    color: use-color("ink");
+    display: flex;
+    font-size: 1.5rem;
+    justify-content: space-between;
+  }
+
+  :global(.react-select__control .react-select__value-container) {
+    padding: 0;
+    width: 0;
+  }
+}
+
 .permission {
   display: flex;
   justify-content: space-between;
