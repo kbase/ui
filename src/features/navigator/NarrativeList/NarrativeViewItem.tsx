@@ -67,7 +67,6 @@ const NarrativeViewItem: FC<NarrativeViewItemProps> = ({
   const titleClass = linkToNarrative ? classes.title : '';
   return (
     <section className={titleClass} key={idx}>
-      {linkToNarrative ? <FAIcon icon={faArrowUpRightFromSquare} /> : <></>}
       <Link
         to={path}
         className={`${classes.narrative_item_outer} ${classes[status]} ${
@@ -76,6 +75,15 @@ const NarrativeViewItem: FC<NarrativeViewItemProps> = ({
         target={linkToNarrative ? '_blank' : ''}
       >
         <div className={classes.narrative_item_inner}>
+          <div className={classes.narrative_item_icon}>
+            {linkToNarrative ? (
+              <span className={classes.icon}>
+                <FAIcon icon={faArrowUpRightFromSquare} />
+              </span>
+            ) : (
+              <></>
+            )}
+          </div>
           <div className={classes.narrative_item_text}>
             <div className={classes.narrative_item_title}>
               {narrative_title}
