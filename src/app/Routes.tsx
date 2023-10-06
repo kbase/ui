@@ -9,6 +9,7 @@ import {
 import Auth from '../features/auth/Auth';
 import Count from '../features/count/Counter';
 import Legacy, { LEGACY_BASE_ROUTE } from '../features/legacy/Legacy';
+import { Fallback } from '../features/legacy/Fallback';
 import Navigator, {
   navigatorPath,
   navigatorPathWithCategory,
@@ -31,6 +32,7 @@ const Routes: FC = () => {
   return (
     <RRRoutes>
       <Route path={`${LEGACY_BASE_ROUTE}/*`} element={<Legacy />} />
+      <Route path="/fallback/*" element={<Fallback />} />
       <Route
         path="/profile/:usernameRequested/narratives"
         element={<Authed element={<ProfileWrapper />} />}
