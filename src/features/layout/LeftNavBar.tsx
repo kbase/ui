@@ -18,9 +18,17 @@ import { useAppSelector } from '../../common/hooks';
 import { authMe, authToken } from '../auth/authSlice';
 import { useAuthMe } from '../auth/hooks';
 import classes from './LeftNavBar.module.scss';
+import { getFeedsUnseenCount } from '../../common/api/feedsService';
 
 const LeftNavBar: FC = () => {
   const token = useAppSelector(authToken);
+  const { data: feeds } = getFeedsUnseenCount.useQuery(undefined, {
+    skip: !token,
+    pollingInterval: 10000,
+    refetchOnFocus: true,
+    refetchOnReconnect: true,
+  });
+
   return (
     <nav>
       <ul className={classes.nav_list}>
@@ -30,7 +38,12 @@ const LeftNavBar: FC = () => {
         <NavItem path="/legacy/search" desc="Search" icon={faSearch} />
         <NavItem path="/legacy/jobbrowser" desc="Jobs" icon={faSuitcase} />
         <NavItem path="/legacy/account" desc="Account" icon={faIdCard} />
-        <NavItem path="/legacy/feeds" desc="Feeds" icon={faBullhorn} />
+        <NavItem
+          path="/legacy/feeds"
+          desc="Feeds"
+          icon={faBullhorn}
+          notifs={feeds?.unseen.global}
+        />
         {token ? <DevNav /> : <></>}
       </ul>
     </nav>
@@ -57,11 +70,12 @@ const DevNav: FC = () => {
   );
 };
 
-const NavItem: FC<{ path: string; desc: string; icon: IconDefinition }> = ({
-  path,
-  desc,
-  icon,
-}) => {
+const NavItem: FC<{
+  path: string;
+  desc: string;
+  icon: IconDefinition;
+  notifs?: number;
+}> = ({ path, desc, icon, notifs }) => {
   const location = useLocation();
   let itemClasses = classes.nav_item;
   if (location.pathname === path) {
@@ -72,6 +86,11 @@ const NavItem: FC<{ path: string; desc: string; icon: IconDefinition }> = ({
       <Link to={path}>
         <FAIcon className={classes.nav_icon} icon={icon} />
         <span className={classes.nav_desc}>{desc}</span>
+        {notifs && notifs > 0 ? (
+          <span className={classes.nav_notifs}>{notifs}</span>
+        ) : (
+          <></>
+        )}
       </Link>
     </li>
   );
