@@ -4,7 +4,7 @@ import { baseApi } from './index';
 import { httpService } from './utils/serviceHelpers';
 
 const feedsService = httpService({
-  url: '/services/feeds',
+  url: '/services/feeds/api/V1',
 });
 
 interface FeedsParams {

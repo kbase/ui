@@ -17,6 +17,7 @@ ul.nav_list {
     flex-flow: column nowrap;
     margin: 3px 0;
     padding: 3px;
+    position: relative;
     text-align: center;
 
     // Items contain links, so lets remove the default link styles
@@ -41,6 +42,18 @@ ul.nav_list {
 
     .nav_desc {
       font-size: 14px;
+    }
+
+    .nav_notifs {
+      background-color: use-color("error");
+      border: 3px solid use-color("white");
+      border-radius: 0.8em;
+      color: use-color("white");
+      font-weight: bold;
+      padding: 0.1666em 0.3333em;
+      position: absolute;
+      right: 0;
+      top: 0;
     }
   }
 }
