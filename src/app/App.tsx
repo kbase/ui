@@ -1,9 +1,10 @@
 /* App */
 import { ErrorBoundary } from 'react-error-boundary';
 import { Toaster } from 'react-hot-toast';
-import { BrowserRouter as Router } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import { FC, useEffect } from 'react';
 
+import { isInsideIframe } from '../common';
 import { useAppDispatch, useAppSelector } from '../common/hooks';
 import { authInitialized, authUsername } from '../features/auth/authSlice';
 import { useTokenCookie } from '../features/auth/hooks';
@@ -38,30 +39,35 @@ const useInitApp = () => {
   return { isLoading: !initialized };
 };
 
-export default function App() {
+const App: FC = () => {
   const { isLoading } = useInitApp();
-
+  const location = useLocation();
+  const fallbackClasses =
+    location.pathname.startsWith('/fallback') && isInsideIframe(window)
+      ? [classes.fallback]
+      : [];
+  const classNames = [classes.container, ...fallbackClasses].join(' ');
   return (
-    <Router basename={process.env.PUBLIC_URL}>
-      <div className={classes.container}>
-        <div className={classes.topbar}>
-          <TopBar />
+    <div className={classNames}>
+      <div className={classes.topbar}>
+        <TopBar />
+      </div>
+      <div className={classes.site_content}>
+        <div className={classes.left_navbar}>
+          <LeftNavBar />
         </div>
-        <div className={classes.site_content}>
-          <div className={classes.left_navbar}>
-            <LeftNavBar />
-          </div>
-          <div className={classes.page_content}>
-            <ErrorBoundary FallbackComponent={ErrorPage}>
-              <Loader loading={isLoading}>
-                <Routes />
-              </Loader>
-              <Toaster />
-              <ModalDialog />
-            </ErrorBoundary>
-          </div>
+        <div className={classes.page_content}>
+          <ErrorBoundary FallbackComponent={ErrorPage}>
+            <Loader loading={isLoading}>
+              <Routes />
+            </Loader>
+            <Toaster />
+            <ModalDialog />
+          </ErrorBoundary>
         </div>
       </div>
-    </Router>
+    </div>
   );
-}
+};
+
+export default App;
