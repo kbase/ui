@@ -9,7 +9,7 @@ import {
 import Auth from '../features/auth/Auth';
 import Count from '../features/count/Counter';
 import Legacy, { LEGACY_BASE_ROUTE } from '../features/legacy/Legacy';
-import { Fallback } from '../features/legacy/Fallback';
+import { Fallback } from '../features/legacy/IFrameFallback';
 import Navigator, {
   navigatorPath,
   navigatorPathWithCategory,
@@ -32,8 +32,6 @@ const Routes: FC = () => {
   return (
     <RRRoutes>
       <Route path={`${LEGACY_BASE_ROUTE}/*`} element={<Legacy />} />
-      <Route path="/fallback/narrative/:wsId" element={<Fallback />} />
-      <Route path="/fallback/*" element={<Fallback />} />
       <Route
         path="/profile/:usernameRequested/narratives"
         element={<Authed element={<ProfileWrapper />} />}
@@ -70,6 +68,24 @@ const Routes: FC = () => {
         <Route path={detailPath} element={<CollectionDetail />} />
         <Route path={detailDataProductPath} element={<CollectionDetail />} />
         <Route path="*" element={<PageNotFound />} />
+      </Route>
+
+      {/* IFrame Fallback Routes */}
+      <Route path="/fallback">
+        <Route
+          path="/narratives"
+          element={<Fallback redirect={() => '/narratives'} />}
+        />
+        <Route
+          path="/narrative/:wsId"
+          element={
+            <Fallback
+              reload
+              redirect={(params) => `/narrative/${params.wsId}`}
+            />
+          }
+        />
+        <Route path="/*" element={<Fallback redirect={() => null} />} />
       </Route>
 
       <Route path="/" element={<HashRouteRedirect />} />
