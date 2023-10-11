@@ -10,6 +10,13 @@
   position: relative;
   width: 100vw;
 
+  &.fallback {
+    .left_navbar,
+    .topbar {
+      display: none;
+    }
+  }
+
   .topbar {
     background-color: use-color("white");
     flex-grow: 0;

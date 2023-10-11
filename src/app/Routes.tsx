@@ -32,6 +32,7 @@ const Routes: FC = () => {
   return (
     <RRRoutes>
       <Route path={`${LEGACY_BASE_ROUTE}/*`} element={<Legacy />} />
+      <Route path="/fallback/narrative/:wsId" element={<Fallback />} />
       <Route path="/fallback/*" element={<Fallback />} />
       <Route
         path="/profile/:usernameRequested/narratives"

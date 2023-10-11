@@ -1,5 +1,6 @@
-import React from 'react';
 import { act, render, screen } from '@testing-library/react';
+import React from 'react';
+import { MemoryRouter as Router } from 'react-router-dom';
 import App from './App';
 
 import { Provider } from 'react-redux';
@@ -26,7 +27,9 @@ describe('The main UI for Europa...', () => {
   test('renders a Navigator page link', () => {
     render(
       <Provider store={createTestStore()}>
-        <App />
+        <Router>
+          <App />
+        </Router>
       </Provider>
     );
     const linkElement = screen.getByText(/Navigator/, { exact: false });
@@ -36,7 +39,9 @@ describe('The main UI for Europa...', () => {
   test('contains a working link to the Navigator', async () => {
     const { container } = render(
       <Provider store={createTestStore()}>
-        <App />
+        <Router>
+          <App />
+        </Router>
       </Provider>
     );
     const linkElement = screen.getByText(/Navigator/, { exact: false });

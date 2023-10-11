@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { isInsideIframe } from '../../common';
 import PageNotFound from '../layout/PageNotFound';
 
 /**
@@ -7,27 +8,31 @@ import PageNotFound from '../layout/PageNotFound';
  * this component handles these fallback redirects for pages such as '/narratives'
  */
 export const Fallback = () => {
-  const location = useParams();
   const navigate = useNavigate();
+  const params = useParams();
 
-  const fallbackPath = location['*']?.toLowerCase();
+  const fallbackPath = params['*']?.toLowerCase();
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     // Make sure we are in window.top (not within an iframe),
-    if (window && window.top && window !== window.top) {
+    if (window.top && isInsideIframe(window)) {
       // Not in top window, redirect top window to current location
       window.top.location = window.location;
-    } else {
-      // We are in the top window
-      // redirect appropriately based on the fallbackPath, otherwise set notFound to true
-      if (fallbackPath === 'narratives') {
-        navigate('/narratives');
-      } else {
-        setNotFound(true);
-      }
+      return;
     }
-  }, [fallbackPath, navigate]);
+
+    // We are in the top window
+    // redirect appropriately based on the fallbackPath, otherwise set notFound to true
+    if (fallbackPath === 'narratives') {
+      navigate('/narratives');
+    } else if (Object.hasOwn(params, 'wsId')) {
+      const { wsId } = params;
+      navigate(`/narrative/${wsId}`);
+    } else {
+      setNotFound(true);
+    }
+  }, [fallbackPath, navigate, params]);
 
   // show PageNotFound if we don't have a fallback redirect
   if (notFound) {
