@@ -2,8 +2,17 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { useEffect } from 'react';
 import { useAppDispatch } from '../../common/hooks';
 
+const environments = [
+  'unknown',
+  'production',
+  'ci',
+  'appdev',
+  'ci-europa',
+  'narrative-dev',
+] as const;
+
 interface PageState {
-  environment: 'unknown' | 'production' | 'ci' | 'appdev' | 'ci-europa';
+  environment: typeof environments[number];
   pageTitle: string;
   modalDialogId?: string;
 }
@@ -17,11 +26,13 @@ export const pageSlice = createSlice({
   name: 'page',
   initialState,
   reducers: {
-    setEnvironment: (
-      state,
-      action: PayloadAction<PageState['environment']>
-    ) => {
-      state.environment = action.payload;
+    setEnvironment: (state, action: PayloadAction<string>) => {
+      const env = action.payload.toLowerCase();
+      if (environments.includes(env as typeof environments[number])) {
+        state.environment = env as typeof environments[number];
+      } else {
+        state.environment = 'unknown';
+      }
     },
     setModalDialogId: (
       state,

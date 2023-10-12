@@ -64,9 +64,15 @@ const Routes: FC = () => {
 
       {/* Collections */}
       <Route path="/collections">
-        <Route index element={<CollectionsList />} />
-        <Route path={detailPath} element={<CollectionDetail />} />
-        <Route path={detailDataProductPath} element={<CollectionDetail />} />
+        <Route index element={<Authed element={<CollectionsList />} />} />
+        <Route
+          path={detailPath}
+          element={<Authed element={<CollectionDetail />} />}
+        />
+        <Route
+          path={detailDataProductPath}
+          element={<Authed element={<CollectionDetail />} />}
+        />
         <Route path="*" element={<PageNotFound />} />
       </Route>
 

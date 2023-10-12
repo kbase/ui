@@ -62,6 +62,20 @@
   }
 }
 
+.login_prompt,
+.login_prompt:visited {
+  color: use-color("primary");
+  display: flex;
+  flex-flow: column nowrap;
+  text-align: center;
+  text-decoration: none;
+  width: 77px;
+
+  svg {
+    font-size: 24px;
+  }
+}
+
 .login_menu {
   display: block;
   width: 77px;
@@ -74,6 +88,7 @@
     align-items: center;
     color: use_color("black");
     display: flex;
+    gap: 5px;
     justify-content: left;
     padding: 4px;
 
@@ -82,5 +97,10 @@
       font-size: 30px;
       margin-right: 5px;
     }
+  }
+
+  .name_item {
+    text-align: center;
+    width: 100%;
   }
 }
