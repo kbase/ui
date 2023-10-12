@@ -73,11 +73,11 @@ const Routes: FC = () => {
       {/* IFrame Fallback Routes */}
       <Route path="/fallback">
         <Route
-          path="/narratives"
+          path="narratives"
           element={<Fallback redirect={() => '/narratives'} />}
         />
         <Route
-          path="/narrative/:wsId"
+          path="narrative/:wsId"
           element={
             <Fallback
               reload
@@ -85,7 +85,7 @@ const Routes: FC = () => {
             />
           }
         />
-        <Route path="/*" element={<Fallback redirect={() => null} />} />
+        <Route path="*" element={<Fallback redirect={() => null} />} />
       </Route>
 
       <Route path="/" element={<HashRouteRedirect />} />
