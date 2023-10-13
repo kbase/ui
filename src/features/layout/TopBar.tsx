@@ -281,18 +281,18 @@ const Enviroment: FC = () => {
   const env = useAppSelector((state) => state.layout.environment);
   if (env === 'production') return null;
   const icon = {
+    appdev: faWrench,
     ci: faFlask,
     'ci-europa': faFlask,
-    unknown: faQuestionCircle,
-    appdev: faWrench,
     'narrative-dev': faWrench,
+    unknown: faQuestionCircle,
   }[env];
   const txt = {
+    appdev: 'APPDEV',
     ci: 'CI',
     'ci-europa': 'EUR',
     'narrative-dev': 'NARDEV',
-    unknown: '??',
-    appdev: 'APPDEV',
+    unknown: 'ENV?',
   }[env];
   return (
     <div className={classes.environment}>

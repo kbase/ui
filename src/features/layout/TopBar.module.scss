@@ -79,6 +79,7 @@
 .login_menu {
   display: block;
   width: 77px;
+  padding: 4px;
 
   .login_menu_username {
     font-style: italic;
@@ -90,7 +91,6 @@
     display: flex;
     gap: 5px;
     justify-content: left;
-    padding: 4px;
 
     .login_menu_icon {
       color: use_color("mid-blue");
