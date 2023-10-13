@@ -1,21 +1,20 @@
 #!/usr/bin/env bash
 
+# Here we are using bash "here strings"
+IFS=$'\n' read  -d '' -r -a enviromentsConfig  <<< "$(jq -r '.environments
+     | keys[] as $k
+     | [($k), (.[$k]["domain"]) , (.[$k]["legacy"]) , (.[$k]["public_url"])]
+     | join(" ")' config.json)"
 
-declare -a enviroments=(
-# "<name>         <domain>                <legacy-domain>               <public-url>"
-  "ci             ci.kbase.us             legacy.kbase.us                /"
-  "ci-europa      ci-europa.kbase.us      legacy.ci-europa.kbase.us      /"
-  "narrative-dev  narrative-dev.kbase.us  legacy.narrative-dev.kbase.us  /"
-)
+for enviro in "${enviromentsConfig[@]}"; do
+  read -a envConf <<< "$enviro"
+  echo "Building static files for enviroment \"${envConf[0]}\"...";
 
-for enviro in "${enviroments[@]}"; do
-  read -a strarr <<< "$enviro"
-  echo "Building static files for enviroment \"${strarr[0]}\"...";
-
-  BUILD_PATH="./deploy/${strarr[0]}" \
-  REACT_APP_KBASE_DOMAIN="${strarr[1]}" \
-  REACT_APP_KBASE_LEGACY_DOMAIN="${strarr[2]}" \
-  PUBLIC_URL="${strarr[3]}" \
+  BUILD_PATH="./deploy/${envConf[0]}" \
+  REACT_APP_KBASE_ENV="${envConf[0]}" \
+  REACT_APP_KBASE_DOMAIN="${envConf[1]}" \
+  REACT_APP_KBASE_LEGACY_DOMAIN="${envConf[2]}" \
+  PUBLIC_URL="${envConf[3]}" \
   npm run build && \
-  echo "Built static files for enviroment \"${strarr[0]}\".";
+  echo "Built static files for enviroment \"${envConf[0]}\".";
 done

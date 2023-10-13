@@ -30,15 +30,10 @@ const useInitApp = () => {
   useLoggedInProfileUser(username);
 
   // Placeholder code for determining environment.
-  // TODO: needs to properly identify PROD, should we do this with an env var?
   useEffect(() => {
     // eslint-disable-next-line no-console
     console.info('Static Deploy Domain:', process.env.REACT_APP_KBASE_DOMAIN);
-    dispatch(
-      setEnvironment(
-        process.env.REACT_APP_KBASE_DOMAIN?.split('.')[0] ?? 'unknown'
-      )
-    );
+    dispatch(setEnvironment(process.env.REACT_APP_KBASE_ENV ?? 'unknown'));
   }, [dispatch]);
 
   return { isLoading: !initialized };
