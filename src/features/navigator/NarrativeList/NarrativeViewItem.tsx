@@ -75,18 +75,16 @@ const NarrativeViewItem: FC<NarrativeViewItemProps> = ({
         target={linkToNarrative ? '_blank' : ''}
       >
         <div className={classes.narrative_item_inner}>
-          <div className={classes.narrative_item_icon}>
-            {linkToNarrative ? (
-              <span className={classes.icon}>
-                <FAIcon icon={faArrowUpRightFromSquare} />
-              </span>
-            ) : (
-              <></>
-            )}
-          </div>
           <div className={classes.narrative_item_text}>
             <div className={classes.narrative_item_title}>
-              {narrative_title}
+              <span>{narrative_title}</span>
+              {linkToNarrative && (
+                <span
+                  className={`${classes.narrative_item_icon} ${classes.icon}`}
+                >
+                  <FAIcon icon={faArrowUpRightFromSquare} />
+                </span>
+              )}
             </div>
             <NarrativeItemDropdown
               narrativeUPA={upa}
@@ -94,9 +92,11 @@ const NarrativeViewItem: FC<NarrativeViewItemProps> = ({
               version={pathVersion}
             />
           </div>
-          <div className={classes.narrative_item_details}>
-            Updated {timeElapsed} by {creator}
-          </div>
+          {!isHeading && (
+            <div className={classes.narrative_item_details}>
+              Updated {timeElapsed} by {creator}
+            </div>
+          )}
         </div>
       </Link>
     </section>
