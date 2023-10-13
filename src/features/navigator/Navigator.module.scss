@@ -17,6 +17,7 @@ pre {
   .columns {
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
     justify-content: space-between;
     margin-bottom: 0.25rem;
 
@@ -28,6 +29,12 @@ pre {
     }
 
     >.column {
+      flex: 1;
+      /**
+       * Flex-basis acts as the minimum width for the colum.
+       * If exceeded, the items will wrap and expand to full width.
+       */
+      flex-basis: 250px;
       min-width: 12rem; /* too small: 10 < 12 < 15: too big */
       width: 25%;
     }
