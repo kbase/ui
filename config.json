@@ -11,19 +11,16 @@
       "legacy": "legacy.kbase.us",
       "public_url": "/"
     },
-
     "ci-europa": {
       "domain": "ci-europa.kbase.us",
       "legacy": "legacy.ci-europa.kbase.us",
       "public_url": "/"
     },
-
     "narrative-dev": {
       "domain": "narrative-dev.kbase.us",
       "legacy": "legacy.narrative-dev.kbase.us",
       "public_url": "/"
     },
-
     "production": {
       "domain": "narrative.kbase.us",
       "legacy": "legacy.narrative.kbase.us",
