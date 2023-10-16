@@ -13,7 +13,8 @@ import * as layoutSlice from '../layout/layoutSlice';
 import Legacy, {
   formatLegacyUrl,
   getLegacyPart,
-  isAuthMessage,
+  isLoginMessage,
+  isLogoutMessage,
   isRouteMessage,
   isTitleMessage,
   LEGACY_BASE_ROUTE,
@@ -36,11 +37,15 @@ const routeMessage = {
   source: 'kbase-ui.app.route-component',
   payload: { request: { original: '#/some/hash/path' } },
 };
-const authMessage = {
+const loginMessage = {
   source: 'kbase-ui.session.loggedin',
   payload: { token: 'some-token' },
 };
-const nullAuthMessage = {
+const logoutMessage = {
+  source: 'kbase-ui.session.loggedout',
+  payload: undefined,
+};
+const nullLoginMessage = {
   source: 'kbase-ui.session.loggedin',
   payload: { token: null },
 };
@@ -68,22 +73,30 @@ describe('Legacy', () => {
   test('isTitleMessage', () => {
     expect(isTitleMessage(titleMessage)).toBe(true);
     expect(isTitleMessage(routeMessage)).toBe(false);
-    expect(isTitleMessage(authMessage)).toBe(false);
-    expect(isTitleMessage(nullAuthMessage)).toBe(false);
+    expect(isTitleMessage(loginMessage)).toBe(false);
+    expect(isTitleMessage(nullLoginMessage)).toBe(false);
   });
 
   test('isRouteMessage', () => {
     expect(isRouteMessage(titleMessage)).toBe(false);
     expect(isRouteMessage(routeMessage)).toBe(true);
-    expect(isRouteMessage(authMessage)).toBe(false);
-    expect(isRouteMessage(nullAuthMessage)).toBe(false);
+    expect(isRouteMessage(loginMessage)).toBe(false);
+    expect(isRouteMessage(nullLoginMessage)).toBe(false);
   });
 
-  test('isAuthMessage', () => {
-    expect(isAuthMessage(titleMessage)).toBe(false);
-    expect(isAuthMessage(routeMessage)).toBe(false);
-    expect(isAuthMessage(authMessage)).toBe(true);
-    expect(isAuthMessage(nullAuthMessage)).toBe(true);
+  test('isLoginMessage', () => {
+    expect(isLoginMessage(titleMessage)).toBe(false);
+    expect(isLoginMessage(routeMessage)).toBe(false);
+    expect(isLoginMessage(loginMessage)).toBe(true);
+    expect(isLoginMessage(nullLoginMessage)).toBe(true);
+  });
+
+  test('isLogoutMessage', () => {
+    expect(isLogoutMessage(titleMessage)).toBe(false);
+    expect(isLogoutMessage(routeMessage)).toBe(false);
+    expect(isLogoutMessage(loginMessage)).toBe(false);
+    expect(isLogoutMessage(nullLoginMessage)).toBe(false);
+    expect(isLogoutMessage(logoutMessage)).toBe(false);
   });
 
   test('getLegacyPart', () => {
