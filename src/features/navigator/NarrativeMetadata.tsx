@@ -157,28 +157,26 @@ const NarrativeMetadata: NarrativeMetadataType = ({ cells, narrativeDoc }) => {
           />
         </div>
         <div className={classes.column}>
-          <div className={classes.column}>
-            <LabelValueTable
-              data={[
-                {
-                  label: 'Total cells',
-                  value: cells.length,
-                },
-                {
-                  label: 'App cells',
-                  value: cellTypeCounts.kbase_app,
-                },
-                {
-                  label: 'Markdown cells',
-                  value: cellTypeCounts.markdown,
-                },
-                {
-                  label: 'Code cells',
-                  value: cellTypeCounts.code_cell,
-                },
-              ]}
-            />
-          </div>
+          <LabelValueTable
+            data={[
+              {
+                label: 'Total cells',
+                value: cells.length,
+              },
+              {
+                label: 'App cells',
+                value: cellTypeCounts.kbase_app,
+              },
+              {
+                label: 'Markdown cells',
+                value: cellTypeCounts.markdown,
+              },
+              {
+                label: 'Code cells',
+                value: cellTypeCounts.code_cell,
+              },
+            ]}
+          />
         </div>
       </div>
       {usersSharedOther && usersSharedOther.length > 0 ? (
