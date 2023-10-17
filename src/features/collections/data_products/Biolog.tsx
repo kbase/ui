@@ -7,9 +7,9 @@ import {
 } from '@tanstack/react-table';
 import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  getMicroTrait,
-  getMicroTraitCell,
-  getMicroTraitMeta,
+  getBiolog,
+  getBiologCell,
+  getBiologMeta,
   HeatMapCell,
 } from '../../../common/api/collectionsApi';
 import { Pagination } from '../../../common/components/Table';
@@ -18,17 +18,17 @@ import { useAppParam } from '../../params/hooks';
 import { useSelectionId } from '../collectionsSlice';
 import { HeatMap } from './HeatMap';
 
-export const Microtrait: FC<{
+export const Biolog: FC<{
   collection_id: string;
 }> = ({ collection_id }) => {
-  const { table } = useMicrotrait(collection_id);
+  const { table } = useBiolog(collection_id);
 
   const [hoverCell, setHoverCell] = useState<HeatMapCell | undefined>(
     undefined
   );
   const [hoverRow, setHoverRow] = useState<string>('');
   let canvasTitle = ''; // Using the html title as a dynamic tooltip for now
-  const cellQuery = getMicroTraitCell.useQuery(
+  const cellQuery = getBiologCell.useQuery(
     { collection_id, cell_id: hoverCell?.cell_id || '' },
     { skip: !hoverCell }
   );
@@ -57,7 +57,7 @@ export const Microtrait: FC<{
   );
 };
 
-const useMicrotrait = (collection_id: string | undefined) => {
+const useBiolog = (collection_id: string | undefined) => {
   const matchId = useAppParam('match');
   const selId = useSelectionId(collection_id || '', {
     skip: !collection_id,
@@ -105,12 +105,12 @@ const useMicrotrait = (collection_id: string | undefined) => {
     [collection_id]
   );
 
-  const microtraitQuery = getMicroTrait.useQuery(heatMapParams, {
+  const biologQuery = getBiolog.useQuery(heatMapParams, {
     skip: !collection_id,
   });
-  const microtrait = microtraitQuery.data;
+  const biolog = biologQuery.data;
   useBackoffPolling(
-    microtraitQuery,
+    biologQuery,
     (result) => {
       if (matchId && result?.data?.match_state === 'processing') return true;
       if (selId && result?.data?.selection_state === 'processing') return true;
@@ -121,28 +121,26 @@ const useMicrotrait = (collection_id: string | undefined) => {
 
   //cache last row of each page, we should implement better backend pagination this is silly
   useEffect(() => {
-    if (!microtraitQuery.isFetching && microtraitQuery.data) {
+    if (!biologQuery.isFetching && biologQuery.data) {
       pageLastIdCache[pagination.pageIndex] =
-        microtraitQuery.data.data[
-          microtraitQuery.data.data.length - 1
-        ].kbase_id;
+        biologQuery.data.data[biologQuery.data.data.length - 1].kbase_id;
     }
   }, [
-    microtraitQuery.data,
+    biologQuery.data,
     pagination.pageIndex,
-    microtraitQuery.isFetching,
+    biologQuery.isFetching,
     pageLastIdCache,
   ]);
 
-  const { data: count, ...countQuery } = getMicroTrait.useQuery(countParams, {
+  const { data: count, ...countQuery } = getBiolog.useQuery(countParams, {
     skip: !collection_id,
   });
 
-  const { data: meta, ...metaQuery } = getMicroTraitMeta.useQuery(metaParams, {
+  const { data: meta, ...metaQuery } = getBiologMeta.useQuery(metaParams, {
     skip: !collection_id,
   });
 
-  type RowDatum = NonNullable<typeof microtrait>['data'][number];
+  type RowDatum = NonNullable<typeof biolog>['data'][number];
 
   const cols = createColumnHelper<RowDatum>();
 
@@ -154,9 +152,7 @@ const useMicrotrait = (collection_id: string | undefined) => {
 
   const normalize = useCallback(
     (
-      value: NonNullable<
-        typeof microtrait
-      >['data'][number]['cells'][number]['val'],
+      value: NonNullable<typeof biolog>['data'][number]['cells'][number]['val'],
       type: NonNullable<
         typeof meta
       >['categories'][number]['columns'][number]['type']
@@ -177,7 +173,7 @@ const useMicrotrait = (collection_id: string | undefined) => {
   );
 
   const table = useReactTable<RowDatum>({
-    data: microtrait?.data || [],
+    data: biolog?.data || [],
     getRowId: (row) => String(row.kbase_id),
     columns: useMemo(
       () =>
@@ -224,8 +220,8 @@ const useMicrotrait = (collection_id: string | undefined) => {
     setMatchMark,
     setSelMark,
     setPagination,
-    microtrait,
-    microtraitQuery,
+    biolog,
+    biologQuery,
     count,
     countQuery,
     meta,

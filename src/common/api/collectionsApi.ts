@@ -92,10 +92,11 @@ interface CompleteSelection extends BaseSelection {
 
 type Selection = IncompleteSelection | CompleteSelection;
 
-export interface HeatMapCell {
+export interface HeatMapCell<Meta = undefined> {
   cell_id: string;
   col_id: HeatMapColumn['col_id'];
   val: number | boolean;
+  meta?: Meta;
 }
 
 export interface HeatMapRow {
@@ -233,6 +234,30 @@ interface CollectionsResults {
     match_missing: KBaseId[];
     selection_missing: KBaseId[];
   };
+  getBiolog: {
+    description: string;
+    match_state: ProcessState;
+    selection_state: ProcessState;
+    data: HeatMapRow[];
+    min_value: number;
+    max_value: number;
+    count: number;
+  };
+  getBiologMeta: {
+    categories: HeatMapColumnCategory[];
+    min_value: number;
+    max_value: number;
+  };
+  getBiologCell: {
+    cell_id: string;
+    values: { id: string; val: number | boolean }[];
+  };
+  getBiologMissing: {
+    match_state: ProcessState;
+    selection_state: ProcessState;
+    match_missing: KBaseId[];
+    selection_missing: KBaseId[];
+  };
   getSampleAttribs: {
     skip: number;
     limit: number;
@@ -333,6 +358,32 @@ interface CollectionsParams {
     load_ver_override?: Collection['ver_tag'];
   };
   getMicroTraitMissing: {
+    collection_id: Collection['id'];
+    match_id?: Match['match_id'];
+    selection_id?: Selection['selection_id'];
+  };
+  getBiolog: {
+    collection_id: Collection['id'];
+    start_after?: KBaseId;
+    limit?: number;
+    count?: boolean;
+    match_id?: Match['match_id'];
+    match_mark?: boolean;
+    selection_id?: Selection['selection_id'];
+    selection_mark?: boolean;
+    status_only?: boolean;
+    load_ver_override?: Collection['ver_tag'];
+  };
+  getBiologMeta: {
+    collection_id: Collection['id'];
+    load_ver_override?: Collection['ver_tag'];
+  };
+  getBiologCell: {
+    collection_id: Collection['id'];
+    cell_id: HeatMapCell['cell_id'];
+    load_ver_override?: Collection['ver_tag'];
+  };
+  getBiologMissing: {
     collection_id: Collection['id'];
     match_id?: Match['match_id'];
     selection_id?: Selection['selection_id'];
@@ -636,6 +687,66 @@ export const collectionsApi = baseApi.injectEndpoints({
         }),
     }),
 
+    getBiolog: builder.query<
+      CollectionsResults['getBiolog'],
+      CollectionsParams['getBiolog']
+    >({
+      query: ({ collection_id, ...options }) =>
+        collectionsService({
+          method: 'GET',
+          url: encode`/collections/${collection_id}/data_products/biolog/`,
+          params: options,
+          headers: {
+            authorization: `Bearer ${store.getState().auth.token}`,
+          },
+        }),
+    }),
+
+    getBiologMeta: builder.query<
+      CollectionsResults['getBiologMeta'],
+      CollectionsParams['getBiologMeta']
+    >({
+      query: ({ collection_id, ...options }) =>
+        collectionsService({
+          method: 'GET',
+          url: encode`/collections/${collection_id}/data_products/biolog/meta`,
+          params: options,
+          headers: {
+            authorization: `Bearer ${store.getState().auth.token}`,
+          },
+        }),
+    }),
+
+    getBiologCell: builder.query<
+      CollectionsResults['getBiologCell'],
+      CollectionsParams['getBiologCell']
+    >({
+      query: ({ collection_id, cell_id, ...options }) =>
+        collectionsService({
+          method: 'GET',
+          url: encode`/collections/${collection_id}/data_products/biolog/cell/${cell_id}`,
+          params: options,
+          headers: {
+            authorization: `Bearer ${store.getState().auth.token}`,
+          },
+        }),
+    }),
+
+    getBiologMissing: builder.query<
+      CollectionsResults['getBiologMissing'],
+      CollectionsParams['getBiologMissing']
+    >({
+      query: ({ collection_id, ...options }) =>
+        collectionsService({
+          method: 'GET',
+          url: encode`/collections/${collection_id}/data_products/biolog/missing`,
+          params: options,
+          headers: {
+            authorization: `Bearer ${store.getState().auth.token}`,
+          },
+        }),
+    }),
+
     getSampleAttribs: builder.query<
       CollectionsResults['getSampleAttribs'],
       CollectionsParams['getSampleAttribs']
@@ -713,6 +824,10 @@ export const {
   getMicroTraitMeta,
   getMicroTraitCell,
   getMicroTraitMissing,
+  getBiolog,
+  getBiologMeta,
+  getBiologCell,
+  getBiologMissing,
   getSampleAttribs,
   getSampleLocations,
 } = collectionsApi.endpoints;
