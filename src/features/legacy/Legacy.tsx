@@ -51,6 +51,8 @@ export default function Legacy() {
         setReceivedToken(d.payload.token);
       }
     } else if (isLogoutMessage(d)) {
+      // eslint-disable-next-line no-console
+      console.info('Logged Out');
       dispatch(resetStateAction());
     }
   });
