@@ -59,9 +59,9 @@ export default function Legacy() {
       legacyContentRef.current.contentWindow.postMessage(
         {
           source: 'europa.identify',
-          payload: window.location.hostname,
+          payload: window.location.origin,
         },
-        process.env.REACT_APP_KBASE_LEGACY_DOMAIN || '*'
+        `https://${process.env.REACT_APP_KBASE_LEGACY_DOMAIN}` || '*'
       );
     }
   });
@@ -84,7 +84,7 @@ export default function Legacy() {
           source: 'europa.navigate',
           payload: { path: expectedLegacyPath },
         },
-        process.env.REACT_APP_KBASE_LEGACY_DOMAIN || '*'
+        `https://${process.env.REACT_APP_KBASE_LEGACY_DOMAIN}` || '*'
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
