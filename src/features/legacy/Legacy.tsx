@@ -50,6 +50,22 @@ export default function Legacy() {
     }
   });
 
+  // In order to enable the messages to work safely, we send the
+  // parent domain on every render. This allows us to receive all
+  // messages EXCEPT 'kbase-ui.session.loggedin' on cross-domain
+  // parents (useful for dev), without allowing all ('*') targetDomains
+  useEffect(() => {
+    if (legacyContentRef.current?.contentWindow) {
+      legacyContentRef.current.contentWindow.postMessage(
+        {
+          source: 'europa.identify',
+          payload: window.location.origin,
+        },
+        `https://${process.env.REACT_APP_KBASE_LEGACY_DOMAIN}` || '*'
+      );
+    }
+  });
+
   // The following enables navigation events from Europa to propagate to the
   // iframe. When expectedLegacyPath (from the main window URL) changes, check
   // that legacyPath (from the iframe) martches, otherwise, send the iframe a
@@ -68,7 +84,7 @@ export default function Legacy() {
           source: 'europa.navigate',
           payload: { path: expectedLegacyPath },
         },
-        '*'
+        `https://${process.env.REACT_APP_KBASE_LEGACY_DOMAIN}` || '*'
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
