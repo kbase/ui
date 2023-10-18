@@ -96,7 +96,7 @@ describe('Legacy', () => {
     expect(isLogoutMessage(routeMessage)).toBe(false);
     expect(isLogoutMessage(loginMessage)).toBe(false);
     expect(isLogoutMessage(nullLoginMessage)).toBe(false);
-    expect(isLogoutMessage(logoutMessage)).toBe(false);
+    expect(isLogoutMessage(logoutMessage)).toBe(true);
   });
 
   test('getLegacyPart', () => {

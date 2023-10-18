@@ -2,8 +2,8 @@ import { RefObject, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { usePageTitle } from '../layout/layoutSlice';
 import { useTryAuthFromToken } from '../auth/hooks';
-import { setAuth } from '../auth/authSlice';
 import { useAppDispatch } from '../../common/hooks';
+import { resetStateAction } from '../../app/store';
 
 export const LEGACY_BASE_ROUTE = '/legacy';
 
@@ -51,7 +51,7 @@ export default function Legacy() {
         setReceivedToken(d.payload.token);
       }
     } else if (isLogoutMessage(d)) {
-      dispatch(setAuth(null));
+      dispatch(resetStateAction());
     }
   });
 
