@@ -154,9 +154,10 @@ const useLogout = () => {
     revoke(tokenId)
       .unwrap()
       .then(() => {
+        dispatch(resetStateAction());
+        // setAuth(null) follow the state reset to initialize the page as un-Authed
         dispatch(setAuth(null));
         toast('You have been signed out');
-        dispatch(resetStateAction());
         navigate('/legacy/auth2/signedout');
       })
       .catch(() => {

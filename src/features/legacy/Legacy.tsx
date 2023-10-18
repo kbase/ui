@@ -4,6 +4,8 @@ import { usePageTitle } from '../layout/layoutSlice';
 import { useTryAuthFromToken } from '../auth/hooks';
 import { useAppDispatch } from '../../common/hooks';
 import { resetStateAction } from '../../app/store';
+import { setAuth } from '../auth/authSlice';
+import { toast } from 'react-hot-toast';
 
 export const LEGACY_BASE_ROUTE = '/legacy';
 
@@ -51,9 +53,10 @@ export default function Legacy() {
         setReceivedToken(d.payload.token);
       }
     } else if (isLogoutMessage(d)) {
-      // eslint-disable-next-line no-console
-      console.info('Logged Out');
       dispatch(resetStateAction());
+      dispatch(setAuth(null));
+      toast('You have been signed out');
+      navigate('/legacy/auth2/signedout');
     }
   });
 
