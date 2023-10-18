@@ -30,6 +30,7 @@ import { getUserProfile } from '../../common/api/userProfileApi';
 import { revokeToken } from '../../common/api/authService';
 import { toast } from 'react-hot-toast';
 import { noOp } from '../common';
+import { resetStateAction } from '../../app/store';
 
 export default function TopBar() {
   const username = useAppSelector(authUsername);
@@ -155,6 +156,7 @@ const useLogout = () => {
       .then(() => {
         dispatch(setAuth(null));
         toast('You have been signed out');
+        dispatch(resetStateAction());
         navigate('/legacy/auth2/signedout');
       })
       .catch(() => {
