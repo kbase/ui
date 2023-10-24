@@ -8,7 +8,7 @@
 
     "ci": {
       "domain": "ci.kbase.us",
-      "legacy": "legacy.kbase.us",
+      "legacy": "legacy.ci.kbase.us",
       "public_url": "/"
     },
 
