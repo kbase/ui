@@ -12,6 +12,7 @@ export interface SelectOption {
   label: ReactNode;
   value: string | number;
   icon?: ReactNode;
+  fullWidth?: boolean; // ignores icon padding when icons are present
 }
 
 export type OptionsArray = OptionsOrGroups<
@@ -104,9 +105,9 @@ export const Select: FC<SelectProps> = (props) => {
   const handleFormatOptionLabel = (data: SelectOption) => {
     return (
       <span className={classes.option_content}>
-        {hasIcons && (
+        {hasIcons && !data.fullWidth ? (
           <span className={classes.option_content_icon}>{data.icon}</span>
-        )}
+        ) : null}
         {data.label}
       </span>
     );

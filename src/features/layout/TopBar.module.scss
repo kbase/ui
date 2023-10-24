@@ -62,8 +62,23 @@
   }
 }
 
+.login_prompt,
+.login_prompt:visited {
+  color: use-color("primary");
+  display: flex;
+  flex-flow: column nowrap;
+  text-align: center;
+  text-decoration: none;
+  width: 77px;
+
+  svg {
+    font-size: 24px;
+  }
+}
+
 .login_menu {
   display: block;
+  padding: 4px;
   width: 77px;
 
   .login_menu_username {
@@ -74,13 +89,18 @@
     align-items: center;
     color: use_color("black");
     display: flex;
+    gap: 5px;
     justify-content: left;
-    padding: 4px;
 
     .login_menu_icon {
       color: use_color("mid-blue");
       font-size: 30px;
       margin-right: 5px;
     }
+  }
+
+  .name_item {
+    text-align: center;
+    width: 100%;
   }
 }

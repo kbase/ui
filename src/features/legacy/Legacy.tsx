@@ -2,6 +2,10 @@ import { RefObject, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { usePageTitle } from '../layout/layoutSlice';
 import { useTryAuthFromToken } from '../auth/hooks';
+import { useAppDispatch } from '../../common/hooks';
+import { resetStateAction } from '../../app/store';
+import { setAuth } from '../auth/authSlice';
+import { toast } from 'react-hot-toast';
 
 export const LEGACY_BASE_ROUTE = '/legacy';
 
@@ -13,6 +17,7 @@ export default function Legacy() {
 
   const location = useLocation();
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
   const legacyContentRef = useRef<HTMLIFrameElement>(null);
   const [legacyTitle, setLegacyTitle] = useState('');
@@ -43,10 +48,15 @@ export default function Legacy() {
       }
     } else if (isTitleMessage(d)) {
       setLegacyTitle(d.payload);
-    } else if (isAuthMessage(d)) {
+    } else if (isLoginMessage(d)) {
       if (d.payload.token) {
         setReceivedToken(d.payload.token);
       }
+    } else if (isLogoutMessage(d)) {
+      dispatch(resetStateAction());
+      dispatch(setAuth(null));
+      toast('You have been signed out');
+      navigate('/legacy/auth2/signedout');
     }
   });
 
@@ -179,7 +189,7 @@ export const isRouteMessage = messageGuard(
       .original === 'string'
 );
 
-export const isAuthMessage = messageGuard(
+export const isLoginMessage = messageGuard(
   'kbase-ui.session.loggedin',
   (payload): payload is { token: string | null } =>
     !!payload &&
@@ -187,4 +197,9 @@ export const isAuthMessage = messageGuard(
     'token' in (payload as Record<string, never>) &&
     (typeof (payload as Record<string, unknown>).token === 'string' ||
       (payload as Record<string, unknown>).token === null)
+);
+
+export const isLogoutMessage = messageGuard(
+  'kbase-ui.session.loggedout',
+  (payload): payload is undefined => payload === undefined
 );

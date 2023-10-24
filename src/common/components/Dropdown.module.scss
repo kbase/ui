@@ -1,7 +1,17 @@
 .dropdown {
   // these prefixed global classnames are inserted by react-select
+
+  // uses the a11-compatible visually hidden props as per
+  // https://www.a11yproject.com/posts/how-to-hide-content/
+  // this preserves element selectability
   :global(.react-select__value-container) {
-    display: none;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    height: 0;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+    width: 0;
   }
 
   :global(.react-select__indicator-separator) {

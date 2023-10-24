@@ -27,14 +27,14 @@ const useInitApp = () => {
   // Use authenticated username to load user's profile
   const username = useAppSelector(authUsername);
   const initialized = useAppSelector(authInitialized);
+  const environment = useAppSelector((state) => state.layout.environment);
   useLoggedInProfileUser(username);
 
-  // Placeholder code for determining environment.
   useEffect(() => {
     // eslint-disable-next-line no-console
     console.info('Static Deploy Domain:', process.env.REACT_APP_KBASE_DOMAIN);
-    dispatch(setEnvironment('ci-europa'));
-  }, [dispatch]);
+    dispatch(setEnvironment(process.env.REACT_APP_KBASE_ENV ?? 'unknown'));
+  }, [dispatch, environment]);
 
   return { isLoading: !initialized };
 };
