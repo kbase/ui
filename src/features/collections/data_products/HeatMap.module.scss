@@ -106,10 +106,15 @@ $label-len: 20em;
 }
 
 .heatmap-wrapper {
-  height: 100%;
+  position: relative;
   width: 100%;
 
   .heatmap {
     width: 100%;
+  }
+
+  .heatmap-hovercell {
+    pointer-events: none;
+    position: absolute;
   }
 }
