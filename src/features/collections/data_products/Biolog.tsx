@@ -6,7 +6,6 @@ import {
   createColumnHelper,
 } from '@tanstack/react-table';
 import { FC, useCallback, useEffect, useMemo, useState } from 'react';
-import { toast } from 'react-hot-toast';
 import {
   getBiolog,
   getBiologCell,
@@ -31,21 +30,38 @@ export const Biolog: FC<{
         <HeatMap
           table={table}
           rowNameAccessor={(row) => row.kbase_id}
-          titleAccessor={async (cell, row) => {
+          titleAccessor={async (cell, row, column) => {
             const { data, error } = await dispatch(
-              getBiologCell.initiate({ collection_id, cell_id: cell.cell_id })
+              getBiologCell.initiate({
+                collection_id,
+                cell_id: cell.cell_id,
+              })
             );
             if (!data) {
-              toast(
-                'Error loading cell data:' +
-                  (error ? parseError(error) : 'Unknown error')
+              return (
+                <>
+                  {'Error loading cell data:'}
+                  <br />
+                  {error ? parseError(error) : 'Unknown error'}
+                </>
               );
-              return '';
             } else {
-              const values = data.values
-                .map(({ id, val }) => `  - ${id}:${val}`)
-                .join('\n');
-              return `Cell:${row},${cell.col_id}\nValue:${cell.val}\n${values}`;
+              return (
+                <>
+                  Row: {row.kbase_id}
+                  <br />
+                  Col: {column.columnDef.header}
+                  <br />
+                  Val: {cell.val.toString()}
+                  <>
+                    {Object.entries(row.meta as Record<string, string>).map(
+                      ([id, val]) => (
+                        <div key={id}>{`- ${id}:${val}`}</div>
+                      )
+                    )}
+                  </>
+                </>
+              );
             }
           }}
         />

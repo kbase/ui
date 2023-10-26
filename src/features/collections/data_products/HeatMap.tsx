@@ -1,5 +1,12 @@
-import { flexRender, Table } from '@tanstack/react-table';
-import { HTMLProps, useEffect, useMemo, useRef, useState } from 'react';
+import { Column, flexRender, Table } from '@tanstack/react-table';
+import {
+  HTMLProps,
+  ReactNode,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   HeatMapCell,
   HeatMapColumn,
@@ -9,6 +16,7 @@ import classes from './HeatMap.module.scss';
 import { zoom } from 'd3-zoom';
 import { select } from 'd3-selection';
 import { Loader } from '../../../common/components/Loader';
+import { Tooltip } from '../../../common/components/Tooltip';
 
 /**
  * Generic Collections HeatMap viz, accepts a table with cell values of 0-1
@@ -22,10 +30,11 @@ export const HeatMap = ({
   rowNameAccessor: (row: HeatMapRow, index: number) => string;
   titleAccessor: (
     cell: HeatMapCell,
-    row: string,
+    row: HeatMapRow,
+    column: Column<HeatMapRow, unknown>,
     x: number,
     y: number
-  ) => string | Promise<string>;
+  ) => ReactNode | Promise<ReactNode>;
 }) => {
   const rows = table.getRowModel().rows;
   const columnHeaders = table
@@ -148,8 +157,17 @@ export const HeatMap = ({
     rowOffset = (rowPos0 - fractionalRowPos0) * pxPerRow * zoomState.k;
   }
 
+  const [tipTarget, setTipTarget] = useState<HTMLDivElement | null>(null);
+
   const [hoverCell, setHoverCell] = useState<
-    { top: number; left: number; size: number; title: string } | undefined
+    | {
+        top: number;
+        left: number;
+        size: number;
+        label: ReactNode;
+        loading: boolean;
+      }
+    | undefined
   >(undefined);
 
   const handleMouseMove: HTMLProps<HTMLCanvasElement>['onMouseMove'] = async (
@@ -175,20 +193,22 @@ export const HeatMap = ({
       top: (yIndex + yZoomOffset) * visCellWidth - 1,
       left: (xIndex + xZoomOffset) * visCellWidth - 1,
       size: visCellWidth + 2,
-      title: '...',
+      label: undefined,
+      loading: true,
     };
     setHoverCell(hoverPos);
 
-    const title = await titleAccessor(
+    const label = await titleAccessor(
       rows[yIndex].original.cells[xIndex],
-      rows[yIndex].original.kbase_id,
+      rows[yIndex].original,
+      columnHeaders[xIndex].column,
       e.clientX - canvas.x,
       e.clientY - canvas.y
     );
 
     setHoverCell((currHoverState) => {
       if (currHoverState !== hoverPos) return currHoverState;
-      return { ...currHoverState, title };
+      return { ...currHoverState, label, loading: false };
     });
   };
 
@@ -283,14 +303,19 @@ export const HeatMap = ({
             <canvas
               className={classes['heatmap']}
               ref={canvasRef}
-              title={hoverCell?.title}
               width={dynamicCanvasWidth}
               height={(dynamicCanvasWidth / width) * height}
               onMouseMove={handleMouseMove}
             />
             <div
               className={classes['heatmap-hovercell']}
-              title={hoverCell?.title}
+              ref={setTipTarget}
+              key={JSON.stringify([
+                hoverCell?.left,
+                hoverCell?.top,
+                hoverCell?.size,
+                hoverCell?.loading,
+              ])}
               style={{
                 left: `${hoverCell?.left ?? 0}px`,
                 top: `${hoverCell?.top ?? 0}px`,
@@ -301,6 +326,9 @@ export const HeatMap = ({
           </div>
         </div>
       </div>
+      <Tooltip target={tipTarget} visible={true}>
+        {hoverCell?.loading ? <Loader /> : hoverCell?.label}
+      </Tooltip>
     </>
   );
 };
