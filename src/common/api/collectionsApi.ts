@@ -92,18 +92,18 @@ interface CompleteSelection extends BaseSelection {
 
 type Selection = IncompleteSelection | CompleteSelection;
 
-export interface HeatMapCell<Meta = undefined> {
+export interface HeatMapCell {
   cell_id: string;
   col_id: HeatMapColumn['col_id'];
   val: number | boolean;
-  meta?: Meta;
 }
 
-export interface HeatMapRow {
+export interface HeatMapRow<Meta = unknown> {
   match: boolean;
   sel: boolean;
   kbase_id: KBaseId;
   cells: HeatMapCell[];
+  meta?: Meta;
 }
 
 interface HeatMapColumnCategory {

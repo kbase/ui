@@ -114,6 +114,8 @@ $label-len: 20em;
   }
 
   .heatmap-hovercell {
+    border: solid use-color("info") 2px;
+    box-sizing: border-box;
     pointer-events: none;
     position: absolute;
   }
