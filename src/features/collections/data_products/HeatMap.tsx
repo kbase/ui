@@ -1,5 +1,5 @@
 import { flexRender, Table } from '@tanstack/react-table';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { HTMLProps, useEffect, useMemo, useRef, useState } from 'react';
 import {
   HeatMapCell,
   HeatMapColumn,
@@ -16,13 +16,16 @@ import { Loader } from '../../../common/components/Loader';
 export const HeatMap = ({
   table,
   rowNameAccessor,
-  onCellHover,
-  title,
+  titleAccessor,
 }: {
   table: Table<HeatMapRow>;
   rowNameAccessor: (row: HeatMapRow, index: number) => string;
-  onCellHover: (cell: HeatMapCell, row: string, x: number, y: number) => void;
-  title: string;
+  titleAccessor: (
+    cell: HeatMapCell,
+    row: string,
+    x: number,
+    y: number
+  ) => string | Promise<string>;
 }) => {
   const rows = table.getRowModel().rows;
   const columnHeaders = table
@@ -145,6 +148,50 @@ export const HeatMap = ({
     rowOffset = (rowPos0 - fractionalRowPos0) * pxPerRow * zoomState.k;
   }
 
+  const [hoverCell, setHoverCell] = useState<
+    { top: number; left: number; size: number; title: string } | undefined
+  >(undefined);
+
+  const handleMouseMove: HTMLProps<HTMLCanvasElement>['onMouseMove'] = async (
+    e
+  ) => {
+    const canvas = e.currentTarget.getClientRects()[0];
+    const visCellWidth = (canvas.width / width) * zoomState.k;
+
+    const xIndex = Math.floor(
+      ((e.clientX - canvas.x - zoomState.x) / canvas.width / zoomState.k) *
+        width
+    );
+    const yIndex = Math.floor(
+      ((e.clientY - canvas.y - zoomState.y) / canvas.height / zoomState.k) *
+        height
+    );
+
+    const xZoomOffset = zoomState.x / visCellWidth;
+
+    const yZoomOffset = zoomState.y / visCellWidth;
+
+    const hoverPos = {
+      top: (yIndex + yZoomOffset) * visCellWidth - 1,
+      left: (xIndex + xZoomOffset) * visCellWidth - 1,
+      size: visCellWidth + 2,
+      title: '...',
+    };
+    setHoverCell(hoverPos);
+
+    const title = await titleAccessor(
+      rows[yIndex].original.cells[xIndex],
+      rows[yIndex].original.kbase_id,
+      e.clientX - canvas.x,
+      e.clientY - canvas.y
+    );
+
+    setHoverCell((currHoverState) => {
+      if (currHoverState !== hoverPos) return currHoverState;
+      return { ...currHoverState, title };
+    });
+  };
+
   if (!heatMapImage) {
     return (
       <>
@@ -234,27 +281,23 @@ export const HeatMap = ({
           </div>
           <div className={classes['heatmap-wrapper']}>
             <canvas
-              title={title}
               className={classes['heatmap']}
               ref={canvasRef}
+              title={hoverCell?.title}
               width={dynamicCanvasWidth}
               height={(dynamicCanvasWidth / width) * height}
-              onMouseMove={(e) => {
-                const canvas = e.currentTarget.getClientRects()[0];
-                const x = Math.floor(
-                  ((e.clientX - canvas.x) / canvas.width) * width
-                );
-                const y = Math.floor(
-                  ((e.clientY - canvas.y) / canvas.height) * height
-                );
-                onCellHover(
-                  rows[y].original.cells[x],
-                  rows[y].original.kbase_id,
-                  e.clientX - canvas.x,
-                  e.clientY - canvas.y
-                );
-              }}
+              onMouseMove={handleMouseMove}
             />
+            <div
+              className={classes['heatmap-hovercell']}
+              title={hoverCell?.title}
+              style={{
+                left: `${hoverCell?.left ?? 0}px`,
+                top: `${hoverCell?.top ?? 0}px`,
+                height: `${hoverCell?.size ?? 0}px`,
+                width: `${hoverCell?.size ?? 0}px`,
+              }}
+            ></div>
           </div>
         </div>
       </div>
