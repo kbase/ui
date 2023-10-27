@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useId, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { usePopper } from 'react-popper';
 import classes from './Tooltip.module.scss';
@@ -6,8 +6,6 @@ import classes from './Tooltip.module.scss';
 type PopperTarget = Parameters<typeof usePopper>[0];
 
 const TooltipSharedState: {
-  targetSetter?: (target: PopperTarget) => unknown;
-  vizSetter?: (visibility: boolean) => unknown;
   portalElement?: HTMLDivElement;
 } = {};
 
@@ -20,39 +18,13 @@ export const Tooltip = ({
   children: ReactNode;
   visible: boolean;
 }) => {
-  useEffect(() => {
-    if (TooltipSharedState.targetSetter)
-      TooltipSharedState.targetSetter(target);
-    if (TooltipSharedState.vizSetter) TooltipSharedState.vizSetter(visible);
-  });
-  if (TooltipSharedState.portalElement)
-    return (
-      <>{createPortal(children, TooltipSharedState.portalElement, 'tooltip')}</>
-    );
-  return <></>;
-};
-
-export const RootTooltip = () => {
-  const [targetElement, setTargetElement] = useState<PopperTarget>(undefined);
-  const [visibility, setVisibility] = useState<boolean>(false);
-
+  const id = useId();
   const [popperElement, setPopperElement] = useState<HTMLDivElement | null>(
     null
   );
-
-  const [portalElement, setPortalElement] = useState<HTMLDivElement | null>(
-    null
-  );
-
   const [arrowElement, setArrowElement] = useState<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    TooltipSharedState.targetSetter = setTargetElement;
-    TooltipSharedState.vizSetter = setVisibility;
-    TooltipSharedState.portalElement = portalElement ?? undefined;
-  }, [setTargetElement, portalElement]);
-
-  const { styles, attributes } = usePopper(targetElement, popperElement, {
+  const { styles, attributes } = usePopper(target, popperElement, {
     modifiers: [
       { name: 'arrow', options: { element: arrowElement } },
       {
@@ -66,20 +38,43 @@ export const RootTooltip = () => {
     placement: 'top',
   });
 
-  return (
-    <div
-      hidden={!visibility}
-      ref={setPopperElement}
-      style={styles.popper}
-      {...attributes.popper}
-      className={classes['tooltip']}
-    >
-      <div ref={setPortalElement}></div>
-      <div
-        ref={setArrowElement}
-        style={styles.arrow}
-        className={classes['arrow']}
-      />
-    </div>
+  if (TooltipSharedState.portalElement)
+    return (
+      <>
+        {createPortal(
+          visible ? (
+            <div
+              ref={setPopperElement}
+              style={styles.popper}
+              {...attributes.popper}
+              className={classes['tooltip']}
+            >
+              <div>{children}</div>
+              <div
+                ref={setArrowElement}
+                style={styles.arrow}
+                className={classes['arrow']}
+              />
+            </div>
+          ) : (
+            <></>
+          ),
+          TooltipSharedState.portalElement,
+          id
+        )}
+      </>
+    );
+  return <></>;
+};
+
+export const RootTooltip = () => {
+  const [portalElement, setPortalElement] = useState<HTMLDivElement | null>(
+    null
   );
+
+  useEffect(() => {
+    TooltipSharedState.portalElement = portalElement ?? undefined;
+  }, [portalElement]);
+
+  return <div ref={setPortalElement}></div>;
 };
