@@ -16,7 +16,7 @@ import classes from './HeatMap.module.scss';
 import { zoom } from 'd3-zoom';
 import { select } from 'd3-selection';
 import { Loader } from '../../../common/components/Loader';
-import { Tooltip } from '../../../common/components/Tooltip';
+import { Tooltip, useHover } from '../../../common/components/Tooltip';
 
 /**
  * Generic Collections HeatMap viz, accepts a table with cell values of 0-1
@@ -378,25 +378,4 @@ const LabelIndicator = ({
       </Tooltip>
     </>
   );
-};
-
-const useHover = () => {
-  const [isHovering, setIsHovering] = useState<boolean>(false);
-  const [hoverTimeout, setHoverTimeout] = useState<
-    ReturnType<typeof setTimeout> | undefined
-  >();
-  const hoverMove = () => {
-    if (hoverTimeout) clearTimeout(hoverTimeout);
-    setHoverTimeout(
-      setTimeout(() => {
-        setIsHovering(true);
-      }, 200)
-    );
-  };
-  const hoverCancel = () => {
-    if (hoverTimeout) clearTimeout(hoverTimeout);
-    setHoverTimeout(undefined);
-    setIsHovering(false);
-  };
-  return { isHovering, hoverMove, hoverCancel, setIsHovering };
 };
