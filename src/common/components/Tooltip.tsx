@@ -67,7 +67,7 @@ export const Tooltip = ({
   return <></>;
 };
 
-export const RootTooltip = () => {
+export const TooltipContainer = () => {
   const [portalElement, setPortalElement] = useState<HTMLDivElement | null>(
     null
   );
