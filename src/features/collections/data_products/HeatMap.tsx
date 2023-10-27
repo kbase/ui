@@ -24,16 +24,14 @@ import { Tooltip } from '../../../common/components/Tooltip';
 export const HeatMap = ({
   table,
   rowNameAccessor,
-  titleAccessor,
+  getCellLabel,
 }: {
   table: Table<HeatMapRow>;
   rowNameAccessor: (row: HeatMapRow, index: number) => string;
-  titleAccessor: (
+  getCellLabel: (
     cell: HeatMapCell,
     row: HeatMapRow,
-    column: Column<HeatMapRow, unknown>,
-    x: number,
-    y: number
+    column: Column<HeatMapRow, unknown>
   ) => ReactNode | Promise<ReactNode>;
 }) => {
   const rows = table.getRowModel().rows;
@@ -157,8 +155,10 @@ export const HeatMap = ({
     rowOffset = (rowPos0 - fractionalRowPos0) * pxPerRow * zoomState.k;
   }
 
-  const [tipTarget, setTipTarget] = useState<HTMLDivElement | null>(null);
+  const hoverState = useHover();
 
+  const [hoverCellElement, setHoverCellElement] =
+    useState<HTMLDivElement | null>(null);
   const [hoverCell, setHoverCell] = useState<
     | {
         top: number;
@@ -166,13 +166,17 @@ export const HeatMap = ({
         size: number;
         label: ReactNode;
         loading: boolean;
+        cell: HeatMapCell;
       }
     | undefined
   >(undefined);
 
-  const handleMouseMove: HTMLProps<HTMLCanvasElement>['onMouseMove'] = async (
+  const handleHeatmapMove: HTMLProps<HTMLCanvasElement>['onMouseMove'] = async (
     e
   ) => {
+    hoverState.hoverMove();
+
+    // Calculate hoverCell position
     const canvas = e.currentTarget.getClientRects()[0];
     const visCellWidth = (canvas.width / width) * zoomState.k;
 
@@ -189,26 +193,31 @@ export const HeatMap = ({
 
     const yZoomOffset = zoomState.y / visCellWidth;
 
-    const hoverPos = {
-      top: (yIndex + yZoomOffset) * visCellWidth - 1,
-      left: (xIndex + xZoomOffset) * visCellWidth - 1,
-      size: visCellWidth + 2,
+    const cell = rows[yIndex].original.cells[xIndex];
+    const row = rows[yIndex].original;
+    const column = columnHeaders[xIndex].column;
+
+    // If somehow we are hovering a cell that doesnt exist, return
+    if (!(cell && column && row)) {
+      return;
+    }
+
+    const loadingHoverCell = {
+      top: (yIndex + yZoomOffset) * visCellWidth,
+      left: (xIndex + xZoomOffset) * visCellWidth,
+      size: visCellWidth,
       label: undefined,
       loading: true,
+      cell: cell,
     };
-    setHoverCell(hoverPos);
+    setHoverCell(loadingHoverCell);
 
-    const label = await titleAccessor(
-      rows[yIndex].original.cells[xIndex],
-      rows[yIndex].original,
-      columnHeaders[xIndex].column,
-      e.clientX - canvas.x,
-      e.clientY - canvas.y
-    );
-
-    setHoverCell((currHoverState) => {
-      if (currHoverState !== hoverPos) return currHoverState;
-      return { ...currHoverState, label, loading: false };
+    // Await the cell label
+    const label = await getCellLabel(cell, row, column);
+    // Check a new mouseMove event hasn't set the hoverCell in the meantime
+    setHoverCell((currHoverCell) => {
+      if (currHoverCell?.cell !== loadingHoverCell.cell) return currHoverCell;
+      return { ...loadingHoverCell, label, loading: false };
     });
   };
 
@@ -235,13 +244,13 @@ export const HeatMap = ({
                 key={row.id}
                 title={rowNameAccessor(row.original, index)}
               >
-                <div
+                <LabelIndicator
+                  label={row.original.sel ? 'Selected' : ''}
+                  visible={hasSomeSelected}
                   className={[
                     classes['label-indicator'],
                     row.original.sel ? classes['label-indicator--primary'] : '',
                   ].join(' ')}
-                  title={row.original.sel ? 'Selected' : ''}
-                  style={{ display: hasSomeSelected ? undefined : 'none' }}
                 />
                 <div
                   className={[
@@ -278,8 +287,9 @@ export const HeatMap = ({
                     header.getContext()
                   )?.toString()}
                 >
-                  <div
-                    title={colType}
+                  <LabelIndicator
+                    label={colType}
+                    visible={true}
                     className={[
                       classes['label-indicator'],
                       classes[
@@ -305,16 +315,17 @@ export const HeatMap = ({
               ref={canvasRef}
               width={dynamicCanvasWidth}
               height={(dynamicCanvasWidth / width) * height}
-              onMouseMove={handleMouseMove}
+              onMouseMove={handleHeatmapMove}
+              onMouseOut={hoverState.hoverCancel}
             />
             <div
               className={classes['heatmap-hovercell']}
-              ref={setTipTarget}
+              hidden={!hoverState.isHovering}
+              ref={setHoverCellElement}
               key={JSON.stringify([
-                hoverCell?.left,
-                hoverCell?.top,
-                hoverCell?.size,
-                hoverCell?.loading,
+                hoverCell?.cell.cell_id,
+                zoomState,
+                hoverState.isHovering,
               ])}
               style={{
                 left: `${hoverCell?.left ?? 0}px`,
@@ -326,12 +337,13 @@ export const HeatMap = ({
           </div>
         </div>
       </div>
-      <Tooltip target={tipTarget} visible={true}>
+      <Tooltip target={hoverCellElement} visible={hoverState.isHovering}>
         {hoverCell?.loading ? <Loader /> : hoverCell?.label}
       </Tooltip>
     </>
   );
 };
+
 const _normCol = (val: number, c: number) => (255 - c) * (1 - val) + c;
 const normValToRGBA = (val: number): Uint8Array =>
   new Uint8Array([
@@ -340,3 +352,51 @@ const normValToRGBA = (val: number): Uint8Array =>
     _normCol(val, 28),
     255,
   ]);
+
+const LabelIndicator = ({
+  className,
+  label,
+  visible,
+}: {
+  className: string;
+  label: ReactNode;
+  visible: boolean;
+}) => {
+  const hoverState = useHover();
+  const [labelEle, setLabelEle] = useState<HTMLDivElement | null>(null);
+  return (
+    <>
+      <div
+        className={className}
+        ref={setLabelEle}
+        style={{ display: visible ? undefined : 'none' }}
+        onMouseMove={hoverState.hoverMove}
+        onMouseOut={hoverState.hoverCancel}
+      />
+      <Tooltip target={labelEle} visible={hoverState.isHovering}>
+        {label}
+      </Tooltip>
+    </>
+  );
+};
+
+const useHover = () => {
+  const [isHovering, setIsHovering] = useState<boolean>(false);
+  const [hoverTimeout, setHoverTimeout] = useState<
+    ReturnType<typeof setTimeout> | undefined
+  >();
+  const hoverMove = () => {
+    if (hoverTimeout) clearTimeout(hoverTimeout);
+    setHoverTimeout(
+      setTimeout(() => {
+        setIsHovering(true);
+      }, 200)
+    );
+  };
+  const hoverCancel = () => {
+    if (hoverTimeout) clearTimeout(hoverTimeout);
+    setHoverTimeout(undefined);
+    setIsHovering(false);
+  };
+  return { isHovering, hoverMove, hoverCancel, setIsHovering };
+};
