@@ -78,3 +78,24 @@ export const TooltipContainer = () => {
 
   return <div ref={setPortalElement}></div>;
 };
+
+export const useHover = () => {
+  const [isHovering, setIsHovering] = useState<boolean>(false);
+  const [hoverTimeout, setHoverTimeout] = useState<
+    ReturnType<typeof setTimeout> | undefined
+  >();
+  const hoverMove = () => {
+    if (hoverTimeout) clearTimeout(hoverTimeout);
+    setHoverTimeout(
+      setTimeout(() => {
+        setIsHovering(true);
+      }, 200)
+    );
+  };
+  const hoverCancel = () => {
+    if (hoverTimeout) clearTimeout(hoverTimeout);
+    setHoverTimeout(undefined);
+    setIsHovering(false);
+  };
+  return { isHovering, hoverMove, hoverCancel, setIsHovering };
+};
