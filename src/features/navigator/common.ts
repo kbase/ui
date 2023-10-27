@@ -2,7 +2,7 @@ import { Cell } from '../../common/types/NarrativeDoc';
 import { generatePathWithSearchParams } from '../../features/params/paramsSlice';
 
 export const AUTOMATIC_REFRESH_DELAY = 15000;
-const KBASE_DOMAIN = process.env.REACT_APP_KBASE_DOMAIN || 'ci.kbase.us';
+const KBASE_DOMAIN = import.meta.env.VITE_KBASE_DOMAIN || 'ci.kbase.us';
 
 // Narrative and Navigator paths
 export const narrativeURL = (wsId: number | string) =>

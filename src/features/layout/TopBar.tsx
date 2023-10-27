@@ -262,10 +262,10 @@ const UserAvatar = () => {
       if (gravatarHash) {
         return `https://www.gravatar.com/avatar/${gravatarHash}?s=300&r=pg&d=${gravatarDefault}`;
       } else {
-        return `https://${process.env.REACT_APP_KBASE_LEGACY_DOMAIN}/images/nouserpic.png`;
+        return `https://${import.meta.env.VITE_KBASE_LEGACY_DOMAIN}/images/nouserpic.png`;
       }
     } else {
-      return `https://${process.env.REACT_APP_KBASE_LEGACY_DOMAIN}/images/nouserpic.png`;
+      return `https://${import.meta.env.VITE_KBASE_LEGACY_DOMAIN}/images/nouserpic.png`;
     }
   }, [profData]);
   return <img src={avatarUri} alt={'avatar'} style={{ width: '40px' }} />;

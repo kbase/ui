@@ -54,9 +54,9 @@ export const useTokenCookie = (name: string) => {
     if (token && expires) {
       setCookieToken(token, {
         expires: new Date(expires),
-        ...(process.env.NODE_ENV === 'development'
+        ...(import.meta.env.DEV
           ? {}
-          : { domain: process.env.REACT_APP_KBASE_DOMAIN }),
+          : { domain: import.meta.env.VITE_KBASE_DOMAIN }),
       });
     } else if (token && !expires) {
       // eslint-disable-next-line no-console

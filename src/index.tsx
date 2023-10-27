@@ -14,7 +14,7 @@ const root = container && createRoot(container);
 const Root: React.FC = () => (
   <React.StrictMode>
     <Provider store={store}>
-      <Router basename={process.env.PUBLIC_URL}>
+      <Router basename={import.meta.env.BASE_URL}>
         <App />
       </Router>
     </Provider>
