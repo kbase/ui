@@ -17,7 +17,7 @@ import { ModalDialog } from '../features/layout/Modal';
 import { useLoggedInProfileUser } from '../features/profile/profileSlice';
 import Routes from './Routes';
 import classes from './App.module.scss';
-import { RootTooltip } from '../common/components/Tooltip';
+import { TooltipContainer } from '../common/components/Tooltip';
 
 const useInitApp = () => {
   const dispatch = useAppDispatch();
@@ -64,7 +64,7 @@ const App: FC = () => {
             </Loader>
             <Toaster />
             <ModalDialog />
-            <RootTooltip />
+            <TooltipContainer />
           </ErrorBoundary>
         </div>
       </div>
