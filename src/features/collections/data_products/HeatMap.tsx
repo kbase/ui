@@ -18,6 +18,8 @@ import { select } from 'd3-selection';
 import { Loader } from '../../../common/components/Loader';
 import { Tooltip, useHover } from '../../../common/components/Tooltip';
 
+export const MAX_HEATMAP_PAGE = 10000;
+
 /**
  * Generic Collections HeatMap viz, accepts a table with cell values of 0-1
  */
