@@ -16,7 +16,7 @@ import { Pagination } from '../../../common/components/Table';
 import { useAppDispatch, useBackoffPolling } from '../../../common/hooks';
 import { useAppParam } from '../../params/hooks';
 import { useSelectionId } from '../collectionsSlice';
-import { HeatMap } from './HeatMap';
+import { HeatMap, MAX_HEATMAP_PAGE } from './HeatMap';
 
 export const Microtrait: FC<{
   collection_id: string;
@@ -63,7 +63,7 @@ export const Microtrait: FC<{
             }
           }}
         />
-        <Pagination table={table} maxPage={10000} />
+        <Pagination table={table} maxPage={MAX_HEATMAP_PAGE} />
       </div>
     </div>
   );
@@ -176,11 +176,13 @@ const useMicrotrait = (collection_id: string | undefined) => {
       const normVal = (v: number): number =>
         !meta ? 0 : (v - meta.min_value) / (meta.max_value - meta.min_value);
       if (type === 'float') {
-        const v = typeof value === 'number' ? value : parseFloat('' + value);
+        const v =
+          typeof value === 'number' ? value : parseFloat(value.toString());
         return normVal(v);
       }
       if (type === 'int' || type === 'count') {
-        const v = typeof value === 'number' ? value : parseInt('' + value);
+        const v =
+          typeof value === 'number' ? value : parseInt(value.toString());
         return normVal(v);
       }
       return value ? 1 : 0;
