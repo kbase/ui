@@ -139,10 +139,7 @@ export const useMessageListener = function <T = unknown>(
     const wrappedHandler = (ev: MessageEvent<T>) => {
       // When deployed we only want to listen to messages from the iframe itself
       // but we want to allow other sources for dev/test.
-      if (
-        import.meta.env.PROD &&
-        ev.source !== target.current?.contentWindow
-      )
+      if (import.meta.env.PROD && ev.source !== target.current?.contentWindow)
         return;
       handler(ev);
     };

@@ -2,8 +2,7 @@ import { render } from '@testing-library/react';
 import Root from '.';
 import { afterEach } from 'vitest';
 import { cleanup } from '@testing-library/react';
-import 'vitest-dom/extend-expect'
-
+import 'vitest-dom/extend-expect';
 
 const consoleInfo = vi.spyOn(console, 'info');
 // This mockImplementation supresses console.info calls.
