@@ -55,8 +55,8 @@ const devDomains = new Set(['', 'ci-europa.kbase.us']);
 const DevNav: FC = () => {
   const me = useAppSelector(authMe);
   useAuthMe();
-  // Show DevNav if the devDomains set contains the REACT_APP_KBASE_DOMAIN.
-  const devDomain = devDomains.has(process.env.REACT_APP_KBASE_DOMAIN || '');
+  // Show DevNav if the devDomains set contains the VITE_KBASE_DOMAIN.
+  const devDomain = devDomains.has(import.meta.env.VITE_KBASE_DOMAIN || '');
   const customroles = me && new Set(me.customroles);
   const devRole = customroles && customroles.has('UI_COLLECTIONS');
   const dev = devDomain || devRole;

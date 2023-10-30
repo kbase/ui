@@ -32,8 +32,8 @@ const useInitApp = () => {
 
   useEffect(() => {
     // eslint-disable-next-line no-console
-    console.info('Static Deploy Domain:', process.env.REACT_APP_KBASE_DOMAIN);
-    dispatch(setEnvironment(process.env.REACT_APP_KBASE_ENV ?? 'unknown'));
+    console.info('Static Deploy Domain:', import.meta.env.VITE_KBASE_DOMAIN);
+    dispatch(setEnvironment(import.meta.env.VITE_KBASE_ENV ?? 'unknown'));
   }, [dispatch, environment]);
 
   return { isLoading: !initialized };

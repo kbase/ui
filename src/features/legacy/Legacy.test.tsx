@@ -111,10 +111,10 @@ describe('Legacy', () => {
 
   test('formatLegacyUrl', () => {
     expect(formatLegacyUrl('foo/bar/')).toBe(
-      `https://${process.env.REACT_APP_KBASE_LEGACY_DOMAIN}/#foo/bar/`
+      `https://${import.meta.env.VITE_KBASE_LEGACY_DOMAIN}/#foo/bar/`
     );
     expect(formatLegacyUrl('/foo/bar/')).toBe(
-      `https://${process.env.REACT_APP_KBASE_LEGACY_DOMAIN}/#/foo/bar/`
+      `https://${import.meta.env.VITE_KBASE_LEGACY_DOMAIN}/#/foo/bar/`
     );
   });
 

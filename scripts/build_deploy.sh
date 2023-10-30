@@ -11,10 +11,10 @@ for enviro in "${enviromentsConfig[@]}"; do
   echo "Building static files for enviroment \"${envConf[0]}\"...";
 
   BUILD_PATH="./deploy/${envConf[0]}" \
-  REACT_APP_KBASE_ENV="${envConf[0]}" \
-  REACT_APP_KBASE_DOMAIN="${envConf[1]}" \
-  REACT_APP_KBASE_LEGACY_DOMAIN="${envConf[2]}" \
-  PUBLIC_URL="${envConf[3]}" \
+  VITE_KBASE_ENV="${envConf[0]}" \
+  VITE_KBASE_DOMAIN="${envConf[1]}" \
+  VITE_KBASE_LEGACY_DOMAIN="${envConf[2]}" \
+  BASE_URL="${envConf[3]}" \
   npm run build && \
   echo "Built static files for enviroment \"${envConf[0]}\".";
 done
