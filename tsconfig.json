@@ -17,7 +17,7 @@
     "strict": true,
     "strictNullChecks": true,
     "target": "es5",
-    "types":["vite/client"]
+    "types":["vite/client", "vitest/globals"]
   },
   "include": ["src"]
 }

@@ -1,7 +1,11 @@
 import { render } from '@testing-library/react';
 import Root from '.';
+import { afterEach } from 'vitest';
+import { cleanup } from '@testing-library/react';
+import 'vitest-dom/extend-expect'
 
-const consoleInfo = jest.spyOn(console, 'info');
+
+const consoleInfo = vi.spyOn(console, 'info');
 // This mockImplementation supresses console.info calls.
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 consoleInfo.mockImplementation(() => {});
@@ -13,6 +17,7 @@ describe('Europa...', () => {
 
   afterEach(() => {
     consoleInfo.mockClear();
+    cleanup();
   });
 
   beforeEach(() => {
