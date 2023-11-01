@@ -16,10 +16,9 @@ import {
   faChevronLeft,
   faCircleCheck,
 } from '@fortawesome/free-solid-svg-icons';
-import { useAppParam } from '../params/hooks';
 import { useModalControls } from '../layout/Modal';
 import { Loader } from '../../common/components/Loader';
-import { useCurrentSelection } from './collectionsSlice';
+import { useCurrentSelection, useMatchId } from './collectionsSlice';
 
 export const detailPath = ':id';
 export const detailDataProductPath = ':id/:data_product';
@@ -28,20 +27,12 @@ export const CollectionDetail = () => {
   const params = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const matchId = useAppParam('match');
-
-  const matchQuery = getMatch.useQuery(matchId || '', {
-    skip: !matchId,
-  });
-  const match = matchQuery.data;
 
   const collectionQuery = getCollection.useQuery(params.id || '', {
     skip: params.id === undefined,
   });
   const collection = collectionQuery.data;
   usePageTitle(`Data Collections`);
-
-  const selection = useCurrentSelection(collection?.id);
 
   // If the DataProduct is specified in the URL, show it, otherwise show the first DP.
   const currDataProduct =
@@ -69,6 +60,13 @@ export const CollectionDetail = () => {
     navigate,
     location.search,
   ]);
+
+  const selection = useCurrentSelection(collection?.id);
+  const matchId = useMatchId(collection?.id);
+  const matchQuery = getMatch.useQuery(matchId || '', {
+    skip: !matchId,
+  });
+  const match = matchQuery.data;
 
   const modal = useModalControls();
   type ModalView = 'match' | 'select' | 'export';

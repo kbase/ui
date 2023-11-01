@@ -6,6 +6,7 @@ import {
   useAppSelector,
   useBackoffPolling,
 } from '../../common/hooks';
+import { useAppParam } from '../params/hooks';
 
 interface SelectionState {
   current: string[];
@@ -13,8 +14,13 @@ interface SelectionState {
   _verifiedId?: string;
 }
 
+interface MatchState {
+  id?: string;
+}
+
 interface ClnState {
   selection: SelectionState;
+  match: MatchState;
 }
 
 interface CollectionsState {
@@ -23,6 +29,7 @@ interface CollectionsState {
 
 const initialCollection: ClnState = {
   selection: { current: [] },
+  match: {},
 };
 
 const initialState: CollectionsState = {
@@ -64,6 +71,15 @@ export const CollectionSlice = createSlice({
         cln.selection._pendingId = undefined;
       }
     },
+    setMatchId: (
+      state,
+      {
+        payload: [collectionId, matchId],
+      }: PayloadAction<[collectionId: string, matchId: string | undefined]>
+    ) => {
+      const cln = collectionState(state, collectionId);
+      cln.match.id = matchId;
+    },
   },
 });
 
@@ -84,8 +100,12 @@ const selectionChanged = (list1: string[], list2: string[]) =>
   list1.length !== list2.length || list1.some((upa) => !list2.includes(upa));
 
 export default CollectionSlice.reducer;
-export const { setLocalSelection, setSelectionId, setPendingSelectionId } =
-  CollectionSlice.actions;
+export const {
+  setLocalSelection,
+  setSelectionId,
+  setPendingSelectionId,
+  setMatchId,
+} = CollectionSlice.actions;
 
 export const useCurrentSelection = (collectionId: string | undefined) =>
   useAppSelector((state) =>
@@ -170,4 +190,19 @@ export const useSelectionId = (
   ]);
 
   return _verifiedId;
+};
+
+export const useMatchId = (collectionId: string | undefined) => {
+  const dispatch = useAppDispatch();
+  const matchIdParm = useAppParam('match');
+  const matchId = useAppSelector((state) =>
+    collectionId ? state.collections.clns[collectionId]?.match.id : undefined
+  );
+  const shouldUpdate = collectionId && matchIdParm !== matchId;
+  useEffect(() => {
+    if (shouldUpdate) {
+      dispatch(setMatchId([collectionId, matchIdParm]));
+    }
+  }, [collectionId, dispatch, matchIdParm, shouldUpdate]);
+  return matchId;
 };

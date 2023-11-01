@@ -14,8 +14,7 @@ import {
 } from '../../../common/api/collectionsApi';
 import { Pagination } from '../../../common/components/Table';
 import { useBackoffPolling } from '../../../common/hooks';
-import { useAppParam } from '../../params/hooks';
-import { useSelectionId } from '../collectionsSlice';
+import { useMatchId, useSelectionId } from '../collectionsSlice';
 import { HeatMap } from './HeatMap';
 
 export const Microtrait: FC<{
@@ -58,7 +57,7 @@ export const Microtrait: FC<{
 };
 
 const useMicrotrait = (collection_id: string | undefined) => {
-  const matchId = useAppParam('match');
+  const matchId = useMatchId(collection_id);
   const selId = useSelectionId(collection_id || '', {
     skip: !collection_id,
   });
