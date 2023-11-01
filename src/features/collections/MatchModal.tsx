@@ -10,12 +10,8 @@ import { listObjects } from '../../common/api/workspaceApi';
 import { getNarratives } from '../../common/api/searchApi';
 import { parseError } from '../../common/api/utils/parseError';
 import { useAppParam, useUpdateAppParams } from '../params/hooks';
-import {
-  useAppDispatch,
-  useAppSelector,
-  useBackoffPolling,
-} from '../../common/hooks';
-import { setUserSelection } from './collectionsSlice';
+import { useAppDispatch, useBackoffPolling } from '../../common/hooks';
+import { setLocalSelection, useCurrentSelection } from './collectionsSlice';
 import { store } from '../../app/store';
 import { useParamsForNarrativeDropdown } from './hooks';
 import { MatcherUserParams } from './MatcherUserParams';
@@ -27,19 +23,17 @@ export const MatchModal = ({ collectionId }: { collectionId: string }) => {
   const matchId = useAppParam('match');
 
   return matchId ? (
-    <ViewMatch key={matchId} />
+    <ViewMatch collectionId={collectionId} key={matchId} />
   ) : (
     <CreateMatch collectionId={collectionId} />
   );
 };
 
-const ViewMatch = () => {
+const ViewMatch = ({ collectionId }: { collectionId: string }) => {
   const dispatch = useAppDispatch();
   const matchId = useAppParam('match');
   const updateAppParams = useUpdateAppParams();
-  const selectionSize = useAppSelector(
-    (state) => state.collections.currentSelection.length
-  );
+  const selectionSize = useCurrentSelection(collectionId).length;
 
   const matchQuery = getMatch.useQuery(matchId || '', {
     skip: !matchId,
@@ -63,27 +57,22 @@ const ViewMatch = () => {
 
   const handleSelectAll = () => {
     if (match?.state !== 'complete') return;
-    dispatch(
-      setUserSelection(
-        Array.from(
-          new Set([
-            ...store.getState().collections.currentSelection,
-            ...match.matches,
-          ])
-        )
-      )
+    const all = Array.from(
+      new Set([
+        ...(store.getState().collections.clns[collectionId]?.selection
+          .current ?? []),
+        ...match.matches,
+      ])
     );
+    dispatch(setLocalSelection([collectionId, all]));
   };
   const handleDeselectAll = () => {
     if (match?.state !== 'complete') return;
     const matchSet = new Set(match.matches);
-    dispatch(
-      setUserSelection(
-        store
-          .getState()
-          .collections.currentSelection.filter((sel) => !matchSet.has(sel))
-      )
-    );
+    const minusMatch = (
+      store.getState().collections.clns[collectionId]?.selection.current ?? []
+    ).filter((sel) => !matchSet.has(sel));
+    dispatch(setLocalSelection([collectionId, minusMatch]));
   };
 
   const matchTooLargeForSelection =

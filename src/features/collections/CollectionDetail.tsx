@@ -10,7 +10,6 @@ import { MATCHER_LABELS, MatchModal } from './MatchModal';
 import { SelectionModal } from './SelectionModal';
 import { ExportModal } from './ExportModal';
 import { Button } from '../../common/components';
-import { useAppSelector } from '../../common/hooks';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faArrowRightArrowLeft,
@@ -20,6 +19,7 @@ import {
 import { useAppParam } from '../params/hooks';
 import { useModalControls } from '../layout/Modal';
 import { Loader } from '../../common/components/Loader';
+import { useCurrentSelection } from './collectionsSlice';
 
 export const detailPath = ':id';
 export const detailDataProductPath = ':id/:data_product';
@@ -29,10 +29,6 @@ export const CollectionDetail = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const matchId = useAppParam('match');
-
-  const selection = useAppSelector(
-    (state) => state.collections.currentSelection
-  );
 
   const matchQuery = getMatch.useQuery(matchId || '', {
     skip: !matchId,
@@ -44,6 +40,8 @@ export const CollectionDetail = () => {
   });
   const collection = collectionQuery.data;
   usePageTitle(`Data Collections`);
+
+  const selection = useCurrentSelection(collection?.id);
 
   // If the DataProduct is specified in the URL, show it, otherwise show the first DP.
   const currDataProduct =
