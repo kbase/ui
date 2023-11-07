@@ -1,14 +1,14 @@
 @import "../colors";
 
 .sidebar {
+  background-color: #fff;
   border-left: 1px solid use-color("silver");
   border-right: 1px solid use-color("silver");
   display: inline-block;
-  width: 250px;
   height: 100%;
   overflow-y: auto;
-  background-color: #ffffff;
   padding: 0.5rem;
+  width: 250px;
 }
 
 .sidebar ul {
@@ -43,6 +43,6 @@
 }
 
 .sidebar li a {
-  text-decoration: none;
   color: inherit;
+  text-decoration: none;
 }
