@@ -1,9 +1,6 @@
-import { DataProduct, listCollections } from '../../common/api/collectionsApi';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import classes from './Sidebar.module.scss';
-import { Card, CardList } from '../../common/components/Card';
 import { FC, ReactElement } from 'react';
-import { snakeCaseToHumanReadable } from '../../common/utils/stringUtils';
 import { Link } from 'react-router-dom';
 
 export interface SidebarItem {
@@ -16,7 +13,7 @@ export interface SidebarItem {
 }
 
 /**
- * 
+ *
  */
 export const Sidebar: FC<{
   header?: ReactElement;
@@ -26,14 +23,9 @@ export const Sidebar: FC<{
   const location = useLocation();
   let classNames = classes['sidebar'];
   if (className) classNames += ` ${className}`;
-  console.log(className);
   return (
     <div className={classNames}>
-      {header && (
-        <div className={classes['header']}>
-          {header}
-        </div>
-      )}
+      {header && <div className={classes['header']}>{header}</div>}
       <ul>
         {items.map((item, i) => (
           <li
@@ -63,10 +55,11 @@ export const Sidebar: FC<{
   );
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getItemClassNames = (item: SidebarItem, classes: any) => {
   let itemClassNames = classes['sidebar-item'];
   if (item.isSelected) itemClassNames += ` ${classes['selected']}`;
   if (item.isSubItem) itemClassNames += ` ${classes['sub-item']}`;
   if (item.isSectionLabel) itemClassNames += ` ${classes['section-label']}`;
-  return itemClassNames
-}
+  return itemClassNames;
+};
