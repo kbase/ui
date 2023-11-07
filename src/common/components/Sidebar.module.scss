@@ -1,0 +1,48 @@
+@import "../colors";
+
+.sidebar {
+  border-left: 1px solid use-color("silver");
+  border-right: 1px solid use-color("silver");
+  display: inline-block;
+  width: 250px;
+  height: 100%;
+  overflow-y: auto;
+  background-color: #ffffff;
+  padding: 0.5rem;
+}
+
+.sidebar ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sidebar li.sidebar-item {
+  border-radius: 4px;
+  padding: 0.5rem;
+  transition: 0.25s;
+}
+
+.sidebar li.sidebar-item:hover {
+  background-color: use-color("primary-lightest");
+}
+
+.sidebar li.sub-item {
+  // border-left: 1px solid use-color("silver");
+  padding-left: 2rem;
+}
+
+.sidebar li.section-label {
+  font-size: 0.85rem;
+}
+
+.sidebar li .item-icon {
+  display: inline-block;
+  margin-right: 0.5rem;
+  width: 1rem;
+}
+
+.sidebar li a {
+  text-decoration: none;
+  color: inherit;
+}
