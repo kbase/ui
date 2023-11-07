@@ -20,6 +20,7 @@ import {
 import { useAppParam } from '../params/hooks';
 import { useModalControls } from '../layout/Modal';
 import { Loader } from '../../common/components/Loader';
+import { CollectionSidebar } from './CollectionSidebar';
 
 export const detailPath = ':id';
 export const detailDataProductPath = ':id/:data_product';
@@ -79,98 +80,106 @@ export const CollectionDetail = () => {
   if (!collection) return <Loader type="spinner" />;
   return (
     <div className={styles['collection_wrapper']}>
-      <div className={styles['collection_detail']}>
-        <div>
-          <Button
-            variant="text"
-            role="link"
-            icon={<FontAwesomeIcon icon={faChevronLeft} />}
-            onClick={() => {
-              navigate('/collections');
-            }}
-          >
-            Back to Collections
-          </Button>
+      <CollectionSidebar
+        className={styles['collection_sidebar']}
+        collectionId={collection.id}
+        currDataProduct={currDataProduct}
+        dataProducts={collection.data_products}
+      />
+      <div className={styles['collection_main']}>
+        <div className={styles['collection_detail']}>
+          <div>
+            <Button
+              variant="text"
+              role="link"
+              icon={<FontAwesomeIcon icon={faChevronLeft} />}
+              onClick={() => {
+                navigate('/collections');
+              }}
+            >
+              Back to Collections
+            </Button>
+          </div>
         </div>
-      </div>
-      <div className={styles['collection_detail']}>
-        <div className={styles['detail_header']}>
-          <img
-            src={collection.icon_url}
-            alt={`${collection.name} collection icon`}
-          />
-          <span>{collection.name}</span>
-        </div>
-
-        <p>{collection.desc}</p>
-
-        <ul>
-          <li>
-            Version:{' '}
-            <strong>
-              v{collection.ver_num}: {collection.ver_tag}
-            </strong>
-          </li>
-        </ul>
-      </div>
-
-      <div className={styles['collection_detail']}>
-        <div className={styles['collection_toolbar']}>
-          <Button
-            icon={<FontAwesomeIcon icon={faArrowRightArrowLeft} />}
-            variant="outlined"
-            color={match ? 'primary' : 'primary-lighter'}
-            textColor={match ? 'primary-lighter' : 'primary'}
-            onClick={() => {
-              setModalView('match');
-              modal?.show();
-            }}
-          >
-            {match
-              ? `Matching by ${MATCHER_LABELS.get(match.matcher_id)}`
-              : `Match my Data`}
-          </Button>
-          <Button
-            icon={<FontAwesomeIcon icon={faCircleCheck} />}
-            variant="outlined"
-            color={selection.length > 0 ? 'primary' : 'primary-lighter'}
-            textColor={selection.length > 0 ? 'primary-lighter' : 'primary'}
-            onClick={() => {
-              setModalView('select');
-              modal?.show();
-            }}
-          >
-            {`${selection.length} items in selection`}
-          </Button>
-        </div>
-      </div>
-
-      <div className={styles['data_products']}>
-        <CardList className={styles['data_product_list']}>
-          {collection.data_products.map((dp) => (
-            <Card
-              key={dp.product + '|' + dp.version}
-              title={snakeCaseToHumanReadable(dp.product)}
-              subtitle={dp.version}
-              onClick={() =>
-                navigate({
-                  pathname: `/collections/${collection.id}/${dp.product}`,
-                  search: location.search,
-                })
-              }
-              selected={currDataProduct === dp}
+        <div className={styles['collection_detail']}>
+          <div className={styles['detail_header']}>
+            <img
+              src={collection.icon_url}
+              alt={`${collection.name} collection icon`}
             />
-          ))}
-        </CardList>
-        <div className={styles['data_product_detail']}>
-          {currDataProduct ? (
-            <DataProduct
-              dataProduct={currDataProduct}
-              collection_id={collection.id}
-            />
-          ) : (
-            <></>
-          )}
+            <span>{collection.name}</span>
+          </div>
+
+          <p>{collection.desc}</p>
+
+          <ul>
+            <li>
+              Version:{' '}
+              <strong>
+                v{collection.ver_num}: {collection.ver_tag}
+              </strong>
+            </li>
+          </ul>
+        </div>
+
+        <div className={styles['collection_detail']}>
+          <div className={styles['collection_toolbar']}>
+            <Button
+              icon={<FontAwesomeIcon icon={faArrowRightArrowLeft} />}
+              variant="outlined"
+              color={match ? 'primary' : 'primary-lighter'}
+              textColor={match ? 'primary-lighter' : 'primary'}
+              onClick={() => {
+                setModalView('match');
+                modal?.show();
+              }}
+            >
+              {match
+                ? `Matching by ${MATCHER_LABELS.get(match.matcher_id)}`
+                : `Match my Data`}
+            </Button>
+            <Button
+              icon={<FontAwesomeIcon icon={faCircleCheck} />}
+              variant="outlined"
+              color={selection.length > 0 ? 'primary' : 'primary-lighter'}
+              textColor={selection.length > 0 ? 'primary-lighter' : 'primary'}
+              onClick={() => {
+                setModalView('select');
+                modal?.show();
+              }}
+            >
+              {`${selection.length} items in selection`}
+            </Button>
+          </div>
+        </div>
+
+        <div className={styles['data_products']}>
+          <CardList className={styles['data_product_list']}>
+            {collection.data_products.map((dp) => (
+              <Card
+                key={dp.product + '|' + dp.version}
+                title={snakeCaseToHumanReadable(dp.product)}
+                subtitle={dp.version}
+                onClick={() =>
+                  navigate({
+                    pathname: `/collections/${collection.id}/${dp.product}`,
+                    search: location.search,
+                  })
+                }
+                selected={currDataProduct === dp}
+              />
+            ))}
+          </CardList>
+          <div className={styles['data_product_detail']}>
+            {currDataProduct ? (
+              <DataProduct
+                dataProduct={currDataProduct}
+                collection_id={collection.id}
+              />
+            ) : (
+              <></>
+            )}
+          </div>
         </div>
       </div>
       {modalView === 'match' ? (

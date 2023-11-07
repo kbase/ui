@@ -5,12 +5,14 @@ $border: 1px solid use-color("base-lighter");
 .collection_wrapper {
   background-color: use-color("base-lightest");
   display: flex;
-  flex-flow: column nowrap;
-  gap: 10px;
   height: auto;
-  min-height: 100%;
-  padding: 10px;
+  height: 100%;
   width: 100%;
+}
+
+.collection_wrapper .collection_main {
+  flex: 1;
+  overflow: hidden;
 }
 
 .collection_detail,
