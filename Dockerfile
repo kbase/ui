@@ -1,5 +1,5 @@
 FROM cgr.dev/chainguard/nginx
-USER root
+## USER root
 
 ## Install sed command needed for startup script
 RUN apk add --no-cache sed jq
