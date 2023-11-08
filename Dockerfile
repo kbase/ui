@@ -1,4 +1,4 @@
-FROM nginx:stable-alpine3.17-slim
+FROM cgr.dev/chainguard/nginx
 USER root
 
 ## Install sed command needed for startup script
