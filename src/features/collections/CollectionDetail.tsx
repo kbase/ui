@@ -2,7 +2,6 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { getCollection, getMatch } from '../../common/api/collectionsApi';
 import { usePageTitle } from '../layout/layoutSlice';
 import styles from './Collections.module.scss';
-import { Card, CardList } from '../../common/components/Card';
 import { useEffect, useState } from 'react';
 import { DataProduct } from './DataProduct';
 import { snakeCaseToHumanReadable } from '../../common/utils/stringUtils';
@@ -14,7 +13,6 @@ import { useAppSelector } from '../../common/hooks';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faArrowRightArrowLeft,
-  faChevronLeft,
   faCircleCheck,
 } from '@fortawesome/free-solid-svg-icons';
 import { useAppParam } from '../params/hooks';
@@ -82,26 +80,12 @@ export const CollectionDetail = () => {
     <div className={styles['collection_wrapper']}>
       <CollectionSidebar
         className={styles['collection_sidebar']}
-        collectionId={collection.id}
+        collection={collection}
         currDataProduct={currDataProduct}
         dataProducts={collection.data_products}
       />
       <div className={styles['collection_main']}>
-        <div className={styles['collection_detail']}>
-          <div>
-            <Button
-              variant="text"
-              role="link"
-              icon={<FontAwesomeIcon icon={faChevronLeft} />}
-              onClick={() => {
-                navigate('/collections');
-              }}
-            >
-              Back to Collections
-            </Button>
-          </div>
-        </div>
-        <div className={styles['collection_detail']}>
+        {/* <div className={styles['collection_detail']}>
           <div className={styles['detail_header']}>
             <img
               src={collection.icon_url}
@@ -120,8 +104,14 @@ export const CollectionDetail = () => {
               </strong>
             </li>
           </ul>
+        </div> */}
+        <div className={styles['collection_detail']}>
+          <h2>
+            {currDataProduct &&
+              snakeCaseToHumanReadable(currDataProduct.product)}
+          </h2>
+          <div>Search</div>
         </div>
-
         <div className={styles['collection_detail']}>
           <div className={styles['collection_toolbar']}>
             <Button
@@ -154,7 +144,7 @@ export const CollectionDetail = () => {
         </div>
 
         <div className={styles['data_products']}>
-          <CardList className={styles['data_product_list']}>
+          {/* <CardList className={styles['data_product_list']}>
             {collection.data_products.map((dp) => (
               <Card
                 key={dp.product + '|' + dp.version}
@@ -169,7 +159,7 @@ export const CollectionDetail = () => {
                 selected={currDataProduct === dp}
               />
             ))}
-          </CardList>
+          </CardList> */}
           <div className={styles['data_product_detail']}>
             {currDataProduct ? (
               <DataProduct
