@@ -9,7 +9,7 @@ export const CollectionsList = () => {
   usePageTitle('Data Collections');
   const collections = listCollections.useQuery();
   return (
-    <div className={classes['collection_wrapper']}>
+    <div className={classes['container']}>
       <CardList>
         {collections.isSuccess
           ? collections.data?.data.map((collection) => {

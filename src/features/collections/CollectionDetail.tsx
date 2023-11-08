@@ -85,34 +85,11 @@ export const CollectionDetail = () => {
         dataProducts={collection.data_products}
       />
       <div className={styles['collection_main']}>
-        {/* <div className={styles['collection_detail']}>
-          <div className={styles['detail_header']}>
-            <img
-              src={collection.icon_url}
-              alt={`${collection.name} collection icon`}
-            />
-            <span>{collection.name}</span>
-          </div>
-
-          <p>{collection.desc}</p>
-
-          <ul>
-            <li>
-              Version:{' '}
-              <strong>
-                v{collection.ver_num}: {collection.ver_tag}
-              </strong>
-            </li>
-          </ul>
-        </div> */}
-        <div className={styles['collection_detail']}>
+        <div className={styles['detail_header']}>
           <h2>
             {currDataProduct &&
               snakeCaseToHumanReadable(currDataProduct.product)}
           </h2>
-          <div>Search</div>
-        </div>
-        <div className={styles['collection_detail']}>
           <div className={styles['collection_toolbar']}>
             <Button
               icon={<FontAwesomeIcon icon={faArrowRightArrowLeft} />}
@@ -142,24 +119,7 @@ export const CollectionDetail = () => {
             </Button>
           </div>
         </div>
-
-        <div className={styles['data_products']}>
-          {/* <CardList className={styles['data_product_list']}>
-            {collection.data_products.map((dp) => (
-              <Card
-                key={dp.product + '|' + dp.version}
-                title={snakeCaseToHumanReadable(dp.product)}
-                subtitle={dp.version}
-                onClick={() =>
-                  navigate({
-                    pathname: `/collections/${collection.id}/${dp.product}`,
-                    search: location.search,
-                  })
-                }
-                selected={currDataProduct === dp}
-              />
-            ))}
-          </CardList> */}
+        <div className={styles['container']}>
           <div className={styles['data_product_detail']}>
             {currDataProduct ? (
               <DataProduct

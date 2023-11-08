@@ -2,6 +2,12 @@
 
 $border: 1px solid use-color("base-lighter");
 
+.container {
+  background-color: use-color("base-lightest");
+  height: 100%;
+  padding: 1rem;
+}
+
 .collection_wrapper {
   background-color: use-color("base-lightest");
   display: flex;
@@ -23,47 +29,14 @@ $border: 1px solid use-color("base-lighter");
 }
 
 .detail_header {
-  align-items: center;
-  display: flex;
-  flex-flow: row nowrap;
-  font-size: 24px;
-  gap: 10px;
-  justify-content: stretch;
-  width: 100%;
-
-  > * {
-    flex-grow: 1;
-    flex-shrink: 1;
-  }
-
-  > img {
-    flex-grow: 0;
-    flex-shrink: 0;
-    height: 64px;
-    width: 64px;
-  }
+  background-color: use-color("white");
+  border-bottom: 1px solid use-color("silver");
+  padding: 1rem;
 }
 
-.data_products {
-  align-items: stretch;
-  background-color: use-color("white");
-  display: flex;
-  flex-flow: row nowrap;
-  width: 100%;
-
-  > .data_product_list {
-    flex-grow: 0;
-    flex-shrink: 0;
-    width: 8em;
-  }
-
-  > .data_product_detail {
-    border-left: 0;
-    flex-grow: 1;
-    flex-shrink: 1;
-    min-height: 100px;
-    min-width: 10%;
-  }
+.detail_header h2 {
+  margin-bottom: 0.5rem;
+  margin-top: 0;
 }
 
 .match-highlight {
