@@ -64,6 +64,7 @@ export const CollectionSidebar: FC<{
     {
       displayText: 'Overview',
       pathname: `/collections/${collection.id}/overview`,
+      isSelected: currDataProduct?.product === 'overview',
     },
     ...genomesItems,
     ...samplesItems,
