@@ -33,7 +33,10 @@ export const Sidebar: FC<{
             className={getItemClassNames(item, classes)}
           >
             {item.pathname && (
-              <Link to={{ pathname: item.pathname, search: location.search }}>
+              <Link
+                to={{ pathname: item.pathname, search: location.search }}
+                className={classes['sidebar-item-inner']}
+              >
                 {item.icon && (
                   <span className={classes['item-icon']}>{item.icon}</span>
                 )}
@@ -41,7 +44,7 @@ export const Sidebar: FC<{
               </Link>
             )}
             {!item.pathname && (
-              <span>
+              <span className={classes['sidebar-item-inner']}>
                 {item.icon && (
                   <span className={classes['item-icon']}>{item.icon}</span>
                 )}
