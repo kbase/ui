@@ -42,7 +42,7 @@
 }
 
 @each $state, $_ in $palette {
-  .button--#{$state} {
+  .contained.button--#{$state} {
     background-color: use-color($state);
 
     @if (lightness(use-color($state)) > 40) {
@@ -63,6 +63,26 @@
       &:focus {
         background-color: use-color($state + "-darker");
         color: use-color("white");
+      }
+    }
+  }
+
+  .text.button--#{$state} {
+    background: none;
+    color: use-color($state);
+    font-weight: bold;
+
+    @if (use-color($state + "-dark")) {
+      &:hover {
+        background-color: use-color("light-gray");
+        color: use-color($state + "-dark");
+        opacity: 1;
+      }
+    }
+
+    @if (use-color($state + "-dark")) {
+      &:focus {
+        color: use-color($state + "-darker");
       }
     }
   }
