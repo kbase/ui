@@ -28,6 +28,7 @@ export const Button: FC<ButtonProps> = ({
   const classNames = [
     classes.button,
     className,
+    classes[variant],
     classes[`button--${color}`],
     textColor ? classes[`button-text--${textColor}`] : '',
     classes[size],
