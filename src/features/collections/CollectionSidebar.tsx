@@ -17,6 +17,10 @@ import { useNavigate } from 'react-router-dom';
 import classes from './Collections.module.scss';
 import { IconProp } from '@fortawesome/fontawesome-svg-core';
 
+/**
+ * List of data product ids that should be grouped into the
+ * "Genomes" category.
+ */
 const genomesDataProducts = [
   'genome_attribs',
   'microtrait',
@@ -24,10 +28,19 @@ const genomesDataProducts = [
   'biolog',
 ];
 
+/**
+ * List of data product ids that should be grouped into the
+ * "Samples" category.
+ */
+const samplesDataProducts = ['samples'];
+
 interface DataProductIconMap {
   [id: string]: IconProp;
 }
 
+/**
+ * Map data product ids to an icon component
+ */
 const dataProductIcon: DataProductIconMap = {
   overview: faList,
   genome_attribs: faDna,
@@ -37,23 +50,20 @@ const dataProductIcon: DataProductIconMap = {
   samples: faVial,
 };
 
-const samplesDataProducts = ['samples'];
-
 /**
- *
+ * Implementation of the Sidebar component for the CollectionDetail pages.
+ * Takes a collection and renders its data products into a navigation sidebar.
  */
 export const CollectionSidebar: FC<{
   collection: Collection;
   currDataProduct?: DataProduct;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  dataProducts: any[];
   className?: string;
-}> = ({ collection, currDataProduct, dataProducts, className }) => {
+}> = ({ collection, currDataProduct, className }) => {
   const navigate = useNavigate();
   const genomesItems: SidebarItem[] = [];
   const samplesItems: SidebarItem[] = [];
 
-  dataProducts?.forEach((dp) => {
+  collection.data_products?.forEach((dp) => {
     const dpItem = {
       displayText: snakeCaseToHumanReadable(dp.product),
       pathname: `/collections/${collection.id}/${dp.product}`,
@@ -67,6 +77,7 @@ export const CollectionSidebar: FC<{
     }
   });
 
+  // First item in genomeItems should be a section label
   if (genomesItems.length > 0) {
     genomesItems.unshift({
       displayText: 'Genomes',
@@ -74,6 +85,7 @@ export const CollectionSidebar: FC<{
     });
   }
 
+  // First item in samplesItems should be a section label
   if (samplesItems.length > 0) {
     samplesItems.unshift({
       displayText: 'Samples',
@@ -82,6 +94,8 @@ export const CollectionSidebar: FC<{
   }
 
   const items: SidebarItem[] = [
+    // Right now the Overview item is added manually
+    // In the future this could be part of collection.data_products
     {
       displayText: 'Overview',
       pathname: `/collections/${collection.id}/overview`,
