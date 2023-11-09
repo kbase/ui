@@ -82,7 +82,6 @@ export const CollectionDetail = () => {
         className={styles['collection_sidebar']}
         collection={collection}
         currDataProduct={currDataProduct}
-        dataProducts={collection.data_products}
       />
       <div className={styles['collection_main']}>
         <div className={styles['detail_header']}>

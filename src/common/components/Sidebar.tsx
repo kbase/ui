@@ -8,12 +8,11 @@ export interface SidebarItem {
   pathname?: string;
   isSelected?: boolean;
   isSectionLabel?: boolean;
-  isSubItem?: boolean;
   icon?: ReactElement;
 }
 
 /**
- *
+ * Generic sidebar navigation component
  */
 export const Sidebar: FC<{
   header?: ReactElement;
@@ -62,7 +61,6 @@ export const Sidebar: FC<{
 const getItemClassNames = (item: SidebarItem, classes: any) => {
   let itemClassNames = classes['sidebar-item'];
   if (item.isSelected) itemClassNames += ` ${classes['selected']}`;
-  if (item.isSubItem) itemClassNames += ` ${classes['sub-item']}`;
   if (item.isSectionLabel) itemClassNames += ` ${classes['section-label']}`;
   return itemClassNames;
 };
