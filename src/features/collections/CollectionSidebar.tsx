@@ -3,10 +3,19 @@ import { FC } from 'react';
 import { snakeCaseToHumanReadable } from '../../common/utils/stringUtils';
 import { Sidebar, SidebarItem } from '../../common/components/Sidebar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faDna, faArrowLeft, faVial } from '@fortawesome/free-solid-svg-icons';
+import {
+  faDna,
+  faArrowLeft,
+  faVial,
+  faChartBar,
+  faTableCells,
+  faMicroscope,
+  faList,
+} from '@fortawesome/free-solid-svg-icons';
 import { Button } from '../../common/components/Button';
 import { useNavigate } from 'react-router-dom';
 import classes from './Collections.module.scss';
+import { IconProp } from '@fortawesome/fontawesome-svg-core';
 
 const genomesDataProducts = [
   'genome_attribs',
@@ -14,6 +23,19 @@ const genomesDataProducts = [
   'taxa_count',
   'biolog',
 ];
+
+interface DataProductIconMap {
+  [id: string]: IconProp;
+}
+
+const dataProductIcon: DataProductIconMap = {
+  overview: faList,
+  genome_attribs: faDna,
+  microtrait: faTableCells,
+  taxa_count: faChartBar,
+  biolog: faMicroscope,
+  samples: faVial,
+};
 
 const samplesDataProducts = ['samples'];
 
@@ -35,6 +57,7 @@ export const CollectionSidebar: FC<{
     const dpItem = {
       displayText: snakeCaseToHumanReadable(dp.product),
       pathname: `/collections/${collection.id}/${dp.product}`,
+      icon: <FontAwesomeIcon icon={dataProductIcon[dp.product]} />,
       isSelected: currDataProduct === dp,
     };
     if (genomesDataProducts.indexOf(dp.product) > -1) {
@@ -47,7 +70,6 @@ export const CollectionSidebar: FC<{
   if (genomesItems.length > 0) {
     genomesItems.unshift({
       displayText: 'Genomes',
-      icon: <FontAwesomeIcon icon={faDna} />,
       isSectionLabel: true,
     });
   }
@@ -55,7 +77,6 @@ export const CollectionSidebar: FC<{
   if (samplesItems.length > 0) {
     samplesItems.unshift({
       displayText: 'Samples',
-      icon: <FontAwesomeIcon icon={faVial} />,
       isSectionLabel: true,
     });
   }
@@ -64,6 +85,7 @@ export const CollectionSidebar: FC<{
     {
       displayText: 'Overview',
       pathname: `/collections/${collection.id}/overview`,
+      icon: <FontAwesomeIcon icon={dataProductIcon['overview']} />,
       isSelected: currDataProduct?.product === 'overview',
     },
     ...genomesItems,
