@@ -10,6 +10,11 @@ import {
   setParams,
 } from '../features/params/paramsSlice';
 
+declare global {
+  interface Window {
+    gtag: Function;
+  }
+}
 // Use throughout the app instead of plain `useDispatch` and `useSelector`
 export const useAppDispatch = () => useDispatch<AppDispatch>();
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
@@ -87,4 +92,16 @@ export const useFilteredParams = () => {
     dispatch(setParams(paramsFiltered));
   }, [check.length, dispatch, loc.pathname, navigate, paramsFiltered]);
   return paramsFiltered;
+};
+
+export const usePageTracking = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    window.gtag('event', 'page_view', {
+      page_path: location.pathname + location.search + location.hash,
+      page_search: location.search,
+      page_hash: location.hash,
+    });
+  }, [location]);
 };
