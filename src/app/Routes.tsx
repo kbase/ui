@@ -22,13 +22,18 @@ import {
   detailPath,
   detailDataProductPath,
 } from '../features/collections/Collections';
-import { useAppSelector, useFilteredParams } from '../common/hooks';
+import {
+  useAppSelector,
+  useFilteredParams,
+  usePageTracking,
+} from '../common/hooks';
 
 export const LOGIN_ROUTE = '/legacy/login';
 export const ROOT_REDIRECT_ROUTE = '/narratives';
 
 const Routes: FC = () => {
   useFilteredParams();
+  usePageTracking();
   return (
     <RRRoutes>
       <Route path={`${LEGACY_BASE_ROUTE}/*`} element={<Legacy />} />
