@@ -71,6 +71,7 @@ const logError = (error: Error, info: { componentStack: string }) => {
 describe('The <Navigator /> component...', () => {
   beforeAll(() => {
     enableFetchMocks();
+    window.gtag = jest.fn();
   });
 
   afterAll(() => {

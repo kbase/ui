@@ -81,6 +81,7 @@ consoleError.mockImplementation(() => {});
 describe('Profile related components', () => {
   beforeAll(() => {
     enableFetchMocks();
+    window.gtag = jest.fn();
   });
   afterAll(() => {
     consoleError.mockRestore();
