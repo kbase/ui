@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { RootState, AppDispatch } from '../app/store';
+import { authMe } from '../features/auth/authSlice';
 import {
   generatePathWithSearchParams,
   isValidParam,
@@ -96,12 +97,17 @@ export const useFilteredParams = () => {
 
 export const usePageTracking = () => {
   const location = useLocation();
+  const me = useAppSelector(authMe);
 
   useEffect(() => {
-    window.gtag('event', 'page_view', {
+    const pageView: Record<string, string> = {
       page_path: location.pathname + location.search + location.hash,
       page_search: location.search,
       page_hash: location.hash,
-    });
-  }, [location]);
+    };
+    if (me && me.anonid) {
+      pageView.user_id = me.anonid;
+    }
+    window.gtag('event', 'page_view', pageView);
+  }, [location, me]);
 };
