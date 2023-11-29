@@ -14,7 +14,7 @@ import {
 import { parseError } from '../../../common/api/utils/parseError';
 import { Pagination } from '../../../common/components/Table';
 import { useAppDispatch, useBackoffPolling } from '../../../common/hooks';
-import { useSelectionId } from '../collectionsSlice';
+import { useSelectionId, useMatchId } from '../collectionsSlice';
 import { HeatMap, MAX_HEATMAP_PAGE } from './HeatMap';
 
 export const Microtrait: FC<{

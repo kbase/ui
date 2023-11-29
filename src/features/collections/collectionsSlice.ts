@@ -25,11 +25,15 @@ interface FilterRange {
 }
 
 type FilterState =
-  | { type: 'fulltext'; value: string }
-  | { type: 'prefix'; value: string }
-  | { type: 'date'; value: FilterRange }
-  | { type: 'int'; value: FilterRange }
-  | { type: 'float'; value: FilterRange };
+  | { type: 'fulltext'; value?: string }
+  | { type: 'prefix'; value?: string }
+  | { type: 'identity'; value?: string }
+  | {
+      type: 'date' | 'int' | 'float';
+      value?: FilterRange;
+      min_value: number;
+      max_value: number;
+    };
 
 interface ClnState {
   selection: SelectionState;
@@ -179,6 +183,10 @@ export const {
   setSelectionId,
   setPendingSelectionId,
   setMatchId,
+  setFilterContext,
+  setFilter,
+  clearFilter,
+  clearFilters,
 } = CollectionSlice.actions;
 
 export const useCurrentSelection = (collectionId: string | undefined) =>
@@ -282,21 +290,34 @@ export const useMatchId = (collectionId: string | undefined) => {
 };
 
 export const useFilters = (collectionId: string | undefined) => {
-  const filterList = useAppSelector((state) =>
+  const context = useAppSelector((state) =>
     collectionId
-      ? state.collections.clns[collectionId]?.filters?.[
-          state.collections.clns[collectionId]?.filterContext ||
-            defaultFilterContext
-        ]
+      ? state.collections.clns[collectionId]?.filterContext ??
+        defaultFilterContext
+      : defaultFilterContext
+  );
+  const filters = useAppSelector((state) =>
+    collectionId
+      ? state.collections.clns[collectionId]?.filters?.[context]
       : undefined
   );
-  const filters = Object.entries(filterList ?? {}).map(
-    ([column, filterState]) => {
+  const formattedFilters = Object.entries(filters ?? {})
+    .filter(([column, filterState]) => Boolean(filterState.value))
+    .map(([column, filterState]) => {
       const paramName = `filter_${column}`;
-      let filterValue: string;
-      if (filterState.type === 'fulltext' || filterState.type === 'prefix') {
-        filterValue = filterState.value;
-      } else {
+      let filterValue: string | undefined;
+      if (
+        filterState.type === 'identity' ||
+        filterState.type === 'fulltext' ||
+        filterState.type === 'prefix'
+      ) {
+        if (filterState.value !== undefined) filterValue = filterState.value;
+      } else if (
+        (filterState.type === 'date' ||
+          filterState.type === 'int' ||
+          filterState.type === 'float') &&
+        filterState.value !== undefined
+      ) {
         filterValue = [
           filterState.value.startInclusive ? '[' : '',
           filterState.value.range[0].toString(),
@@ -305,16 +326,20 @@ export const useFilters = (collectionId: string | undefined) => {
           filterState.value.endInclusive ? ']' : '',
         ].join('');
       }
+      if (filterValue === undefined) {
+        throw new Error(
+          `Unexpected filter value state, ${JSON.stringify(filterState)}`
+        );
+      }
       return [paramName, filterValue] as const;
-    }
-  );
-  filters.sort((a, b) => a[0].localeCompare(b[0]));
+    });
+  formattedFilters.sort((a, b) => a[0].localeCompare(b[0]));
   // only update if the resulting filter text changes
-  const changeIndicator = JSON.stringify(filters);
-  const filterSet = useMemo(
-    () => Object.fromEntries<string>(filters),
+  const changeIndicator = JSON.stringify(formattedFilters);
+  const filterParams = useMemo(
+    () => Object.fromEntries<string>(formattedFilters),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [changeIndicator]
   );
-  return filterSet;
+  return { filterParams, context, filters };
 };
