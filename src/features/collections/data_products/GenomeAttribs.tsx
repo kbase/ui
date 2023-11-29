@@ -19,6 +19,7 @@ import { useAppDispatch } from '../../../common/hooks';
 import {
   setLocalSelection,
   useCurrentSelection,
+  useFilters,
   useMatchId,
   useSelectionId,
 } from '../collectionsSlice';
@@ -37,6 +38,8 @@ export const GenomeAttribs: FC<{
   // we don't use the server marks to show the selected state,
   // so no need to fetch the selection unless we are filtering the table
   const selectionId = useSelectionId(collection_id, { skip: selectMark });
+  // get the shared filter state
+  const filters = useFilters(collection_id);
 
   const [sorting, setSorting] = useState<SortingState>([]);
   const requestSort = useMemo(() => {
@@ -84,6 +87,7 @@ export const GenomeAttribs: FC<{
       sort_desc: requestSort.desc,
       skip: pagination.pageIndex * pagination.pageSize,
       limit: pagination.pageSize,
+      filters: filters,
       ...(matchId ? { match_id: matchId, match_mark: matchMark } : {}),
       ...(selectionId
         ? { selection_id: selectionId, selection_mark: selectMark }
@@ -99,6 +103,7 @@ export const GenomeAttribs: FC<{
       pagination.pageSize,
       requestSort.by,
       requestSort.desc,
+      filters,
     ]
   );
   const countParams = useMemo(
