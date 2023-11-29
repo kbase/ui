@@ -210,6 +210,36 @@ interface CollectionsResults {
     data?: null;
     count?: number;
   };
+  getGenomeAttribsMeta: {
+    count: number;
+    columns: Array<
+      {
+        key: string;
+      } & (
+        | {
+            type: 'date' | 'int' | 'float';
+            filter_strategy: undefined;
+            min_value: number;
+            max_value: number;
+            enum_values: undefined;
+          }
+        | {
+            type: 'string';
+            filter_strategy: 'fulltext' | 'prefix' | 'identity';
+            min_value: undefined;
+            max_value: undefined;
+            enum_values: undefined;
+          }
+        | {
+            type: 'enum';
+            filter_strategy: undefined;
+            min_value: undefined;
+            max_value: undefined;
+            enum_values: string[];
+          }
+      )
+    >;
+  };
   getMicroTrait: {
     description: string;
     match_state: ProcessState;
@@ -336,6 +366,10 @@ interface CollectionsParams {
     count?: boolean;
     load_ver_override?: Collection['ver_tag'];
     filters?: Record<string, string>;
+  };
+  getGenomeAttribsMeta: {
+    collection_id: Collection['id'];
+    load_ver_override?: Collection['ver_tag'];
   };
   getMicroTrait: {
     collection_id: Collection['id'];
@@ -628,6 +662,21 @@ export const collectionsApi = baseApi.injectEndpoints({
         }),
     }),
 
+    getGenomeAttribsMeta: builder.query<
+      CollectionsResults['getGenomeAttribsMeta'],
+      CollectionsParams['getGenomeAttribsMeta']
+    >({
+      query: ({ collection_id, ...options }) =>
+        collectionsService({
+          method: 'GET',
+          url: encode`/collections/${collection_id}/data_products/genome_attribs/meta`,
+          params: { collection_id, ...options },
+          headers: {
+            authorization: `Bearer ${store.getState().auth.token}`,
+          },
+        }),
+    }),
+
     getMicroTrait: builder.query<
       CollectionsResults['getMicroTrait'],
       CollectionsParams['getMicroTrait']
@@ -821,6 +870,7 @@ export const {
   listTaxaCountRanks,
   getTaxaCountRank,
   getGenomeAttribs,
+  getGenomeAttribsMeta,
   getMicroTrait,
   getMicroTraitMeta,
   getMicroTraitCell,
