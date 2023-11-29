@@ -4,7 +4,7 @@ import {
   getMatch,
 } from '../../common/api/collectionsApi';
 import classes from './Collections.module.scss';
-import { useCallback, useEffect, useId, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 import { Button, Select, SelectOption } from '../../common/components';
 import { listObjects } from '../../common/api/workspaceApi';
 import { getNarratives } from '../../common/api/searchApi';
@@ -22,6 +22,8 @@ import { MatcherUserParams } from './MatcherUserParams';
 import Ajv from 'ajv';
 import { Modal } from '../layout/Modal';
 import { Loader } from '../../common/components/Loader';
+import { useForm } from 'react-hook-form';
+import { NarrativeDoc } from '../../common/types/NarrativeDoc';
 
 export const MatchModal = ({ collectionId }: { collectionId: string }) => {
   const matchId = useMatchId(collectionId);
@@ -160,10 +162,22 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
   const updateAppParams = useUpdateAppParams();
   const matchersQuery = getCollectionMatchers.useQuery(collectionId);
   const matchers = matchersQuery.data?.data;
-  const [matcherSel, setMatcherSel] = useState<SelectOption | undefined>();
-  const matcherSelected = matchers?.find((d) => d.id === matcherSel?.value);
+
+  const { register, setValue, watch, handleSubmit } = useForm<{
+    matcher?: NonNullable<typeof matchers>[number];
+    narrative?: NarrativeDoc;
+    dataObjs: string[]; // UPAs
+  }>({
+    defaultValues: {
+      dataObjs: [],
+    },
+    mode: 'all',
+  });
+
+  // Match Select
+  const matcherSelected = watch('matcher');
   const matcherOptions: SelectOption[] = useMemo(() => {
-    setMatcherSel(undefined);
+    setValue('matcher', undefined);
     return (
       matchers?.map((matcher) => ({
         value: matcher.id,
@@ -171,11 +185,11 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
         data: matcher,
       })) || []
     );
-  }, [matchers]);
+  }, [matchers, setValue]);
 
-  // Narrative selection
+  // Narrative Select
+  const narrativeSelected = watch('narrative');
   const [narrativeSearch, setNarrativeSearch] = useState('');
-  const [narrativeSel, setNarrativeSel] = useState<SelectOption | undefined>();
   const narrativeSearchParams = useParamsForNarrativeDropdown(narrativeSearch);
   const narrativeQuery = getNarratives.useQuery(narrativeSearchParams);
   const narrativeOptions = (narrativeQuery?.data?.hits || []).map((hit) => ({
@@ -183,33 +197,28 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
     label: hit.narrative_title,
     data: hit,
   }));
-  const narrativeSelected = narrativeOptions.find(
-    (d) => d.value === narrativeSel?.value
-  )?.data;
 
-  // DataObj selection
-  const [dataObjSel, setDataObjSel] = useState<SelectOption[]>([]);
-  useEffect(() => setDataObjSel([]), [narrativeSel?.value]);
-
-  const dataObjQuery = listObjects.useQuery({
+  // DataObjs selection
+  const dataObjsSelected = watch('dataObjs');
+  const dataObjsQuery = listObjects.useQuery({
     ids: narrativeSelected?.access_group
       ? [narrativeSelected?.access_group]
       : [],
   });
 
-  const allTypes = [
+  const allObjTypes = [
     ...(matcherSelected?.types || []),
     ...(matcherSelected?.set_types || []),
   ];
 
-  const dataObjOptions = (dataObjQuery?.data?.[0] || [])
+  const dataObjsOptions = (dataObjsQuery?.data?.[0] || [])
     .map((objInfo) => ({
       value: `${narrativeSelected?.access_group}/${objInfo[0]}/${objInfo[4]}`,
       label: objInfo[1],
       data: objInfo,
     }))
     .filter((opt) =>
-      allTypes.some((matchType) => opt.data[2].startsWith(matchType))
+      allObjTypes.some((matchType) => opt.data[2].startsWith(matchType))
     );
 
   // Matches
@@ -220,7 +229,6 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
   const [userParams, setUserParams] = useState<
     Record<string, unknown> | undefined
   >(undefined);
-  useEffect(() => setUserParams(undefined), [matcherSel?.value]);
   const validate = useMemo(
     () => new Ajv({ strict: false }).compile(matchUserParams ?? {}),
     [matchUserParams]
@@ -231,22 +239,18 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
   const createReady = !(
     matcherSelected &&
     narrativeSelected &&
-    dataObjSel.length > 0
+    dataObjsSelected.length > 0
   );
-  const handleCreate = useCallback(() => {
+
+  const handleCreate = handleSubmit(() => {
     triggerCreateMatch({
       collection_id: collectionId,
       matcher_id: matcherSelected?.id || '',
-      upas: dataObjSel.map((d) => d.value.toString()),
+      upas: dataObjsSelected,
       parameters: userParams ?? {},
     });
-  }, [
-    dataObjSel,
-    collectionId,
-    matcherSelected,
-    triggerCreateMatch,
-    userParams,
-  ]);
+  });
+
   if (createMatchResult.isError) {
     matchErr += `Match request failed: ${
       parseError(createMatchResult.error).message
@@ -276,11 +280,14 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
             id={idMatcher}
             disabled={!matchersQuery.data}
             loading={matchersQuery.isFetching}
-            value={matcherSel}
             options={matcherOptions}
+            {...register('matcher')}
             onChange={(opt) => {
-              setMatcherSel(opt[0]);
-              setDataObjSel([]);
+              setValue(
+                'matcher',
+                matchers?.find((d) => d.id === opt[0]?.value)
+              );
+              setValue('dataObjs', []);
             }}
           />
           {matchUserParams ? (
@@ -298,25 +305,31 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
           <Select
             id={idNarrative}
             disabled={!matcherSelected}
-            value={narrativeSel}
             options={narrativeOptions}
             loading={narrativeQuery.isFetching}
             onSearch={setNarrativeSearch}
             onChange={(opt) => {
-              setNarrativeSel(opt[0]);
-              setDataObjSel([]);
+              setValue(
+                'narrative',
+                narrativeOptions.find((d) => d.value === opt[0]?.value)?.data
+              );
+              setValue('dataObjs', []);
             }}
           />
           <label htmlFor={idDataObject}>Data Object(s)</label>
           <Select
             id={idDataObject}
-            key={narrativeSel?.value}
+            key={JSON.stringify(narrativeSelected)}
             multiple={true}
             disabled={!narrativeSelected}
-            value={dataObjSel}
-            options={dataObjOptions}
-            loading={dataObjQuery.isFetching}
-            onChange={(opts) => setDataObjSel(opts)}
+            options={dataObjsOptions}
+            loading={dataObjsQuery.isFetching}
+            onChange={(opts) =>
+              setValue(
+                'dataObjs',
+                opts.map((opt) => opt.value.toString())
+              )
+            }
           />
           <br></br>
           {matchErr ? (
