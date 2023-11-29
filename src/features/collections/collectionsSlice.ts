@@ -7,45 +7,92 @@ import {
   useBackoffPolling,
 } from '../../common/hooks';
 
-interface CollectionState {
-  currentSelection: string[];
-  _pendingSelectionId?: string;
-  _verifiedSelectionId?: string;
+interface SelectionState {
+  current: string[];
+  _pendingId?: string;
+  _verifiedId?: string;
 }
 
-const initialState: CollectionState = {
-  currentSelection: [],
+interface ClnState {
+  selection: SelectionState;
+}
+
+interface CollectionsState {
+  clns: { [id: string]: ClnState | undefined };
+}
+
+const initialCollection: ClnState = {
+  selection: { current: [] },
+};
+
+const initialState: CollectionsState = {
+  clns: {},
 };
 
 export const CollectionSlice = createSlice({
   name: 'Collection',
   initialState,
   reducers: {
-    setSelectionId: (state, { payload }: PayloadAction<string | undefined>) => {
-      state._verifiedSelectionId = payload;
+    setSelectionId: (
+      state,
+      {
+        payload: [collectionId, selectionId],
+      }: PayloadAction<[collectionId: string, selectionId: string | undefined]>
+    ) => {
+      const cln = collectionState(state, collectionId);
+      cln.selection._verifiedId = selectionId;
     },
     setPendingSelectionId: (
       state,
-      { payload }: PayloadAction<string | undefined>
+      {
+        payload: [collectionId, selectionId],
+      }: PayloadAction<[collectionId: string, selectionId: string | undefined]>
     ) => {
-      state._pendingSelectionId = payload;
+      const cln = collectionState(state, collectionId);
+      cln.selection._pendingId = selectionId;
     },
-    setUserSelection: (state, { payload }: PayloadAction<string[]>) => {
-      if (selectionChanged(state.currentSelection, payload)) {
-        state.currentSelection = [...payload];
-        state._verifiedSelectionId = undefined;
-        state._pendingSelectionId = undefined;
+    setLocalSelection: (
+      state,
+      {
+        payload: [collectionId, selection],
+      }: PayloadAction<[collectionId: string, selection: string[]]>
+    ) => {
+      const cln = collectionState(state, collectionId);
+      if (selectionChanged(cln.selection.current, selection)) {
+        cln.selection.current = [...selection];
+        cln.selection._verifiedId = undefined;
+        cln.selection._pendingId = undefined;
       }
     },
   },
 });
 
+const collectionState = (state: CollectionsState, collectionId: string) => {
+  const cln = state.clns[collectionId];
+  if (!cln) {
+    // serializable deep copy
+    const initCln = JSON.parse(
+      JSON.stringify(initialCollection)
+    ) as typeof initialCollection;
+    state.clns[collectionId] = initCln;
+    return initCln;
+  }
+  return cln;
+};
+
 const selectionChanged = (list1: string[], list2: string[]) =>
   list1.length !== list2.length || list1.some((upa) => !list2.includes(upa));
 
 export default CollectionSlice.reducer;
-export const { setUserSelection, setSelectionId, setPendingSelectionId } =
+export const { setLocalSelection, setSelectionId, setPendingSelectionId } =
   CollectionSlice.actions;
+
+export const useCurrentSelection = (collectionId: string | undefined) =>
+  useAppSelector((state) =>
+    collectionId
+      ? state.collections.clns?.[collectionId]?.selection.current
+      : []
+  ) ?? [];
 
 export const useSelectionId = (
   collectionId: string,
@@ -53,46 +100,43 @@ export const useSelectionId = (
 ) => {
   const dispatch = useAppDispatch();
 
-  const currentSelection = useAppSelector(
-    (state) => state.collections.currentSelection
+  const current = useCurrentSelection(collectionId);
+  const _verifiedId = useAppSelector(
+    (state) => state.collections.clns[collectionId]?.selection._verifiedId
   );
-  const _verifiedSelectionId = useAppSelector(
-    (state) => state.collections._verifiedSelectionId
-  );
-  const _pendingSelectionId = useAppSelector(
-    (state) => state.collections._pendingSelectionId
+  const _pendingId = useAppSelector(
+    (state) => state.collections.clns[collectionId]?.selection._pendingId
   );
 
   const [createSelectionMutation, createSelectionResult] =
     createSelection.useMutation();
 
-  const shouldSkipCreation =
-    skip || _verifiedSelectionId || currentSelection.length < 1;
+  const shouldSkipCreation = skip || _verifiedId || current.length < 1;
 
   useEffect(() => {
     if (!shouldSkipCreation) {
       createSelectionMutation({
         collection_id: collectionId,
-        selection_ids: currentSelection,
+        selection_ids: current,
       });
     }
-  }, [
-    collectionId,
-    createSelectionMutation,
-    currentSelection,
-    shouldSkipCreation,
-  ]);
+  }, [collectionId, createSelectionMutation, current, shouldSkipCreation]);
 
   useEffect(() => {
     if (!skip && createSelectionResult.data) {
-      dispatch(setPendingSelectionId(createSelectionResult.data.selection_id));
+      dispatch(
+        setPendingSelectionId([
+          collectionId,
+          createSelectionResult.data.selection_id,
+        ])
+      );
     }
-  }, [createSelectionResult, dispatch, skip]);
+  }, [collectionId, createSelectionResult, dispatch, skip]);
 
-  const shouldSkipValidation = skip || !_pendingSelectionId;
+  const shouldSkipValidation = skip || !_pendingId;
 
   const getMatchQuery = getSelection.useQuery(
-    { selection_id: _pendingSelectionId || '' },
+    { selection_id: _pendingId || '' },
     {
       skip: shouldSkipValidation,
     }
@@ -107,22 +151,23 @@ export const useSelectionId = (
 
   useEffect(() => {
     if (pollDone) {
-      dispatch(setPendingSelectionId(undefined));
+      dispatch(setPendingSelectionId([collectionId, undefined]));
       if (getMatchQuery.data && getMatchQuery.data.state === 'complete') {
-        if (
-          !selectionChanged(currentSelection, getMatchQuery.data.selection_ids)
-        ) {
-          dispatch(setSelectionId(getMatchQuery.data.selection_id));
+        if (!selectionChanged(current, getMatchQuery.data.selection_ids)) {
+          dispatch(
+            setSelectionId([collectionId, getMatchQuery.data.selection_id])
+          );
         }
       }
     }
   }, [
-    currentSelection,
+    collectionId,
+    current,
     dispatch,
     getMatchQuery.data,
     getMatchQuery.error,
     pollDone,
   ]);
 
-  return _verifiedSelectionId;
+  return _verifiedId;
 };
