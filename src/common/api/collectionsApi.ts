@@ -335,6 +335,7 @@ interface CollectionsParams {
     selection_mark?: boolean;
     count?: boolean;
     load_ver_override?: Collection['ver_tag'];
+    filters?: Record<string, string>;
   };
   getMicroTrait: {
     collection_id: Collection['id'];
@@ -616,11 +617,11 @@ export const collectionsApi = baseApi.injectEndpoints({
       CollectionsResults['getGenomeAttribs'],
       CollectionsParams['getGenomeAttribs']
     >({
-      query: ({ collection_id, ...options }) =>
+      query: ({ collection_id, filters, ...options }) =>
         collectionsService({
           method: 'GET',
           url: encode`/collections/${collection_id}/data_products/genome_attribs/`,
-          params: options,
+          params: { ...options, ...(filters ?? {}) },
           headers: {
             authorization: `Bearer ${store.getState().auth.token}`,
           },

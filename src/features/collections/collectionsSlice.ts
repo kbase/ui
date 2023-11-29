@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { createSelection, getSelection } from '../../common/api/collectionsApi';
 import {
   useAppDispatch,
@@ -18,9 +18,25 @@ interface MatchState {
   id?: string;
 }
 
+interface FilterRange {
+  startInclusive?: boolean;
+  endInclusive?: boolean;
+  range: [number, number];
+}
+
+type FilterState =
+  | { type: 'fulltext'; value: string }
+  | { type: 'prefix'; value: string }
+  | { type: 'date'; value: FilterRange }
+  | { type: 'int'; value: FilterRange }
+  | { type: 'float'; value: FilterRange };
+
 interface ClnState {
   selection: SelectionState;
   match: MatchState;
+  filters: {
+    [columnName: string]: FilterState;
+  };
 }
 
 interface CollectionsState {
@@ -30,6 +46,7 @@ interface CollectionsState {
 const initialCollection: ClnState = {
   selection: { current: [] },
   match: {},
+  filters: {},
 };
 
 const initialState: CollectionsState = {
@@ -205,4 +222,37 @@ export const useMatchId = (collectionId: string | undefined) => {
     }
   }, [collectionId, dispatch, matchIdParm, shouldUpdate]);
   return matchId;
+};
+
+export const useFilters = (collectionId: string | undefined) => {
+  const filterList = useAppSelector((state) =>
+    collectionId ? state.collections.clns[collectionId]?.filters : undefined
+  );
+  const filters = Object.entries(filterList ?? {}).map(
+    ([column, filterState]) => {
+      const paramName = `filter_${column}`;
+      let filterValue: string;
+      if (filterState.type === 'fulltext' || filterState.type === 'prefix') {
+        filterValue = filterState.value;
+      } else {
+        filterValue = [
+          filterState.value.startInclusive ? '[' : '',
+          filterState.value.range[0].toString(),
+          ',',
+          filterState.value.range[1].toString(),
+          filterState.value.endInclusive ? ']' : '',
+        ].join('');
+      }
+      return [paramName, filterValue] as const;
+    }
+  );
+  filters.sort((a, b) => a[0].localeCompare(b[0]));
+  // only update if the resulting filter text changes
+  const changeIndicator = JSON.stringify(filters);
+  const filterSet = useMemo(
+    () => Object.fromEntries<string>(filters),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [changeIndicator]
+  );
+  return filterSet;
 };
