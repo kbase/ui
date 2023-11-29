@@ -94,6 +94,8 @@ export const CollectionDetail = () => {
 
   const [filterOpen, setFiltersOpen] = useState(false);
   const filterMenuRef = useRef<HTMLButtonElement>(null);
+  const filterEntries = Object.entries(filters || {});
+  filterEntries.sort((a, b) => a[0].localeCompare(b[0]));
 
   const filterMenu = (
     <div>
@@ -104,7 +106,7 @@ export const CollectionDetail = () => {
         open={filterOpen}
         onClose={() => setFiltersOpen(false)}
       >
-        {Object.entries(filters || {}).flatMap(([column, filter]) => {
+        {filterEntries.flatMap(([column, filter]) => {
           const hasVal = Boolean(filter.value);
           const children = [
             <Divider key={column + '__label'} textAlign="left">
