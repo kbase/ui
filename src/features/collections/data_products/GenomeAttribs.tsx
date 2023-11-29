@@ -15,9 +15,13 @@ import {
   Table,
   useTableColumns,
 } from '../../../common/components/Table';
-import { useAppDispatch, useAppSelector } from '../../../common/hooks';
+import { useAppDispatch } from '../../../common/hooks';
 import { useAppParam } from '../../params/hooks';
-import { setUserSelection, useSelectionId } from '../collectionsSlice';
+import {
+  setLocalSelection,
+  useCurrentSelection,
+  useSelectionId,
+} from '../collectionsSlice';
 import classes from './../Collections.module.scss';
 
 export const GenomeAttribs: FC<{
@@ -45,9 +49,7 @@ export const GenomeAttribs: FC<{
     pageIndex: 0,
     pageSize: 20,
   });
-  const currentSelection = useAppSelector(
-    (state) => state.collections.currentSelection
-  );
+  const currentSelection = useCurrentSelection(collection_id);
   const [selection, setSelection] = [
     useMemo(
       () => Object.fromEntries(currentSelection.map((k) => [k, true])),
@@ -64,11 +66,12 @@ export const GenomeAttribs: FC<{
           ? updaterOrValue(selection)
           : updaterOrValue;
       dispatch(
-        setUserSelection(
+        setLocalSelection([
+          collection_id,
           Object.entries(value)
             .filter(([k, v]) => v)
-            .map(([k, v]) => k)
-        )
+            .map(([k, v]) => k),
+        ])
       );
     },
   ];
