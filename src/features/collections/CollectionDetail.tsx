@@ -1,8 +1,12 @@
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { getCollection, getMatch } from '../../common/api/collectionsApi';
+import {
+  getCollection,
+  getGenomeAttribsMeta,
+  getMatch,
+} from '../../common/api/collectionsApi';
 import { usePageTitle } from '../layout/layoutSlice';
 import styles from './Collections.module.scss';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { DataProduct } from './DataProduct';
 import { snakeCaseToHumanReadable } from '../../common/utils/stringUtils';
 import { MATCHER_LABELS, MatchModal } from './MatchModal';
@@ -13,11 +17,30 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faArrowRightArrowLeft,
   faCircleCheck,
+  faFilter,
+  faX,
 } from '@fortawesome/free-solid-svg-icons';
 import { useModalControls } from '../layout/Modal';
 import { Loader } from '../../common/components/Loader';
 import { CollectionSidebar } from './CollectionSidebar';
-import { useCurrentSelection, useMatchId } from './collectionsSlice';
+import {
+  clearFilter,
+  setFilter,
+  useCurrentSelection,
+  useFilters,
+  useMatchId,
+} from './collectionsSlice';
+import { useAppDispatch } from '../../common/hooks';
+import {
+  Slider,
+  Menu,
+  MenuItem,
+  TextField,
+  Stack,
+  Divider,
+  IconButton,
+  Typography,
+} from '@mui/material';
 
 export const detailPath = ':id';
 export const detailDataProductPath = ':id/:data_product';
@@ -66,6 +89,143 @@ export const CollectionDetail = () => {
     skip: !matchId,
   });
   const match = matchQuery.data;
+  const { context, filters } = useCollectionFilters(collection?.id);
+  const dispatch = useAppDispatch();
+
+  const [filterOpen, setFiltersOpen] = useState(false);
+  const filterMenuRef = useRef<HTMLButtonElement>(null);
+
+  const filterMenu = (
+    <div>
+      <Menu
+        id="demo-positioned-menu"
+        aria-labelledby="demo-positioned-button"
+        anchorEl={filterMenuRef.current}
+        open={filterOpen}
+        onClose={() => setFiltersOpen(false)}
+      >
+        {Object.entries(filters || {}).flatMap(([column, filter]) => {
+          const hasVal = Boolean(filter.value);
+          const children = [
+            <Divider key={column + '__label'} textAlign="left">
+              <Typography color={hasVal ? 'primary' : 'default'}>
+                {column}
+                {hasVal ? (
+                  <IconButton
+                    aria-label="delete"
+                    size="small"
+                    color="primary"
+                    onClick={() => {
+                      dispatch(
+                        clearFilter([collection?.id || '', context, column])
+                      );
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faX} size="sm" />
+                  </IconButton>
+                ) : null}
+              </Typography>
+            </Divider>,
+          ];
+          if (
+            filter.type === 'float' ||
+            filter.type === 'int' ||
+            filter.type === 'date'
+          ) {
+            const valRange = filter.value?.range ?? [
+              filter.min_value,
+              filter.max_value,
+            ];
+            children.push(
+              <MenuItem>
+                <Stack>
+                  <Stack direction="row" spacing={2}>
+                    <TextField
+                      size="small"
+                      key={column + '__min'}
+                      label={column}
+                      helperText={'min'}
+                      value={valRange[0]}
+                      variant="outlined"
+                    />
+                    <TextField
+                      size="small"
+                      key={column + '__max'}
+                      value={valRange[1]}
+                      helperText={'max'}
+                      variant="outlined"
+                    />
+                  </Stack>
+                  <Slider
+                    size="small"
+                    key={column}
+                    disableSwap
+                    getAriaLabel={() => `filter range for column ${column}`}
+                    value={valRange}
+                    min={filter.min_value}
+                    max={filter.max_value}
+                    marks={[filter.min_value, filter.max_value].map((v) => ({
+                      value: v,
+                      label: v,
+                    }))}
+                    onChange={(ev, newValue) =>
+                      dispatch(
+                        setFilter([
+                          collection?.id || '',
+                          context,
+                          column,
+                          {
+                            ...filter,
+                            value: {
+                              ...filter.value,
+                              range: newValue as [number, number],
+                            },
+                          },
+                        ])
+                      )
+                    }
+                    valueLabelDisplay="auto"
+                  />
+                </Stack>
+              </MenuItem>
+            );
+          } else if (
+            filter.type === 'fulltext' ||
+            filter.type === 'prefix' ||
+            filter.type === 'identity'
+          ) {
+            children.push(
+              <MenuItem>
+                <TextField
+                  key={column}
+                  value={filter.value}
+                  onChange={(e) => {
+                    dispatch(
+                      setFilter([
+                        collection?.id || '',
+                        context,
+                        column,
+                        { ...filter, value: e.currentTarget.value },
+                      ])
+                    );
+                  }}
+                  helperText={
+                    {
+                      fulltext: 'Search',
+                      identity: 'Exact Match',
+                      prefix: 'Prefix Match',
+                    }[filter.type]
+                  }
+                  variant="standard"
+                />
+              </MenuItem>
+            );
+          }
+          return children;
+        })}
+      </Menu>
+    </div>
+  );
 
   const modal = useModalControls();
   type ModalView = 'match' | 'select' | 'export';
@@ -100,6 +260,19 @@ export const CollectionDetail = () => {
                 ? `Matching by ${MATCHER_LABELS.get(match.matcher_id)}`
                 : `Match my Data`}
             </Button>
+            <Button
+              ref={filterMenuRef}
+              icon={<FontAwesomeIcon icon={faFilter} />}
+              variant="outlined"
+              color={'primary-lighter'}
+              textColor={'primary'}
+              onClick={() => {
+                setFiltersOpen(true);
+              }}
+            >
+              Filters
+            </Button>
+            {filterMenu}
             <Button
               icon={<FontAwesomeIcon icon={faCircleCheck} />}
               variant="outlined"
@@ -145,4 +318,58 @@ export const CollectionDetail = () => {
       )}
     </div>
   );
+};
+
+const useCollectionFilters = (collectionId: string | undefined) => {
+  const dispatch = useAppDispatch();
+  const { context, filters } = useFilters(collectionId);
+  const { data: filterData, isLoading } = getGenomeAttribsMeta.useQuery(
+    { collection_id: collectionId || '' },
+    { skip: !collectionId }
+  );
+  useEffect(() => {
+    if (collectionId) {
+      filterData?.columns.forEach((column) => {
+        const current = filters && filters[column.key];
+        if (
+          column.type === 'date' ||
+          column.type === 'float' ||
+          column.type === 'int'
+        ) {
+          dispatch(
+            setFilter([
+              collectionId,
+              context,
+              column.key,
+              {
+                type: column.type,
+                min_value: column.min_value,
+                max_value: column.max_value,
+                value:
+                  current?.type === column.type ? current.value : undefined,
+              },
+            ])
+          );
+        } else if (column.type === 'string') {
+          dispatch(
+            setFilter([
+              collectionId,
+              context,
+              column.key,
+              {
+                type: column.filter_strategy,
+                value:
+                  current?.type === column.filter_strategy
+                    ? current.value
+                    : undefined,
+              },
+            ])
+          );
+        }
+      });
+    }
+    // Exclude filters from deps to prevent circular dep
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterData, context, collectionId, dispatch]);
+  return { filters, context, isLoading };
 };
