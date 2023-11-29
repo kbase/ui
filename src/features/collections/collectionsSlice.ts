@@ -34,8 +34,11 @@ type FilterState =
 interface ClnState {
   selection: SelectionState;
   match: MatchState;
+  filterContext: string;
   filters: {
-    [columnName: string]: FilterState;
+    [context: string]: {
+      [columnName: string]: FilterState;
+    };
   };
 }
 
@@ -43,9 +46,12 @@ interface CollectionsState {
   clns: { [id: string]: ClnState | undefined };
 }
 
+const defaultFilterContext = '__DEFAULT';
+
 const initialCollection: ClnState = {
   selection: { current: [] },
   match: {},
+  filterContext: defaultFilterContext,
   filters: {},
 };
 
@@ -96,6 +102,57 @@ export const CollectionSlice = createSlice({
     ) => {
       const cln = collectionState(state, collectionId);
       cln.match.id = matchId;
+    },
+    setFilterContext: (
+      state,
+      {
+        payload: [collectionId, context],
+      }: PayloadAction<[collectionId: string, context: string | undefined]>
+    ) => {
+      const cln = collectionState(state, collectionId);
+      if (context) {
+        cln.filterContext = context;
+      } else {
+        cln.filterContext = defaultFilterContext;
+      }
+    },
+    setFilter: (
+      state,
+      {
+        payload: [collectionId, context, columnName, filterState],
+      }: PayloadAction<
+        [
+          collectionId: string,
+          context: string,
+          columnName: string,
+          filterState: FilterState
+        ]
+      >
+    ) => {
+      const cln = collectionState(state, collectionId);
+      if (!cln.filters[context]) cln.filters[context] = {};
+      cln.filters[context][columnName] = filterState;
+    },
+    clearFilter: (
+      state,
+      {
+        payload: [collectionId, context, columnName],
+      }: PayloadAction<
+        [collectionId: string, context: string, columnName: string]
+      >
+    ) => {
+      const cln = collectionState(state, collectionId);
+      if (!cln.filters[context]) cln.filters[context] = {};
+      delete cln.filters[context][columnName];
+    },
+    clearFilters: (
+      state,
+      {
+        payload: [collectionId, context],
+      }: PayloadAction<[collectionId: string, context: string]>
+    ) => {
+      const cln = collectionState(state, collectionId);
+      cln.filters[context] = {};
     },
   },
 });
@@ -226,7 +283,12 @@ export const useMatchId = (collectionId: string | undefined) => {
 
 export const useFilters = (collectionId: string | undefined) => {
   const filterList = useAppSelector((state) =>
-    collectionId ? state.collections.clns[collectionId]?.filters : undefined
+    collectionId
+      ? state.collections.clns[collectionId]?.filters?.[
+          state.collections.clns[collectionId]?.filterContext ||
+            defaultFilterContext
+        ]
+      : undefined
   );
   const filters = Object.entries(filterList ?? {}).map(
     ([column, filterState]) => {
