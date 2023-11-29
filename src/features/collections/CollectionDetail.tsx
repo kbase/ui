@@ -13,11 +13,16 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faArrowRightArrowLeft,
   faCircleCheck,
+  faFilter,
 } from '@fortawesome/free-solid-svg-icons';
 import { useModalControls } from '../layout/Modal';
 import { Loader } from '../../common/components/Loader';
 import { CollectionSidebar } from './CollectionSidebar';
-import { useCurrentSelection, useMatchId } from './collectionsSlice';
+import {
+  useCurrentSelection,
+  useFilters,
+  useMatchId,
+} from './collectionsSlice';
 
 export const detailPath = ':id';
 export const detailDataProductPath = ':id/:data_product';
@@ -66,6 +71,7 @@ export const CollectionDetail = () => {
     skip: !matchId,
   });
   const match = matchQuery.data;
+  const filters = useFilters(collection?.id);
 
   const modal = useModalControls();
   type ModalView = 'match' | 'select' | 'export';
