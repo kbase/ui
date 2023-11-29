@@ -16,10 +16,10 @@ import {
   useTableColumns,
 } from '../../../common/components/Table';
 import { useAppDispatch } from '../../../common/hooks';
-import { useAppParam } from '../../params/hooks';
 import {
   setLocalSelection,
   useCurrentSelection,
+  useMatchId,
   useSelectionId,
 } from '../collectionsSlice';
 import classes from './../Collections.module.scss';
@@ -31,7 +31,7 @@ export const GenomeAttribs: FC<{
   const dispatch = useAppDispatch();
 
   // State Management
-  const matchId = useAppParam('match');
+  const matchId = useMatchId(collection_id);
   const [matchMark, setMatchMark] = useState(true);
   const [selectMark, setSelectMark] = useState(true);
   // we don't use the server marks to show the selected state,
