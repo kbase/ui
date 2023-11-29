@@ -9,9 +9,13 @@ import { Button, Select, SelectOption } from '../../common/components';
 import { listObjects } from '../../common/api/workspaceApi';
 import { getNarratives } from '../../common/api/searchApi';
 import { parseError } from '../../common/api/utils/parseError';
-import { useAppParam, useUpdateAppParams } from '../params/hooks';
+import { useUpdateAppParams } from '../params/hooks';
 import { useAppDispatch, useBackoffPolling } from '../../common/hooks';
-import { setLocalSelection, useCurrentSelection } from './collectionsSlice';
+import {
+  setLocalSelection,
+  useCurrentSelection,
+  useMatchId,
+} from './collectionsSlice';
 import { store } from '../../app/store';
 import { useParamsForNarrativeDropdown } from './hooks';
 import { MatcherUserParams } from './MatcherUserParams';
@@ -20,7 +24,7 @@ import { Modal } from '../layout/Modal';
 import { Loader } from '../../common/components/Loader';
 
 export const MatchModal = ({ collectionId }: { collectionId: string }) => {
-  const matchId = useAppParam('match');
+  const matchId = useMatchId(collectionId);
 
   return matchId ? (
     <ViewMatch collectionId={collectionId} key={matchId} />
@@ -31,7 +35,7 @@ export const MatchModal = ({ collectionId }: { collectionId: string }) => {
 
 const ViewMatch = ({ collectionId }: { collectionId: string }) => {
   const dispatch = useAppDispatch();
-  const matchId = useAppParam('match');
+  const matchId = useMatchId(collectionId);
   const updateAppParams = useUpdateAppParams();
   const selectionSize = useCurrentSelection(collectionId).length;
 
