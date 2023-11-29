@@ -56,10 +56,10 @@ const GTDBLineageMatcherUserParameters = ({
   value,
   onChange,
 }: ComponentProps<typeof MatcherUserParams>) => {
-  if (!Object.keys(params?.definitions?.['GTDBRank'] ?? {}).includes('enum')) {
+  if (!Object.keys(params?.['$defs']?.['GTDBRank'] ?? {}).includes('enum')) {
     paramShapeErr(params.title);
   }
-  const definition = params?.definitions?.['GTDBRank'] as { enum: string[] };
+  const definition = params?.['$defs']?.['GTDBRank'] as { enum: string[] };
   const property = params?.['properties']?.['gtdb_rank'];
   let description = '';
   if (typeof property === 'boolean') {
