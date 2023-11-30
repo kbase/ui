@@ -95,14 +95,6 @@ export const CollectionDetail = () => {
   const filterMenuRef = useRef<HTMLButtonElement>(null);
   const filterEntries = Object.entries(filters || {});
   filterEntries.sort((a, b) => a[0].localeCompare(b[0]));
-  // Move active filters to top
-  filterEntries.sort((a, b) =>
-    (a[1].value === undefined) === (b[1].value === undefined)
-      ? 0
-      : a[1].value === undefined
-      ? 1
-      : -1
-  );
 
   const filterMenu = (
     <div>
@@ -150,7 +142,6 @@ export const CollectionDetail = () => {
                     <TextField
                       size="small"
                       key={column + '__min'}
-                      label={column}
                       helperText={'min'}
                       value={valRange[0]}
                       variant="outlined"
