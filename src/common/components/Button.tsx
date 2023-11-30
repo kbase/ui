@@ -1,4 +1,4 @@
-import { forwardRef, FunctionComponent as FC, Ref } from 'react';
+import { forwardRef, Ref } from 'react';
 import classes from './Button.module.scss';
 
 const colorClasses = Object.keys(classes).filter((d) => d !== 'button');

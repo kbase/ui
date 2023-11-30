@@ -18,7 +18,6 @@ import {
   faArrowRightArrowLeft,
   faCircleCheck,
   faFilter,
-  faX,
 } from '@fortawesome/free-solid-svg-icons';
 import { useModalControls } from '../layout/Modal';
 import { Loader } from '../../common/components/Loader';
@@ -39,9 +38,7 @@ import {
   TextField,
   Stack,
   Divider,
-  IconButton,
   Chip,
-  Typography,
 } from '@mui/material';
 
 export const detailPath = ':id';
