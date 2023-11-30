@@ -25,6 +25,7 @@ import { Loader } from '../../common/components/Loader';
 import { CollectionSidebar } from './CollectionSidebar';
 import {
   clearFilter,
+  clearFilters,
   setFilter,
   useCurrentSelection,
   useFilters,
@@ -39,6 +40,7 @@ import {
   Stack,
   Divider,
   IconButton,
+  Chip,
   Typography,
 } from '@mui/material';
 
@@ -96,12 +98,22 @@ export const CollectionDetail = () => {
   const filterMenuRef = useRef<HTMLButtonElement>(null);
   const filterEntries = Object.entries(filters || {});
   filterEntries.sort((a, b) => a[0].localeCompare(b[0]));
+  // Move active filters to top
+  filterEntries.sort((a, b) =>
+    (a[1].value === undefined) === (b[1].value === undefined)
+      ? 0
+      : a[1].value === undefined
+      ? 1
+      : -1
+  );
 
   const filterMenu = (
     <div>
       <Menu
-        id="demo-positioned-menu"
-        aria-labelledby="demo-positioned-button"
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left',
+        }}
         anchorEl={filterMenuRef.current}
         open={filterOpen}
         onClose={() => setFiltersOpen(false)}
@@ -110,23 +122,19 @@ export const CollectionDetail = () => {
           const hasVal = Boolean(filter.value);
           const children = [
             <Divider key={column + '__label'} textAlign="left">
-              <Typography color={hasVal ? 'primary' : 'default'}>
-                {column}
-                {hasVal ? (
-                  <IconButton
-                    aria-label="delete"
-                    size="small"
-                    color="primary"
-                    onClick={() => {
-                      dispatch(
-                        clearFilter([collection?.id || '', context, column])
-                      );
-                    }}
-                  >
-                    <FontAwesomeIcon icon={faX} size="sm" />
-                  </IconButton>
-                ) : null}
-              </Typography>
+              <Chip
+                label={column}
+                color={hasVal ? 'primary' : 'default'}
+                onDelete={
+                  hasVal
+                    ? () => {
+                        dispatch(
+                          clearFilter([collection?.id || '', context, column])
+                        );
+                      }
+                    : undefined
+                }
+              />
             </Divider>,
           ];
           if (
@@ -249,6 +257,19 @@ export const CollectionDetail = () => {
           </h2>
           <div className={styles['collection_toolbar']}>
             <Button
+              ref={filterMenuRef}
+              icon={<FontAwesomeIcon icon={faFilter} />}
+              variant="outlined"
+              color={'primary-lighter'}
+              textColor={'primary'}
+              onClick={() => {
+                setFiltersOpen(true);
+              }}
+            >
+              Filters
+            </Button>
+            {filterMenu}
+            <Button
               icon={<FontAwesomeIcon icon={faArrowRightArrowLeft} />}
               variant="outlined"
               color={match ? 'primary' : 'primary-lighter'}
@@ -262,19 +283,6 @@ export const CollectionDetail = () => {
                 ? `Matching by ${MATCHER_LABELS.get(match.matcher_id)}`
                 : `Match my Data`}
             </Button>
-            <Button
-              ref={filterMenuRef}
-              icon={<FontAwesomeIcon icon={faFilter} />}
-              variant="outlined"
-              color={'primary-lighter'}
-              textColor={'primary'}
-              onClick={() => {
-                setFiltersOpen(true);
-              }}
-            >
-              Filters
-            </Button>
-            {filterMenu}
             <Button
               icon={<FontAwesomeIcon icon={faCircleCheck} />}
               variant="outlined"
@@ -330,8 +338,9 @@ const useCollectionFilters = (collectionId: string | undefined) => {
     { skip: !collectionId }
   );
   useEffect(() => {
-    if (collectionId) {
-      filterData?.columns.forEach((column) => {
+    if (collectionId && filterData) {
+      dispatch(clearFilters([collectionId, context]));
+      filterData.columns.forEach((column) => {
         const current = filters && filters[column.key];
         if (
           column.type === 'date' ||
