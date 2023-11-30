@@ -8,11 +8,13 @@ import { getNarratives } from '../../common/api/searchApi';
 import { Select, Input, Button, SelectOption } from '../../common/components';
 import { uriEncodeTemplateTag as encode } from '../../common/utils/stringUtils';
 import { Modal } from '../layout/Modal';
+import { useAppParam } from '../params/hooks';
 import { useSelectionId } from './collectionsSlice';
 import { useParamsForNarrativeDropdown } from './hooks';
 
 export const ExportModal = ({ collectionId }: { collectionId: string }) => {
   const selectionId = useSelectionId(collectionId);
+  const matchId = useAppParam('match');
   const [name, setName] = useState<string>('');
   const [desc, setDesc] = useState<string>('');
   const [narrativeSel, setNarrativeSel] = useState<SelectOption | undefined>();
@@ -47,6 +49,7 @@ export const ExportModal = ({ collectionId }: { collectionId: string }) => {
       ws_type: typeSel?.value.toString(),
       object_name: name,
       description: desc,
+      match_id: matchId,
     });
   };
 
