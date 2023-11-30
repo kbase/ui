@@ -310,6 +310,7 @@ interface CollectionsParams {
     object_name: string;
     ws_type: KBaseType;
     description: string;
+    match_id?: Match['match_id'];
   };
   listTaxaCountRanks: {
     collection_id: Collection['id'];
