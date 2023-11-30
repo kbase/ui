@@ -147,7 +147,9 @@ export const CollectionSlice = createSlice({
     ) => {
       const cln = collectionState(state, collectionId);
       if (!cln.filters[context]) cln.filters[context] = {};
-      delete cln.filters[context][columnName];
+      if (cln.filters[context][columnName]) {
+        delete cln.filters[context][columnName].value;
+      }
     },
     clearFilters: (
       state,
