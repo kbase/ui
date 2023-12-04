@@ -9,6 +9,10 @@ import { useLoggedInProfileUser } from './profileSlice';
 
 let testStore = createTestStore({});
 describe('useLoggedInProfileUser', () => {
+  beforeAll(() => {
+    window.gtag = jest.fn();
+  });
+
   beforeEach(() => {
     testStore = createTestStore({});
   });
