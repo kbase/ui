@@ -7,6 +7,10 @@ const consoleInfo = jest.spyOn(console, 'info');
 consoleInfo.mockImplementation(() => {});
 
 describe('Europa...', () => {
+  beforeAll(() => {
+    window.gtag = jest.fn();
+  });
+
   afterAll(() => {
     consoleInfo.mockRestore();
   });
