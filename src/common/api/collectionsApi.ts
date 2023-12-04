@@ -225,7 +225,7 @@ interface CollectionsResults {
           }
         | {
             type: 'string';
-            filter_strategy: 'fulltext' | 'prefix' | 'identity';
+            filter_strategy: 'fulltext' | 'prefix' | 'identity' | 'ngram';
             min_value: undefined;
             max_value: undefined;
             enum_values: undefined;
