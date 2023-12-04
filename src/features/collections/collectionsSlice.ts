@@ -25,9 +25,7 @@ interface FilterRange {
 }
 
 type FilterState =
-  | { type: 'fulltext'; value?: string }
-  | { type: 'prefix'; value?: string }
-  | { type: 'identity'; value?: string }
+  | { type: 'fulltext' | 'prefix' | 'identity' | 'ngram'; value?: string }
   | {
       type: 'date' | 'int' | 'float';
       value?: FilterRange;
@@ -311,7 +309,8 @@ export const useFilters = (collectionId: string | undefined) => {
       if (
         filterState.type === 'identity' ||
         filterState.type === 'fulltext' ||
-        filterState.type === 'prefix'
+        filterState.type === 'prefix' ||
+        filterState.type === 'ngram'
       ) {
         if (filterState.value !== undefined) filterValue = filterState.value;
       } else if (
@@ -320,11 +319,17 @@ export const useFilters = (collectionId: string | undefined) => {
           filterState.type === 'float') &&
         filterState.value !== undefined
       ) {
+        let fStart = filterState.value.range[0].toString();
+        let fEnd = filterState.value.range[1].toString();
+        if (filterState.type === 'date') {
+          fStart = new Date(filterState.value.range[0]).toISOString();
+          fEnd = new Date(filterState.value.range[1]).toISOString();
+        }
         filterValue = [
           filterState.value.startInclusive ? '[' : '',
-          filterState.value.range[0].toString(),
+          fStart,
           ',',
-          filterState.value.range[1].toString(),
+          fEnd,
           filterState.value.endInclusive ? ']' : '',
         ].join('');
       }

@@ -135,6 +135,8 @@ export const CollectionDetail = () => {
               filter.min_value,
               filter.max_value,
             ];
+            const formatVal = (n: number | string) =>
+              filter.type === 'date' ? new Date(n).toLocaleString() : n;
             children.push(
               <MenuItem>
                 <Stack>
@@ -143,13 +145,13 @@ export const CollectionDetail = () => {
                       size="small"
                       key={column + '__min'}
                       helperText={'min'}
-                      value={valRange[0]}
+                      value={formatVal(valRange[0])}
                       variant="outlined"
                     />
                     <TextField
                       size="small"
                       key={column + '__max'}
-                      value={valRange[1]}
+                      value={formatVal(valRange[1])}
                       helperText={'max'}
                       variant="outlined"
                     />
@@ -162,9 +164,10 @@ export const CollectionDetail = () => {
                     value={valRange}
                     min={filter.min_value}
                     max={filter.max_value}
+                    valueLabelFormat={formatVal}
                     marks={[filter.min_value, filter.max_value].map((v) => ({
                       value: v,
-                      label: v,
+                      label: formatVal(v),
                     }))}
                     onChange={(ev, newValue) =>
                       dispatch(
@@ -190,7 +193,8 @@ export const CollectionDetail = () => {
           } else if (
             filter.type === 'fulltext' ||
             filter.type === 'prefix' ||
-            filter.type === 'identity'
+            filter.type === 'identity' ||
+            filter.type === 'ngram'
           ) {
             children.push(
               <MenuItem>
@@ -209,9 +213,10 @@ export const CollectionDetail = () => {
                   }}
                   helperText={
                     {
-                      fulltext: 'Search',
+                      fulltext: 'Word Search',
                       identity: 'Exact Match',
                       prefix: 'Prefix Match',
+                      ngram: 'N-gram Search',
                     }[filter.type]
                   }
                   variant="standard"
@@ -335,6 +340,12 @@ const useCollectionFilters = (collectionId: string | undefined) => {
           column.type === 'float' ||
           column.type === 'int'
         ) {
+          let min = column.min_value;
+          let max = column.max_value;
+          if (column.type === 'date') {
+            min = new Date(min).getTime();
+            max = new Date(max).getTime();
+          }
           dispatch(
             setFilter([
               collectionId,
@@ -342,8 +353,8 @@ const useCollectionFilters = (collectionId: string | undefined) => {
               column.key,
               {
                 type: column.type,
-                min_value: column.min_value,
-                max_value: column.max_value,
+                min_value: min,
+                max_value: max,
                 value:
                   current?.type === column.type ? current.value : undefined,
               },
