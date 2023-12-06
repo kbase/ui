@@ -17,6 +17,8 @@ import {
 } from '../../../common/components/Table';
 import { useAppDispatch } from '../../../common/hooks';
 import {
+  setFilterMatch,
+  setFilterSelection,
   setLocalSelection,
   useCurrentSelection,
   useFilters,
@@ -33,13 +35,9 @@ export const GenomeAttribs: FC<{
 
   // State Management
   const matchId = useMatchId(collection_id);
-  const [matchMark, setMatchMark] = useState(true);
-  const [selectMark, setSelectMark] = useState(true);
-  // we don't use the server marks to show the selected state,
-  // so no need to fetch the selection unless we are filtering the table
-  const selectionId = useSelectionId(collection_id, { skip: selectMark });
+  const selectionId = useSelectionId(collection_id);
   // get the shared filter state
-  const { filterParams } = useFilters(collection_id);
+  const { filterMatch, filterSelection } = useFilters(collection_id);
 
   const [sorting, setSorting] = useState<SortingState>([]);
   const requestSort = useMemo(() => {
@@ -79,54 +77,63 @@ export const GenomeAttribs: FC<{
     },
   ];
 
+  const view = useMemo(
+    () => ({
+      matched: Boolean(matchId && filterMatch),
+      selected: Boolean(selectionId && filterSelection),
+      filtered: true,
+    }),
+    [filterMatch, filterSelection, matchId, selectionId]
+  );
+  const viewParams = useTableViewParams(collection_id, view);
+
+  const markParams = useMemo(
+    () => ({
+      match_mark: Boolean(matchId && !filterMatch),
+      selection_mark: Boolean(selectionId && !filterSelection),
+    }),
+    [filterMatch, filterSelection, matchId, selectionId]
+  );
+
   // Requests
   const attribParams = useMemo(
     () => ({
-      collection_id,
+      ...viewParams,
+      ...markParams,
+      // sort params
       sort_on: requestSort.by,
       sort_desc: requestSort.desc,
+      // pagination params
       skip: pagination.pageIndex * pagination.pageSize,
       limit: pagination.pageSize,
-      filters: filterParams,
-      ...(matchId ? { match_id: matchId, match_mark: matchMark } : {}),
-      ...(selectionId
-        ? { selection_id: selectionId, selection_mark: selectMark }
-        : {}),
     }),
     [
-      collection_id,
-      matchId,
-      matchMark,
-      selectionId,
-      selectMark,
-      pagination.pageIndex,
-      pagination.pageSize,
+      viewParams,
+      markParams,
       requestSort.by,
       requestSort.desc,
-      filterParams,
+      pagination.pageIndex,
+      pagination.pageSize,
     ]
   );
-  const countParams = useMemo(
-    () => ({ ...attribParams, count: true }),
-    [attribParams]
-  );
+
   // Current Data
   const { data, isFetching } = getGenomeAttribs.useQuery(attribParams);
-  const { data: countData } = getGenomeAttribs.useQuery(countParams);
+  const { count } = useGenomeAttribsCount(collection_id, view);
 
   // Prefetch requests
   const nextParams = useMemo(
     () => ({
       ...attribParams,
       skip: Math.min(
-        (countData?.count || pagination.pageSize) - pagination.pageSize,
+        (count || pagination.pageSize) - pagination.pageSize,
         attribParams.skip + pagination.pageSize
       ),
     }),
-    [attribParams, countData?.count, pagination.pageSize]
+    [attribParams, count, pagination.pageSize]
   );
   getGenomeAttribs.useQuery(nextParams, {
-    skip: !data || !countData || isFetching,
+    skip: !data || count === undefined || isFetching,
   });
   const prevParams = useMemo(
     () => ({
@@ -163,7 +170,7 @@ export const GenomeAttribs: FC<{
       setSorting(update);
     },
     manualPagination: true,
-    pageCount: Math.ceil((countData?.count || 0) / pagination.pageSize),
+    pageCount: Math.ceil((count || 0) / pagination.pageSize),
     onPaginationChange: setPagination,
 
     enableRowSelection: true,
@@ -180,18 +187,24 @@ export const GenomeAttribs: FC<{
     <div>
       <span>
         <CheckBox
-          checked={matchMark}
-          onChange={() => setMatchMark((v) => !v)}
+          checked={Boolean(filterMatch)}
+          onChange={(e) =>
+            dispatch(setFilterMatch([collection_id, e.currentTarget.checked]))
+          }
         />{' '}
-        Show Unmatched
+        Filter by Match
       </span>
 
       <span>
         <CheckBox
-          checked={selectMark}
-          onChange={() => setSelectMark((v) => !v)}
+          checked={Boolean(filterSelection)}
+          onChange={(e) =>
+            dispatch(
+              setFilterSelection([collection_id, e.currentTarget.checked])
+            )
+          }
         />{' '}
-        Show Unselected
+        Filter by Selection
       </span>
 
       <Table
@@ -210,4 +223,47 @@ export const GenomeAttribs: FC<{
       <Pagination table={table} maxPage={10000 / pagination.pageSize} />
     </div>
   );
+};
+
+const useTableViewParams = (
+  collection_id: string | undefined,
+  view: { filtered: boolean; selected: boolean; matched: boolean }
+) => {
+  const { filterParams } = useFilters(collection_id);
+  const matchId = useMatchId(collection_id);
+  const selectionId = useSelectionId(collection_id || '', {
+    skip: !collection_id,
+  });
+  return useMemo(
+    () => ({
+      collection_id: collection_id ?? '',
+      ...(view.filtered ? { filters: filterParams } : {}),
+      ...(view.selected ? { selection_id: selectionId } : {}),
+      ...(view.matched ? { match_id: matchId } : {}),
+    }),
+    [
+      collection_id,
+      filterParams,
+      matchId,
+      selectionId,
+      view.filtered,
+      view.matched,
+      view.selected,
+    ]
+  );
+};
+
+export const useGenomeAttribsCount = (
+  collection_id: string | undefined,
+  view: { filtered: boolean; selected: boolean; matched: boolean }
+) => {
+  const viewParams = useTableViewParams(collection_id, view);
+  const params = useMemo(() => ({ ...viewParams, count: true }), [viewParams]);
+
+  // Requests
+  const result = getGenomeAttribs.useQuery(params, {
+    skip: !!collection_id,
+  });
+
+  return { count: result?.currentData?.count, result };
 };
