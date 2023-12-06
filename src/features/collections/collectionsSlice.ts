@@ -37,6 +37,8 @@ interface ClnState {
   selection: SelectionState;
   match: MatchState;
   filterContext: string;
+  filterMatch: boolean;
+  filterSelection: boolean;
   filters: {
     [context: string]: {
       [columnName: string]: FilterState;
@@ -54,6 +56,8 @@ const initialCollection: ClnState = {
   selection: { current: [] },
   match: {},
   filterContext: defaultFilterContext,
+  filterMatch: false,
+  filterSelection: false,
   filters: {},
 };
 
@@ -135,6 +139,24 @@ export const CollectionSlice = createSlice({
       if (!cln.filters[context]) cln.filters[context] = {};
       cln.filters[context][columnName] = filterState;
     },
+    setFilterMatch: (
+      state,
+      {
+        payload: [collectionId, filter],
+      }: PayloadAction<[collectionId: string, filter: boolean]>
+    ) => {
+      const cln = collectionState(state, collectionId);
+      cln.filterMatch = filter;
+    },
+    setFilterSelection: (
+      state,
+      {
+        payload: [collectionId, filter],
+      }: PayloadAction<[collectionId: string, filter: boolean]>
+    ) => {
+      const cln = collectionState(state, collectionId);
+      cln.filterSelection = filter;
+    },
     clearFilter: (
       state,
       {
@@ -187,6 +209,8 @@ export const {
   setFilter,
   clearFilter,
   clearFilters,
+  setFilterMatch,
+  setFilterSelection,
 } = CollectionSlice.actions;
 
 export const useCurrentSelection = (collectionId: string | undefined) =>
@@ -301,6 +325,15 @@ export const useFilters = (collectionId: string | undefined) => {
       ? state.collections.clns[collectionId]?.filters?.[context]
       : undefined
   );
+  const filterMatch = useAppSelector((state) =>
+    collectionId ? state.collections.clns[collectionId]?.filterMatch : undefined
+  );
+  const filterSelection = useAppSelector((state) =>
+    collectionId
+      ? state.collections.clns[collectionId]?.filterSelection
+      : undefined
+  );
+
   const formattedFilters = Object.entries(filters ?? {})
     .filter(([column, filterState]) => Boolean(filterState.value))
     .map(([column, filterState]) => {
@@ -348,5 +381,5 @@ export const useFilters = (collectionId: string | undefined) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [changeIndicator]
   );
-  return { filterParams, context, filters };
+  return { filterParams, context, filters, filterMatch, filterSelection };
 };

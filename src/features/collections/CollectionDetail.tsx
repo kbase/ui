@@ -40,6 +40,7 @@ import {
   Divider,
   Chip,
 } from '@mui/material';
+import { useForm } from 'react-hook-form';
 
 export const detailPath = ':id';
 export const detailDataProductPath = ':id/:data_product';
@@ -88,151 +89,13 @@ export const CollectionDetail = () => {
     skip: !matchId,
   });
   const match = matchQuery.data;
-  const { context, filters } = useCollectionFilters(collection?.id);
-  const dispatch = useAppDispatch();
-
-  const [filterOpen, setFiltersOpen] = useState(false);
-  const filterMenuRef = useRef<HTMLButtonElement>(null);
-  const filterEntries = Object.entries(filters || {});
-  filterEntries.sort((a, b) => a[0].localeCompare(b[0]));
-
-  const filterMenu = (
-    <div>
-      <Menu
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'left',
-        }}
-        anchorEl={filterMenuRef.current}
-        open={filterOpen}
-        onClose={() => setFiltersOpen(false)}
-      >
-        {filterEntries.flatMap(([column, filter]) => {
-          const hasVal = Boolean(filter.value);
-          const children = [
-            <Divider key={column + '__label'} textAlign="left">
-              <Chip
-                label={column}
-                color={hasVal ? 'primary' : 'default'}
-                onDelete={
-                  hasVal
-                    ? () => {
-                        dispatch(
-                          clearFilter([collection?.id || '', context, column])
-                        );
-                      }
-                    : undefined
-                }
-              />
-            </Divider>,
-          ];
-          if (
-            filter.type === 'float' ||
-            filter.type === 'int' ||
-            filter.type === 'date'
-          ) {
-            const valRange = filter.value?.range ?? [
-              filter.min_value,
-              filter.max_value,
-            ];
-            const formatVal = (n: number | string) =>
-              filter.type === 'date' ? new Date(n).toLocaleString() : n;
-            children.push(
-              <MenuItem>
-                <Stack>
-                  <Stack direction="row" spacing={2}>
-                    <TextField
-                      size="small"
-                      key={column + '__min'}
-                      helperText={'min'}
-                      value={formatVal(valRange[0])}
-                      variant="outlined"
-                    />
-                    <TextField
-                      size="small"
-                      key={column + '__max'}
-                      value={formatVal(valRange[1])}
-                      helperText={'max'}
-                      variant="outlined"
-                    />
-                  </Stack>
-                  <Slider
-                    size="small"
-                    key={column}
-                    disableSwap
-                    getAriaLabel={() => `filter range for column ${column}`}
-                    value={valRange}
-                    min={filter.min_value}
-                    max={filter.max_value}
-                    valueLabelFormat={formatVal}
-                    marks={[filter.min_value, filter.max_value].map((v) => ({
-                      value: v,
-                      label: formatVal(v),
-                    }))}
-                    onChange={(ev, newValue) =>
-                      dispatch(
-                        setFilter([
-                          collection?.id || '',
-                          context,
-                          column,
-                          {
-                            ...filter,
-                            value: {
-                              ...filter.value,
-                              range: newValue as [number, number],
-                            },
-                          },
-                        ])
-                      )
-                    }
-                    valueLabelDisplay="auto"
-                  />
-                </Stack>
-              </MenuItem>
-            );
-          } else if (
-            filter.type === 'fulltext' ||
-            filter.type === 'prefix' ||
-            filter.type === 'identity' ||
-            filter.type === 'ngram'
-          ) {
-            children.push(
-              <MenuItem>
-                <TextField
-                  key={column}
-                  value={filter.value}
-                  onChange={(e) => {
-                    dispatch(
-                      setFilter([
-                        collection?.id || '',
-                        context,
-                        column,
-                        { ...filter, value: e.currentTarget.value },
-                      ])
-                    );
-                  }}
-                  helperText={
-                    {
-                      fulltext: 'Word Search',
-                      identity: 'Exact Match',
-                      prefix: 'Prefix Match',
-                      ngram: 'N-gram Search',
-                    }[filter.type]
-                  }
-                  variant="standard"
-                />
-              </MenuItem>
-            );
-          }
-          return children;
-        })}
-      </Menu>
-    </div>
-  );
 
   const modal = useModalControls();
   type ModalView = 'match' | 'select' | 'export';
   const [modalView, setModalView] = useState<ModalView>('match');
+
+  const [filterOpen, setFiltersOpen] = useState(false);
+  const filterMenuRef = useRef<HTMLButtonElement>(null);
 
   if (!collection) return <Loader type="spinner" />;
   return (
@@ -261,7 +124,12 @@ export const CollectionDetail = () => {
             >
               Filters
             </Button>
-            {filterMenu}
+            <FilterMenu
+              collectionId={collection.id}
+              anchorEl={filterMenuRef.current}
+              open={filterOpen}
+              onClose={() => setFiltersOpen(false)}
+            />
             <Button
               icon={<FontAwesomeIcon icon={faArrowRightArrowLeft} />}
               variant="outlined"
@@ -319,6 +187,158 @@ export const CollectionDetail = () => {
       ) : (
         <></>
       )}
+    </div>
+  );
+};
+
+const FilterMenu = (props: {
+  collectionId: string;
+  anchorEl: Element | null;
+  open: boolean;
+  onClose: () => void;
+}) => {
+  const { context, filters } = useCollectionFilters(props.collectionId);
+  const dispatch = useAppDispatch();
+
+  const filterEntries = Object.entries(filters || {});
+  filterEntries.sort((a, b) => a[0].localeCompare(b[0]));
+
+  const clearFilterState = (column: string) => {
+    dispatch(clearFilter([props.collectionId, context, column]));
+  };
+
+  type filterType = NonNullable<typeof filters>[string];
+  type FormValues = {
+    [column: string]: filterType['value'];
+  };
+
+  const { register } = useForm<FormValues>();
+
+  return (
+    <div>
+      <Menu
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left',
+        }}
+        anchorEl={props.anchorEl}
+        open={props.open}
+        onClose={props.onClose}
+      >
+        {filterEntries.flatMap(([column, filter]) => {
+          const hasVal = Boolean(filter.value);
+          const children = [
+            <Divider key={column + '__label'} textAlign="left">
+              <Chip
+                label={column}
+                color={hasVal ? 'primary' : 'default'}
+                onDelete={hasVal ? () => clearFilterState(column) : undefined}
+              />
+            </Divider>,
+          ];
+          if (
+            filter.type === 'float' ||
+            filter.type === 'int' ||
+            filter.type === 'date'
+          ) {
+            const valRange = filter.value?.range ?? [
+              filter.min_value,
+              filter.max_value,
+            ];
+            const formatVal = (n: number | string) =>
+              filter.type === 'date' ? new Date(n).toLocaleString() : n;
+            children.push(
+              <MenuItem>
+                <Stack>
+                  <Stack direction="row" spacing={2}>
+                    <TextField
+                      size="small"
+                      key={column + '__min'}
+                      helperText={'min'}
+                      value={formatVal(valRange[0])}
+                      variant="outlined"
+                    />
+                    <TextField
+                      size="small"
+                      key={column + '__max'}
+                      value={formatVal(valRange[1])}
+                      helperText={'max'}
+                      variant="outlined"
+                    />
+                  </Stack>
+                  <Slider
+                    size="small"
+                    key={column}
+                    {...register(column)}
+                    disableSwap
+                    getAriaLabel={() => `filter range for column ${column}`}
+                    value={valRange}
+                    min={filter.min_value}
+                    max={filter.max_value}
+                    valueLabelFormat={formatVal}
+                    marks={[filter.min_value, filter.max_value].map((v) => ({
+                      value: v,
+                      label: formatVal(v),
+                    }))}
+                    onChange={(ev, newValue) =>
+                      dispatch(
+                        setFilter([
+                          props.collectionId || '',
+                          context,
+                          column,
+                          {
+                            ...filter,
+                            value: {
+                              ...filter.value,
+                              range: newValue as [number, number],
+                            },
+                          },
+                        ])
+                      )
+                    }
+                    valueLabelDisplay="auto"
+                  />
+                </Stack>
+              </MenuItem>
+            );
+          } else if (
+            filter.type === 'fulltext' ||
+            filter.type === 'prefix' ||
+            filter.type === 'identity' ||
+            filter.type === 'ngram'
+          ) {
+            children.push(
+              <MenuItem>
+                <TextField
+                  key={column}
+                  {...register(column)}
+                  value={filter.value}
+                  onChange={(e) => {
+                    dispatch(
+                      setFilter([
+                        props.collectionId || '',
+                        context,
+                        column,
+                        { ...filter, value: e.currentTarget.value },
+                      ])
+                    );
+                  }}
+                  helperText={
+                    {
+                      fulltext: 'Word Search',
+                      identity: 'Exact Match',
+                      prefix: 'Prefix Match',
+                      ngram: 'N-gram Search',
+                    }[filter.type]
+                  }
+                  variant="standard"
+                />
+              </MenuItem>
+            );
+          }
+          return children;
+        })}
+      </Menu>
     </div>
   );
 };
