@@ -210,6 +210,15 @@ interface CollectionsResults {
     data?: null;
     count?: number;
   };
+  getAttribHistogram: {
+    bins: number[];
+    values: number[];
+  };
+  getAttribScatter: {
+    xcolumn: string;
+    ycolumn: string;
+    data: { x: number; y: number }[];
+  };
   getMicroTrait: {
     description: string;
     match_state: ProcessState;
@@ -335,6 +344,21 @@ interface CollectionsParams {
     selection_id?: Selection['selection_id'];
     selection_mark?: boolean;
     count?: boolean;
+    load_ver_override?: Collection['ver_tag'];
+  };
+  getAttribHistogram: {
+    collection_id: Collection['id'];
+    column: string;
+    match_id?: Match['match_id'];
+    selection_id?: Selection['selection_id'];
+    load_ver_override?: Collection['ver_tag'];
+  };
+  getAttribScatter: {
+    collection_id: Collection['id'];
+    xcolumn: string;
+    ycolumn: string;
+    match_id?: Match['match_id'];
+    selection_id?: Selection['selection_id'];
     load_ver_override?: Collection['ver_tag'];
   };
   getMicroTrait: {
@@ -628,6 +652,36 @@ export const collectionsApi = baseApi.injectEndpoints({
         }),
     }),
 
+    getAttribHistogram: builder.query<
+      CollectionsResults['getAttribHistogram'],
+      CollectionsParams['getAttribHistogram']
+    >({
+      query: ({ collection_id, ...options }) =>
+        collectionsService({
+          method: 'GET',
+          url: encode`/collections/${collection_id}/data_products/genome_attribs/hist`,
+          params: options,
+          headers: {
+            authorization: `Bearer ${store.getState().auth.token}`,
+          },
+        }),
+    }),
+
+    getAttribScatter: builder.query<
+      CollectionsResults['getAttribScatter'],
+      CollectionsParams['getAttribScatter']
+    >({
+      query: ({ collection_id, ...options }) =>
+        collectionsService({
+          method: 'GET',
+          url: encode`/collections/${collection_id}/data_products/genome_attribs/scatter`,
+          params: options,
+          headers: {
+            authorization: `Bearer ${store.getState().auth.token}`,
+          },
+        }),
+    }),
+
     getMicroTrait: builder.query<
       CollectionsResults['getMicroTrait'],
       CollectionsParams['getMicroTrait']
@@ -821,6 +875,8 @@ export const {
   listTaxaCountRanks,
   getTaxaCountRank,
   getGenomeAttribs,
+  getAttribHistogram,
+  getAttribScatter,
   getMicroTrait,
   getMicroTraitMeta,
   getMicroTraitCell,

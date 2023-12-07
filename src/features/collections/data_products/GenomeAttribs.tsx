@@ -19,6 +19,8 @@ import { useAppDispatch, useAppSelector } from '../../../common/hooks';
 import { useAppParam } from '../../params/hooks';
 import { setUserSelection, useSelectionId } from '../collectionsSlice';
 import classes from './../Collections.module.scss';
+import { AttribHistogram } from './AttribHistogram';
+import { AttribScatter } from './AttribScatter';
 
 export const GenomeAttribs: FC<{
   collection_id: string;
@@ -170,6 +172,15 @@ export const GenomeAttribs: FC<{
 
   return (
     <div>
+      <AttribScatter
+        collection_id={collection_id}
+        xColumn={'checkm_completeness'}
+        yColumn={'checkm_contamination'}
+      />
+      <AttribHistogram
+        collection_id={collection_id}
+        column={'checkm_completeness'}
+      />
       <span>
         <CheckBox
           checked={matchMark}
