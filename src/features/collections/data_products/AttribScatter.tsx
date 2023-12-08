@@ -1,4 +1,4 @@
-import { ComponentProps, useMemo, useRef, useState } from 'react';
+import { ComponentProps, useEffect, useMemo, useRef, useState } from 'react';
 import Plot from 'react-plotly.js';
 import { getAttribScatter } from '../../../common/api/collectionsApi';
 import { Loader } from '../../../common/components/Loader';
@@ -15,34 +15,35 @@ export const AttribScatter = ({
   yColumn: string;
   downsample?: number;
 }) => {
-  const [plotLayout, setPlotLayout] = useState<
-    ComponentProps<typeof Plot>['layout']
-  >({ width: 600, height: 600, title: `${xColumn} / ${yColumn}` });
-
   const { data, isFetching } = getAttribScatter.useQuery({
     collection_id,
     xcolumn: xColumn,
     ycolumn: yColumn,
   });
 
-  const [{ xMin, xMax, yMin, yMax }, setExtent] = useState<{
-    xMin?: number;
-    xMax?: number;
-    yMin?: number;
-    yMax?: number;
-  }>({});
+  const shouldDownsample =
+    downsample !== undefined &&
+    downsample > 0 &&
+    (data?.data.length ?? 0 > downsample);
 
-  const plotData: ComponentProps<typeof Plot>['data'] = useMemo(() => {
+  const [viewport, setViewport] = useState<{
+    xMin: number;
+    xMax: number;
+    yMin: number;
+    yMax: number;
+  }>();
+
+  const [plotData, count, preDownsampledCount] = useMemo(() => {
     if (!data) return [];
     const allPoints = data.data.map(({ x, y }) => [x, y]);
     // Find the most extreme points. for auto-zoom purposes, we always want to plot these
-    const ex = allPoints.reduce(
-      (ex, point) => {
-        if (point[0] < ex.xMin[0]) ex.xMin = point;
-        if (point[0] > ex.xMax[0]) ex.xMax = point;
-        if (point[1] < ex.yMin[1]) ex.yMin = point;
-        if (point[1] > ex.yMax[1]) ex.yMax = point;
-        return ex;
+    const outermost = allPoints.reduce(
+      (outermost, point) => {
+        if (point[0] < outermost.xMin[0]) outermost.xMin = point;
+        if (point[0] > outermost.xMax[0]) outermost.xMax = point;
+        if (point[1] < outermost.yMin[1]) outermost.yMin = point;
+        if (point[1] > outermost.yMax[1]) outermost.yMax = point;
+        return outermost;
       },
       {
         xMin: [Infinity, 0],
@@ -51,31 +52,62 @@ export const AttribScatter = ({
         yMax: [0, -Infinity],
       }
     );
-    const extremities = new Set([ex.xMin, ex.xMax, ex.yMin, ex.yMax]);
-    const extremePoints = Array.from(extremities);
+    const outermostPoints = new Set([
+      outermost.xMin,
+      outermost.xMax,
+      outermost.yMin,
+      outermost.yMax,
+    ]);
 
-    let points = allPoints.filter((p) => !extremities.has(p));
+    let points = allPoints.filter((p) => !outermostPoints.has(p));
 
-    if (xMin && xMax && yMin && yMax) {
+    if (viewport) {
       points = points.filter(
-        ([x, y]) => x >= xMin && x <= xMax && y >= yMin && y <= yMax
+        ([x, y]) =>
+          x >= viewport.xMin &&
+          x <= viewport.xMax &&
+          y >= viewport.yMin &&
+          y <= viewport.yMax
       );
     }
-    if (downsample && downsample - extremePoints.length > 0) {
+
+    const preDownsampledCount = points.length + outermostPoints.size;
+
+    if (shouldDownsample) {
       points = LTTB({
         series: points,
-        threshold: downsample - extremePoints.length,
+        threshold: Math.max(downsample - outermostPoints.size, 1),
       });
     }
-    const x = [...points, ...extremePoints].map(([x, y]) => x);
-    const y = [...points, ...extremePoints].map(([x, y]) => y);
+    const extremePointArr = Array.from(outermostPoints);
+    const x = [...points, ...extremePointArr].map(([x, y]) => x);
+    const y = [...points, ...extremePointArr].map(([x, y]) => y);
     const plotData: ComponentProps<typeof Plot>['data'] = [
       { type: 'scattergl', mode: 'markers', x, y },
     ];
-    return plotData;
-  }, [data, downsample, xMax, xMin, yMax, yMin]);
+    return [plotData, x.length, preDownsampledCount];
+  }, [data, downsample, shouldDownsample, viewport]);
 
   const debounceTimeout = useRef<number>();
+
+  const title = `${xColumn} / ${yColumn}${
+    shouldDownsample && preDownsampledCount !== count
+      ? `<br>(downsampled to ${count}/${preDownsampledCount} points)`
+      : ''
+  }`;
+
+  const [plotLayout, setPlotLayout] = useState<
+    ComponentProps<typeof Plot>['layout']
+  >({ width: 600, height: 600, title: title });
+
+  //Reset title on plot update, but don't create a new layout object (this causes an infinite loop)
+  useEffect(() => {
+    plotLayout.title = {
+      text: title,
+      yref: 'paper',
+    };
+    setPlotLayout(plotLayout);
+  }, [title, plotLayout]);
 
   if (!plotData || isFetching) return <Loader />;
   return (
@@ -86,11 +118,21 @@ export const AttribScatter = ({
         setPlotLayout(layout);
         if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
         debounceTimeout.current = window.setTimeout(() => {
-          const xMin = layout.xaxis?.range?.[0];
-          const xMax = layout.xaxis?.range?.[1];
-          const yMin = layout.yaxis?.range?.[0];
-          const yMax = layout.yaxis?.range?.[1];
-          setExtent({ xMin, xMax, yMin, yMax });
+          const bounds: (number | undefined)[] = [
+            layout.xaxis?.range?.[0],
+            layout.xaxis?.range?.[1],
+            layout.yaxis?.range?.[0],
+            layout.yaxis?.range?.[1],
+          ];
+          if (bounds.some((v) => v === undefined)) return;
+          const [xMin, xMax, yMin, yMax] = bounds as number[];
+          if (
+            xMin !== viewport?.xMin ||
+            xMax !== viewport?.xMax ||
+            yMin !== viewport?.yMin ||
+            yMax !== viewport?.yMax
+          )
+            setViewport({ xMin, xMax, yMin, yMax });
         }, 50);
       }}
     />
