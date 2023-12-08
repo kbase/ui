@@ -24,10 +24,16 @@ interface FilterRange {
   range: [number, number];
 }
 
-type FilterState =
+export type FilterState =
   | { type: 'fulltext' | 'prefix' | 'identity' | 'ngram'; value?: string }
   | {
-      type: 'date' | 'int' | 'float';
+      type: 'int' | 'float';
+      value?: FilterRange;
+      min_value: number;
+      max_value: number;
+    }
+  | {
+      type: 'date';
       value?: FilterRange;
       min_value: number;
       max_value: number;

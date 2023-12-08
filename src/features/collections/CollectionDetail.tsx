@@ -25,6 +25,7 @@ import { CollectionSidebar } from './CollectionSidebar';
 import {
   clearFilter,
   clearFilters,
+  FilterState,
   setFilter,
   useCurrentSelection,
   useFilters,
@@ -207,13 +208,6 @@ const FilterMenu = (props: {
     dispatch(clearFilter([props.collectionId, context, column]));
   };
 
-  type filterType = NonNullable<typeof filters>[string];
-  type FormValues = {
-    [column: string]: filterType['value'];
-  };
-
-  const { register } = useForm<FormValues>();
-
   return (
     <div>
       <Menu
@@ -235,107 +229,15 @@ const FilterMenu = (props: {
                 onDelete={hasVal ? () => clearFilterState(column) : undefined}
               />
             </Divider>,
+            <MenuItem>
+              <FilterControls
+                column={column}
+                filter={filter}
+                context={context}
+                collectionId={props.collectionId}
+              />
+            </MenuItem>,
           ];
-          if (
-            filter.type === 'float' ||
-            filter.type === 'int' ||
-            filter.type === 'date'
-          ) {
-            const valRange = filter.value?.range ?? [
-              filter.min_value,
-              filter.max_value,
-            ];
-            const formatVal = (n: number | string) =>
-              filter.type === 'date' ? new Date(n).toLocaleString() : n;
-            children.push(
-              <MenuItem>
-                <Stack>
-                  <Stack direction="row" spacing={2}>
-                    <TextField
-                      size="small"
-                      key={column + '__min'}
-                      helperText={'min'}
-                      value={formatVal(valRange[0])}
-                      variant="outlined"
-                    />
-                    <TextField
-                      size="small"
-                      key={column + '__max'}
-                      value={formatVal(valRange[1])}
-                      helperText={'max'}
-                      variant="outlined"
-                    />
-                  </Stack>
-                  <Slider
-                    size="small"
-                    key={column}
-                    {...register(column)}
-                    disableSwap
-                    getAriaLabel={() => `filter range for column ${column}`}
-                    value={valRange}
-                    min={filter.min_value}
-                    max={filter.max_value}
-                    valueLabelFormat={formatVal}
-                    marks={[filter.min_value, filter.max_value].map((v) => ({
-                      value: v,
-                      label: formatVal(v),
-                    }))}
-                    onChange={(ev, newValue) =>
-                      dispatch(
-                        setFilter([
-                          props.collectionId || '',
-                          context,
-                          column,
-                          {
-                            ...filter,
-                            value: {
-                              ...filter.value,
-                              range: newValue as [number, number],
-                            },
-                          },
-                        ])
-                      )
-                    }
-                    valueLabelDisplay="auto"
-                  />
-                </Stack>
-              </MenuItem>
-            );
-          } else if (
-            filter.type === 'fulltext' ||
-            filter.type === 'prefix' ||
-            filter.type === 'identity' ||
-            filter.type === 'ngram'
-          ) {
-            children.push(
-              <MenuItem>
-                <TextField
-                  key={column}
-                  {...register(column)}
-                  value={filter.value}
-                  onChange={(e) => {
-                    dispatch(
-                      setFilter([
-                        props.collectionId || '',
-                        context,
-                        column,
-                        { ...filter, value: e.currentTarget.value },
-                      ])
-                    );
-                  }}
-                  helperText={
-                    {
-                      fulltext: 'Word Search',
-                      identity: 'Exact Match',
-                      prefix: 'Prefix Match',
-                      ngram: 'N-gram Search',
-                    }[filter.type]
-                  }
-                  variant="standard"
-                />
-              </MenuItem>
-            );
-          }
           return children;
         })}
       </Menu>
@@ -402,4 +304,319 @@ const useCollectionFilters = (collectionId: string | undefined) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterData, context, collectionId, dispatch]);
   return { filters, context, isLoading };
+};
+
+interface FilterControlProps {
+  column: string;
+  filter: FilterState;
+  collectionId: string;
+  context: string;
+}
+
+const FilterControls = ({
+  column,
+  filter,
+  collectionId,
+  context,
+}: FilterControlProps) => {
+  if (
+    filter.type === 'fulltext' ||
+    filter.type === 'prefix' ||
+    filter.type === 'identity' ||
+    filter.type === 'ngram'
+  ) {
+    return (
+      <TextFilterControls
+        column={column}
+        filter={filter}
+        context={context}
+        collectionId={collectionId}
+      />
+    );
+  } else if (filter.type === 'int' || filter.type === 'float') {
+    return (
+      <RangeFilterControls
+        column={column}
+        filter={filter}
+        context={context}
+        collectionId={collectionId}
+      />
+    );
+  } else if (filter.type === 'date') {
+    return (
+      <DateRangeFilterControls
+        column={column}
+        filter={filter}
+        context={context}
+        collectionId={collectionId}
+      />
+    );
+  }
+  return null;
+};
+
+const DateRangeFilterControls = ({
+  column,
+  filter,
+  collectionId,
+  context,
+}: FilterControlProps & {
+  filter: { type: 'date' };
+}) => {
+  const formatDate = (d: number) => new Date(d).toISOString();
+  const parseDate = (d: string) => new Date(d).getTime();
+  // initial defaults
+  const [defMin, defMax] = (
+    filter.value?.range ?? [filter.min_value, filter.max_value]
+  ).map(formatDate);
+
+  const {
+    register,
+    handleSubmit,
+    getFieldState,
+    formState,
+    getValues,
+    setValue,
+  } = useForm({
+    defaultValues: { min: defMin, max: defMax },
+    reValidateMode: 'onChange',
+  });
+  const values = getValues();
+  const { error: minError } = getFieldState('min', formState);
+  const { error: maxError } = getFieldState('max', formState);
+  const dispatch = useAppDispatch();
+  const sliderTimeout = useRef<number>();
+
+  const setFilterRange = () => {
+    const validState = getValues();
+    const shouldClear =
+      parseDate(validState.min) === filter.min_value &&
+      parseDate(validState.max) === filter.max_value;
+    if (shouldClear) {
+      dispatch(clearFilter([collectionId, context, column]));
+    } else {
+      dispatch(
+        setFilter([
+          collectionId,
+          context,
+          column,
+          {
+            ...filter,
+            value: {
+              ...filter.value,
+              range: [parseDate(validState.min), parseDate(validState.max)],
+            },
+          },
+        ])
+      );
+    }
+  };
+
+  const submit = handleSubmit(() => {
+    setFilterRange();
+  });
+
+  return (
+    <Stack>
+      <Stack direction="row" spacing={2}>
+        <TextField
+          {...register('min', {
+            valueAsDate: true,
+            validate: (value) => parseDate(value) < parseDate(values.max),
+          })}
+          onBlur={submit}
+          error={Boolean(minError)}
+          size="small"
+          variant="outlined"
+        />
+        <TextField
+          {...register('max', {
+            valueAsDate: true,
+            validate: (value) => parseDate(value) > parseDate(values.min),
+          })}
+          onBlur={submit}
+          error={Boolean(maxError)}
+          size="small"
+          variant="outlined"
+        />
+      </Stack>
+      <Slider
+        size="small"
+        disableSwap
+        getAriaLabel={() => `filter range for column ${column}`}
+        value={[parseDate(values.min), parseDate(values.max)]}
+        min={filter.min_value}
+        max={filter.max_value}
+        valueLabelFormat={formatDate}
+        marks={[filter.min_value, filter.max_value].map((v) => ({
+          value: v,
+          label: formatDate(v),
+        }))}
+        onChange={(ev, newValue) => {
+          const range = newValue as [number, number];
+          setValue('min', formatDate(range[0]));
+          setValue('max', formatDate(range[1]));
+          // Debounce setting the filter state from the slider for better UX
+          if (sliderTimeout.current) clearTimeout(sliderTimeout.current);
+          sliderTimeout.current = window.setTimeout(() => {
+            submit();
+          }, 100);
+        }}
+        valueLabelDisplay="auto"
+      />
+    </Stack>
+  );
+};
+
+const RangeFilterControls = ({
+  column,
+  filter,
+  collectionId,
+  context,
+}: FilterControlProps & {
+  filter: { type: 'float' | 'int' };
+}) => {
+  // initial defaults
+  const [defMin, defMax] = filter.value?.range ?? [
+    filter.min_value,
+    filter.max_value,
+  ];
+  const {
+    register,
+    handleSubmit,
+    getFieldState,
+    formState,
+    getValues,
+    setValue,
+  } = useForm({
+    defaultValues: { min: defMin, max: defMax },
+    reValidateMode: 'onChange',
+  });
+  const values = getValues();
+  const { error: minError } = getFieldState('min', formState);
+  const { error: maxError } = getFieldState('max', formState);
+  const dispatch = useAppDispatch();
+  const sliderTimeout = useRef<number>();
+
+  const setFilterRange = () => {
+    const validState = getValues();
+    const shouldClear =
+      validState.min === filter.min_value &&
+      validState.max === filter.max_value;
+    if (shouldClear) {
+      dispatch(clearFilter([collectionId, context, column]));
+    } else {
+      dispatch(
+        setFilter([
+          collectionId,
+          context,
+          column,
+          {
+            ...filter,
+            value: {
+              ...filter.value,
+              range: [validState.min, validState.max],
+            },
+          },
+        ])
+      );
+    }
+  };
+
+  const submit = handleSubmit(() => {
+    setFilterRange();
+  });
+
+  return (
+    <Stack>
+      <Stack direction="row" spacing={2}>
+        <TextField
+          {...register('min', {
+            valueAsNumber: true,
+            validate: (value) =>
+              value < values.max &&
+              (filter.type === 'float' || Number.isInteger(value)),
+          })}
+          onBlur={submit}
+          error={Boolean(minError)}
+          size="small"
+          variant="outlined"
+        />
+        <TextField
+          {...register('max', {
+            valueAsNumber: true,
+            validate: (value) =>
+              value > values.min &&
+              (filter.type === 'float' || Number.isInteger(value)),
+          })}
+          onBlur={submit}
+          error={Boolean(maxError)}
+          size="small"
+          variant="outlined"
+        />
+      </Stack>
+      <Slider
+        size="small"
+        disableSwap
+        getAriaLabel={() => `filter range for column ${column}`}
+        value={[values.min, values.max]}
+        min={filter.min_value}
+        max={filter.max_value}
+        marks={[filter.min_value, filter.max_value].map((v) => ({
+          value: v,
+          label: v,
+        }))}
+        onChange={(ev, newValue) => {
+          const range = newValue as [number, number];
+          setValue('min', range[0]);
+          setValue('max', range[1]);
+          // Debounce setting the filter state from the slider for better UX
+          if (sliderTimeout.current) clearTimeout(sliderTimeout.current);
+          sliderTimeout.current = window.setTimeout(() => {
+            submit();
+          }, 100);
+        }}
+        valueLabelDisplay="auto"
+      />
+    </Stack>
+  );
+};
+
+const TextFilterControls = ({
+  column,
+  filter,
+  collectionId,
+  context,
+}: FilterControlProps & {
+  filter: { type: 'fulltext' | 'identity' | 'prefix' | 'ngram' };
+}) => {
+  const dispatch = useAppDispatch();
+  const [text, setText] = useState<string>(filter.value ?? '');
+
+  return (
+    <TextField
+      key={column}
+      value={text}
+      onChange={(e) => setText(e.currentTarget.value)}
+      onBlur={(e) => {
+        dispatch(
+          setFilter([
+            collectionId,
+            context,
+            column,
+            { ...filter, value: e.currentTarget.value },
+          ])
+        );
+      }}
+      helperText={
+        {
+          fulltext: 'Word Search',
+          identity: 'Exact Match',
+          prefix: 'Prefix Match',
+          ngram: 'N-gram Search',
+        }[filter.type]
+      }
+      variant="standard"
+    />
+  );
 };
