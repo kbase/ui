@@ -26,6 +26,7 @@ export const AttribScatter = ({
     downsample > 0 &&
     (data?.data.length ?? 0 > downsample);
 
+  // viewport state to allow resampling on zoom
   const [viewport, setViewport] = useState<{
     xMin: number;
     xMax: number;
@@ -33,8 +34,8 @@ export const AttribScatter = ({
     yMax: number;
   }>();
 
-  const [plotData, count, preDownsampledCount] = useMemo(() => {
-    if (!data) return [];
+  const [plotData, count, originalCount] = useMemo(() => {
+    if (!data) return [[], 0, 0];
     const allPoints = data.data.map(({ x, y }) => [x, y]);
     // Find the most extreme points. for auto-zoom purposes, we always want to plot these
     const outermost = allPoints.reduce(
@@ -52,17 +53,13 @@ export const AttribScatter = ({
         yMax: [0, -Infinity],
       }
     );
-    const outermostPoints = new Set([
-      outermost.xMin,
-      outermost.xMax,
-      outermost.yMin,
-      outermost.yMax,
-    ]);
+    const outermostPoints = new Set(Object.values(outermost));
 
-    let points = allPoints.filter((p) => !outermostPoints.has(p));
+    let viewPoints = allPoints.filter((p) => !outermostPoints.has(p));
 
+    // if we are zoomed in, filter points outside of our view.
     if (viewport) {
-      points = points.filter(
+      viewPoints = viewPoints.filter(
         ([x, y]) =>
           x >= viewport.xMin &&
           x <= viewport.xMax &&
@@ -71,31 +68,36 @@ export const AttribScatter = ({
       );
     }
 
-    const preDownsampledCount = points.length + outermostPoints.size;
-
+    // downsample, if we should downsample
     if (shouldDownsample) {
-      points = LTTB({
-        series: points,
+      viewPoints = LTTB({
+        series: viewPoints,
         threshold: Math.max(downsample - outermostPoints.size, 1),
       });
     }
+
+    // construct our plot data
     const extremePointArr = Array.from(outermostPoints);
-    const x = [...points, ...extremePointArr].map(([x, y]) => x);
-    const y = [...points, ...extremePointArr].map(([x, y]) => y);
+    const x = [...viewPoints, ...extremePointArr].map(([x, y]) => x);
+    const y = [...viewPoints, ...extremePointArr].map(([x, y]) => y);
+
+    const count = x.length;
+    const originalCount = viewPoints.length + outermostPoints.size;
+
     const plotData: ComponentProps<typeof Plot>['data'] = [
       { type: 'scattergl', mode: 'markers', x, y },
     ];
-    return [plotData, x.length, preDownsampledCount];
+
+    return [plotData, count, originalCount];
   }, [data, downsample, shouldDownsample, viewport]);
 
-  const debounceTimeout = useRef<number>();
-
   const title = `${xColumn} / ${yColumn}${
-    shouldDownsample && preDownsampledCount !== count
-      ? `<br>(downsampled to ${count}/${preDownsampledCount} points)`
+    shouldDownsample && originalCount !== count
+      ? `<br>(downsampled to ${count}/${originalCount} points)`
       : ''
   }`;
 
+  // Controlled state for plot layout (so we can change the title dynamically)
   const [plotLayout, setPlotLayout] = useState<
     ComponentProps<typeof Plot>['layout']
   >({ width: 600, height: 600, title: title });
@@ -109,32 +111,40 @@ export const AttribScatter = ({
     setPlotLayout(plotLayout);
   }, [title, plotLayout]);
 
+  const viewportChangeTimeout = useRef<number>();
+
+  // Handle plot layout changes
+  //(setPlotLayout to current layout object AND detect viewport bounds changes)
+  const handleUpdate: ComponentProps<typeof Plot>['onUpdate'] = ({
+    layout,
+  }) => {
+    setPlotLayout(layout);
+    // debounce viewport changes as plotly sometimes fires many at once
+    // and changing the viewport triggers a resample
+    if (viewportChangeTimeout.current) {
+      clearTimeout(viewportChangeTimeout.current);
+    }
+    viewportChangeTimeout.current = window.setTimeout(() => {
+      const bounds: (number | undefined)[] = [
+        layout.xaxis?.range?.[0],
+        layout.xaxis?.range?.[1],
+        layout.yaxis?.range?.[0],
+        layout.yaxis?.range?.[1],
+      ];
+      // don't do anything if the axis bounds are undefined
+      if (bounds.some((v) => v === undefined)) return;
+      const [xMin, xMax, yMin, yMax] = bounds as number[];
+      // if the bounds have changed, set the viewport state
+      if (
+        xMin !== viewport?.xMin ||
+        xMax !== viewport?.xMax ||
+        yMin !== viewport?.yMin ||
+        yMax !== viewport?.yMax
+      )
+        setViewport({ xMin, xMax, yMin, yMax });
+    }, 50);
+  };
+
   if (!plotData || isFetching) return <Loader />;
-  return (
-    <Plot
-      data={plotData}
-      layout={plotLayout}
-      onUpdate={({ layout }) => {
-        setPlotLayout(layout);
-        if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
-        debounceTimeout.current = window.setTimeout(() => {
-          const bounds: (number | undefined)[] = [
-            layout.xaxis?.range?.[0],
-            layout.xaxis?.range?.[1],
-            layout.yaxis?.range?.[0],
-            layout.yaxis?.range?.[1],
-          ];
-          if (bounds.some((v) => v === undefined)) return;
-          const [xMin, xMax, yMin, yMax] = bounds as number[];
-          if (
-            xMin !== viewport?.xMin ||
-            xMax !== viewport?.xMax ||
-            yMin !== viewport?.yMin ||
-            yMax !== viewport?.yMax
-          )
-            setViewport({ xMin, xMax, yMin, yMax });
-        }, 50);
-      }}
-    />
-  );
+  return <Plot data={plotData} layout={plotLayout} onUpdate={handleUpdate} />;
 };
