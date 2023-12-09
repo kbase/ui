@@ -21,10 +21,11 @@ export const AttribScatter = ({
     ycolumn: yColumn,
   });
 
-  const shouldDownsample =
+  const shouldDownsample = Boolean(
     downsample !== undefined &&
-    downsample > 0 &&
-    (data?.data.length ?? 0 > downsample);
+      downsample > 0 &&
+      (data?.data.length ?? 0 > downsample)
+  );
 
   // viewport state to allow resampling on zoom
   const [viewport, setViewport] = useState<{
@@ -68,6 +69,8 @@ export const AttribScatter = ({
       );
     }
 
+    const originalCount = viewPoints.length + outermostPoints.size;
+
     // downsample, if we should downsample
     if (shouldDownsample) {
       viewPoints = LTTB({
@@ -82,7 +85,6 @@ export const AttribScatter = ({
     const y = [...viewPoints, ...extremePointArr].map(([x, y]) => y);
 
     const count = x.length;
-    const originalCount = viewPoints.length + outermostPoints.size;
 
     const plotData: ComponentProps<typeof Plot>['data'] = [
       { type: 'scattergl', mode: 'markers', x, y },
