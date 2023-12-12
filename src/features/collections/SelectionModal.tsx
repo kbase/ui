@@ -1,5 +1,5 @@
 import { useAppDispatch, useAppSelector } from '../../common/hooks';
-import { setUserSelection } from './collectionsSlice';
+import { setLocalSelection, useCurrentSelection } from './collectionsSlice';
 import { Button } from '../../common/components';
 import { useEffect } from 'react';
 import { Modal } from '../layout/Modal';
@@ -13,16 +13,14 @@ export const SelectionModal = ({
 }) => {
   const dispatch = useAppDispatch();
 
-  const currentSelection = useAppSelector(
-    (state) => state.collections.currentSelection
-  );
-  const _verifiedSelectionId = useAppSelector(
-    (state) => state.collections._verifiedSelectionId
+  const currentSelection = useCurrentSelection(collectionId);
+  const verifiedSelectionId = useAppSelector(
+    (state) => state.collections.clns[collectionId]?.selection._verifiedId
   );
 
   // Reset selection when collectionId changes
   useEffect(() => {
-    dispatch(setUserSelection([]));
+    dispatch(setLocalSelection([collectionId, []]));
   }, [collectionId, dispatch]);
 
   return (
@@ -33,13 +31,16 @@ export const SelectionModal = ({
           <li>
             Your current selection includes {currentSelection.length} items.
           </li>
-          <li>Selection ID (if processed): {_verifiedSelectionId}</li>
+          <li>Selection ID (if processed): {verifiedSelectionId}</li>
           <li>Selection: {currentSelection.join(', ')}</li>
         </ul>
       }
       footer={
         <>
-          <Button color="danger" onClick={() => dispatch(setUserSelection([]))}>
+          <Button
+            color="danger"
+            onClick={() => dispatch(setLocalSelection([collectionId, []]))}
+          >
             Clear Selection
           </Button>
           <Button color="primary" onClick={() => showExport()}>

@@ -7,8 +7,7 @@ import { Loader } from '../../../common/components/Loader';
 import { Select, SelectOption } from '../../../common/components/Select';
 import { useBackoffPolling } from '../../../common/hooks';
 import { snakeCaseToHumanReadable } from '../../../common/utils/stringUtils';
-import { useAppParam } from '../../params/hooks';
-import { useSelectionId } from '../collectionsSlice';
+import { useMatchId, useSelectionId } from '../collectionsSlice';
 import classes from './TaxaCount.module.scss';
 
 export const TaxaCount: FC<{
@@ -29,7 +28,7 @@ export const TaxaCount: FC<{
   }, [ranksQuery.data]);
 
   // Counts
-  const matchId = useAppParam('match');
+  const matchId = useMatchId(collection_id);
   const selectionId = useSelectionId(collection_id);
   const countsParams = useMemo(
     () => ({

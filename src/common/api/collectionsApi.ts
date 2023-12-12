@@ -219,6 +219,36 @@ interface CollectionsResults {
     ycolumn: string;
     data: { x: number; y: number }[];
   };
+  getGenomeAttribsMeta: {
+    count: number;
+    columns: Array<
+      {
+        key: string;
+      } & (
+        | {
+            type: 'date' | 'int' | 'float';
+            filter_strategy: undefined;
+            min_value: number;
+            max_value: number;
+            enum_values: undefined;
+          }
+        | {
+            type: 'string';
+            filter_strategy: 'fulltext' | 'prefix' | 'identity' | 'ngram';
+            min_value: undefined;
+            max_value: undefined;
+            enum_values: undefined;
+          }
+        | {
+            type: 'enum';
+            filter_strategy: undefined;
+            min_value: undefined;
+            max_value: undefined;
+            enum_values: string[];
+          }
+      )
+    >;
+  };
   getMicroTrait: {
     description: string;
     match_state: ProcessState;
@@ -344,6 +374,11 @@ interface CollectionsParams {
     selection_id?: Selection['selection_id'];
     selection_mark?: boolean;
     count?: boolean;
+    load_ver_override?: Collection['ver_tag'];
+    filters?: Record<string, string>;
+  };
+  getGenomeAttribsMeta: {
+    collection_id: Collection['id'];
     load_ver_override?: Collection['ver_tag'];
   };
   getAttribHistogram: {
@@ -641,11 +676,26 @@ export const collectionsApi = baseApi.injectEndpoints({
       CollectionsResults['getGenomeAttribs'],
       CollectionsParams['getGenomeAttribs']
     >({
-      query: ({ collection_id, ...options }) =>
+      query: ({ collection_id, filters, ...options }) =>
         collectionsService({
           method: 'GET',
           url: encode`/collections/${collection_id}/data_products/genome_attribs/`,
-          params: options,
+          params: { ...options, ...(filters ?? {}) },
+          headers: {
+            authorization: `Bearer ${store.getState().auth.token}`,
+          },
+        }),
+    }),
+
+    getGenomeAttribsMeta: builder.query<
+      CollectionsResults['getGenomeAttribsMeta'],
+      CollectionsParams['getGenomeAttribsMeta']
+    >({
+      query: ({ collection_id, ...options }) =>
+        collectionsService({
+          method: 'GET',
+          url: encode`/collections/${collection_id}/data_products/genome_attribs/meta`,
+          params: { collection_id, ...options },
           headers: {
             authorization: `Bearer ${store.getState().auth.token}`,
           },
@@ -877,6 +927,7 @@ export const {
   getGenomeAttribs,
   getAttribHistogram,
   getAttribScatter,
+  getGenomeAttribsMeta,
   getMicroTrait,
   getMicroTraitMeta,
   getMicroTraitCell,

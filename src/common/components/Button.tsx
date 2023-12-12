@@ -1,4 +1,4 @@
-import { FunctionComponent as FC } from 'react';
+import { forwardRef, Ref } from 'react';
 import classes from './Button.module.scss';
 
 const colorClasses = Object.keys(classes).filter((d) => d !== 'button');
@@ -17,26 +17,31 @@ interface ButtonProps
   extends CommonButtonProps,
     React.ComponentProps<'button'> {}
 
-export const Button: FC<ButtonProps> = ({
-  variant = 'contained',
-  color = 'primary',
-  textColor,
-  size = 'medium',
-  className,
-  ...props
-}) => {
-  const classNames = [
-    classes.button,
-    className,
-    classes[variant],
-    classes[`button--${color}`],
-    textColor ? classes[`button-text--${textColor}`] : '',
-    classes[size],
-  ].join(' ');
-  return (
-    <button className={classNames} {...props}>
-      {props.icon && <span className={classes.icon}>{props.icon}</span>}
-      {props.children}
-    </button>
-  );
-};
+export const Button = forwardRef(
+  (
+    {
+      variant = 'contained',
+      color = 'primary',
+      textColor,
+      size = 'medium',
+      className,
+      ...props
+    }: ButtonProps,
+    ref: Ref<HTMLButtonElement>
+  ) => {
+    const classNames = [
+      classes.button,
+      className,
+      classes[variant],
+      classes[`button--${color}`],
+      textColor ? classes[`button-text--${textColor}`] : '',
+      classes[size],
+    ].join(' ');
+    return (
+      <button className={classNames} {...props} ref={ref}>
+        {props.icon && <span className={classes.icon}>{props.icon}</span>}
+        {props.children}
+      </button>
+    );
+  }
+);

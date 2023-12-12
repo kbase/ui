@@ -19,9 +19,13 @@ import {
   Table,
   useTableColumns,
 } from '../../../common/components/Table';
-import { useAppDispatch, useAppSelector } from '../../../common/hooks';
-import { useAppParam } from '../../params/hooks';
-import { setUserSelection, useSelectionId } from '../collectionsSlice';
+import { useAppDispatch } from '../../../common/hooks';
+import {
+  setLocalSelection,
+  useCurrentSelection,
+  useMatchId,
+  useSelectionId,
+} from '../collectionsSlice';
 import classes from './../Collections.module.scss';
 
 export const SampleAttribs: FC<{
@@ -31,7 +35,7 @@ export const SampleAttribs: FC<{
   const dispatch = useAppDispatch();
 
   // State Management
-  const matchId = useAppParam('match');
+  const matchId = useMatchId(collection_id);
   const [matchMark, setMatchMark] = useState(true);
   const [selectMark, setSelectMark] = useState(true);
   // we don't use the server marks to show the selected state,
@@ -49,9 +53,7 @@ export const SampleAttribs: FC<{
     pageIndex: 0,
     pageSize: 20,
   });
-  const currentSelection = useAppSelector(
-    (state) => state.collections.currentSelection
-  );
+  const currentSelection = useCurrentSelection(collection_id);
 
   // Requests
   const attribParams = useMemo(
@@ -152,7 +154,7 @@ export const SampleAttribs: FC<{
         .filter((k, i, keys) => {
           return keys.indexOf(k) === i;
         });
-      dispatch(setUserSelection(idList));
+      dispatch(setLocalSelection([collection_id, idList]));
     },
   ];
 
