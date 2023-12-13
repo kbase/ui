@@ -387,6 +387,7 @@ interface CollectionsParams {
     match_id?: Match['match_id'];
     selection_id?: Selection['selection_id'];
     load_ver_override?: Collection['ver_tag'];
+    filters?: Record<string, string>;
   };
   getAttribScatter: {
     collection_id: Collection['id'];
@@ -395,6 +396,7 @@ interface CollectionsParams {
     match_id?: Match['match_id'];
     selection_id?: Selection['selection_id'];
     load_ver_override?: Collection['ver_tag'];
+    filters?: Record<string, string>;
   };
   getMicroTrait: {
     collection_id: Collection['id'];

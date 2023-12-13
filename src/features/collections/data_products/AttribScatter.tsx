@@ -3,6 +3,8 @@ import Plot from 'react-plotly.js';
 import { getAttribScatter } from '../../../common/api/collectionsApi';
 import { Loader } from '../../../common/components/Loader';
 import { downsample as LTTB } from 'downsample-lttb-ts';
+import { useTableViewParams } from './GenomeAttribs';
+import { useFilters } from '../collectionsSlice';
 
 export const AttribScatter = ({
   collection_id,
@@ -15,8 +17,14 @@ export const AttribScatter = ({
   yColumn: string;
   downsample?: number;
 }) => {
+  const { filterMatch, filterSelection } = useFilters(collection_id);
+  const viewParams = useTableViewParams(collection_id, {
+    filtered: true,
+    selected: Boolean(filterMatch),
+    matched: Boolean(filterSelection),
+  });
   const { data, isFetching } = getAttribScatter.useQuery({
-    collection_id,
+    ...viewParams,
     xcolumn: xColumn,
     ycolumn: yColumn,
   });
@@ -102,7 +110,7 @@ export const AttribScatter = ({
   // Controlled state for plot layout (so we can change the title dynamically)
   const [plotLayout, setPlotLayout] = useState<
     ComponentProps<typeof Plot>['layout']
-  >({ width: 600, height: 600, title: title });
+  >({ height: 600, title: title });
 
   //Reset title on plot update, but don't create a new layout object (this causes an infinite loop)
   useEffect(() => {
@@ -148,5 +156,12 @@ export const AttribScatter = ({
   };
 
   if (!plotData || isFetching) return <Loader />;
-  return <Plot data={plotData} layout={plotLayout} onUpdate={handleUpdate} />;
+  return (
+    <Plot
+      data={plotData}
+      layout={plotLayout}
+      onUpdate={handleUpdate}
+      config={{ responsive: true }}
+    />
+  );
 };

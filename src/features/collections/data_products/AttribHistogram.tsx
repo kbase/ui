@@ -2,6 +2,8 @@ import { ComponentProps, useMemo } from 'react';
 import Plot from 'react-plotly.js';
 import { getAttribHistogram } from '../../../common/api/collectionsApi';
 import { Loader } from '../../../common/components/Loader';
+import { useFilters } from '../collectionsSlice';
+import { useTableViewParams } from './GenomeAttribs';
 
 export const AttribHistogram = ({
   collection_id,
@@ -10,8 +12,14 @@ export const AttribHistogram = ({
   collection_id: string;
   column: string;
 }) => {
+  const { filterMatch, filterSelection } = useFilters(collection_id);
+  const viewParams = useTableViewParams(collection_id, {
+    filtered: true,
+    selected: Boolean(filterMatch),
+    matched: Boolean(filterSelection),
+  });
   const { data, isFetching } = getAttribHistogram.useQuery({
-    collection_id,
+    ...viewParams,
     column,
   });
   const plotData: ComponentProps<typeof Plot>['data'] = useMemo(() => {
@@ -24,6 +32,10 @@ export const AttribHistogram = ({
   }, [data]);
   if (!data || isFetching) return <Loader />;
   return (
-    <Plot data={plotData} layout={{ width: 600, height: 600, title: column }} />
+    <Plot
+      data={plotData}
+      layout={{ height: 600, title: column }}
+      config={{ responsive: true }}
+    />
   );
 };

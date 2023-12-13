@@ -28,6 +28,7 @@ import {
 import classes from './../Collections.module.scss';
 import { AttribHistogram } from './AttribHistogram';
 import { AttribScatter } from './AttribScatter';
+import { Stack } from '@mui/material';
 
 export const GenomeAttribs: FC<{
   collection_id: string;
@@ -186,37 +187,30 @@ export const GenomeAttribs: FC<{
   });
 
   return (
-    <div>
-      <AttribScatter
-        collection_id={collection_id}
-        xColumn={'checkm_completeness'}
-        yColumn={'checkm_contamination'}
-      />
-      <AttribHistogram
-        collection_id={collection_id}
-        column={'checkm_completeness'}
-      />
-      <span>
-        <CheckBox
-          checked={Boolean(filterMatch)}
-          onChange={(e) =>
-            dispatch(setFilterMatch([collection_id, e.currentTarget.checked]))
-          }
-        />{' '}
-        Filter by Match
-      </span>
+    <Stack>
+      <div>
+        <span>
+          <CheckBox
+            checked={Boolean(filterMatch)}
+            onChange={(e) =>
+              dispatch(setFilterMatch([collection_id, e.currentTarget.checked]))
+            }
+          />{' '}
+          Filter by Match
+        </span>
 
-      <span>
-        <CheckBox
-          checked={Boolean(filterSelection)}
-          onChange={(e) =>
-            dispatch(
-              setFilterSelection([collection_id, e.currentTarget.checked])
-            )
-          }
-        />{' '}
-        Filter by Selection
-      </span>
+        <span>
+          <CheckBox
+            checked={Boolean(filterSelection)}
+            onChange={(e) =>
+              dispatch(
+                setFilterSelection([collection_id, e.currentTarget.checked])
+              )
+            }
+          />{' '}
+          Filter by Selection
+        </span>
+      </div>
 
       <Table
         table={table}
@@ -232,11 +226,22 @@ export const GenomeAttribs: FC<{
       />
 
       <Pagination table={table} maxPage={10000 / pagination.pageSize} />
-    </div>
+      <Stack direction={'row'}>
+        <AttribScatter
+          collection_id={collection_id}
+          xColumn={'checkm_completeness'}
+          yColumn={'checkm_contamination'}
+        />
+        <AttribHistogram
+          collection_id={collection_id}
+          column={'checkm_completeness'}
+        />
+      </Stack>
+    </Stack>
   );
 };
 
-const useTableViewParams = (
+export const useTableViewParams = (
   collection_id: string | undefined,
   view: { filtered: boolean; selected: boolean; matched: boolean }
 ) => {
@@ -248,7 +253,7 @@ const useTableViewParams = (
   return useMemo(
     () => ({
       collection_id: collection_id ?? '',
-      ...(view.filtered ? { filters: filterParams } : {}),
+      ...(view.filtered ? { ...filterParams } : {}),
       ...(view.selected ? { selection_id: selectionId } : {}),
       ...(view.matched ? { match_id: matchId } : {}),
     }),

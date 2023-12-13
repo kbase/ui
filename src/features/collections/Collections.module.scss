@@ -5,6 +5,7 @@ $border: 1px solid use-color("base-lighter");
 .container {
   background-color: use-color("base-lightest");
   height: 100%;
+  overflow-y: auto;
   padding: 1rem;
 }
 
