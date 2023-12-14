@@ -29,6 +29,7 @@
     "@types/plotly.js": "^2.12.30",
     "@types/react-plotly.js": "^2.6.3",
     "ajv": "^8.12.0",
+    "canvas": "^2.11.2",
     "d3-zoom": "^3.0.0",
     "dompurify": "^3.0.1",
     "downsample-lttb-ts": "^0.0.6",
