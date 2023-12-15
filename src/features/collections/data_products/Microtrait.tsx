@@ -28,7 +28,7 @@ export const Microtrait: FC<{
       <div>
         <HeatMap
           table={table}
-          rowNameAccessor={(row) => row.kbase_id}
+          rowNameAccessor={(row) => row.kbase_display_name}
           getCellLabel={async (cell, row, column) => {
             const { data, error } = await dispatch(
               getMicroTraitCell.initiate({
