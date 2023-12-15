@@ -156,7 +156,7 @@ export const GenomeAttribs: FC<{
     getRowId: (row) => String(row[idIndex]),
     columns: useTableColumns({
       fieldNames: data?.fields.map((field) => field.name),
-      order: ['kbase_id', 'genome_size'],
+      order: ['kbase_display_name', 'genome_size'],
       exclude: ['__match__', '__sel__'],
     }),
 
