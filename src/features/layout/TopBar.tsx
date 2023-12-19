@@ -288,6 +288,7 @@ const Enviroment: FC = () => {
     ci: faFlask,
     'ci-europa': faFlask,
     'narrative-dev': faWrench,
+    next: faWrench,
     unknown: faQuestionCircle,
   }[env];
   const txt = {
