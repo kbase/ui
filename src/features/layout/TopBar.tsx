@@ -296,7 +296,7 @@ const Enviroment: FC = () => {
     ci: 'CI',
     'ci-europa': 'EUR',
     'narrative-dev': 'NARDEV',
-    'next': 'NEXT',
+    next: 'NEXT',
     unknown: 'ENV?',
   }[env];
   return (
