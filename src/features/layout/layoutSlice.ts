@@ -3,12 +3,13 @@ import { useEffect } from 'react';
 import { useAppDispatch } from '../../common/hooks';
 
 const environments = [
-  'unknown',
-  'production',
-  'ci',
   'appdev',
+  'ci',
   'ci-europa',
   'narrative-dev',
+  'next',
+  'production',
+  'unknown',
 ] as const;
 
 interface PageState {

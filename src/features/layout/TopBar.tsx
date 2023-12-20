@@ -288,6 +288,7 @@ const Enviroment: FC = () => {
     ci: faFlask,
     'ci-europa': faFlask,
     'narrative-dev': faWrench,
+    next: faWrench,
     unknown: faQuestionCircle,
   }[env];
   const txt = {
@@ -295,6 +296,7 @@ const Enviroment: FC = () => {
     ci: 'CI',
     'ci-europa': 'EUR',
     'narrative-dev': 'NARDEV',
+    next: 'NEXT',
     unknown: 'ENV?',
   }[env];
   return (
