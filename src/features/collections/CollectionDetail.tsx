@@ -34,12 +34,12 @@ import {
 import { useAppDispatch } from '../../common/hooks';
 import {
   Slider,
-  Menu,
   MenuItem,
   TextField,
   Stack,
   Divider,
   Chip,
+  Paper,
 } from '@mui/material';
 import { useForm } from 'react-hook-form';
 
@@ -98,6 +98,10 @@ export const CollectionDetail = () => {
   const [filterOpen, setFiltersOpen] = useState(false);
   const filterMenuRef = useRef<HTMLButtonElement>(null);
 
+  const handleToggleFilters = () => {
+    setFiltersOpen(!filterOpen);
+  };
+
   if (!collection) return <Loader type="spinner" />;
   return (
     <div className={styles['collection_wrapper']}>
@@ -119,18 +123,16 @@ export const CollectionDetail = () => {
               variant="outlined"
               color={'primary-lighter'}
               textColor={'primary'}
-              onClick={() => {
-                setFiltersOpen(true);
-              }}
+              onClick={handleToggleFilters}
             >
               Filters
             </Button>
-            <FilterMenu
+            {/* <FilterMenu
               collectionId={collection.id}
               anchorEl={filterMenuRef.current}
               open={filterOpen}
               onClose={() => setFiltersOpen(false)}
-            />
+            /> */}
             <Button
               icon={<FontAwesomeIcon icon={faArrowRightArrowLeft} />}
               variant="outlined"
@@ -160,12 +162,20 @@ export const CollectionDetail = () => {
           </div>
         </div>
         <div className={styles['container']}>
+          <FilterMenu
+            collectionId={collection.id}
+            anchorEl={filterMenuRef.current}
+            open={filterOpen}
+            onClose={() => setFiltersOpen(false)}
+          />
           <div className={styles['data_product_detail']}>
             {currDataProduct ? (
-              <DataProduct
-                dataProduct={currDataProduct}
-                collection_id={collection.id}
-              />
+              <Paper variant="outlined">
+                <DataProduct
+                  dataProduct={currDataProduct}
+                  collection_id={collection.id}
+                />
+              </Paper>
             ) : (
               <></>
             )}
@@ -208,17 +218,9 @@ const FilterMenu = (props: {
     dispatch(clearFilter([props.collectionId, context, column]));
   };
 
-  return (
-    <div>
-      <Menu
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'left',
-        }}
-        anchorEl={props.anchorEl}
-        open={props.open}
-        onClose={props.onClose}
-      >
+  if (props.open) {
+    return (
+      <div className={styles['filters_panel']}>
         {filterEntries.flatMap(([column, filter]) => {
           const hasVal = Boolean(filter.value);
           const children = [
@@ -240,9 +242,11 @@ const FilterMenu = (props: {
           ];
           return children;
         })}
-      </Menu>
-    </div>
-  );
+      </div>
+    );
+  } else {
+    return null;
+  }
 };
 
 const useCollectionFilters = (collectionId: string | undefined) => {
