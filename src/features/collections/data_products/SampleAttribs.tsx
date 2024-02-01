@@ -17,6 +17,7 @@ import { LeafletMap, useLeaflet } from '../../../common/components/Map';
 import {
   Pagination,
   Table,
+  usePageBounds,
   useTableColumns,
 } from '../../../common/components/Table';
 import { useAppDispatch } from '../../../common/hooks';
@@ -27,6 +28,8 @@ import {
   useSelectionId,
 } from '../collectionsSlice';
 import classes from './../Collections.module.scss';
+import { Grid, Paper, Stack } from '@mui/material';
+import { formatNumber } from '../../../common/utils/stringUtils';
 
 export const SampleAttribs: FC<{
   collection_id: string;
@@ -190,6 +193,8 @@ export const SampleAttribs: FC<{
     },
   });
 
+  const { firstRow, lastRow } = usePageBounds(table);
+
   const leaflet = useLeaflet((L, leafletMap) => {
     // Map Init
     leafletMap.setView([37.87722, -122.2506], 13);
@@ -229,42 +234,56 @@ export const SampleAttribs: FC<{
   }, [L, leafletMap, markers]);
 
   return (
-    <div className={classes['dp_columns']}>
-      <div>
-        <span>
-          <CheckBox
-            checked={matchMark}
-            onChange={() => setMatchMark((v) => !v)}
-          />{' '}
-          Show Unmatched
-        </span>
+    <Grid container columnSpacing={1}>
+      <Grid item md={6}>
+        <Paper variant="outlined">
+          <Stack
+            className={classes['table-toolbar']}
+            direction="row"
+            spacing={1}
+          >
+            <span>
+              Showing {formatNumber(firstRow)} - {formatNumber(lastRow)} of{' '}
+              {formatNumber(table.getTotalSize())} genomes
+            </span>
+            <span>
+              <CheckBox
+                checked={matchMark}
+                onChange={() => setMatchMark((v) => !v)}
+              />{' '}
+              Show Unmatched
+            </span>
 
-        <span>
-          <CheckBox
-            checked={selectMark}
-            onChange={() => setSelectMark((v) => !v)}
-          />{' '}
-          Show Unselected
-        </span>
-
-        <Table
-          table={table}
-          isLoading={isFetching}
-          rowClass={(row) => {
-            // match highlights
-            return matchIndex !== undefined &&
-              matchIndex !== -1 &&
-              row.original[matchIndex]
-              ? classes['match-highlight']
-              : '';
-          }}
-        />
-
-        <Pagination table={table} maxPage={10000 / pagination.pageSize} />
-      </div>
-      <div>
-        <LeafletMap height={'800px'} map={leaflet} />
-      </div>
-    </div>
+            <span>
+              <CheckBox
+                checked={selectMark}
+                onChange={() => setSelectMark((v) => !v)}
+              />{' '}
+              Show Unselected
+            </span>
+          </Stack>
+          <Table
+            table={table}
+            isLoading={isFetching}
+            rowClass={(row) => {
+              // match highlights
+              return matchIndex !== undefined &&
+                matchIndex !== -1 &&
+                row.original[matchIndex]
+                ? classes['match-highlight']
+                : '';
+            }}
+          />
+          <div className={classes['pagination-wrapper']}>
+            <Pagination table={table} maxPage={10000 / pagination.pageSize} />
+          </div>
+        </Paper>
+      </Grid>
+      <Grid item md={6}>
+        <Paper variant="outlined">
+          <LeafletMap height={'800px'} map={leaflet} />
+        </Paper>
+      </Grid>
+    </Grid>
   );
 };

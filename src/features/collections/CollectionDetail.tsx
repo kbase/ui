@@ -39,7 +39,6 @@ import {
   Stack,
   Divider,
   Chip,
-  Paper,
 } from '@mui/material';
 import { useForm } from 'react-hook-form';
 
@@ -170,12 +169,10 @@ export const CollectionDetail = () => {
           />
           <div className={styles['data_product_detail']}>
             {currDataProduct ? (
-              <Paper variant="outlined">
-                <DataProduct
-                  dataProduct={currDataProduct}
-                  collection_id={collection.id}
-                />
-              </Paper>
+              <DataProduct
+                dataProduct={currDataProduct}
+                collection_id={collection.id}
+              />
             ) : (
               <></>
             )}

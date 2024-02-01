@@ -7,6 +7,7 @@ $gaps: 5px;
   display: flex;
   flex-flow: row nowrap;
   gap: $gaps;
+  padding: 0.5rem;
   width: 100%;
 }
 
@@ -68,4 +69,8 @@ $gaps: 5px;
     }
   }
 
+}
+
+.chart-toolbar {
+  padding: 1rem;
 }

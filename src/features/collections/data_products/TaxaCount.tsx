@@ -9,6 +9,7 @@ import { useBackoffPolling } from '../../../common/hooks';
 import { snakeCaseToHumanReadable } from '../../../common/utils/stringUtils';
 import { useMatchId, useSelectionId } from '../collectionsSlice';
 import classes from './TaxaCount.module.scss';
+import { Paper, Stack } from '@mui/material';
 
 export const TaxaCount: FC<{
   collection_id: string;
@@ -57,64 +58,68 @@ export const TaxaCount: FC<{
   if (ranksQuery.isLoading || countsQuery.isLoading) return <Loader />;
 
   return (
-    <>
-      <Select
-        value={rank}
-        options={rankOptions}
-        onChange={(opt) => setRank(opt[0])}
-      />
-      <br></br>
-      <div className={classes['figure']}>
-        <div className={classes['name-section']}>
-          {taxa.map(({ name }) => (
-            <Fragment key={name}>
-              <div className={classes['name']}>{name}</div>
-              {matchId ? (
-                <div className={classes['sub-name']}>Matched</div>
-              ) : (
-                <></>
-              )}
-              {selectionId ? (
-                <div className={classes['sub-name']}>Selected</div>
-              ) : (
-                <></>
-              )}
-            </Fragment>
-          ))}
+    <Paper variant="outlined">
+      <Stack spacing={1}>
+        <div className={classes['chart-toolbar']}>
+          <Select
+            value={rank}
+            options={rankOptions}
+            onChange={(opt) => setRank(opt[0])}
+          />
         </div>
-        <div className={classes['bars-section']}>
-          {taxa.map(({ name, count, match_count, sel_count }) => {
-            const width = Math.round((count / max) * 10000) / 100;
-            const matchWidth =
-              Math.round(((match_count || 0) / max) * 10000) / 100;
-            const selWidth = Math.round(((sel_count || 0) / max) * 10000) / 100;
-            return (
+        <div className={classes['figure']}>
+          <div className={classes['name-section']}>
+            {taxa.map(({ name }) => (
               <Fragment key={name}>
-                <Bar width={width} count={count} />
+                <div className={classes['name']}>{name}</div>
                 {matchId ? (
-                  <Bar
-                    className={classes['matched']}
-                    width={matchWidth}
-                    count={match_count || 0}
-                  />
+                  <div className={classes['sub-name']}>Matched</div>
                 ) : (
                   <></>
                 )}
                 {selectionId ? (
-                  <Bar
-                    className={classes['selected']}
-                    width={selWidth}
-                    count={sel_count || 0}
-                  />
+                  <div className={classes['sub-name']}>Selected</div>
                 ) : (
                   <></>
                 )}
               </Fragment>
-            );
-          })}
+            ))}
+          </div>
+          <div className={classes['bars-section']}>
+            {taxa.map(({ name, count, match_count, sel_count }) => {
+              const width = Math.round((count / max) * 10000) / 100;
+              const matchWidth =
+                Math.round(((match_count || 0) / max) * 10000) / 100;
+              const selWidth =
+                Math.round(((sel_count || 0) / max) * 10000) / 100;
+              return (
+                <Fragment key={name}>
+                  <Bar width={width} count={count} />
+                  {matchId ? (
+                    <Bar
+                      className={classes['matched']}
+                      width={matchWidth}
+                      count={match_count || 0}
+                    />
+                  ) : (
+                    <></>
+                  )}
+                  {selectionId ? (
+                    <Bar
+                      className={classes['selected']}
+                      width={selWidth}
+                      count={sel_count || 0}
+                    />
+                  ) : (
+                    <></>
+                  )}
+                </Fragment>
+              );
+            })}
+          </div>
         </div>
-      </div>
-    </>
+      </Stack>
+    </Paper>
   );
 };
 
