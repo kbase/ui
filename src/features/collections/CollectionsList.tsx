@@ -10,28 +10,30 @@ export const CollectionsList = () => {
   const collections = listCollections.useQuery();
   return (
     <div className={classes['container']}>
-      <CardList>
-        {collections.isSuccess
-          ? collections.data?.data.map((collection) => {
-              const detailLink = encodeURIComponent(collection.id);
-              const handleClick = () => navigate(detailLink);
-              return (
-                <Card
-                  key={collection.id}
-                  title={collection.name}
-                  subtitle={collection.ver_tag}
-                  onClick={handleClick}
-                  image={
-                    <img
-                      src={collection.icon_url}
-                      alt={`${collection.name} collection icon`}
-                    />
-                  }
-                />
-              );
-            })
-          : null}
-      </CardList>
+      <div className={classes['collections-list']}>
+        <CardList>
+          {collections.isSuccess
+            ? collections.data?.data.map((collection) => {
+                const detailLink = encodeURIComponent(collection.id);
+                const handleClick = () => navigate(detailLink);
+                return (
+                  <Card
+                    key={collection.id}
+                    title={collection.name}
+                    subtitle={collection.ver_tag}
+                    onClick={handleClick}
+                    image={
+                      <img
+                        src={collection.icon_url}
+                        alt={`${collection.name} collection icon`}
+                      />
+                    }
+                  />
+                );
+              })
+            : null}
+        </CardList>
+      </div>
     </div>
   );
 };

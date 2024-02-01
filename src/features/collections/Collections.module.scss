@@ -11,6 +11,10 @@ $border: 1px solid use-color("base-lighter");
   width: 100%;
 }
 
+.collections-list {
+  padding: 1rem;
+}
+
 .collection_wrapper {
   background-color: use-color("base-lightest");
   display: flex;
