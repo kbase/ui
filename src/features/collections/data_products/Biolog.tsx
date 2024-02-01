@@ -27,7 +27,7 @@ export const Biolog: FC<{
   const dispatch = useAppDispatch();
   const { table } = useBiolog(collection_id);
   const { firstRow, lastRow } = usePageBounds(table);
-  
+
   return (
     <Paper variant="outlined">
       <div className={classes['table-toolbar']}>
