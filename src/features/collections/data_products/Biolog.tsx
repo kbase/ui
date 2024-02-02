@@ -25,14 +25,14 @@ export const Biolog: FC<{
   collection_id: string;
 }> = ({ collection_id }) => {
   const dispatch = useAppDispatch();
-  const { table } = useBiolog(collection_id);
+  const { table, count } = useBiolog(collection_id);
   const { firstRow, lastRow } = usePageBounds(table);
 
   return (
     <Paper variant="outlined">
       <div className={classes['table-toolbar']}>
         Showing {formatNumber(firstRow)} - {formatNumber(lastRow)} of{' '}
-        {formatNumber(table.getTotalSize())} genomes
+        {formatNumber(count?.count || 0)} genomes
       </div>
       <HeatMap
         table={table}

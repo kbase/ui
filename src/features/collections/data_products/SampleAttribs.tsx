@@ -244,7 +244,7 @@ export const SampleAttribs: FC<{
           >
             <span>
               Showing {formatNumber(firstRow)} - {formatNumber(lastRow)} of{' '}
-              {formatNumber(table.getTotalSize())} genomes
+              {formatNumber(countData?.count || 0)} genomes
             </span>
             <span>
               <CheckBox

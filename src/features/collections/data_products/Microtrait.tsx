@@ -24,14 +24,14 @@ export const Microtrait: FC<{
   collection_id: string;
 }> = ({ collection_id }) => {
   const dispatch = useAppDispatch();
-  const { table } = useMicrotrait(collection_id);
+  const { table, count } = useMicrotrait(collection_id);
   const { firstRow, lastRow } = usePageBounds(table);
 
   return (
     <Paper variant="outlined">
       <div className={classes['table-toolbar']}>
         Showing {formatNumber(firstRow)} - {formatNumber(lastRow)} of{' '}
-        {formatNumber(table.getTotalSize())} genomes
+        {formatNumber(count?.count || 0)} genomes
       </div>
       <HeatMap
         table={table}

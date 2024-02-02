@@ -194,7 +194,7 @@ export const GenomeAttribs: FC<{
         <Stack className={classes['table-toolbar']} direction="row" spacing={1}>
           <span>
             Showing {formatNumber(firstRow)} - {formatNumber(lastRow)} of{' '}
-            {formatNumber(table.getTotalSize())} genomes
+            {formatNumber(count || 0)} genomes
           </span>
           <span>
             <CheckBox
