@@ -5,9 +5,10 @@
   border-left: 1px solid use-color("silver");
   border-right: 1px solid use-color("silver");
   display: inline-block;
+  flex-shrink: 0;
   height: 100%;
   overflow-y: auto;
-  width: 250px;
+  width: 215px;
 }
 
 .sidebar .header {

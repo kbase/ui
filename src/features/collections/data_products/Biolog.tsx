@@ -12,62 +12,70 @@ import {
   getBiologMeta,
 } from '../../../common/api/collectionsApi';
 import { parseError } from '../../../common/api/utils/parseError';
-import { Pagination } from '../../../common/components/Table';
+import { Pagination, usePageBounds } from '../../../common/components/Table';
 import { useAppDispatch, useBackoffPolling } from '../../../common/hooks';
 import { useAppParam } from '../../params/hooks';
 import { useSelectionId } from '../collectionsSlice';
 import { HeatMap, MAX_HEATMAP_PAGE } from './HeatMap';
+import { formatNumber } from '../../../common/utils/stringUtils';
+import classes from './../Collections.module.scss';
+import { Paper } from '@mui/material';
 
 export const Biolog: FC<{
   collection_id: string;
 }> = ({ collection_id }) => {
   const dispatch = useAppDispatch();
-  const { table } = useBiolog(collection_id);
+  const { table, count } = useBiolog(collection_id);
+  const { firstRow, lastRow } = usePageBounds(table);
 
   return (
-    <div>
-      <div>
-        <HeatMap
-          table={table}
-          rowNameAccessor={(row) => row.kbase_display_name}
-          getCellLabel={async (cell, row, column) => {
-            const { data, error } = await dispatch(
-              getBiologCell.initiate({
-                collection_id,
-                cell_id: cell.cell_id,
-              })
+    <Paper variant="outlined">
+      <div className={classes['table-toolbar']}>
+        Showing {formatNumber(firstRow)} - {formatNumber(lastRow)} of{' '}
+        {formatNumber(count?.count || 0)} genomes
+      </div>
+      <HeatMap
+        table={table}
+        rowNameAccessor={(row) => row.kbase_display_name}
+        getCellLabel={async (cell, row, column) => {
+          const { data, error } = await dispatch(
+            getBiologCell.initiate({
+              collection_id,
+              cell_id: cell.cell_id,
+            })
+          );
+          if (!data) {
+            return (
+              <>
+                {'Error loading cell data:'}
+                <br />
+                {error ? parseError(error) : 'Unknown error'}
+              </>
             );
-            if (!data) {
-              return (
+          } else {
+            return (
+              <>
+                Row: {row.kbase_id}
+                <br />
+                Col: {column.columnDef.header}
+                <br />
+                Val: {cell.val.toString()}
                 <>
-                  {'Error loading cell data:'}
-                  <br />
-                  {error ? parseError(error) : 'Unknown error'}
+                  {Object.entries(row.meta as Record<string, string>).map(
+                    ([id, val]) => (
+                      <div key={id}>{`- ${id}:${val}`}</div>
+                    )
+                  )}
                 </>
-              );
-            } else {
-              return (
-                <>
-                  Row: {row.kbase_id}
-                  <br />
-                  Col: {column.columnDef.header}
-                  <br />
-                  Val: {cell.val.toString()}
-                  <>
-                    {Object.entries(row.meta as Record<string, string>).map(
-                      ([id, val]) => (
-                        <div key={id}>{`- ${id}:${val}`}</div>
-                      )
-                    )}
-                  </>
-                </>
-              );
-            }
-          }}
-        />
+              </>
+            );
+          }
+        }}
+      />
+      <div className={classes['pagination-wrapper']}>
         <Pagination table={table} maxPage={MAX_HEATMAP_PAGE} />
       </div>
-    </div>
+    </Paper>
   );
 };
 

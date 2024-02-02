@@ -13,6 +13,7 @@ import { CheckBox } from '../../../common/components/CheckBox';
 import {
   Pagination,
   Table,
+  usePageBounds,
   useTableColumns,
 } from '../../../common/components/Table';
 import { useAppDispatch } from '../../../common/hooks';
@@ -26,6 +27,8 @@ import {
   useSelectionId,
 } from '../collectionsSlice';
 import classes from './../Collections.module.scss';
+import { Paper, Stack } from '@mui/material';
+import { formatNumber } from '../../../common/utils/stringUtils';
 
 export const GenomeAttribs: FC<{
   collection_id: string;
@@ -183,45 +186,56 @@ export const GenomeAttribs: FC<{
     },
   });
 
+  const { firstRow, lastRow } = usePageBounds(table);
+
   return (
-    <div>
-      <span>
-        <CheckBox
-          checked={Boolean(filterMatch)}
-          onChange={(e) =>
-            dispatch(setFilterMatch([collection_id, e.currentTarget.checked]))
-          }
-        />{' '}
-        Filter by Match
-      </span>
-
-      <span>
-        <CheckBox
-          checked={Boolean(filterSelection)}
-          onChange={(e) =>
-            dispatch(
-              setFilterSelection([collection_id, e.currentTarget.checked])
-            )
-          }
-        />{' '}
-        Filter by Selection
-      </span>
-
-      <Table
-        table={table}
-        isLoading={isFetching}
-        rowClass={(row) => {
-          // match highlights
-          return matchIndex !== undefined &&
-            matchIndex !== -1 &&
-            row.original[matchIndex]
-            ? classes['match-highlight']
-            : '';
-        }}
-      />
-
-      <Pagination table={table} maxPage={10000 / pagination.pageSize} />
-    </div>
+    <Stack spacing={1}>
+      <Paper variant="outlined">
+        <Stack className={classes['table-toolbar']} direction="row" spacing={1}>
+          <span>
+            Showing {formatNumber(firstRow)} - {formatNumber(lastRow)} of{' '}
+            {formatNumber(count || 0)} genomes
+          </span>
+          <span>
+            <CheckBox
+              checked={Boolean(filterMatch)}
+              onChange={(e) =>
+                dispatch(
+                  setFilterMatch([collection_id, e.currentTarget.checked])
+                )
+              }
+            />{' '}
+            Filter by Match
+          </span>
+          <span>
+            <CheckBox
+              checked={Boolean(filterSelection)}
+              onChange={(e) =>
+                dispatch(
+                  setFilterSelection([collection_id, e.currentTarget.checked])
+                )
+              }
+            />{' '}
+            Filter by Selection
+          </span>
+        </Stack>
+        <Table
+          table={table}
+          isLoading={isFetching}
+          rowClass={(row) => {
+            // match highlights
+            return matchIndex !== undefined &&
+              matchIndex !== -1 &&
+              row.original[matchIndex]
+              ? classes['match-highlight']
+              : '';
+          }}
+        />
+        <div className={classes['pagination-wrapper']}>
+          <Pagination table={table} maxPage={10000 / pagination.pageSize} />
+        </div>
+      </Paper>
+    </Stack>
   );
 };
 
