@@ -102,6 +102,7 @@ export interface HeatMapRow<Meta = unknown> {
   match: boolean;
   sel: boolean;
   kbase_id: KBaseId;
+  kbase_display_name: string;
   cells: HeatMapCell[];
   meta?: Meta;
 }

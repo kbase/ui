@@ -36,7 +36,7 @@ export const Biolog: FC<{
       </div>
       <HeatMap
         table={table}
-        rowNameAccessor={(row) => row.kbase_id}
+        rowNameAccessor={(row) => row.kbase_display_name}
         getCellLabel={async (cell, row, column) => {
           const { data, error } = await dispatch(
             getBiologCell.initiate({
