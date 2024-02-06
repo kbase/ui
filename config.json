@@ -24,6 +24,12 @@
       "public_url": "/"
     },
 
+    "narrative2": {
+      "domain": "narrative2.kbase.us",
+      "legacy": "legacy.narrative2.kbase.us",
+      "public_url": "/"
+    },
+
     "next": {
       "domain": "next.kbase.us",
       "legacy": "legacy.next.kbase.us",
