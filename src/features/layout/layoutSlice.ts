@@ -7,6 +7,7 @@ const environments = [
   'ci',
   'ci-europa',
   'narrative-dev',
+  'narrative2',
   'next',
   'production',
   'unknown',
