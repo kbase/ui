@@ -5,15 +5,12 @@ import { GenomeAttribs } from './data_products/GenomeAttribs';
 import { Microtrait } from './data_products/Microtrait';
 import { Biolog } from './data_products/Biolog';
 import { SampleAttribs } from './data_products/SampleAttribs';
-import { Overview } from './data_products/Overview';
 
 export const DataProduct: FC<{
   dataProduct: DataProductType;
   collection_id: string;
 }> = ({ dataProduct, collection_id }) => {
   switch (dataProduct.product) {
-    case 'overview':
-      return <Overview {...{ collection_id }} />;
     case 'taxa_count':
       return <TaxaCount {...{ collection_id }} />;
     case 'genome_attribs':

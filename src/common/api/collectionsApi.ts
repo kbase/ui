@@ -28,6 +28,7 @@ export interface UnsavedCollection {
   id: string;
   name: string;
   desc: string;
+  attribution: string;
   ver_tag: string;
   ver_src: string;
   icon_url: string;

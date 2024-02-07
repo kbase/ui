@@ -57,8 +57,9 @@ const dataProductIcon: DataProductIconMap = {
 export const CollectionSidebar: FC<{
   collection: Collection;
   currDataProduct?: DataProduct;
+  showOverview?: boolean;
   className?: string;
-}> = ({ collection, currDataProduct, className }) => {
+}> = ({ collection, currDataProduct, showOverview, className }) => {
   const navigate = useNavigate();
   const genomesItems: SidebarItem[] = [];
   const samplesItems: SidebarItem[] = [];
@@ -68,7 +69,7 @@ export const CollectionSidebar: FC<{
       displayText: snakeCaseToHumanReadable(dp.product),
       pathname: `/collections/${collection.id}/${dp.product}`,
       icon: <FontAwesomeIcon icon={dataProductIcon[dp.product]} />,
-      isSelected: currDataProduct === dp,
+      isSelected: !showOverview && currDataProduct === dp,
     };
     if (genomesDataProducts.indexOf(dp.product) > -1) {
       genomesItems.push(dpItem);
@@ -98,9 +99,9 @@ export const CollectionSidebar: FC<{
     // In the future this could be part of collection.data_products
     {
       displayText: 'Overview',
-      pathname: `/collections/${collection.id}/overview`,
+      pathname: `/collections/${collection.id}/`,
       icon: <FontAwesomeIcon icon={dataProductIcon['overview']} />,
-      isSelected: currDataProduct?.product === 'overview',
+      isSelected: showOverview,
     },
     ...genomesItems,
     ...samplesItems,
