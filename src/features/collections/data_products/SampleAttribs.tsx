@@ -33,7 +33,8 @@ import { formatNumber } from '../../../common/utils/stringUtils';
 
 export const SampleAttribs: FC<{
   collection_id: string;
-}> = ({ collection_id }) => {
+  mapOnly?: boolean;
+}> = ({ collection_id, mapOnly }) => {
   // Context
   const dispatch = useAppDispatch();
 
@@ -233,6 +234,13 @@ export const SampleAttribs: FC<{
       });
   }, [L, leafletMap, markers]);
 
+  const map = (
+    <Paper variant="outlined">
+      <LeafletMap height={'800px'} map={leaflet} />
+    </Paper>
+  );
+  if (mapOnly) return map;
+
   return (
     <Grid container columnSpacing={1}>
       <Grid item md={6}>
@@ -280,9 +288,7 @@ export const SampleAttribs: FC<{
         </Paper>
       </Grid>
       <Grid item md={6}>
-        <Paper variant="outlined">
-          <LeafletMap height={'800px'} map={leaflet} />
-        </Paper>
+        {map}
       </Grid>
     </Grid>
   );

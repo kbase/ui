@@ -41,9 +41,13 @@ import {
   Chip,
 } from '@mui/material';
 import { useForm } from 'react-hook-form';
+import { CollectionOverview } from './CollectionOverview';
 
 export const detailPath = ':id';
 export const detailDataProductPath = ':id/:data_product';
+
+type ModalView = 'match' | 'select' | 'export';
+export type SetModalView = React.Dispatch<React.SetStateAction<ModalView>>;
 
 export const CollectionDetail = () => {
   const params = useParams();
@@ -56,7 +60,9 @@ export const CollectionDetail = () => {
   const collection = collectionQuery.data;
   usePageTitle(`Data Collections`);
 
-  // If the DataProduct is specified in the URL, show it, otherwise show the first DP.
+  // If no DataProduct is specified, show the overview.
+  const showOverview = !params.data_product;
+  // If the DataProduct is specified in the URL, show it.
   const currDataProduct =
     collection?.data_products.find(
       (dp) => dp.product === params.data_product
@@ -91,7 +97,6 @@ export const CollectionDetail = () => {
   const match = matchQuery.data;
 
   const modal = useModalControls();
-  type ModalView = 'match' | 'select' | 'export';
   const [modalView, setModalView] = useState<ModalView>('match');
 
   const [filterOpen, setFiltersOpen] = useState(false);
@@ -108,57 +113,62 @@ export const CollectionDetail = () => {
         className={styles['collection_sidebar']}
         collection={collection}
         currDataProduct={currDataProduct}
+        showOverview={showOverview}
       />
       <div className={styles['collection_main']}>
         <div className={styles['detail_header']}>
           <h2>
-            {currDataProduct &&
-              snakeCaseToHumanReadable(currDataProduct.product)}
+            {showOverview
+              ? 'Overview'
+              : currDataProduct &&
+                snakeCaseToHumanReadable(currDataProduct.product)}
           </h2>
-          <div className={styles['collection_toolbar']}>
-            <Button
-              ref={filterMenuRef}
-              icon={<FontAwesomeIcon icon={faFilter} />}
-              variant="outlined"
-              color={'primary-lighter'}
-              textColor={'primary'}
-              onClick={handleToggleFilters}
-            >
-              Filters
-            </Button>
-            {/* <FilterMenu
+          {!showOverview && (
+            <div className={styles['collection_toolbar']}>
+              <Button
+                ref={filterMenuRef}
+                icon={<FontAwesomeIcon icon={faFilter} />}
+                variant="outlined"
+                color={'primary-lighter'}
+                textColor={'primary'}
+                onClick={handleToggleFilters}
+              >
+                Filters
+              </Button>
+              {/* <FilterMenu
               collectionId={collection.id}
               anchorEl={filterMenuRef.current}
               open={filterOpen}
               onClose={() => setFiltersOpen(false)}
             /> */}
-            <Button
-              icon={<FontAwesomeIcon icon={faArrowRightArrowLeft} />}
-              variant="outlined"
-              color={match ? 'primary' : 'primary-lighter'}
-              textColor={match ? 'primary-lighter' : 'primary'}
-              onClick={() => {
-                setModalView('match');
-                modal?.show();
-              }}
-            >
-              {match
-                ? `Matching by ${MATCHER_LABELS.get(match.matcher_id)}`
-                : `Match my Data`}
-            </Button>
-            <Button
-              icon={<FontAwesomeIcon icon={faCircleCheck} />}
-              variant="outlined"
-              color={selection.length > 0 ? 'primary' : 'primary-lighter'}
-              textColor={selection.length > 0 ? 'primary-lighter' : 'primary'}
-              onClick={() => {
-                setModalView('select');
-                modal?.show();
-              }}
-            >
-              {`${selection.length} items in selection`}
-            </Button>
-          </div>
+              <Button
+                icon={<FontAwesomeIcon icon={faArrowRightArrowLeft} />}
+                variant="outlined"
+                color={match ? 'primary' : 'primary-lighter'}
+                textColor={match ? 'primary-lighter' : 'primary'}
+                onClick={() => {
+                  setModalView('match');
+                  modal?.show();
+                }}
+              >
+                {match
+                  ? `Matching by ${MATCHER_LABELS.get(match.matcher_id)}`
+                  : `Match my Data`}
+              </Button>
+              <Button
+                icon={<FontAwesomeIcon icon={faCircleCheck} />}
+                variant="outlined"
+                color={selection.length > 0 ? 'primary' : 'primary-lighter'}
+                textColor={selection.length > 0 ? 'primary-lighter' : 'primary'}
+                onClick={() => {
+                  setModalView('select');
+                  modal?.show();
+                }}
+              >
+                {`${selection.length} items in selection`}
+              </Button>
+            </div>
+          )}
         </div>
         <div className={styles['container']}>
           <FilterMenu
@@ -168,7 +178,13 @@ export const CollectionDetail = () => {
             onClose={() => setFiltersOpen(false)}
           />
           <div className={styles['data_product_detail']}>
-            {currDataProduct ? (
+            {showOverview ? (
+              <CollectionOverview
+                collection_id={collection.id}
+                setModalView={setModalView}
+                modal={modal}
+              />
+            ) : currDataProduct ? (
               <DataProduct
                 dataProduct={currDataProduct}
                 collection_id={collection.id}
