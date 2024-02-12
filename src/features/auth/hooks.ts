@@ -26,12 +26,20 @@ export const useAuthMe = () => {
 /**
  * Initializes auth from a cookie, then continues to monitor and update that cookie as appropriate.
  */
-export const useTokenCookie = (name: string) => {
+export const useTokenCookie = (
+  cookieName: string,
+  backupCookieName?: string,
+  backupCookieDomain?: string
+) => {
   const dispatch = useAppDispatch();
 
-  // Pull token from cookie. If it exists, and differs from state, try it for auth.
-  const [cookieToken, setCookieToken, clearCookieToken] = useCookie(name);
+  // Pull token from main cookie. If it exists, and differs from state, try it for auth.
+  const [cookieToken, setCookieToken, clearCookieToken] = useCookie(cookieName);
   const { isSuccess, isFetching } = useTryAuthFromToken(cookieToken);
+
+  // Controls for backupCookie
+  const [backupCookieToken, setBackupCookieToken, clearBackupCookieToken] =
+    useCookie(backupCookieName);
 
   // Pull token, expiration, and init info from auth state
   const token = useAppSelector(authToken);
@@ -62,9 +70,48 @@ export const useTokenCookie = (name: string) => {
       // eslint-disable-next-line no-console
       console.error('Could not set token cookie, missing expire time');
     } else if (!token) {
+      // Auth initialized but theres no valid token? Clear the cookie!
       clearCookieToken();
+      // clear backup token too, if it exists
+      if (backupCookieName) clearBackupCookieToken();
     }
-  }, [initialized, token, expires, setCookieToken, clearCookieToken]);
+  }, [
+    initialized,
+    token,
+    expires,
+    setCookieToken,
+    clearCookieToken,
+    clearBackupCookieToken,
+    backupCookieName,
+  ]);
+
+  // If a backup cookie name is specified, set the backup cookie when the token changes
+  useEffect(() => {
+    if (
+      Boolean(backupCookieName) &&
+      initialized &&
+      token &&
+      backupCookieToken !== token
+    ) {
+      if (!expires) {
+        // eslint-disable-next-line no-console
+        console.error('Could not set backup token cookie, missing expire time');
+      } else {
+        setBackupCookieToken(token, {
+          domain: backupCookieDomain,
+          expires: new Date(expires),
+        });
+      }
+    }
+  }, [
+    backupCookieDomain,
+    backupCookieName,
+    backupCookieToken,
+    expires,
+    initialized,
+    setBackupCookieToken,
+    token,
+  ]);
 };
 
 export const useTryAuthFromToken = (token?: string) => {

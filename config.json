@@ -27,7 +27,8 @@
     "narrative2": {
       "domain": "narrative2.kbase.us",
       "legacy": "legacy.narrative2.kbase.us",
-      "public_url": "/"
+      "public_url": "/",
+      "backup_cookie": { "name": "kbase_backup_session", "domain": ".kbase.us" }
     },
 
     "next": {
@@ -39,7 +40,8 @@
     "production": {
       "domain": "narrative.kbase.us",
       "legacy": "legacy.narrative.kbase.us",
-      "public_url": "/"
+      "public_url": "/",
+      "backup_cookie": { "name": "kbase_backup_session", "domain": ".kbase.us" }
     }
   }
 }
