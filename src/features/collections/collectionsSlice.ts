@@ -28,7 +28,7 @@ interface FilterRange {
   range: [number, number];
 }
 
-export type FilterState =
+export type FilterState = { category?: string } & (
   | { type: 'fulltext' | 'prefix' | 'identity' | 'ngram'; value?: string }
   | {
       type: 'int' | 'float';
@@ -41,7 +41,8 @@ export type FilterState =
       value?: FilterRange;
       min_value: number;
       max_value: number;
-    };
+    }
+);
 
 interface ClnState {
   selection: SelectionState;

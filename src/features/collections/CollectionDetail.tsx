@@ -6,7 +6,7 @@ import {
 } from '../../common/api/collectionsApi';
 import { usePageTitle } from '../layout/layoutSlice';
 import styles from './Collections.module.scss';
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { DataProduct } from './DataProduct';
 import { snakeCaseToHumanReadable } from '../../common/utils/stringUtils';
 import { MATCHER_LABELS, MatchModal } from './MatchModal';
@@ -131,12 +131,6 @@ export const CollectionDetail = () => {
                 >
                   Filters
                 </Button>
-                {/* <FilterMenu
-              collectionId={collection.id}
-              anchorEl={filterMenuRef.current}
-              open={filterOpen}
-              onClose={() => setFiltersOpen(false)}
-            /> */}
                 <Button
                   icon={<FontAwesomeIcon icon={faArrowRightArrowLeft} />}
                   variant="outlined"
@@ -218,17 +212,45 @@ export const CollectionDetail = () => {
 };
 
 const useFilterEntries = (collectionId: string) => {
-  const { context, filters } = useCollectionFilters(collectionId);
+  const { context, filters, categories } = useCollectionFilters(collectionId);
   const dispatch = useAppDispatch();
 
-  const filterEntries = Object.entries(filters || {});
-  filterEntries.sort((a, b) => a[0].localeCompare(b[0]));
+  // Categorize and order filters
+  const categorizedFilters = useMemo(
+    () =>
+      Object.entries(categories)
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([category, filterNames]) => ({
+          category: category,
+          filters: filters
+            ? filterNames
+                .map<[string, FilterState]>((name) => [name, filters[name]])
+                .sort((a, b) => a[0].localeCompare(b[0]))
+            : [],
+        })),
+    [categories, filters]
+  );
+
+  // Use same filter order if ignoring categories for consistency
+  const filterEntries = categorizedFilters.reduce<[string, FilterState][]>(
+    (filterEntires, category) => {
+      filterEntires.push(...category.filters);
+      return filterEntires;
+    },
+    []
+  );
 
   const clearFilterState = (column: string) => {
     dispatch(clearFilter([collectionId, context, column]));
   };
 
-  return { context, filters, filterEntries, clearFilterState };
+  return {
+    context,
+    filters,
+    filterEntries,
+    clearFilterState,
+    categorizedFilters,
+  };
 };
 
 const FilterChips = ({ collectionId }: { collectionId: string }) => {
@@ -261,36 +283,51 @@ const FilterMenu = (props: {
   open: boolean;
   onClose: () => void;
 }) => {
-  const { context, filterEntries, clearFilterState } = useFilterEntries(
+  const { context, categorizedFilters, clearFilterState } = useFilterEntries(
     props.collectionId
   );
 
   if (props.open) {
     return (
       <div className={styles['filters_panel']}>
-        {filterEntries.flatMap(([column, filter]) => {
-          const hasVal = Boolean(filter.value);
-          const children = [
-            <Divider key={column + '__label'} textAlign="left">
-              <FilterChip
-                name={column}
-                filter={filter}
-                color={hasVal ? 'primary' : 'default'}
-                showValue={false}
-                showWhenUnused={true}
-                onDelete={hasVal ? () => clearFilterState(column) : undefined}
-              />
-            </Divider>,
-            <MenuItem>
-              <FilterControls
-                column={column}
-                filter={filter}
-                context={context}
-                collectionId={props.collectionId}
-              />
-            </MenuItem>,
-          ];
-          return children;
+        {categorizedFilters.map((category) => {
+          return (
+            <React.Fragment key={category.category}>
+              <Divider textAlign="left">
+                <h4>{category.category}</h4>
+              </Divider>
+              {category.filters.flatMap(([column, filter]) => {
+                const hasVal = Boolean(filter.value);
+                const children = [
+                  <Divider
+                    variant={'inset'}
+                    key={column + '__label'}
+                    textAlign="left"
+                  >
+                    <FilterChip
+                      name={column}
+                      filter={filter}
+                      color={hasVal ? 'primary' : 'default'}
+                      showValue={false}
+                      showWhenUnused={true}
+                      onDelete={
+                        hasVal ? () => clearFilterState(column) : undefined
+                      }
+                    />
+                  </Divider>,
+                  <MenuItem>
+                    <FilterControls
+                      column={column}
+                      filter={filter}
+                      context={context}
+                      collectionId={props.collectionId}
+                    />
+                  </MenuItem>,
+                ];
+                return children;
+              })}
+            </React.Fragment>
+          );
         })}
       </div>
     );
@@ -301,7 +338,7 @@ const FilterMenu = (props: {
 
 const useCollectionFilters = (collectionId: string | undefined) => {
   const dispatch = useAppDispatch();
-  const { context, filters } = useFilters(collectionId);
+  const { context, filters, categories } = useFilters(collectionId);
   const { data: filterData, isLoading } = getGenomeAttribsMeta.useQuery(
     { collection_id: collectionId || '' },
     { skip: !collectionId }
@@ -329,6 +366,7 @@ const useCollectionFilters = (collectionId: string | undefined) => {
               context,
               column.key,
               {
+                category: column.category,
                 type: column.type,
                 min_value: min,
                 max_value: max,
@@ -344,6 +382,7 @@ const useCollectionFilters = (collectionId: string | undefined) => {
               context,
               column.key,
               {
+                category: column.category,
                 type: column.filter_strategy,
                 value:
                   current?.type === column.filter_strategy
@@ -358,7 +397,7 @@ const useCollectionFilters = (collectionId: string | undefined) => {
     // Exclude filters from deps to prevent circular dep
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterData, context, collectionId, dispatch]);
-  return { filters, context, isLoading };
+  return { filters, context, isLoading, categories };
 };
 
 interface FilterControlProps {
