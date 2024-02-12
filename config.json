@@ -28,7 +28,7 @@
       "domain": "narrative2.kbase.us",
       "legacy": "legacy.narrative2.kbase.us",
       "public_url": "/",
-      "backup_cookie": { "name": "kbase_backup_session", "domain": ".kbase.us" }
+      "backup_cookie": { "name": "kbase_session_backup", "domain": ".kbase.us" }
     },
 
     "next": {
@@ -41,7 +41,7 @@
       "domain": "narrative.kbase.us",
       "legacy": "legacy.narrative.kbase.us",
       "public_url": "/",
-      "backup_cookie": { "name": "kbase_backup_session", "domain": ".kbase.us" }
+      "backup_cookie": { "name": "kbase_session_backup", "domain": ".kbase.us" }
     }
   }
 }
