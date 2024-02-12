@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
-export function getCookie(name: string) {
+export function getCookie(name?: string) {
+  if (!name) return undefined;
   const cookie = document.cookie
     .split(';')
     .map((kv) => kv.trim().split('='))
@@ -13,8 +14,8 @@ export function getCookie(name: string) {
 }
 
 export function setCookie(
-  name: string,
-  value: string,
+  name?: string,
+  value?: string,
   options?: {
     expires?: Date;
     path?: string | null;
@@ -23,13 +24,14 @@ export function setCookie(
     SameSite?: 'Lax' | 'Strict' | 'None';
   }
 ) {
+  if (!name) throw new Error('cannot set unnamed cookie');
   const { expires, path, domain, secure, SameSite } = {
     path: '/',
     secure: true,
     SameSite: 'Lax',
     ...options,
   };
-  let cookieString = `${name}=${value}`;
+  let cookieString = `${name}=${value || ''}`;
   if (expires) cookieString += `;expires=${expires.toUTCString()}`;
   if (path) cookieString += `;path=${path}`;
   if (domain) cookieString += `;domain=${domain}`;
@@ -39,7 +41,7 @@ export function setCookie(
 }
 
 export function clearCookie(
-  name: string,
+  name?: string,
   options?: Omit<Parameters<typeof setCookie>[2], 'expires'>
 ) {
   setCookie(name, '', {
@@ -64,10 +66,11 @@ type wrappedFuncs = {
   ) => ReturnType<typeof setCookie>;
 };
 
-export function useCookie(name: string) {
+export function useCookie(name?: string) {
   const [value, setValue] = useState<undefined | string>(getCookie(name));
 
   useEffect(() => {
+    if (!name) return;
     const interval = setInterval(() => {
       const cookieVal = getCookie(name);
       if (cookieVal !== value) setValue(cookieVal);
