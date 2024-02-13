@@ -1,3 +1,5 @@
+/* stylelint-disable selector-max-compound-selectors -- Need to modify sort icon in table headers */
+
 @import "../colors";
 
 $border: 1px solid use-color("base-lighter");
@@ -81,10 +83,28 @@ $header-height: 2em;
   }
 
   thead th {
-    background-color: use-color("primary");
-    color: use-color("white");
+    background-color: use-color("light-gray");
+    color: use-color("base-darker");
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: bold;
     height: $header-height;
+    text-align: left;
+    text-transform: uppercase;
+    transition: 0.25s;
     white-space: nowrap;
+  }
+
+  thead th:hover {
+    color: use-color("base");
+  }
+
+  thead th > span:first-child {
+    margin-right: 0.25rem;
+  }
+
+  thead th > span:first-child svg {
+    color: use-color("base-light");
   }
 
   tfoot th {
@@ -100,7 +120,7 @@ $header-height: 2em;
     border-top: $border;
     max-width: 20em;
     overflow: clip;
-    padding: 5px;
+    padding: 0.75rem 1rem;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
