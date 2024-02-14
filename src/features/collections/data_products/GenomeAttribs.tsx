@@ -276,7 +276,7 @@ export const useGenomeAttribsCount = (
 
   // Requests
   const result = getGenomeAttribs.useQuery(params, {
-    skip: !!collection_id,
+    skip: !collection_id,
   });
 
   return { count: result?.currentData?.count, result };
