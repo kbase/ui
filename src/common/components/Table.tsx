@@ -22,6 +22,10 @@ import { CheckBox } from './CheckBox';
 import { Loader } from './Loader';
 import { HeatMapRow } from '../api/collectionsApi';
 
+type ColumnOptions = {
+  textAlign?: 'left' | 'right' | 'center';
+};
+
 export const Table = <Datum,>({
   table,
   className = '',
@@ -74,6 +78,11 @@ export const Table = <Datum,>({
                   <td
                     key={cell.id}
                     onMouseOver={setCellTitle} // TODO: Change this to a tooltip
+                    style={{
+                      textAlign: (
+                        cell.column.columnDef.meta as Partial<ColumnOptions>
+                      )?.textAlign,
+                    }}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
@@ -209,6 +218,11 @@ const TableHeader = <Datum,>({ table }: { table: TableType<Datum> }) => (
             key={header.id}
             onClick={header.column.getToggleSortingHandler()}
             colSpan={header.colSpan}
+            style={{
+              textAlign: (
+                header.column.columnDef.meta as Partial<ColumnOptions>
+              )?.textAlign,
+            }}
           >
             {!header.isPlaceholder && header.column.getCanSort() ? (
               <span
@@ -295,7 +309,11 @@ export const useTableColumns = ({
   order = [],
   exclude = [],
 }: {
-  fields?: { displayName?: string; id: string }[];
+  fields?: {
+    displayName?: string;
+    id: string;
+    options?: ColumnOptions;
+  }[];
   order?: string[];
   exclude?: string[];
 }) => {
@@ -331,6 +349,7 @@ export const useTableColumns = ({
         columns.accessor(accessors[field.id], {
           header: field.displayName ?? field.id.replace(/_/g, ' ').trim(),
           id: field.id,
+          meta: field.options,
         })
       );
     },

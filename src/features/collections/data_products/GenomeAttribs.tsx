@@ -162,6 +162,13 @@ export const GenomeAttribs: FC<{
       fields: data?.fields.map((field) => ({
         id: field.name,
         displayName: columnMeta?.[field.name]?.display_name ?? field.name,
+        options: {
+          textAlign: ['float', 'int'].includes(
+            columnMeta?.[field.name]?.type ?? ''
+          )
+            ? 'right'
+            : 'left',
+        },
       })),
       order: ['kbase_display_name', 'genome_size'],
       exclude: ['__match__', '__sel__'],
