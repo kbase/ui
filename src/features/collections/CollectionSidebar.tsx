@@ -3,19 +3,10 @@ import { FC } from 'react';
 import { snakeCaseToHumanReadable } from '../../common/utils/stringUtils';
 import { Sidebar, SidebarItem } from '../../common/components/Sidebar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  faDna,
-  faArrowLeft,
-  faVial,
-  faChartBar,
-  faTableCells,
-  faMicroscope,
-  faList,
-} from '@fortawesome/free-solid-svg-icons';
+import { faDna, faArrowLeft, faVial } from '@fortawesome/free-solid-svg-icons';
 import { Button } from '../../common/components/Button';
 import { useNavigate } from 'react-router-dom';
 import classes from './Collections.module.scss';
-import { IconProp } from '@fortawesome/fontawesome-svg-core';
 
 /**
  * List of data product ids that should be grouped into the
@@ -23,8 +14,8 @@ import { IconProp } from '@fortawesome/fontawesome-svg-core';
  */
 const genomesDataProducts = [
   'genome_attribs',
-  'microtrait',
   'taxa_count',
+  'microtrait',
   'biolog',
 ];
 
@@ -33,22 +24,6 @@ const genomesDataProducts = [
  * "Samples" category.
  */
 const samplesDataProducts = ['samples'];
-
-interface DataProductIconMap {
-  [id: string]: IconProp;
-}
-
-/**
- * Map data product ids to an icon component
- */
-const dataProductIcon: DataProductIconMap = {
-  overview: faList,
-  genome_attribs: faDna,
-  microtrait: faTableCells,
-  taxa_count: faChartBar,
-  biolog: faMicroscope,
-  samples: faVial,
-};
 
 /**
  * Implementation of the Sidebar component for the CollectionDetail pages.
@@ -64,11 +39,11 @@ export const CollectionSidebar: FC<{
   const genomesItems: SidebarItem[] = [];
   const samplesItems: SidebarItem[] = [];
 
-  collection.data_products?.forEach((dp) => {
+  collection.data_products.forEach((dp) => {
     const dpItem = {
+      id: dp.product,
       displayText: snakeCaseToHumanReadable(dp.product),
       pathname: `/collections/${collection.id}/${dp.product}`,
-      icon: <FontAwesomeIcon icon={dataProductIcon[dp.product]} />,
       isSelected: !showOverview && currDataProduct === dp,
     };
     if (genomesDataProducts.indexOf(dp.product) > -1) {
@@ -78,10 +53,26 @@ export const CollectionSidebar: FC<{
     }
   });
 
+  // Enforce a certain order for the genomes sidebar items based on genomesDataProducts array
+  genomesItems.sort((a, b) => {
+    return (
+      genomesDataProducts.indexOf(a.id) - genomesDataProducts.indexOf(b.id)
+    );
+  });
+
+  // Enforce a certain order for the samples sidebar items based on samplesDataProducts array
+  samplesItems.sort((a, b) => {
+    return (
+      samplesDataProducts.indexOf(a.id) - samplesDataProducts.indexOf(b.id)
+    );
+  });
+
   // First item in genomeItems should be a section label
   if (genomesItems.length > 0) {
     genomesItems.unshift({
+      id: 'geneomes_section',
       displayText: 'Genomes',
+      icon: <FontAwesomeIcon icon={faDna} />,
       isSectionLabel: true,
     });
   }
@@ -89,18 +80,19 @@ export const CollectionSidebar: FC<{
   // First item in samplesItems should be a section label
   if (samplesItems.length > 0) {
     samplesItems.unshift({
+      id: 'samples_section',
       displayText: 'Samples',
+      icon: <FontAwesomeIcon icon={faVial} />,
       isSectionLabel: true,
     });
   }
 
   const items: SidebarItem[] = [
-    // Right now the Overview item is added manually
-    // In the future this could be part of collection.data_products
+    // Add Overview item to the top of the sidebar list
     {
+      id: 'overview',
       displayText: 'Overview',
       pathname: `/collections/${collection.id}/`,
-      icon: <FontAwesomeIcon icon={dataProductIcon['overview']} />,
       isSelected: showOverview,
     },
     ...genomesItems,

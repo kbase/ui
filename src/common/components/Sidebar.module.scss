@@ -48,10 +48,11 @@
 }
 
 .sidebar li.section-label {
-  color: use-color("base-light");
-  font-size: 0.875rem;
+  color: use-color("base");
+  font-size: 0.85rem;
   font-weight: bold;
   margin-top: 0.5rem;
+  text-transform: uppercase;
 }
 
 .sidebar li .item-icon {
