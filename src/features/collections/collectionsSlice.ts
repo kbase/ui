@@ -1,6 +1,10 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { useEffect, useMemo } from 'react';
-import { createSelection, getSelection } from '../../common/api/collectionsApi';
+import {
+  ColumnMeta,
+  createSelection,
+  getSelection,
+} from '../../common/api/collectionsApi';
 import {
   useAppDispatch,
   useAppSelector,
@@ -50,6 +54,11 @@ interface ClnState {
       [columnName: string]: FilterState;
     };
   };
+  columnMeta: {
+    [context: string]: {
+      [columnName: string]: ColumnMeta;
+    };
+  };
 }
 
 interface CollectionsState {
@@ -65,6 +74,7 @@ const initialCollection: ClnState = {
   filterMatch: false,
   filterSelection: false,
   filters: {},
+  columnMeta: {},
 };
 
 const initialState: CollectionsState = {
@@ -128,6 +138,23 @@ export const CollectionSlice = createSlice({
         cln.filterContext = defaultFilterContext;
       }
     },
+    setColumnMeta: (
+      state,
+      {
+        payload: [collectionId, context, columnName, columnMeta],
+      }: PayloadAction<
+        [
+          collectionId: string,
+          context: string,
+          columnName: string,
+          columnMeta: ColumnMeta
+        ]
+      >
+    ) => {
+      const cln = collectionState(state, collectionId);
+      if (!cln.columnMeta[context]) cln.columnMeta[context] = {};
+      cln.columnMeta[context][columnName] = columnMeta;
+    },
     setFilter: (
       state,
       {
@@ -177,7 +204,7 @@ export const CollectionSlice = createSlice({
         delete cln.filters[context][columnName].value;
       }
     },
-    clearFilters: (
+    clearFiltersAndColumnMeta: (
       state,
       {
         payload: [collectionId, context],
@@ -185,6 +212,7 @@ export const CollectionSlice = createSlice({
     ) => {
       const cln = collectionState(state, collectionId);
       cln.filters[context] = {};
+      cln.columnMeta[context] = {};
     },
   },
 });
@@ -214,7 +242,8 @@ export const {
   setFilterContext,
   setFilter,
   clearFilter,
-  clearFilters,
+  clearFiltersAndColumnMeta,
+  setColumnMeta,
   setFilterMatch,
   setFilterSelection,
 } = CollectionSlice.actions;
@@ -339,6 +368,11 @@ export const useFilters = (collectionId: string | undefined) => {
       ? state.collections.clns[collectionId]?.filterSelection
       : undefined
   );
+  const columnMeta = useAppSelector((state) =>
+    collectionId
+      ? state.collections.clns[collectionId]?.columnMeta?.[context]
+      : undefined
+  );
 
   const formattedFilters = Object.entries(filters ?? {})
     .filter(([column, filterState]) => Boolean(filterState.value))
@@ -387,5 +421,12 @@ export const useFilters = (collectionId: string | undefined) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [changeIndicator]
   );
-  return { filterParams, context, filters, filterMatch, filterSelection };
+  return {
+    filterParams,
+    context,
+    filters,
+    filterMatch,
+    filterSelection,
+    columnMeta,
+  };
 };

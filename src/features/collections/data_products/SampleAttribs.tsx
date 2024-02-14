@@ -166,7 +166,7 @@ export const SampleAttribs: FC<{
     data: data?.table || [],
     getRowId: (row) => rowId(row),
     columns: useTableColumns({
-      fieldNames: data?.fields.map((field) => field.name),
+      fields: data?.fields.map((field) => ({ id: field.name })),
       order: ['kbase_id', 'kbase_sample_id'],
       exclude: ['__match__', '__sel__'],
     }),

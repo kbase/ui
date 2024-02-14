@@ -22,6 +22,10 @@ import { CheckBox } from './CheckBox';
 import { Loader } from './Loader';
 import { HeatMapRow } from '../api/collectionsApi';
 
+type ColumnOptions = {
+  textAlign?: 'left' | 'right' | 'center';
+};
+
 export const Table = <Datum,>({
   table,
   className = '',
@@ -74,6 +78,11 @@ export const Table = <Datum,>({
                   <td
                     key={cell.id}
                     onMouseOver={setCellTitle} // TODO: Change this to a tooltip
+                    style={{
+                      textAlign: (
+                        cell.column.columnDef.meta as Partial<ColumnOptions>
+                      )?.textAlign,
+                    }}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
@@ -209,6 +218,11 @@ const TableHeader = <Datum,>({ table }: { table: TableType<Datum> }) => (
             key={header.id}
             onClick={header.column.getToggleSortingHandler()}
             colSpan={header.colSpan}
+            style={{
+              textAlign: (
+                header.column.columnDef.meta as Partial<ColumnOptions>
+              )?.textAlign,
+            }}
           >
             {!header.isPlaceholder && header.column.getCanSort() ? (
               <span
@@ -291,11 +305,15 @@ const someHeaderDefines = <T,>(
 };
 
 export const useTableColumns = ({
-  fieldNames = [],
+  fields = [],
   order = [],
   exclude = [],
 }: {
-  fieldNames?: string[];
+  fields?: {
+    displayName?: string;
+    id: string;
+    options?: ColumnOptions;
+  }[];
   order?: string[];
   exclude?: string[];
 }) => {
@@ -304,15 +322,15 @@ export const useTableColumns = ({
       rowData: RowData
     ) => RowData[number];
   } = {};
-  fieldNames.forEach((fieldName, index) => {
-    accessors[fieldName] = (rowData) => rowData[index];
+  fields.forEach(({ id }, index) => {
+    accessors[id] = (rowData) => rowData[index];
   });
 
-  const fieldsOrdered = fieldNames
-    .filter((name) => !exclude.includes(name))
+  const fieldsOrdered = fields
+    .filter(({ id }) => !exclude.includes(id))
     .sort((a, b) => {
-      const aOrder = order.indexOf(a);
-      const bOrder = order.indexOf(b);
+      const aOrder = order.indexOf(a.id);
+      const bOrder = order.indexOf(b.id);
       if (aOrder !== -1 && bOrder !== -1) {
         return aOrder - bOrder;
       } else if (aOrder !== -1) {
@@ -320,23 +338,24 @@ export const useTableColumns = ({
       } else if (bOrder !== -1) {
         return 1;
       } else {
-        return fieldNames.indexOf(a) - fieldNames.indexOf(b);
+        return fields.indexOf(a) - fields.indexOf(b);
       }
     });
 
   return useMemo(
     () => {
       const columns = createColumnHelper<unknown[]>();
-      return fieldsOrdered.map((fieldName) =>
-        columns.accessor(accessors[fieldName], {
-          header: fieldName.replace(/_/g, ' ').trim(),
-          id: fieldName,
+      return fieldsOrdered.map((field) =>
+        columns.accessor(accessors[field.id], {
+          header: field.displayName ?? field.id.replace(/_/g, ' ').trim(),
+          id: field.id,
+          meta: field.options,
         })
       );
     },
     // We only want to remake the columns if fieldNames or fieldsOrdered have new values
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [JSON.stringify(fieldNames), JSON.stringify(fieldsOrdered)]
+    [JSON.stringify(fields), JSON.stringify(fieldsOrdered)]
   );
 };
 

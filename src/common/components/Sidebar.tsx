@@ -4,6 +4,7 @@ import { FC, ReactElement } from 'react';
 import { Link } from 'react-router-dom';
 
 export interface SidebarItem {
+  id: string;
   displayText: string;
   pathname?: string;
   isSelected?: boolean;

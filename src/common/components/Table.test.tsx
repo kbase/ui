@@ -384,7 +384,7 @@ test('useTableColumns hook makes appropriate headers from string lists', () => {
   const colSpy = jest.fn();
   const Wrapper = () => {
     const cols = useTableColumns({
-      fieldNames: ['a', 'b', 'c', 'd', 'q', 'x'],
+      fields: ['a', 'b', 'c', 'd', 'q', 'x'].map((id) => ({ id })),
       exclude: ['b', 'z'],
       order: ['c', 'a', 'q'],
     });

@@ -40,7 +40,8 @@ export const GenomeAttribs: FC<{
   const matchId = useMatchId(collection_id);
   const selectionId = useSelectionId(collection_id);
   // get the shared filter state
-  const { filterMatch, filterSelection } = useFilters(collection_id);
+  const { filterMatch, filterSelection, columnMeta } =
+    useFilters(collection_id);
 
   const [sorting, setSorting] = useState<SortingState>([]);
   const requestSort = useMemo(() => {
@@ -158,7 +159,17 @@ export const GenomeAttribs: FC<{
     data: data?.table || [],
     getRowId: (row) => String(row[idIndex]),
     columns: useTableColumns({
-      fieldNames: data?.fields.map((field) => field.name),
+      fields: data?.fields.map((field) => ({
+        id: field.name,
+        displayName: columnMeta?.[field.name]?.display_name ?? field.name,
+        options: {
+          textAlign: ['float', 'int'].includes(
+            columnMeta?.[field.name]?.type ?? ''
+          )
+            ? 'right'
+            : 'left',
+        },
+      })),
       order: ['kbase_display_name', 'genome_size'],
       exclude: ['__match__', '__sel__'],
     }),
