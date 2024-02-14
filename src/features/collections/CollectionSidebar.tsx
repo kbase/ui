@@ -9,21 +9,36 @@ import { useNavigate } from 'react-router-dom';
 import classes from './Collections.module.scss';
 
 /**
- * List of data product ids that should be grouped into the
- * "Genomes" category.
+ * List of data products with associated metadata and listed
+ * in the order they should appear in the sidebar.
  */
-const genomesDataProducts = [
-  'genome_attribs',
-  'taxa_count',
-  'microtrait',
-  'biolog',
+const dataProductsMeta = [
+  {
+    product: 'genome_attribs',
+    displayName: 'Genome Attributes',
+    section: 'Genomes',
+  },
+  {
+    product: 'taxa_count',
+    displayName: 'Taxa Count',
+    section: 'Genomes',
+  },
+  {
+    product: 'microtrait',
+    displayName: 'Microtrait',
+    section: 'Genomes',
+  },
+  {
+    product: 'biolog',
+    displayName: 'Biolog',
+    section: 'Genomes',
+  },
+  {
+    product: 'samples',
+    displayName: 'Sample Attributes',
+    section: 'Samples',
+  },
 ];
-
-/**
- * List of data product ids that should be grouped into the
- * "Samples" category.
- */
-const samplesDataProducts = ['samples'];
 
 /**
  * Implementation of the Sidebar component for the CollectionDetail pages.
@@ -38,33 +53,36 @@ export const CollectionSidebar: FC<{
   const navigate = useNavigate();
   const genomesItems: SidebarItem[] = [];
   const samplesItems: SidebarItem[] = [];
+  const genomeProducts = dataProductsMeta
+    .filter((d) => d.section === 'Genomes')
+    .map((d) => d.product);
+  const sampleProducts = dataProductsMeta
+    .filter((d) => d.section === 'Samples')
+    .map((d) => d.product);
 
   collection.data_products.forEach((dp) => {
+    const dpMeta = dataProductsMeta.find((d) => d.product === dp.product);
     const dpItem = {
       id: dp.product,
-      displayText: snakeCaseToHumanReadable(dp.product),
+      displayText: dpMeta?.displayName || snakeCaseToHumanReadable(dp.product),
       pathname: `/collections/${collection.id}/${dp.product}`,
       isSelected: !showOverview && currDataProduct === dp,
     };
-    if (genomesDataProducts.indexOf(dp.product) > -1) {
+    if (genomeProducts.indexOf(dp.product) > -1) {
       genomesItems.push(dpItem);
-    } else if (samplesDataProducts.indexOf(dp.product) > -1) {
+    } else if (sampleProducts.indexOf(dp.product) > -1) {
       samplesItems.push(dpItem);
     }
   });
 
-  // Enforce a certain order for the genomes sidebar items based on genomesDataProducts array
+  // Enforce a certain order for the genomes sidebar items based on genomeProducts array
   genomesItems.sort((a, b) => {
-    return (
-      genomesDataProducts.indexOf(a.id) - genomesDataProducts.indexOf(b.id)
-    );
+    return genomeProducts.indexOf(a.id) - genomeProducts.indexOf(b.id);
   });
 
-  // Enforce a certain order for the samples sidebar items based on samplesDataProducts array
+  // Enforce a certain order for the samples sidebar items based on sampleProducts array
   samplesItems.sort((a, b) => {
-    return (
-      samplesDataProducts.indexOf(a.id) - samplesDataProducts.indexOf(b.id)
-    );
+    return sampleProducts.indexOf(a.id) - sampleProducts.indexOf(b.id);
   });
 
   // First item in genomeItems should be a section label
