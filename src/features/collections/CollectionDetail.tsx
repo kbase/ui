@@ -24,7 +24,8 @@ import { Loader } from '../../common/components/Loader';
 import { CollectionSidebar } from './CollectionSidebar';
 import {
   clearFilter,
-  clearFilters,
+  clearFiltersAndColumnMeta,
+  setColumnMeta,
   FilterState,
   setFilter,
   useCurrentSelection,
@@ -271,9 +272,10 @@ const useCollectionFilters = (collectionId: string | undefined) => {
   );
   useEffect(() => {
     if (collectionId && filterData) {
-      dispatch(clearFilters([collectionId, context]));
+      dispatch(clearFiltersAndColumnMeta([collectionId, context]));
       filterData.columns.forEach((column) => {
         const current = filters && filters[column.key];
+        dispatch(setColumnMeta([collectionId, context, column.key, column]));
         if (
           column.type === 'date' ||
           column.type === 'float' ||

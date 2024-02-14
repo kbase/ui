@@ -168,6 +168,35 @@ const isCollectionsError = (data: unknown): data is CollectionsError => {
   return true;
 };
 
+export type ColumnMeta = {
+  key: string;
+  category?: string;
+  description?: string;
+  display_name?: string;
+} & (
+  | {
+      type: 'date' | 'int' | 'float';
+      filter_strategy: undefined;
+      min_value: number;
+      max_value: number;
+      enum_values: undefined;
+    }
+  | {
+      type: 'string';
+      filter_strategy: 'fulltext' | 'prefix' | 'identity' | 'ngram';
+      min_value: undefined;
+      max_value: undefined;
+      enum_values: undefined;
+    }
+  | {
+      type: 'enum';
+      filter_strategy: undefined;
+      min_value: undefined;
+      max_value: undefined;
+      enum_values: string[];
+    }
+);
+
 interface CollectionsResults {
   status: {
     service_name: string;
@@ -214,33 +243,7 @@ interface CollectionsResults {
   };
   getGenomeAttribsMeta: {
     count: number;
-    columns: Array<
-      {
-        key: string;
-      } & (
-        | {
-            type: 'date' | 'int' | 'float';
-            filter_strategy: undefined;
-            min_value: number;
-            max_value: number;
-            enum_values: undefined;
-          }
-        | {
-            type: 'string';
-            filter_strategy: 'fulltext' | 'prefix' | 'identity' | 'ngram';
-            min_value: undefined;
-            max_value: undefined;
-            enum_values: undefined;
-          }
-        | {
-            type: 'enum';
-            filter_strategy: undefined;
-            min_value: undefined;
-            max_value: undefined;
-            enum_values: string[];
-          }
-      )
-    >;
+    columns: Array<ColumnMeta>;
   };
   getMicroTrait: {
     description: string;
