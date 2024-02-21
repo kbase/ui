@@ -2,17 +2,22 @@
 
 $border: 1px solid use-color("base-lighter");
 
-.container {
+.collections_main {
   background-color: use-color("base-lightest");
-  display: flex;
-  flex: 1;
+  border-left: 1px solid use-color("silver");
   height: 100%;
-  overflow-y: auto;
-  width: 100%;
 }
 
-.collections-list {
+.collections_main .inner-container {
+  margin-left: 0;
   padding: 1rem;
+}
+
+.collection-card-title {
+  color: use-color("primary");
+  font-size: 1.15rem;
+  font-weight: bold;
+  margin: 0;
 }
 
 .collection_wrapper {
@@ -57,6 +62,15 @@ $border: 1px solid use-color("base-lighter");
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+}
+
+.detail_content {
+  background-color: use-color("base-lightest");
+  display: flex;
+  flex: 1;
+  height: 100%;
+  overflow-y: auto;
+  width: 100%;
 }
 
 .dp_columns {

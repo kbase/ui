@@ -110,7 +110,7 @@ export const CollectionDetail = () => {
         currDataProduct={currDataProduct}
         showOverview={showOverview}
       />
-      <div className={styles['collection_main']}>
+      <main className={styles['collection_main']}>
         <div className={styles['detail_header']}>
           <h2>
             {showOverview
@@ -172,7 +172,7 @@ export const CollectionDetail = () => {
             </>
           )}
         </div>
-        <div className={styles['container']}>
+        <div className={styles['detail_content']}>
           <FilterMenu
             collectionId={collection.id}
             anchorEl={filterMenuRef.current}
@@ -196,7 +196,7 @@ export const CollectionDetail = () => {
             )}
           </div>
         </div>
-      </div>
+      </main>
       {modalView === 'match' ? (
         <MatchModal
           key={[collection.id, matchId].join('|')}

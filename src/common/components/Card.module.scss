@@ -1,26 +1,24 @@
 @import "../../common/colors";
 
-$border: 1px solid use-color("base-lighter");
+$border: 1px solid use-color("silver");
 
 .card {
-  align-items: center;
-  align-items: center;
   background-color: use-color("white");
   border: $border;
-  display: flex;
-  flex-flow: row nowrap;
   font-size: 16px;
-  gap: 10px;
+  height: 100%;
   overflow: clip;
-  padding: 10px;
+  padding-bottom: 0.5rem;
+  padding-top: 0.5rem;
   text-align: left;
+  transition: 0.25s;
 
   &.clickable {
     cursor: pointer;
   }
 
   &.clickable:hover {
-    background-color: use-color("base-lightest");
+    background-color: use-color("light-gray");
   }
 
   &.clickable.selected:hover,
@@ -37,15 +35,29 @@ $border: 1px solid use-color("base-lighter");
   align-self: flex-start;
   display: flex;
   flex-flow: column nowrap;
-  height: 44px;
+  flex-shrink: 0;
   justify-content: center;
   position: relative;
-  width: 44px;
+
+  &.image-sm {
+    height: 35px;
+    width: auto;
+  }
+
+  &.image-md {
+    height: 60px;
+    width: auto;
+  }
+
+  &.image-lg {
+    height: 100px;
+    width: auto;
+  }
 
   > * {
     display: block;
-    max-height: 44px;
-    max-width: 44px;
+    height: 100%;
+    width: auto;
   }
 }
 
@@ -55,14 +67,32 @@ $border: 1px solid use-color("base-lighter");
   display: flex;
   flex-flow: column nowrap;
   flex-grow: 1;
-  gap: 5px;
+  gap: 0.5rem;
   justify-content: center;
 
   .subtitle {
-    color: use-color("base-darkest");
+    color: use-color("base");
     flex-grow: 1;
     font-size: 0.75em;
   }
+}
+
+.header {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+.content {
+  flex-grow: 1;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+.footer {
+  border-top: 1px solid use-color("silver");
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  padding-top: 0.5rem;
 }
 
 .card-list {

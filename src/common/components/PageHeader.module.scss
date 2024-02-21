@@ -1,0 +1,21 @@
+@import "../../common/colors";
+
+.page-header {
+  background-color: use-color("white");
+}
+
+.page-header .page-title {
+  font-weight: normal;
+  margin-bottom: 0.5rem;
+  margin-top: 0;
+}
+
+.page-header .page-subtitle {
+  color: use-color("base-dark");
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.page-header .page-description {
+  margin-top: 1rem;
+}
