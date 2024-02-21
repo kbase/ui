@@ -17,7 +17,7 @@ export const CollectionsList = () => {
     <main className={classes['collections_main']}>
       <PageHeader
         title="Collections"
-        subtitle="Explore, compare, and integrate curated data collections."
+        subtitle="Explore, relate, and integrate curated data collections."
         // description="Collections are curated sets of genome data from external sources that can be integrated into KBase Narratives."
       />
       <Container className={classes['inner-container']} disableGutters>
