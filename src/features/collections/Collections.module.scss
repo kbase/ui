@@ -5,7 +5,7 @@ $border: 1px solid use-color("base-lighter");
 .collections_main {
   background-color: use-color("base-lightest");
   border-left: 1px solid use-color("silver");
-  height: 100%;
+  min-height: 100%;
 }
 
 .collections_main .inner-container {
