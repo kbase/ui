@@ -5,7 +5,9 @@ pre {
 }
 
 .navigator {
-  background-color: use-color("light-gray");
+  background-color: use-color("base-lightest");
+  border-left: 1px solid use-color("silver");
+  height: 100%;
   padding: 1rem;
 }
 
