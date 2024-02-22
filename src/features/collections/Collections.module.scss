@@ -2,15 +2,22 @@
 
 $border: 1px solid use-color("base-lighter");
 
-.collections_main {
+.collections-main {
   background-color: use-color("base-lightest");
   border-left: 1px solid use-color("silver");
   min-height: 100%;
 }
 
-.collections_main .inner-container {
+.collections-main .inner-container {
   margin-left: 0;
   padding: 1rem;
+}
+
+.collections-subtitle {
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin: 0;
+  padding: 2rem 1rem 1rem;
 }
 
 .collection-card-title {

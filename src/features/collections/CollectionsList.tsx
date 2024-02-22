@@ -6,7 +6,6 @@ import { Card } from '../../common/components/Card';
 import { Chip, Container, Grid, Stack } from '@mui/material';
 import TextClamp from '../../common/components/TextClamp';
 import { FC } from 'react';
-import { PageHeader } from '../../common/components/PageHeader';
 import { dataProductsMeta } from './CollectionSidebar';
 
 export const CollectionsList = () => {
@@ -14,12 +13,10 @@ export const CollectionsList = () => {
   const collections = listCollections.useQuery();
 
   return (
-    <main className={classes['collections_main']}>
-      <PageHeader
-        title="Collections"
-        subtitle="Explore, relate, and integrate curated data collections."
-        // description="Collections are curated sets of genome data from external sources that can be integrated into KBase Narratives."
-      />
+    <main className={classes['collections-main']}>
+      <h2 className={classes['collections-subtitle']}>
+        Explore, relate, and integrate curated data collections.
+      </h2>
       <Container className={classes['inner-container']} disableGutters>
         <Grid container spacing={2}>
           {collections.isSuccess &&
