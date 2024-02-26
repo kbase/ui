@@ -55,8 +55,6 @@ export const useTokenCookie = (
 
   // Initializes auth for states where useTryAuthFromToken does not set auth
   useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.log({ cookieToken, isUninitialized, isFetching, isSuccess, token });
     // If the cookieToken is present but it failed checks and wont be overwritten by a token in state, clear
     if (
       cookieToken &&
