@@ -172,7 +172,7 @@ describe('authSlice', () => {
       );
       await waitFor(() => {
         expect(setTokenCookieMock).toHaveBeenCalledWith('some-token', {
-          domain: 'ci-europa.kbase.us',
+          domain: '.ci-europa.kbase.us',
           expires: new Date(auth.tokenInfo.expires),
         });
         expect(consoleErrorMock).not.toHaveBeenCalled();
@@ -333,7 +333,7 @@ describe('authSlice', () => {
       );
       await waitFor(() => {
         expect(setTokenCookieMock).toBeCalledWith('AAAAAA', {
-          domain: 'ci-europa.kbase.us',
+          domain: '.ci-europa.kbase.us',
           expires: new Date(10),
         });
         expect(clearTokenCookieMock).not.toBeCalled();
