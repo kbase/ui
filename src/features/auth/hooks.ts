@@ -64,7 +64,7 @@ export const useTokenCookie = (
         expires: new Date(expires),
         ...(process.env.NODE_ENV === 'development'
           ? {}
-          : { domain: process.env.REACT_APP_KBASE_DOMAIN }),
+          : { domain: `.${process.env.REACT_APP_KBASE_DOMAIN}` }),
       });
     } else if (token && !expires) {
       // eslint-disable-next-line no-console
