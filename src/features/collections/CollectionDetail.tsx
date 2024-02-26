@@ -212,21 +212,26 @@ export const CollectionDetail = () => {
 };
 
 const useFilterEntries = (collectionId: string) => {
-  const { context, filters, categories } = useCollectionFilters(collectionId);
+  const { context, filters, columnMeta } = useCollectionFilters(collectionId);
   const dispatch = useAppDispatch();
 
-  // Categorize and order filters
+  const categories = Array.from(
+    Object.values(columnMeta ?? {}).reduce((catSet, column) => {
+      if (column.category) catSet.add(column.category);
+      return catSet;
+    }, new Set<string>())
+  );
+
+  // Categorize filters and order categories
   const categorizedFilters = useMemo(
     () =>
-      Object.entries(categories)
-        .sort((a, b) => a[0].localeCompare(b[0]))
-        .map(([category, filterNames]) => ({
+      categories
+        .sort((a, b) => a.localeCompare(b))
+        .map((category) => ({
           category: category,
-          filters: filters
-            ? filterNames
-                .map<[string, FilterState]>((name) => [name, filters[name]])
-                .sort((a, b) => a[0].localeCompare(b[0]))
-            : [],
+          filters: Object.entries(filters ?? []).filter(
+            ([filterName, filter]) => filter.category === category
+          ),
         })),
     [categories, filters]
   );
@@ -293,9 +298,7 @@ const FilterMenu = (props: {
         {categorizedFilters.map((category) => {
           return (
             <React.Fragment key={category.category}>
-              <Divider textAlign="left">
-                <h4>{category.category}</h4>
-              </Divider>
+              <h5>{category.category}</h5>
               {category.filters.flatMap(([column, filter]) => {
                 const hasVal = Boolean(filter.value);
                 const children = [
@@ -338,7 +341,7 @@ const FilterMenu = (props: {
 
 const useCollectionFilters = (collectionId: string | undefined) => {
   const dispatch = useAppDispatch();
-  const { context, filters, categories } = useFilters(collectionId);
+  const { context, filters, columnMeta } = useFilters(collectionId);
   const { data: filterData, isLoading } = getGenomeAttribsMeta.useQuery(
     { collection_id: collectionId || '' },
     { skip: !collectionId }
@@ -397,7 +400,7 @@ const useCollectionFilters = (collectionId: string | undefined) => {
     // Exclude filters from deps to prevent circular dep
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterData, context, collectionId, dispatch]);
-  return { filters, context, isLoading, categories };
+  return { filters, context, isLoading, columnMeta };
 };
 
 interface FilterControlProps {
