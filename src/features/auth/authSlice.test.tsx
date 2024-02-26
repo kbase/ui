@@ -172,14 +172,13 @@ describe('authSlice', () => {
       );
       await waitFor(() => {
         expect(setTokenCookieMock).toHaveBeenCalledWith('some-token', {
-          domain: '.ci-europa.kbase.us',
           expires: new Date(auth.tokenInfo.expires),
         });
         expect(consoleErrorMock).not.toHaveBeenCalled();
       });
     });
 
-    test('useTokenCookie sets cookie without domain in development mode', async () => {
+    test('useTokenCookie sets cookie in development mode', async () => {
       const processEnv = process.env;
       process.env = { ...processEnv, NODE_ENV: 'development' };
       const auth = {
@@ -333,7 +332,6 @@ describe('authSlice', () => {
       );
       await waitFor(() => {
         expect(setTokenCookieMock).toBeCalledWith('AAAAAA', {
-          domain: '.ci-europa.kbase.us',
           expires: new Date(10),
         });
         expect(clearTokenCookieMock).not.toBeCalled();

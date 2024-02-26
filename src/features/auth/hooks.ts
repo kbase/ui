@@ -34,13 +34,19 @@ export const useTokenCookie = (
   const dispatch = useAppDispatch();
 
   // Pull token from main cookie. If it exists, and differs from state, try it for auth.
-  const [cookieToken, setCookieToken, clearCookieToken] = useCookie(cookieName);
+  const [cookieToken, setCookieToken, clearCookieToken] = useCookie(
+    cookieName,
+    process.env.NODE_ENV === 'development'
+      ? {}
+      : { domain: `.${process.env.REACT_APP_KBASE_DOMAIN}` }
+  );
+
   const { isSuccess, isFetching, isUninitialized } =
     useTryAuthFromToken(cookieToken);
 
   // Controls for backupCookie
   const [backupCookieToken, setBackupCookieToken, clearBackupCookieToken] =
-    useCookie(backupCookieName);
+    useCookie(backupCookieName, { domain: backupCookieDomain });
 
   // Pull token, expiration, and init info from auth state
   const token = useAppSelector(authToken);
@@ -59,8 +65,6 @@ export const useTokenCookie = (
       !isSuccess &&
       !token
     ) {
-      // eslint-disable-next-line no-console
-      console.log('clearing');
       dispatch(setAuth(null));
       clearCookieToken();
       // clear backup token too, if it exists
@@ -91,9 +95,6 @@ export const useTokenCookie = (
     if (token && expires) {
       setCookieToken(token, {
         expires: new Date(expires),
-        ...(process.env.NODE_ENV === 'development'
-          ? {}
-          : { domain: `.${process.env.REACT_APP_KBASE_DOMAIN}` }),
       });
     } else if (token && !expires) {
       // eslint-disable-next-line no-console
@@ -127,7 +128,6 @@ export const useTokenCookie = (
         console.error('Could not set backup token cookie, missing expire time');
       } else {
         setBackupCookieToken(token, {
-          domain: backupCookieDomain,
           expires: new Date(expires),
         });
       }
