@@ -24,8 +24,6 @@ export function setCookie(
     SameSite?: 'Lax' | 'Strict' | 'None';
   }
 ) {
-  // eslint-disable-next-line no-console
-  console.log('setCookie', { name, value, options });
   if (!name) throw new Error('cannot set unnamed cookie');
   const { expires, path, domain, secure, SameSite } = {
     path: '/',
