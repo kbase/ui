@@ -21,7 +21,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { useModalControls } from '../layout/Modal';
 import { Loader } from '../../common/components/Loader';
-import { CollectionSidebar } from './CollectionSidebar';
+import { CollectionSidebar, dataProductsMeta } from './CollectionSidebar';
 import {
   clearFilter,
   clearFiltersAndColumnMeta,
@@ -62,6 +62,15 @@ export const CollectionDetail = () => {
     collection?.data_products.find(
       (dp) => dp.product === params.data_product
     ) || collection?.data_products[0];
+  const currDataProductMeta = dataProductsMeta.find((d) => {
+    return d.product === currDataProduct?.product;
+  });
+  // Set page title to data product display name or human-readbale
+  const dataProductTitle =
+    currDataProductMeta?.displayName ||
+    (currDataProduct
+      ? snakeCaseToHumanReadable(currDataProduct.product)
+      : null);
 
   // Redirect if the data_product specified by the url DNE
   useEffect(() => {
@@ -113,10 +122,7 @@ export const CollectionDetail = () => {
       <main className={styles['collection_main']}>
         <div className={styles['detail_header']}>
           <h2>
-            {showOverview
-              ? 'Overview'
-              : currDataProduct &&
-                snakeCaseToHumanReadable(currDataProduct.product)}
+            {showOverview ? 'Overview' : currDataProduct && dataProductTitle}
           </h2>
           {!showOverview && (
             <>
