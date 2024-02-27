@@ -1,6 +1,7 @@
 import { ComponentProps, useMemo } from 'react';
 import Plot from 'react-plotly.js';
 import { getAttribHistogram } from '../../../common/api/collectionsApi';
+import { parseError } from '../../../common/api/utils/parseError';
 import { Loader } from '../../../common/components/Loader';
 import { useFilters } from '../collectionsSlice';
 import { useTableViewParams } from './GenomeAttribs';
@@ -8,9 +9,11 @@ import { useTableViewParams } from './GenomeAttribs';
 export const AttribHistogram = ({
   collection_id,
   column,
+  size = [600, 600],
 }: {
   collection_id: string;
   column: string;
+  size?: [width: number, height: number];
 }) => {
   const { filterMatch, filterSelection } = useFilters(collection_id);
   const viewParams = useTableViewParams(collection_id, {
@@ -18,7 +21,7 @@ export const AttribHistogram = ({
     selected: Boolean(filterMatch),
     matched: Boolean(filterSelection),
   });
-  const { data, isFetching } = getAttribHistogram.useQuery({
+  const { data, isLoading, error } = getAttribHistogram.useQuery({
     ...viewParams,
     column,
   });
@@ -30,12 +33,20 @@ export const AttribHistogram = ({
     const binWidths = bins.slice(1).map((end, index) => end - bins[index]);
     return [{ type: 'bar', x: binStarts, width: binWidths, y: values }];
   }, [data]);
-  if (!data || isFetching) return <Loader />;
-  return (
-    <Plot
-      data={plotData}
-      layout={{ height: 600, title: column }}
-      config={{ responsive: true }}
-    />
-  );
+  if (plotData && !isLoading && !error) {
+    return (
+      <Plot
+        data={plotData}
+        layout={{ height: size[1], width: size[0], title: column }}
+      />
+    );
+  } else {
+    return (
+      <Loader
+        loading={isLoading}
+        size={[`${size[0]}px`, `${size[1]}px`]}
+        error={error ? parseError(error).message : undefined}
+      />
+    );
+  }
 };

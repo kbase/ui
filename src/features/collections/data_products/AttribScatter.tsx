@@ -5,17 +5,20 @@ import { Loader } from '../../../common/components/Loader';
 import { downsample as LTTB } from 'downsample-lttb-ts';
 import { useTableViewParams } from './GenomeAttribs';
 import { useFilters } from '../collectionsSlice';
+import { parseError } from '../../../common/api/utils/parseError';
 
 export const AttribScatter = ({
   collection_id,
   xColumn,
   yColumn,
   downsample = 10000,
+  size = [600, 600],
 }: {
   collection_id: string;
   xColumn: string;
   yColumn: string;
   downsample?: number;
+  size?: [width: number, height: number];
 }) => {
   const { filterMatch, filterSelection } = useFilters(collection_id);
   const viewParams = useTableViewParams(collection_id, {
@@ -23,7 +26,7 @@ export const AttribScatter = ({
     selected: Boolean(filterMatch),
     matched: Boolean(filterSelection),
   });
-  const { data, isFetching } = getAttribScatter.useQuery({
+  const { data, isLoading, error } = getAttribScatter.useQuery({
     ...viewParams,
     xcolumn: xColumn,
     ycolumn: yColumn,
@@ -110,7 +113,7 @@ export const AttribScatter = ({
   // Controlled state for plot layout (so we can change the title dynamically)
   const [plotLayout, setPlotLayout] = useState<
     ComponentProps<typeof Plot>['layout']
-  >({ height: 600, title: title });
+  >({ height: size?.[1], width: size?.[0], title: title });
 
   //Reset title on plot update, but don't create a new layout object (this causes an infinite loop)
   useEffect(() => {
@@ -155,13 +158,15 @@ export const AttribScatter = ({
     }, 50);
   };
 
-  if (!plotData || isFetching) return <Loader />;
-  return (
-    <Plot
-      data={plotData}
-      layout={plotLayout}
-      onUpdate={handleUpdate}
-      config={{ responsive: true }}
-    />
-  );
+  if (plotData && !isLoading && !error) {
+    return <Plot data={plotData} layout={plotLayout} onUpdate={handleUpdate} />;
+  } else {
+    return (
+      <Loader
+        loading={isLoading}
+        error={error ? parseError(error).message : undefined}
+        size={[`${size[0]}px`, `${size[1]}px`]}
+      />
+    );
+  }
 };

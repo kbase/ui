@@ -252,14 +252,22 @@ export const GenomeAttribs: FC<{
         <Paper variant="outlined">
           <AttribScatter
             collection_id={collection_id}
-            xColumn={'checkm_completeness'}
-            yColumn={'checkm_contamination'}
+            xColumn={
+              collection_id === 'GTDB' ? 'checkm_completeness' : 'Completeness'
+            }
+            yColumn={
+              collection_id === 'GTDB'
+                ? 'checkm_contamination'
+                : 'Contamination'
+            }
           />
         </Paper>
         <Paper variant="outlined">
           <AttribHistogram
             collection_id={collection_id}
-            column={'checkm_completeness'}
+            column={
+              collection_id === 'GTDB' ? 'checkm_completeness' : 'Completeness'
+            }
           />
         </Paper>
       </Stack>
