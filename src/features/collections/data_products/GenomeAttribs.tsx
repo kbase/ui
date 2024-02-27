@@ -23,6 +23,7 @@ import {
   setLocalSelection,
   useCurrentSelection,
   useFilters,
+  useGenerateSelectionId,
   useMatchId,
   useSelectionId,
 } from '../collectionsSlice';
@@ -256,7 +257,7 @@ const useTableViewParams = (
 ) => {
   const { filterParams } = useFilters(collection_id);
   const matchId = useMatchId(collection_id);
-  const selectionId = useSelectionId(collection_id || '', {
+  const selectionId = useGenerateSelectionId(collection_id || '', {
     skip: !collection_id,
   });
   return useMemo(

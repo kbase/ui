@@ -24,8 +24,8 @@ import { useAppDispatch } from '../../../common/hooks';
 import {
   setLocalSelection,
   useCurrentSelection,
+  useGenerateSelectionId,
   useMatchId,
-  useSelectionId,
 } from '../collectionsSlice';
 import classes from './../Collections.module.scss';
 import { Grid, Paper, PaperProps, Stack } from '@mui/material';
@@ -45,7 +45,9 @@ export const SampleAttribs: FC<{
   const [selectMark, setSelectMark] = useState(true);
   // we don't use the server marks to show the selected state,
   // so no need to fetch the selection unless we are filtering the table
-  const selectionId = useSelectionId(collection_id, { skip: selectMark });
+  const selectionId = useGenerateSelectionId(collection_id, {
+    skip: selectMark,
+  });
 
   const [sorting, setSorting] = useState<SortingState>([]);
   const requestSort = useMemo(() => {
