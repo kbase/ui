@@ -659,7 +659,11 @@ const RangeFilterControls = ({
         value={sliderPosition}
         min={filter.min_value}
         max={filter.max_value}
-        step={(filter.max_value - filter.min_value) / 100}
+        step={
+          filter.type === 'int'
+            ? 1
+            : (filter.max_value - filter.min_value) / 100
+        }
         marks={[filter.min_value, filter.max_value].map((v) => ({
           value: v,
           label: v,
