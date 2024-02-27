@@ -6,7 +6,7 @@ import {
 } from '../../common/api/collectionsApi';
 import { usePageTitle } from '../layout/layoutSlice';
 import styles from './Collections.module.scss';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { DataProduct } from './DataProduct';
 import { snakeCaseToHumanReadable } from '../../common/utils/stringUtils';
 import { MATCHER_LABELS, MatchModal } from './MatchModal';
@@ -37,6 +37,7 @@ import { Slider, MenuItem, TextField, Stack, Divider } from '@mui/material';
 import { useForm } from 'react-hook-form';
 import { CollectionOverview } from './CollectionOverview';
 import { FilterChip } from '../../common/components/FilterChip';
+import { noOp } from '../common';
 
 export const detailPath = ':id';
 export const detailDataProductPath = ':id/:data_product';
@@ -440,9 +441,12 @@ const DateRangeFilterControls = ({
   const { error: minError } = getFieldState('min', formState);
   const { error: maxError } = getFieldState('max', formState);
   const dispatch = useAppDispatch();
-  const sliderTimeout = useRef<number>();
+  const [sliderPosition, setSliderPosition] = useState<[string, string]>([
+    values.min,
+    values.max,
+  ]);
 
-  const setFilterRange = () => {
+  const setFilterRange = useCallback(() => {
     const validState = getValues();
     const shouldClear =
       parseDate(validState.min) === filter.min_value &&
@@ -465,12 +469,27 @@ const DateRangeFilterControls = ({
         ])
       );
     }
-  };
+  }, [collectionId, column, context, dispatch, filter, getValues]);
 
   const submit = handleSubmit(() => {
     setFilterRange();
   });
+  useEffect(() => {
+    //Set slider position from values
+    setSliderPosition([values.min, values.max]);
+  }, [values.min, values.max]);
 
+  const [sliderMin, sliderMax] = sliderPosition;
+  useEffect(() => {
+    // Debounce setting the filter state from the slider for better UX
+    const sliderTimeout = window.setTimeout(() => {
+      setFilterRange();
+      noOp(sliderMin, sliderMax);
+    }, 100);
+    return () => {
+      clearTimeout(sliderTimeout);
+    };
+  }, [sliderMin, sliderMax, setFilterRange]);
   return (
     <Stack>
       <Stack direction="row" spacing={2}>
@@ -499,9 +518,10 @@ const DateRangeFilterControls = ({
         size="small"
         disableSwap
         getAriaLabel={() => `filter range for column ${column}`}
-        value={[parseDate(values.min), parseDate(values.max)]}
+        value={sliderPosition.map(parseDate)}
         min={filter.min_value}
         max={filter.max_value}
+        step={(filter.max_value - filter.min_value) / 100}
         valueLabelFormat={formatDate}
         marks={[filter.min_value, filter.max_value].map((v) => ({
           value: v,
@@ -511,11 +531,11 @@ const DateRangeFilterControls = ({
           const range = newValue as [number, number];
           setValue('min', formatDate(range[0]));
           setValue('max', formatDate(range[1]));
-          // Debounce setting the filter state from the slider for better UX
-          if (sliderTimeout.current) clearTimeout(sliderTimeout.current);
-          sliderTimeout.current = window.setTimeout(() => {
-            submit();
-          }, 100);
+          const sliderRange: [string, string] = [
+            formatDate(range[0]),
+            formatDate(range[1]),
+          ];
+          setSliderPosition(sliderRange);
         }}
         valueLabelDisplay="auto"
       />
@@ -551,9 +571,12 @@ const RangeFilterControls = ({
   const { error: minError } = getFieldState('min', formState);
   const { error: maxError } = getFieldState('max', formState);
   const dispatch = useAppDispatch();
-  const sliderTimeout = useRef<number>();
+  const [sliderPosition, setSliderPosition] = useState<[number, number]>([
+    values.min,
+    values.max,
+  ]);
 
-  const setFilterRange = () => {
+  const setFilterRange = useCallback(() => {
     const validState = getValues();
     const shouldClear =
       validState.min === filter.min_value &&
@@ -576,11 +599,29 @@ const RangeFilterControls = ({
         ])
       );
     }
-  };
+  }, [collectionId, column, context, dispatch, filter, getValues]);
 
   const submit = handleSubmit(() => {
     setFilterRange();
   });
+
+  useEffect(() => {
+    //Set slider position from values
+    setSliderPosition([values.min, values.max]);
+  }, [values.min, values.max]);
+
+  const [sliderMin, sliderMax] = sliderPosition;
+  useEffect(() => {
+    // Debounce setting the filter state from the slider for better UX
+    const sliderTimeout = window.setTimeout(() => {
+      setFilterRange();
+    }, 100);
+    // Extra deps to trigger setFilterRange (noOp)
+    noOp(sliderMin, sliderMax);
+    return () => {
+      clearTimeout(sliderTimeout);
+    };
+  }, [sliderMin, sliderMax, setFilterRange]);
 
   return (
     <Stack>
@@ -614,9 +655,10 @@ const RangeFilterControls = ({
         size="small"
         disableSwap
         getAriaLabel={() => `filter range for column ${column}`}
-        value={[values.min, values.max]}
+        value={sliderPosition}
         min={filter.min_value}
         max={filter.max_value}
+        step={(filter.max_value - filter.min_value) / 100}
         marks={[filter.min_value, filter.max_value].map((v) => ({
           value: v,
           label: v,
@@ -625,11 +667,7 @@ const RangeFilterControls = ({
           const range = newValue as [number, number];
           setValue('min', range[0]);
           setValue('max', range[1]);
-          // Debounce setting the filter state from the slider for better UX
-          if (sliderTimeout.current) clearTimeout(sliderTimeout.current);
-          sliderTimeout.current = window.setTimeout(() => {
-            submit();
-          }, 100);
+          setSliderPosition([range[0], range[1]]);
         }}
         valueLabelDisplay="auto"
       />
