@@ -24,7 +24,8 @@ import { Loader } from '../../common/components/Loader';
 import { CollectionSidebar } from './CollectionSidebar';
 import {
   clearFilter,
-  clearFilters,
+  clearFiltersAndColumnMeta,
+  setColumnMeta,
   FilterState,
   setFilter,
   useCurrentSelection,
@@ -32,19 +33,16 @@ import {
   useMatchId,
 } from './collectionsSlice';
 import { useAppDispatch } from '../../common/hooks';
-import {
-  Slider,
-  Menu,
-  MenuItem,
-  TextField,
-  Stack,
-  Divider,
-  Chip,
-} from '@mui/material';
+import { Slider, MenuItem, TextField, Stack, Divider } from '@mui/material';
 import { useForm } from 'react-hook-form';
+import { CollectionOverview } from './CollectionOverview';
+import { FilterChip } from '../../common/components/FilterChip';
 
 export const detailPath = ':id';
 export const detailDataProductPath = ':id/:data_product';
+
+type ModalView = 'match' | 'select' | 'export';
+export type SetModalView = React.Dispatch<React.SetStateAction<ModalView>>;
 
 export const CollectionDetail = () => {
   const params = useParams();
@@ -57,7 +55,9 @@ export const CollectionDetail = () => {
   const collection = collectionQuery.data;
   usePageTitle(`Data Collections`);
 
-  // If the DataProduct is specified in the URL, show it, otherwise show the first DP.
+  // If no DataProduct is specified, show the overview.
+  const showOverview = !params.data_product;
+  // If the DataProduct is specified in the URL, show it.
   const currDataProduct =
     collection?.data_products.find(
       (dp) => dp.product === params.data_product
@@ -92,11 +92,14 @@ export const CollectionDetail = () => {
   const match = matchQuery.data;
 
   const modal = useModalControls();
-  type ModalView = 'match' | 'select' | 'export';
   const [modalView, setModalView] = useState<ModalView>('match');
 
   const [filterOpen, setFiltersOpen] = useState(false);
   const filterMenuRef = useRef<HTMLButtonElement>(null);
+
+  const handleToggleFilters = () => {
+    setFiltersOpen(!filterOpen);
+  };
 
   if (!collection) return <Loader type="spinner" />;
   return (
@@ -105,63 +108,85 @@ export const CollectionDetail = () => {
         className={styles['collection_sidebar']}
         collection={collection}
         currDataProduct={currDataProduct}
+        showOverview={showOverview}
       />
-      <div className={styles['collection_main']}>
+      <main className={styles['collection_main']}>
         <div className={styles['detail_header']}>
           <h2>
-            {currDataProduct &&
-              snakeCaseToHumanReadable(currDataProduct.product)}
+            {showOverview
+              ? 'Overview'
+              : currDataProduct &&
+                snakeCaseToHumanReadable(currDataProduct.product)}
           </h2>
-          <div className={styles['collection_toolbar']}>
-            <Button
-              ref={filterMenuRef}
-              icon={<FontAwesomeIcon icon={faFilter} />}
-              variant="outlined"
-              color={'primary-lighter'}
-              textColor={'primary'}
-              onClick={() => {
-                setFiltersOpen(true);
-              }}
-            >
-              Filters
-            </Button>
-            <FilterMenu
+          {!showOverview && (
+            <>
+              <div className={styles['collection_toolbar']}>
+                <Button
+                  ref={filterMenuRef}
+                  icon={<FontAwesomeIcon icon={faFilter} />}
+                  variant="outlined"
+                  color={'primary-lighter'}
+                  textColor={'primary'}
+                  onClick={handleToggleFilters}
+                >
+                  Filters
+                </Button>
+                {/* <FilterMenu
               collectionId={collection.id}
               anchorEl={filterMenuRef.current}
               open={filterOpen}
               onClose={() => setFiltersOpen(false)}
-            />
-            <Button
-              icon={<FontAwesomeIcon icon={faArrowRightArrowLeft} />}
-              variant="outlined"
-              color={match ? 'primary' : 'primary-lighter'}
-              textColor={match ? 'primary-lighter' : 'primary'}
-              onClick={() => {
-                setModalView('match');
-                modal?.show();
-              }}
-            >
-              {match
-                ? `Matching by ${MATCHER_LABELS.get(match.matcher_id)}`
-                : `Match my Data`}
-            </Button>
-            <Button
-              icon={<FontAwesomeIcon icon={faCircleCheck} />}
-              variant="outlined"
-              color={selection.length > 0 ? 'primary' : 'primary-lighter'}
-              textColor={selection.length > 0 ? 'primary-lighter' : 'primary'}
-              onClick={() => {
-                setModalView('select');
-                modal?.show();
-              }}
-            >
-              {`${selection.length} items in selection`}
-            </Button>
-          </div>
+            /> */}
+                <Button
+                  icon={<FontAwesomeIcon icon={faArrowRightArrowLeft} />}
+                  variant="outlined"
+                  color={match ? 'primary' : 'primary-lighter'}
+                  textColor={match ? 'primary-lighter' : 'primary'}
+                  onClick={() => {
+                    setModalView('match');
+                    modal?.show();
+                  }}
+                >
+                  {match
+                    ? `Matching by ${MATCHER_LABELS.get(match.matcher_id)}`
+                    : `Match my Data`}
+                </Button>
+                <Button
+                  icon={<FontAwesomeIcon icon={faCircleCheck} />}
+                  variant="outlined"
+                  color={selection.length > 0 ? 'primary' : 'primary-lighter'}
+                  textColor={
+                    selection.length > 0 ? 'primary-lighter' : 'primary'
+                  }
+                  onClick={() => {
+                    setModalView('select');
+                    modal?.show();
+                  }}
+                >
+                  {`${selection.length} items in selection`}
+                </Button>
+              </div>
+              <div>
+                <FilterChips collectionId={collection.id} />
+              </div>
+            </>
+          )}
         </div>
-        <div className={styles['container']}>
+        <div className={styles['detail_content']}>
+          <FilterMenu
+            collectionId={collection.id}
+            anchorEl={filterMenuRef.current}
+            open={filterOpen}
+            onClose={() => setFiltersOpen(false)}
+          />
           <div className={styles['data_product_detail']}>
-            {currDataProduct ? (
+            {showOverview ? (
+              <CollectionOverview
+                collection_id={collection.id}
+                setModalView={setModalView}
+                modal={modal}
+              />
+            ) : currDataProduct ? (
               <DataProduct
                 dataProduct={currDataProduct}
                 collection_id={collection.id}
@@ -171,7 +196,7 @@ export const CollectionDetail = () => {
             )}
           </div>
         </div>
-      </div>
+      </main>
       {modalView === 'match' ? (
         <MatchModal
           key={[collection.id, matchId].join('|')}
@@ -192,40 +217,67 @@ export const CollectionDetail = () => {
   );
 };
 
-const FilterMenu = (props: {
-  collectionId: string;
-  anchorEl: Element | null;
-  open: boolean;
-  onClose: () => void;
-}) => {
-  const { context, filters } = useCollectionFilters(props.collectionId);
+const useFilterEntries = (collectionId: string) => {
+  const { context, filters } = useCollectionFilters(collectionId);
   const dispatch = useAppDispatch();
 
   const filterEntries = Object.entries(filters || {});
   filterEntries.sort((a, b) => a[0].localeCompare(b[0]));
 
   const clearFilterState = (column: string) => {
-    dispatch(clearFilter([props.collectionId, context, column]));
+    dispatch(clearFilter([collectionId, context, column]));
   };
 
+  return { context, filters, filterEntries, clearFilterState };
+};
+
+const FilterChips = ({ collectionId }: { collectionId: string }) => {
+  const { filterEntries, clearFilterState } = useFilterEntries(collectionId);
+  if (filterEntries.length === 0) return <></>;
   return (
-    <div>
-      <Menu
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'left',
-        }}
-        anchorEl={props.anchorEl}
-        open={props.open}
-        onClose={props.onClose}
-      >
+    <Stack
+      direction={'row'}
+      gap={'4px'}
+      useFlexGap
+      flexWrap="wrap"
+      sx={{ paddingTop: '14px' }}
+    >
+      {filterEntries.map(([column, filter]) => {
+        return (
+          <FilterChip
+            name={column}
+            filter={filter}
+            onDelete={() => clearFilterState(column)}
+          />
+        );
+      })}
+    </Stack>
+  );
+};
+
+const FilterMenu = (props: {
+  collectionId: string;
+  anchorEl: Element | null;
+  open: boolean;
+  onClose: () => void;
+}) => {
+  const { context, filterEntries, clearFilterState } = useFilterEntries(
+    props.collectionId
+  );
+
+  if (props.open) {
+    return (
+      <div className={styles['filters_panel']}>
         {filterEntries.flatMap(([column, filter]) => {
           const hasVal = Boolean(filter.value);
           const children = [
             <Divider key={column + '__label'} textAlign="left">
-              <Chip
-                label={column}
+              <FilterChip
+                name={column}
+                filter={filter}
                 color={hasVal ? 'primary' : 'default'}
+                showValue={false}
+                showWhenUnused={true}
                 onDelete={hasVal ? () => clearFilterState(column) : undefined}
               />
             </Divider>,
@@ -240,9 +292,11 @@ const FilterMenu = (props: {
           ];
           return children;
         })}
-      </Menu>
-    </div>
-  );
+      </div>
+    );
+  } else {
+    return null;
+  }
 };
 
 const useCollectionFilters = (collectionId: string | undefined) => {
@@ -254,9 +308,10 @@ const useCollectionFilters = (collectionId: string | undefined) => {
   );
   useEffect(() => {
     if (collectionId && filterData) {
-      dispatch(clearFilters([collectionId, context]));
+      dispatch(clearFiltersAndColumnMeta([collectionId, context]));
       filterData.columns.forEach((column) => {
         const current = filters && filters[column.key];
+        dispatch(setColumnMeta([collectionId, context, column.key, column]));
         if (
           column.type === 'date' ||
           column.type === 'float' ||

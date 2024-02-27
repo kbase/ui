@@ -13,6 +13,7 @@ import { CheckBox } from '../../../common/components/CheckBox';
 import {
   Pagination,
   Table,
+  usePageBounds,
   useTableColumns,
 } from '../../../common/components/Table';
 import { useAppDispatch } from '../../../common/hooks';
@@ -28,7 +29,8 @@ import {
 import classes from './../Collections.module.scss';
 import { AttribHistogram } from './AttribHistogram';
 import { AttribScatter } from './AttribScatter';
-import { Stack } from '@mui/material';
+import { Paper, Stack } from '@mui/material';
+import { formatNumber } from '../../../common/utils/stringUtils';
 
 export const GenomeAttribs: FC<{
   collection_id: string;
@@ -40,7 +42,8 @@ export const GenomeAttribs: FC<{
   const matchId = useMatchId(collection_id);
   const selectionId = useSelectionId(collection_id);
   // get the shared filter state
-  const { filterMatch, filterSelection } = useFilters(collection_id);
+  const { filterMatch, filterSelection, columnMeta } =
+    useFilters(collection_id);
 
   const [sorting, setSorting] = useState<SortingState>([]);
   const requestSort = useMemo(() => {
@@ -158,8 +161,18 @@ export const GenomeAttribs: FC<{
     data: data?.table || [],
     getRowId: (row) => String(row[idIndex]),
     columns: useTableColumns({
-      fieldNames: data?.fields.map((field) => field.name),
-      order: ['kbase_id', 'genome_size'],
+      fields: data?.fields.map((field) => ({
+        id: field.name,
+        displayName: columnMeta?.[field.name]?.display_name ?? field.name,
+        options: {
+          textAlign: ['float', 'int'].includes(
+            columnMeta?.[field.name]?.type ?? ''
+          )
+            ? 'right'
+            : 'left',
+        },
+      })),
+      order: ['kbase_display_name', 'genome_size'],
       exclude: ['__match__', '__sel__'],
     }),
 
@@ -186,56 +199,69 @@ export const GenomeAttribs: FC<{
     },
   });
 
+  const { firstRow, lastRow } = usePageBounds(table);
+
   return (
-    <Stack>
-      <div>
-        <span>
-          <CheckBox
-            checked={Boolean(filterMatch)}
-            onChange={(e) =>
-              dispatch(setFilterMatch([collection_id, e.currentTarget.checked]))
-            }
-          />{' '}
-          Filter by Match
-        </span>
-
-        <span>
-          <CheckBox
-            checked={Boolean(filterSelection)}
-            onChange={(e) =>
-              dispatch(
-                setFilterSelection([collection_id, e.currentTarget.checked])
-              )
-            }
-          />{' '}
-          Filter by Selection
-        </span>
-      </div>
-
-      <Table
-        table={table}
-        isLoading={isFetching}
-        rowClass={(row) => {
-          // match highlights
-          return matchIndex !== undefined &&
-            matchIndex !== -1 &&
-            row.original[matchIndex]
-            ? classes['match-highlight']
-            : '';
-        }}
-      />
-
-      <Pagination table={table} maxPage={10000 / pagination.pageSize} />
-      <Stack direction={'row'}>
-        <AttribScatter
-          collection_id={collection_id}
-          xColumn={'checkm_completeness'}
-          yColumn={'checkm_contamination'}
+    <Stack spacing={1}>
+      <Paper variant="outlined">
+        <Stack className={classes['table-toolbar']} direction="row" spacing={1}>
+          <span>
+            Showing {formatNumber(firstRow)} - {formatNumber(lastRow)} of{' '}
+            {formatNumber(count || 0)} genomes
+          </span>
+          <span>
+            <CheckBox
+              checked={Boolean(filterMatch)}
+              onChange={(e) =>
+                dispatch(
+                  setFilterMatch([collection_id, e.currentTarget.checked])
+                )
+              }
+            />{' '}
+            Filter by Match
+          </span>
+          <span>
+            <CheckBox
+              checked={Boolean(filterSelection)}
+              onChange={(e) =>
+                dispatch(
+                  setFilterSelection([collection_id, e.currentTarget.checked])
+                )
+              }
+            />{' '}
+            Filter by Selection
+          </span>
+        </Stack>
+        <Table
+          table={table}
+          isLoading={isFetching}
+          rowClass={(row) => {
+            // match highlights
+            return matchIndex !== undefined &&
+              matchIndex !== -1 &&
+              row.original[matchIndex]
+              ? classes['match-highlight']
+              : '';
+          }}
         />
-        <AttribHistogram
-          collection_id={collection_id}
-          column={'checkm_completeness'}
-        />
+        <div className={classes['pagination-wrapper']}>
+          <Pagination table={table} maxPage={10000 / pagination.pageSize} />
+        </div>
+      </Paper>
+      <Stack direction={'row'} spacing={1}>
+        <Paper variant="outlined">
+          <AttribScatter
+            collection_id={collection_id}
+            xColumn={'checkm_completeness'}
+            yColumn={'checkm_contamination'}
+          />
+        </Paper>
+        <Paper variant="outlined">
+          <AttribHistogram
+            collection_id={collection_id}
+            column={'checkm_completeness'}
+          />
+        </Paper>
       </Stack>
     </Stack>
   );
@@ -278,7 +304,7 @@ export const useGenomeAttribsCount = (
 
   // Requests
   const result = getGenomeAttribs.useQuery(params, {
-    skip: !!collection_id,
+    skip: !collection_id,
   });
 
   return { count: result?.currentData?.count, result };

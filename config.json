@@ -24,10 +24,24 @@
       "public_url": "/"
     },
 
+    "narrative2": {
+      "domain": "narrative2.kbase.us",
+      "legacy": "legacy.narrative2.kbase.us",
+      "public_url": "/",
+      "backup_cookie": { "name": "kbase_session_backup", "domain": ".kbase.us" }
+    },
+
+    "next": {
+      "domain": "next.kbase.us",
+      "legacy": "legacy.next.kbase.us",
+      "public_url": "/"
+    },
+
     "production": {
       "domain": "narrative.kbase.us",
       "legacy": "legacy.narrative.kbase.us",
-      "public_url": "/"
+      "public_url": "/",
+      "backup_cookie": { "name": "kbase_session_backup", "domain": ".kbase.us" }
     }
   }
 }

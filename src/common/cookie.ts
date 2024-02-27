@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
-export function getCookie(name: string) {
+export function getCookie(name?: string) {
+  if (!name) return undefined;
   const cookie = document.cookie
     .split(';')
     .map((kv) => kv.trim().split('='))
@@ -13,8 +14,8 @@ export function getCookie(name: string) {
 }
 
 export function setCookie(
-  name: string,
-  value: string,
+  name?: string,
+  value?: string,
   options?: {
     expires?: Date;
     path?: string | null;
@@ -23,13 +24,14 @@ export function setCookie(
     SameSite?: 'Lax' | 'Strict' | 'None';
   }
 ) {
+  if (!name) throw new Error('cannot set unnamed cookie');
   const { expires, path, domain, secure, SameSite } = {
     path: '/',
     secure: true,
     SameSite: 'Lax',
     ...options,
   };
-  let cookieString = `${name}=${value}`;
+  let cookieString = `${name}=${value || ''}`;
   if (expires) cookieString += `;expires=${expires.toUTCString()}`;
   if (path) cookieString += `;path=${path}`;
   if (domain) cookieString += `;domain=${domain}`;
@@ -39,7 +41,7 @@ export function setCookie(
 }
 
 export function clearCookie(
-  name: string,
+  name?: string,
   options?: Omit<Parameters<typeof setCookie>[2], 'expires'>
 ) {
   setCookie(name, '', {
@@ -48,26 +50,26 @@ export function clearCookie(
   });
 }
 
-type Rest<T extends unknown[]> = ((...p: T) => void) extends (
-  p1: infer P1,
-  ...rest: infer R
-) => void
-  ? R
-  : never;
-
 type wrappedFuncs = {
   clear: (
-    ...args: Rest<Parameters<typeof clearCookie>>
+    options?: Parameters<typeof clearCookie>[1]
   ) => ReturnType<typeof clearCookie>;
   set: (
-    ...args: Rest<Parameters<typeof setCookie>>
+    value: Parameters<typeof setCookie>[1],
+    options?: Parameters<typeof setCookie>[2]
   ) => ReturnType<typeof setCookie>;
 };
 
-export function useCookie(name: string) {
+export function useCookie(
+  name?: string,
+  defaultOptions?: Parameters<typeof setCookie>[2]
+) {
   const [value, setValue] = useState<undefined | string>(getCookie(name));
+  const defaultOptionsRef = useRef(defaultOptions);
+  defaultOptionsRef.current = defaultOptions;
 
   useEffect(() => {
+    if (!name) return;
     const interval = setInterval(() => {
       const cookieVal = getCookie(name);
       if (cookieVal !== value) setValue(cookieVal);
@@ -77,13 +79,19 @@ export function useCookie(name: string) {
 
   const funcs: wrappedFuncs = useMemo(
     () => ({
-      clear: (...args) => {
-        const result = clearCookie(name, ...args); // lgtm [js/use-of-returnless-function]
+      clear: (options) => {
+        const result = clearCookie(name, {
+          ...defaultOptionsRef.current,
+          ...options,
+        }); // lgtm [js/use-of-returnless-function]
         setValue(getCookie(name));
         return result;
       },
-      set: (...args) => {
-        const result = setCookie(name, ...args); // lgtm [js/use-of-returnless-function]
+      set: (value, options) => {
+        const result = setCookie(name, value, {
+          ...defaultOptionsRef.current,
+          ...options,
+        }); // lgtm [js/use-of-returnless-function]
         setValue(getCookie(name));
         return result;
       },

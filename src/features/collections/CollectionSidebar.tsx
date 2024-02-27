@@ -3,52 +3,49 @@ import { FC } from 'react';
 import { snakeCaseToHumanReadable } from '../../common/utils/stringUtils';
 import { Sidebar, SidebarItem } from '../../common/components/Sidebar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  faDna,
-  faArrowLeft,
-  faVial,
-  faChartBar,
-  faTableCells,
-  faMicroscope,
-  faList,
-} from '@fortawesome/free-solid-svg-icons';
+import { faDna, faArrowLeft, faVial } from '@fortawesome/free-solid-svg-icons';
 import { Button } from '../../common/components/Button';
 import { useNavigate } from 'react-router-dom';
 import classes from './Collections.module.scss';
-import { IconProp } from '@fortawesome/fontawesome-svg-core';
 
-/**
- * List of data product ids that should be grouped into the
- * "Genomes" category.
- */
-const genomesDataProducts = [
-  'genome_attribs',
-  'microtrait',
-  'taxa_count',
-  'biolog',
-];
-
-/**
- * List of data product ids that should be grouped into the
- * "Samples" category.
- */
-const samplesDataProducts = ['samples'];
-
-interface DataProductIconMap {
-  [id: string]: IconProp;
+interface DataProductMeta {
+  product: DataProduct['product'];
+  displayName: string;
+  section: string;
 }
 
 /**
- * Map data product ids to an icon component
+ * List of data products with associated metadata and listed
+ * in the order they should appear in the sidebar.
+ * This could eventually be part of the DataProduct that is returned by the database.
  */
-const dataProductIcon: DataProductIconMap = {
-  overview: faList,
-  genome_attribs: faDna,
-  microtrait: faTableCells,
-  taxa_count: faChartBar,
-  biolog: faMicroscope,
-  samples: faVial,
-};
+export const dataProductsMeta: DataProductMeta[] = [
+  {
+    product: 'genome_attribs',
+    displayName: 'Genome Attributes',
+    section: 'Genomes',
+  },
+  {
+    product: 'taxa_count',
+    displayName: 'Taxa Count',
+    section: 'Genomes',
+  },
+  {
+    product: 'microtrait',
+    displayName: 'Microtrait',
+    section: 'Genomes',
+  },
+  {
+    product: 'biolog',
+    displayName: 'Biolog',
+    section: 'Genomes',
+  },
+  {
+    product: 'samples',
+    displayName: 'Sample Attributes',
+    section: 'Samples',
+  },
+];
 
 /**
  * Implementation of the Sidebar component for the CollectionDetail pages.
@@ -57,30 +54,50 @@ const dataProductIcon: DataProductIconMap = {
 export const CollectionSidebar: FC<{
   collection: Collection;
   currDataProduct?: DataProduct;
+  showOverview?: boolean;
   className?: string;
-}> = ({ collection, currDataProduct, className }) => {
+}> = ({ collection, currDataProduct, showOverview, className }) => {
   const navigate = useNavigate();
   const genomesItems: SidebarItem[] = [];
   const samplesItems: SidebarItem[] = [];
+  const genomeProducts = dataProductsMeta
+    .filter((d) => d.section === 'Genomes')
+    .map((d) => d.product);
+  const sampleProducts = dataProductsMeta
+    .filter((d) => d.section === 'Samples')
+    .map((d) => d.product);
 
-  collection.data_products?.forEach((dp) => {
+  collection.data_products.forEach((dp) => {
+    const dpMeta = dataProductsMeta.find((d) => d.product === dp.product);
     const dpItem = {
-      displayText: snakeCaseToHumanReadable(dp.product),
+      id: dp.product,
+      displayText: dpMeta?.displayName || snakeCaseToHumanReadable(dp.product),
       pathname: `/collections/${collection.id}/${dp.product}`,
-      icon: <FontAwesomeIcon icon={dataProductIcon[dp.product]} />,
-      isSelected: currDataProduct === dp,
+      isSelected: !showOverview && currDataProduct === dp,
     };
-    if (genomesDataProducts.indexOf(dp.product) > -1) {
+    if (genomeProducts.indexOf(dp.product) > -1) {
       genomesItems.push(dpItem);
-    } else if (samplesDataProducts.indexOf(dp.product) > -1) {
+    } else if (sampleProducts.indexOf(dp.product) > -1) {
       samplesItems.push(dpItem);
     }
+  });
+
+  // Enforce a certain order for the genomes sidebar items based on genomeProducts array
+  genomesItems.sort((a, b) => {
+    return genomeProducts.indexOf(a.id) - genomeProducts.indexOf(b.id);
+  });
+
+  // Enforce a certain order for the samples sidebar items based on sampleProducts array
+  samplesItems.sort((a, b) => {
+    return sampleProducts.indexOf(a.id) - sampleProducts.indexOf(b.id);
   });
 
   // First item in genomeItems should be a section label
   if (genomesItems.length > 0) {
     genomesItems.unshift({
+      id: 'geneomes_section',
       displayText: 'Genomes',
+      icon: <FontAwesomeIcon icon={faDna} />,
       isSectionLabel: true,
     });
   }
@@ -88,19 +105,20 @@ export const CollectionSidebar: FC<{
   // First item in samplesItems should be a section label
   if (samplesItems.length > 0) {
     samplesItems.unshift({
+      id: 'samples_section',
       displayText: 'Samples',
+      icon: <FontAwesomeIcon icon={faVial} />,
       isSectionLabel: true,
     });
   }
 
   const items: SidebarItem[] = [
-    // Right now the Overview item is added manually
-    // In the future this could be part of collection.data_products
+    // Add Overview item to the top of the sidebar list
     {
+      id: 'overview',
       displayText: 'Overview',
-      pathname: `/collections/${collection.id}/overview`,
-      icon: <FontAwesomeIcon icon={dataProductIcon['overview']} />,
-      isSelected: currDataProduct?.product === 'overview',
+      pathname: `/collections/${collection.id}/`,
+      isSelected: showOverview,
     },
     ...genomesItems,
     ...samplesItems,

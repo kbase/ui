@@ -61,3 +61,11 @@ export function uriEncodeTemplateTag(
   }
   return output;
 }
+
+/**
+ * Convert a number into a formatted string with commas and decimals.
+ * This could be replaced with a more robust number formatter library.
+ */
+export function formatNumber(num: number) {
+  return num.toLocaleString();
+}
