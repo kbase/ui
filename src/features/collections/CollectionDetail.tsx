@@ -130,9 +130,6 @@ export const CollectionDetail = () => {
                 <Button
                   ref={filterMenuRef}
                   icon={<FontAwesomeIcon icon={faFilter} />}
-                  variant="outlined"
-                  color={'primary-lighter'}
-                  textColor={'primary'}
                   onClick={handleToggleFilters}
                 >
                   Filters
@@ -145,9 +142,7 @@ export const CollectionDetail = () => {
             /> */}
                 <Button
                   icon={<FontAwesomeIcon icon={faArrowRightArrowLeft} />}
-                  variant="outlined"
-                  color={match ? 'primary' : 'primary-lighter'}
-                  textColor={match ? 'primary-lighter' : 'primary'}
+                  variant="contained"
                   onClick={() => {
                     setModalView('match');
                     modal?.show();
@@ -159,11 +154,8 @@ export const CollectionDetail = () => {
                 </Button>
                 <Button
                   icon={<FontAwesomeIcon icon={faCircleCheck} />}
-                  variant="outlined"
-                  color={selection.length > 0 ? 'primary' : 'primary-lighter'}
-                  textColor={
-                    selection.length > 0 ? 'primary-lighter' : 'primary'
-                  }
+                  variant={selection.length > 0 ? 'contained' : 'outlined'}
+                  textColor={selection.length > 0 ? 'white' : 'primary'}
                   onClick={() => {
                     setModalView('select');
                     modal?.show();
