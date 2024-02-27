@@ -14,7 +14,7 @@ import {
 import { parseError } from '../../../common/api/utils/parseError';
 import { Pagination, usePageBounds } from '../../../common/components/Table';
 import { useAppDispatch, useBackoffPolling } from '../../../common/hooks';
-import { useSelectionId, useMatchId } from '../collectionsSlice';
+import { useMatchId, useGenerateSelectionId } from '../collectionsSlice';
 import { HeatMap, MAX_HEATMAP_PAGE } from './HeatMap';
 import classes from './../Collections.module.scss';
 import { Paper } from '@mui/material';
@@ -78,7 +78,7 @@ export const Microtrait: FC<{
 
 const useMicrotrait = (collection_id: string | undefined) => {
   const matchId = useMatchId(collection_id);
-  const selId = useSelectionId(collection_id || '', {
+  const selId = useGenerateSelectionId(collection_id || '', {
     skip: !collection_id,
   });
   const [matchMark, setMatchMark] = useState<boolean>(true);

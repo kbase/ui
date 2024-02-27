@@ -15,7 +15,7 @@ import { parseError } from '../../../common/api/utils/parseError';
 import { Pagination, usePageBounds } from '../../../common/components/Table';
 import { useAppDispatch, useBackoffPolling } from '../../../common/hooks';
 import { useAppParam } from '../../params/hooks';
-import { useSelectionId } from '../collectionsSlice';
+import { useGenerateSelectionId } from '../collectionsSlice';
 import { HeatMap, MAX_HEATMAP_PAGE } from './HeatMap';
 import { formatNumber } from '../../../common/utils/stringUtils';
 import classes from './../Collections.module.scss';
@@ -81,7 +81,7 @@ export const Biolog: FC<{
 
 const useBiolog = (collection_id: string | undefined) => {
   const matchId = useAppParam('match');
-  const selId = useSelectionId(collection_id || '', {
+  const selId = useGenerateSelectionId(collection_id || '', {
     skip: !collection_id,
   });
   const [matchMark, setMatchMark] = useState<boolean>(true);
