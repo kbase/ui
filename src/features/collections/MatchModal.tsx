@@ -181,7 +181,7 @@ export const MATCHER_LABELS = new Map<string, string>(
 export const MATCHER_HELP_TEXT = new Map<string, string>(
   Object.entries({
     gtdb_lineage: `
-      This matcher works by comparing the GTDB lineage from your input objects to the classification field for data in this collection.  
+      This matcher works by comparing the GTDB lineage from your input objects to the classification field for data in this collection.
       Input objects must have been run through the GTDB app in order to have lineage values.
     `,
     minhash_homology: `
@@ -270,6 +270,12 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
   const [userParams, setUserParams] = useState<
     Record<string, unknown> | undefined
   >(undefined);
+
+  useEffect(() => {
+    //When the matcher changes, reset user params
+    return () => setUserParams({});
+  }, [matcherSelected?.id]);
+
   const validate = useMemo(
     () => new Ajv({ strict: false }).compile(matchUserParams ?? {}),
     [matchUserParams]
