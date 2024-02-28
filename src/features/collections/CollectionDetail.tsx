@@ -284,7 +284,7 @@ const FilterMenu = (props: {
                 onDelete={hasVal ? () => clearFilterState(column) : undefined}
               />
             </Divider>,
-            <MenuItem>
+            <MenuItem key={column + '__label'}>
               <FilterControls
                 column={column}
                 filter={filter}

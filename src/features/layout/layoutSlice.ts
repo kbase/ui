@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { useEffect } from 'react';
+import type { RootState } from '../../app/store';
 import { useAppDispatch } from '../../common/hooks';
 
 const environments = [
@@ -13,21 +14,38 @@ const environments = [
   'unknown',
 ] as const;
 
+export interface TooltipState {
+  visible: boolean;
+  x: number;
+  y: number;
+}
+
 interface PageState {
+  cursorListenersRegistered: boolean;
   environment: typeof environments[number];
   pageTitle: string;
+  tooltip: TooltipState;
   modalDialogId?: string;
 }
 
 export const initialState: PageState = {
-  pageTitle: document.title || 'KBase',
+  cursorListenersRegistered: false,
   environment: 'unknown',
+  pageTitle: document.title || 'KBase',
+  tooltip: {
+    visible: false,
+    x: 0,
+    y: 0,
+  },
 };
 
 export const pageSlice = createSlice({
   name: 'page',
   initialState,
   reducers: {
+    setCursorListenersRegistered: (state, action: PayloadAction<boolean>) => {
+      state.cursorListenersRegistered = action.payload;
+    },
     setEnvironment: (state, action: PayloadAction<string>) => {
       const env = action.payload.toLowerCase();
       if (environments.includes(env as typeof environments[number])) {
@@ -44,6 +62,11 @@ export const pageSlice = createSlice({
     },
     setPageTitle: (state, action: PayloadAction<string>) => {
       state.pageTitle = action.payload;
+    },
+    setTooltip: (state, action: PayloadAction<TooltipState>) => {
+      console.log({ setTooltip: action.payload }); // eslint-disable-line no-console
+      state.tooltip = action.payload;
+      return state;
     },
   },
 });
@@ -66,5 +89,14 @@ export const usePageTitle = (title: string) => {
 };
 export default pageSlice.reducer;
 
-export const { setEnvironment, setModalDialogId, setPageTitle } =
-  pageSlice.actions;
+export const {
+  setCursorListenersRegistered,
+  setEnvironment,
+  setModalDialogId,
+  setPageTitle,
+  setTooltip,
+} = pageSlice.actions;
+
+export const cursorListenersRegistered = (state: RootState) =>
+  state.layout.cursorListenersRegistered;
+export const tooltip = (state: RootState) => state.layout.tooltip;
