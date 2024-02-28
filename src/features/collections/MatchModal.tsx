@@ -25,6 +25,8 @@ import { Loader } from '../../common/components/Loader';
 import { useForm } from 'react-hook-form';
 import { NarrativeDoc } from '../../common/types/NarrativeDoc';
 import { Alert, Stack } from '@mui/material';
+import { faCheckCircle, faWarning } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 export const MatchModal = ({ collectionId }: { collectionId: string }) => {
   const matchId = useMatchId(collectionId);
@@ -93,34 +95,54 @@ const ViewMatch = ({ collectionId }: { collectionId: string }) => {
       }
       body={
         <Loader type="spinner" loading={matchQuery.isLoading}>
-          <ul>
-            <li>Match ID: {match?.match_id}</li>
-            <li>Match Status: {match?.state}</li>
-            <li>
-              Match Params:{' '}
-              <ul>
-                {Object.entries(match?.user_parameters || {}).map(
-                  ([key, value]) => (
-                    <li>
-                      {key}: {JSON.stringify(value)}
-                    </li>
-                  )
-                )}
-              </ul>
-            </li>
-            {match?.state === 'complete' ? (
-              <li>
-                You input a total of <strong>{upaCount}</strong> data objects,
-                matching{' '}
-                <strong className={classes['match-highlight']}>
-                  {matchCount}
-                </strong>{' '}
-                collection items.
-              </li>
-            ) : (
-              <></>
+          <Stack sx={{ marginTop: 4, marginBottom: 4, textAlign: 'center' }}>
+            {match?.state === 'processing' && (
+              <>
+                <Loader type="spinner" loading={true} />
+                <p>Processing match</p>
+              </>
             )}
-          </ul>
+            {match?.state === 'complete' && (
+              <>
+                <FontAwesomeIcon icon={faCheckCircle} size="2x" />
+                {matchCount === 1 && <p>Found {matchCount} match</p>}
+                {matchCount !== 1 && <p>Found {matchCount} matches</p>}
+              </>
+            )}
+            {match?.state === 'failed' && (
+              <>
+                <FontAwesomeIcon icon={faWarning} size="2x" />
+                <p>There was a problem processing your match</p>
+              </>
+            )}
+          </Stack>
+          {match?.state !== 'processing' && (
+            <ul>
+              {match?.state === 'complete' ? (
+                <li>
+                  You input a total of <strong>{upaCount}</strong> data{' '}
+                  {upaCount === 1 ? 'object' : 'objects'}, matching{' '}
+                  <strong>{matchCount}</strong> collection{' '}
+                  {matchCount === 1 ? 'item' : 'items'}.
+                </li>
+              ) : (
+                <></>
+              )}
+              <li>
+                Match Params:{' '}
+                <ul>
+                  {Object.entries(match?.user_parameters || {}).map(
+                    ([key, value]) => (
+                      <li>
+                        {key}: {JSON.stringify(value)}
+                      </li>
+                    )
+                  )}
+                </ul>
+              </li>
+              <li>Match ID: {match?.match_id}</li>
+            </ul>
+          )}
         </Loader>
       }
       footer={
