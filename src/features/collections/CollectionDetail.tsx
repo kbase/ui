@@ -110,6 +110,11 @@ export const CollectionDetail = () => {
     setFiltersOpen(!filterOpen);
   };
 
+  useEffect(() => {
+    // When the currDataProduct/showOverview changes, close the filter menu
+    return () => setFiltersOpen(false);
+  }, [currDataProduct, showOverview]);
+
   if (!collection) return <Loader type="spinner" />;
   return (
     <div className={styles['collection_wrapper']}>
