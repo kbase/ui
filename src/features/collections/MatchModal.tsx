@@ -315,7 +315,7 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
         'Match data objects in this collection to objects in a narrative.'
       }
       body={
-        <Stack className={classes['matching']} spacing={2}>
+        <Stack className={classes['match-modal']} spacing={2}>
           <Stack spacing={2}>
             <Stack spacing={1}>
               <label htmlFor={idMatcher}>Select matching strategy</label>
