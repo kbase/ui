@@ -96,10 +96,11 @@ export const GenomeAttribs: FC<{
     () => ({
       match_mark: Boolean(matchId && !filterMatch),
       selection_mark: Boolean(selectionId && !filterSelection),
+      match_id: matchId ?? undefined,
+      sel_id: selectionId ?? undefined,
     }),
     [filterMatch, filterSelection, matchId, selectionId]
   );
-
   // Requests
   const attribParams = useMemo(
     () => ({
