@@ -6,7 +6,7 @@ dialog.modal {
   border: $border;
   display: flex;
   flex-flow: column nowrap;
-  overflow: visible;
+  overflow: auto;
   padding: $padding;
 
   .header {
