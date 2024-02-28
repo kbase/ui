@@ -128,9 +128,18 @@ $border: 1px solid use-color("base-lighter");
   padding: 1rem;
 }
 
-.matching {
-  max-width: 700px;
+.match-modal,
+.export-modal {
+  width: 700px;
 }
+
+@media (max-width: 900px) {
+  .match-modal,
+  .export-modal {
+    width: 80vw;
+  }
+}
+
 
 .match-number-input {
   display: inline-block;
