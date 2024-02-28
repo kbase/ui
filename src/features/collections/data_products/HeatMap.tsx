@@ -175,8 +175,8 @@ interface PlotState {
   setPlotWindow: React.Dispatch<React.SetStateAction<PlotWindow>>;
 }
 
-const ncols = 300;
-const nrows = 100;
+const NCOLS = 300;
+const NROWS = 100;
 
 const getFakeData = (ncols: number, nrows: number) => {
   const values_num = Array(nrows)
@@ -266,11 +266,11 @@ const relayoutHandlerFactory =
     cooldownRelayoutRef.current.hot = true;
     const xMaxFinite = getNumber({
       value: Number(evt['xaxis.range[1]']),
-      valueIfNotFinite: ncols,
+      valueIfNotFinite: NCOLS,
     });
     const yMaxFinite = getNumber({
       value: Number(evt['yaxis.range[1]']),
-      valueIfNotFinite: nrows,
+      valueIfNotFinite: NROWS,
     });
     const xMinFinite = getNumber({
       value: Number(evt['xaxis.range[0]']),
@@ -280,8 +280,8 @@ const relayoutHandlerFactory =
       value: Number(evt['yaxis.range[0]']),
       valueIfNotFinite: 0,
     });
-    const xMaxBug = Math.min(xMaxFinite, ncols);
-    const yMaxBug = Math.min(yMaxFinite, nrows);
+    const xMaxBug = Math.min(xMaxFinite, NCOLS);
+    const yMaxBug = Math.min(yMaxFinite, NROWS);
     const xMinBug = Math.max(xMinFinite, 0);
     const yMinBug = Math.max(yMinFinite, 0);
     const [xMax, xMin] =
@@ -314,6 +314,33 @@ const heatMapInfoDefaults: HeatMapMetadata = {
   z: 0,
 };
 
+const plotlyFromTable = ({ table }: { table: Table<HeatMapRow> }) => {
+  const rows = table.getSortedRowModel().rows;
+  const cols = table.getAllFlatColumns().filter((col) => col.parent);
+  const xs = cols.map((col) => col.id);
+  const ys = rows.map((row) => row.id);
+  const values_num = rows.map((row) =>
+    row.getAllCells().map((cell) => cell.getValue() as number)
+  );
+  const values_meta = rows.map(
+    (row) => row.getAllCells().map((cell) => '.') //`${row.getValue(cell.id)}`)
+  );
+  /*
+   */
+  const ncols = xs.length;
+  const nrows = ys.length;
+  const output = {
+    ncols,
+    nrows,
+    values_num,
+    values_meta,
+    xs,
+    ys,
+  };
+  console.log({ output }); // eslint-disable-line no-console
+  return output;
+};
+
 export const HeatMap = ({
   table,
   rowNameAccessor,
@@ -325,12 +352,6 @@ export const HeatMap = ({
 }) => {
   const [heatMapTooltipProps, setHeatMapTooltipProps] = useState({
     ...heatMapInfoDefaults,
-  });
-  const [plotWindow, setPlotWindow] = useState({
-    xMax: ncols,
-    yMax: nrows,
-    xMin: 0,
-    yMin: 0,
   });
   const [tooltipState, setTooltipState_] = useState(TooltipVisibleState.cursor);
   const cooldownRelayoutRef = useRef<Cooldown>({
@@ -350,15 +371,27 @@ export const HeatMap = ({
     return setTooltipState_(value);
   };
   const [hover, setHover] = useState(false);
+  /* BEGIN DATA (fake currently) */
+  const { ncols, nrows, values_meta, values_num, xs, ys } = useMemo(
+    () =>
+      plotlyFromTable({
+        table,
+      }),
+    [table]
+  );
+  const { values_bool } = getFakeData(NCOLS, NROWS);
+  // const [ncols, nrows] = [xs.length, ys.length];
+  const plotMeta = { ncols, nrows };
+  const [plotWindow, setPlotWindow] = useState({
+    xMax: ncols,
+    yMax: nrows,
+    xMin: 0,
+    yMin: 0,
+  });
   const plotState = {
     plotWindow,
     setPlotWindow,
   };
-  /* BEGIN DATA (fake currently) */
-  const { values_bool, values_meta, values_num, xs, ys } = getFakeData(
-    ncols,
-    nrows
-  );
   const data: HeatMapData = useMemo(
     () => ({
       values_bool,
@@ -374,8 +407,6 @@ export const HeatMap = ({
   const tooltipCursorMetaDataSetterRef = useRef<HeatMapMetadataSetter | null>(
     null
   );
-  tooltipCursorMetaDataSetterRef.current = {} as HeatMapMetadataSetter;
-  //
   //Should the cursor tooltip be shown?
   const showTooltipCursor =
     tooltipState === TooltipVisibleState.cursor && hover;
@@ -458,6 +489,7 @@ export const HeatMap = ({
         data={data}
         getCellLabel={getCellLabel}
         heatMapTooltipProps={heatMapTooltipProps}
+        plotMeta={plotMeta}
         plotState={plotState}
         relayoutHandler={relayoutHandlerFactory({
           cooldownRelayoutRef,
@@ -482,6 +514,10 @@ interface HeatMapInnerProps {
   data: HeatMapData;
   getCellLabel: HeatMapCallback['getCellLabel'];
   heatMapTooltipProps: HeatMapMetadata;
+  plotMeta: {
+    ncols: number;
+    nrows: number;
+  };
   plotState: PlotState;
   relayoutHandler: (evt: Readonly<Plotly.PlotRelayoutEvent>) => void;
   rowNameAccessor: (row: HeatMapRow, index: number) => string;
@@ -500,6 +536,7 @@ export const HeatMapInner = ({
   data,
   getCellLabel,
   heatMapTooltipProps,
+  plotMeta,
   plotState,
   relayoutHandler,
   rowNameAccessor,
@@ -517,6 +554,7 @@ export const HeatMapInner = ({
   }, [innerWidth]);
 
   const { values_bool, values_meta, values_num, xs, ys } = data;
+  const { ncols, nrows } = plotMeta;
   const { plotWindow } = plotState;
   const heatMapWidth = (innerWidth * 2) / 3;
   console.log('event render HeatMapInner', { table, tooltipState }); // eslint-disable-line no-console
@@ -620,7 +658,12 @@ export const HeatMapInner = ({
           const [rix, cix] = pointData.pointIndex as unknown as number[];
           const [cX, cY] = [evt.event.clientX + 10, evt.event.clientY + 10];
           setHover(true);
-          if (tooltipCursorMetaDataSetterRef?.current)
+          if (tooltipCursorMetaDataSetterRef?.current) {
+            // eslint-disable-next-line no-console
+            console.log({
+              typeof: typeof tooltipCursorMetaDataSetterRef.current,
+              value: tooltipCursorMetaDataSetterRef.current,
+            });
             tooltipCursorMetaDataSetterRef.current({
               clientX: cX,
               clientY: cY,
@@ -631,6 +674,7 @@ export const HeatMapInner = ({
               y: pointData.y as string,
               z: 0,
             });
+          }
         }}
         onRelayout={relayoutHandler}
       />
