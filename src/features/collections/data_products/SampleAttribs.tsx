@@ -187,7 +187,7 @@ export const SampleAttribs: FC<{
     pageCount: Math.ceil((countData?.count || 0) / pagination.pageSize),
     onPaginationChange: setPagination,
 
-    enableRowSelection: true,
+    enableRowSelection: false,
     onRowSelectionChange: setSelectionFromSamples,
 
     state: {
