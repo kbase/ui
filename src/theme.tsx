@@ -2,7 +2,6 @@ import {
   Link as RouterLink,
   LinkProps as RouterLinkProps,
 } from 'react-router-dom';
-import { LinkProps } from '@mui/material/Link';
 import { createTheme } from '@mui/material';
 import { forwardRef } from 'react';
 
@@ -19,7 +18,7 @@ export const theme = createTheme({
     MuiLink: {
       defaultProps: {
         component: RouterCompatibleLink,
-      } as LinkProps,
+      },
     },
     MuiButtonBase: {
       defaultProps: {
