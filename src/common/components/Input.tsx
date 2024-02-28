@@ -64,7 +64,7 @@ export const Input = forwardRef<HTMLInputElement, InputInterface>(
           id={idForLabel}
           onBlur={handleBlur}
           onFocus={handleFocus}
-          type={'text'}
+          type={props.type || 'text'}
         />
       </span>
     );

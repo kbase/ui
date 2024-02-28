@@ -24,6 +24,7 @@ import { Modal } from '../layout/Modal';
 import { Loader } from '../../common/components/Loader';
 import { useForm } from 'react-hook-form';
 import { NarrativeDoc } from '../../common/types/NarrativeDoc';
+import { Alert, Stack } from '@mui/material';
 
 export const MatchModal = ({ collectionId }: { collectionId: string }) => {
   const matchId = useMatchId(collectionId);
@@ -154,8 +155,26 @@ export const MATCHER_LABELS = new Map<string, string>(
     minhash_homology: 'MinHash Homology',
   })
 );
+
+export const MATCHER_HELP_TEXT = new Map<string, string>(
+  Object.entries({
+    gtdb_lineage: `
+      This matcher works by comparing the GTDB lineage from your input objects to the classification field for data in this collection.  
+      Input objects must have been run through the GTDB app in order to have lineage values.
+    `,
+    minhash_homology: `
+      This matcher works by running a mash homology search using the input objects as queries against the collection data.
+      More info: https://doi.org/10.1186/s13059-016-0997-x
+    `,
+  })
+);
+
 const getMatcherLabel = (matcherId: string) =>
   MATCHER_LABELS.get(matcherId.toLowerCase()) ??
+  `Unknown Matcher "${matcherId}"`;
+
+const getMatcherHelpText = (matcherId: string) =>
+  MATCHER_HELP_TEXT.get(matcherId.toLowerCase()) ??
   `Unknown Matcher "${matcherId}"`;
 
 const CreateMatch = ({ collectionId }: { collectionId: string }) => {
@@ -274,63 +293,76 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
         'Match data objects in this collection to objects in a narrative.'
       }
       body={
-        <div className={classes['matching']}>
-          <label htmlFor={idMatcher}>Matcher</label>
-          <Select
-            id={idMatcher}
-            disabled={!matchersQuery.data}
-            loading={matchersQuery.isFetching}
-            options={matcherOptions}
-            {...register('matcher')}
-            onChange={(opt) => {
-              setValue(
-                'matcher',
-                matchers?.find((d) => d.id === opt[0]?.value)
-              );
-              setValue('dataObjs', []);
-            }}
-          />
-          {matchUserParams ? (
-            <MatcherUserParams
-              key={matcherSelected.id}
-              params={matchUserParams}
-              value={userParams}
-              onChange={setUserParams}
-              errors={(!validate(userParams) && validate.errors) || []}
+        <Stack className={classes['matching']} spacing={2}>
+          <Stack spacing={2}>
+            <Stack spacing={1}>
+              <label htmlFor={idMatcher}>Select matching strategy</label>
+              <Select
+                id={idMatcher}
+                disabled={!matchersQuery.data}
+                loading={matchersQuery.isFetching}
+                options={matcherOptions}
+                {...register('matcher')}
+                onChange={(opt) => {
+                  setValue(
+                    'matcher',
+                    matchers?.find((d) => d.id === opt[0]?.value)
+                  );
+                  setValue('dataObjs', []);
+                }}
+              />
+              {matcherSelected && (
+                <Alert severity="info">
+                  {getMatcherHelpText(matcherSelected.id)}
+                </Alert>
+              )}
+            </Stack>
+            {matchUserParams ? (
+              <MatcherUserParams
+                key={matcherSelected.id}
+                params={matchUserParams}
+                value={userParams}
+                onChange={setUserParams}
+                errors={(!validate(userParams) && validate.errors) || []}
+              />
+            ) : (
+              <></>
+            )}
+          </Stack>
+          <Stack spacing={1}>
+            <label htmlFor={idNarrative}>Narrative</label>
+            <Select
+              id={idNarrative}
+              disabled={!matcherSelected}
+              options={narrativeOptions}
+              loading={narrativeQuery.isFetching}
+              onSearch={setNarrativeSearch}
+              onChange={(opt) => {
+                setValue(
+                  'narrative',
+                  narrativeOptions.find((d) => d.value === opt[0]?.value)?.data
+                );
+                setValue('dataObjs', []);
+              }}
             />
-          ) : (
-            <></>
-          )}
-          <label htmlFor={idNarrative}>Narrative</label>
-          <Select
-            id={idNarrative}
-            disabled={!matcherSelected}
-            options={narrativeOptions}
-            loading={narrativeQuery.isFetching}
-            onSearch={setNarrativeSearch}
-            onChange={(opt) => {
-              setValue(
-                'narrative',
-                narrativeOptions.find((d) => d.value === opt[0]?.value)?.data
-              );
-              setValue('dataObjs', []);
-            }}
-          />
-          <label htmlFor={idDataObject}>Data Object(s)</label>
-          <Select
-            id={idDataObject}
-            key={JSON.stringify(narrativeSelected)}
-            multiple={true}
-            disabled={!narrativeSelected}
-            options={dataObjsOptions}
-            loading={dataObjsQuery.isFetching}
-            onChange={(opts) =>
-              setValue(
-                'dataObjs',
-                opts.map((opt) => opt.value.toString())
-              )
-            }
-          />
+          </Stack>
+          <Stack spacing={1}>
+            <label htmlFor={idDataObject}>Data Object(s)</label>
+            <Select
+              id={idDataObject}
+              key={JSON.stringify(narrativeSelected)}
+              multiple={true}
+              disabled={!narrativeSelected}
+              options={dataObjsOptions}
+              loading={dataObjsQuery.isFetching}
+              onChange={(opts) =>
+                setValue(
+                  'dataObjs',
+                  opts.map((opt) => opt.value.toString())
+                )
+              }
+            />
+          </Stack>
           <br></br>
           {matchErr ? (
             <>
@@ -339,7 +371,7 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
               <code>{matchErr}</code>
             </>
           ) : null}
-        </div>
+        </Stack>
       }
       footer={
         <Button disabled={createReady} onClick={handleCreate}>

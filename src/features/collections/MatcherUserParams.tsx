@@ -1,6 +1,8 @@
 import { ComponentProps, useId } from 'react';
-import { Select } from '../../common/components';
+import classes from './Collections.module.scss';
+import { Input, Select } from '../../common/components';
 import { SchemaObject, ErrorObject as AjvError } from 'ajv';
+import { Alert, Stack } from '@mui/material';
 
 export const MatcherUserParams = (props: {
   params: SchemaObject;
@@ -73,7 +75,7 @@ const GTDBLineageMatcherUserParameters = ({
   const id = useId();
 
   return (
-    <div style={{ paddingLeft: '2em' }}>
+    <Stack spacing={1}>
       <label htmlFor={id}>{description}</label>
       <Select
         id={id}
@@ -87,7 +89,12 @@ const GTDBLineageMatcherUserParameters = ({
           onChange ? onChange({ gtdb_rank: String(opts[0].value) }) : undefined
         }
       />
-    </div>
+      <Alert severity="info">
+        The point in the taxonomic lineage the match must occur. For species,
+        for example, the entire lineage string must match, but for family only
+        the lineage from domain to family must match.
+      </Alert>
+    </Stack>
   );
 };
 
@@ -105,26 +112,33 @@ const MinHashHomologyMatcherUserParameters = ({
     : undefined;
 
   return (
-    <>
+    <Stack spacing={1}>
       <label htmlFor={id}>
         {max_dist.title}: {max_dist.description}
       </label>
-      <br />
-      <input
-        type="number"
-        min={max_dist?.minimum}
-        max={max_dist?.maximum}
-        step="0.01"
-        value={currentValue?.maximum_distance ?? max_dist?.default}
-        onChange={(e) => {
-          if (onChange)
-            onChange({
-              maximum_distance: !Number.isNaN(parseFloat(e.currentTarget.value))
-                ? parseFloat(e.currentTarget.value)
-                : e.currentTarget.value,
-            });
-        }}
-      />
-    </>
+      <div>
+        <Input
+          type="number"
+          className={classes['match-number-input']}
+          min={max_dist?.minimum}
+          max={max_dist?.maximum}
+          step={0.01}
+          value={currentValue?.maximum_distance ?? max_dist?.default}
+          onChange={(e) => {
+            if (onChange)
+              onChange({
+                maximum_distance: !Number.isNaN(
+                  parseFloat(e.currentTarget.value)
+                )
+                  ? parseFloat(e.currentTarget.value)
+                  : e.currentTarget.value,
+              });
+          }}
+        />
+      </div>
+      <Alert severity="info">
+        The maximum distance between sketches that can be considered a match.
+      </Alert>
+    </Stack>
   );
 };
