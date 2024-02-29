@@ -110,6 +110,9 @@ export const CollectionDetail = () => {
     setFiltersOpen(!filterOpen);
   };
 
+  const filtersAvailable =
+    currDataProduct && currDataProduct.product === 'genome_attribs';
+
   if (!collection) return <Loader type="spinner" />;
   return (
     <div className={styles['collection_wrapper']}>
@@ -131,6 +134,7 @@ export const CollectionDetail = () => {
                   ref={filterMenuRef}
                   icon={<FontAwesomeIcon icon={faFilter} />}
                   onClick={handleToggleFilters}
+                  disabled={filtersAvailable}
                 >
                   Filters
                 </Button>
