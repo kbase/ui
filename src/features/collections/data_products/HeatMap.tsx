@@ -85,7 +85,10 @@ export const HeatMapTooltipCursor: FC<HeatMapTooltipCursorProps> = ({
     setData(value);
   };
   /* setter set here */
-  if (tooltipCursorMetaDataSetterRef?.current) {
+  if (
+    tooltipCursorMetaDataSetterRef &&
+    Object.hasOwn(tooltipCursorMetaDataSetterRef, 'current')
+  ) {
     tooltipCursorMetaDataSetterRef.current = setter;
   }
   if (!updatedState) {
@@ -175,9 +178,6 @@ interface PlotState {
   setPlotWindow: React.Dispatch<React.SetStateAction<PlotWindow>>;
 }
 
-const NCOLS = 300;
-const NROWS = 100;
-
 const getFakeData = (ncols: number, nrows: number) => {
   const values_num = Array(nrows)
     .fill(0)
@@ -238,15 +238,17 @@ const getFakeData = (ncols: number, nrows: number) => {
 const relayoutHandlerFactory =
   ({
     cooldownRelayoutRef,
+    plotMeta,
     setHover,
     setPlotWindow,
     setTooltipState,
     waitUntilCool,
   }: {
+    cooldownRelayoutRef: React.MutableRefObject<Cooldown>;
+    plotMeta: PlotMeta;
     setHover: React.Dispatch<React.SetStateAction<boolean>>;
     setPlotWindow: PlotState['setPlotWindow'];
     setTooltipState: React.Dispatch<React.SetStateAction<TooltipVisibleState>>;
-    cooldownRelayoutRef: React.MutableRefObject<Cooldown>;
     waitUntilCool: ({
       ref,
     }: {
@@ -264,13 +266,14 @@ const relayoutHandlerFactory =
     }
     console.log('cooldownRelayoutRef is HOT: relayout'); // eslint-disable-line no-console
     cooldownRelayoutRef.current.hot = true;
+    const { ncols, nrows } = plotMeta;
     const xMaxFinite = getNumber({
       value: Number(evt['xaxis.range[1]']),
-      valueIfNotFinite: NCOLS,
+      valueIfNotFinite: ncols,
     });
     const yMaxFinite = getNumber({
       value: Number(evt['yaxis.range[1]']),
-      valueIfNotFinite: NROWS,
+      valueIfNotFinite: nrows,
     });
     const xMinFinite = getNumber({
       value: Number(evt['xaxis.range[0]']),
@@ -280,8 +283,8 @@ const relayoutHandlerFactory =
       value: Number(evt['yaxis.range[0]']),
       valueIfNotFinite: 0,
     });
-    const xMaxBug = Math.min(xMaxFinite, NCOLS);
-    const yMaxBug = Math.min(yMaxFinite, NROWS);
+    const xMaxBug = Math.min(xMaxFinite, ncols);
+    const yMaxBug = Math.min(yMaxFinite, nrows);
     const xMinBug = Math.max(xMinFinite, 0);
     const yMinBug = Math.max(yMinFinite, 0);
     const [xMax, xMin] =
@@ -295,6 +298,7 @@ const relayoutHandlerFactory =
       yMin,
     };
     console.log('event relayout'); // eslint-disable-line no-console
+    console.log(newPlotWindow); // eslint-disable-line no-console
     setHover(false);
     setPlotWindow(newPlotWindow);
     //setTooltipState(TooltipVisibleState.cursor);
@@ -371,7 +375,8 @@ export const HeatMap = ({
     return setTooltipState_(value);
   };
   const [hover, setHover] = useState(false);
-  /* BEGIN DATA (fake currently) */
+  /* BEGIN DATA (values_bool fake currently) */
+  /*
   const { ncols, nrows, values_meta, values_num, xs, ys } = useMemo(
     () =>
       plotlyFromTable({
@@ -379,6 +384,12 @@ export const HeatMap = ({
       }),
     [table]
   );
+  */
+  const { ncols, nrows, values_meta, values_num, xs, ys } = plotlyFromTable({
+    table,
+  });
+  const NCOLS = 300;
+  const NROWS = 100;
   const { values_bool } = getFakeData(NCOLS, NROWS);
   // const [ncols, nrows] = [xs.length, ys.length];
   const plotMeta = { ncols, nrows };
@@ -407,6 +418,8 @@ export const HeatMap = ({
   const tooltipCursorMetaDataSetterRef = useRef<HeatMapMetadataSetter | null>(
     null
   );
+  //tooltipCursorMetaDataSetterRef.current = {} as HeatMapMetadataSetter;
+
   //Should the cursor tooltip be shown?
   const showTooltipCursor =
     tooltipState === TooltipVisibleState.cursor && hover;
@@ -445,7 +458,9 @@ export const HeatMap = ({
         // Note that plotly puts a div.dragcover under the mouse on click, so
         // this will fire on click events as well unless we disable
         // pointer-events for this element.
-        setHover(false);
+        if (hover) {
+          setHover(false);
+        }
         console.log('event mouseout'); // eslint-disable-line no-console
       }}
       onPointerDown={() => {
@@ -489,10 +504,12 @@ export const HeatMap = ({
         data={data}
         getCellLabel={getCellLabel}
         heatMapTooltipProps={heatMapTooltipProps}
+        hover={hover}
         plotMeta={plotMeta}
         plotState={plotState}
         relayoutHandler={relayoutHandlerFactory({
           cooldownRelayoutRef,
+          plotMeta,
           setHover,
           setPlotWindow,
           setTooltipState,
@@ -510,14 +527,17 @@ export const HeatMap = ({
   );
 };
 
+interface PlotMeta {
+  ncols: number;
+  nrows: number;
+}
+
 interface HeatMapInnerProps {
   data: HeatMapData;
   getCellLabel: HeatMapCallback['getCellLabel'];
   heatMapTooltipProps: HeatMapMetadata;
-  plotMeta: {
-    ncols: number;
-    nrows: number;
-  };
+  hover: boolean;
+  plotMeta: PlotMeta;
   plotState: PlotState;
   relayoutHandler: (evt: Readonly<Plotly.PlotRelayoutEvent>) => void;
   rowNameAccessor: (row: HeatMapRow, index: number) => string;
@@ -536,6 +556,7 @@ export const HeatMapInner = ({
   data,
   getCellLabel,
   heatMapTooltipProps,
+  hover,
   plotMeta,
   plotState,
   relayoutHandler,
@@ -553,8 +574,9 @@ export const HeatMapInner = ({
     console.log({ innerWidth }); // eslint-disable-line no-console
   }, [innerWidth]);
 
-  const { values_bool, values_meta, values_num, xs, ys } = data;
+  const { values_meta, values_num, xs, ys } = data;
   const { ncols, nrows } = plotMeta;
+  console.log(plotMeta); // eslint-disable-line no-console
   const { plotWindow } = plotState;
   const heatMapWidth = (innerWidth * 2) / 3;
   console.log('event render HeatMapInner', { table, tooltipState }); // eslint-disable-line no-console
@@ -581,7 +603,14 @@ export const HeatMapInner = ({
             type: 'heatmap',
             x: xs,
             y: ys,
+            z: Array(xs.length)
+              .fill(0)
+              .map(() => Array(ys.length).fill(0)),
+            /*
+            x: xs,
+            y: ys,
             z: values_bool,
+          */
           },
           {
             colorbar: {
@@ -596,9 +625,9 @@ export const HeatMapInner = ({
             ],
             hoverinfo: 'none',
             type: 'heatmap',
-            x: xs.map((el) => el.slice(0, 260)),
+            x: xs, //.map((el) => el.slice(0, 260)),
             y: ys,
-            z: values_num.map((el) => el.slice(0, 260)),
+            z: values_num, //.map((el) => el.slice(0, 260)),
           },
         ]}
         debug={true}
@@ -657,8 +686,18 @@ export const HeatMapInner = ({
           const pointData = evt.points[0];
           const [rix, cix] = pointData.pointIndex as unknown as number[];
           const [cX, cY] = [evt.event.clientX + 10, evt.event.clientY + 10];
-          setHover(true);
+          console.log({ pi: pointData.pointIndex, cX, cY }); // eslint-disable-line no-console
+          if (!hover) {
+            setHover(true);
+          }
           if (tooltipCursorMetaDataSetterRef?.current) {
+            /*
+          probably not needed
+          if (
+            tooltipCursorMetaDataSetterRef &&
+            Object.hasOwn(tooltipCursorMetaDataSetterRef, 'current')
+          ) {
+           */
             // eslint-disable-next-line no-console
             console.log({
               typeof: typeof tooltipCursorMetaDataSetterRef.current,

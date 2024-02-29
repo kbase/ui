@@ -5,17 +5,18 @@ import {
   PaginationState,
   createColumnHelper,
 } from '@tanstack/react-table';
-import { FC, useCallback, /* useEffect,*/ useMemo, useState } from 'react';
+import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 /*
+ */
 import {
   getMicroTrait,
   getMicroTraitCell,
   getMicroTraitMeta,
 } from '../../../common/api/collectionsApi';
-*/
 import { parseError } from '../../../common/api/utils/parseError';
 import { Pagination, usePageBounds } from '../../../common/components/Table';
 import { useMatchId, useGenerateSelectionId } from '../collectionsSlice';
+import { useAppDispatch, useBackoffPolling } from '../../../common/hooks';
 import { HeatMap, HeatMapCallback, MAX_HEATMAP_PAGE } from './HeatMap';
 import classes from './../Collections.module.scss';
 import { Paper } from '@mui/material';
@@ -25,7 +26,7 @@ import { formatNumber } from '../../../common/utils/stringUtils';
 export const Microtrait: FC<{
   collection_id: string;
 }> = ({ collection_id }) => {
-  // const dispatch = useAppDispatch();
+  const dispatch = useAppDispatch();
   const { table, count } = useMicrotrait(collection_id);
   const { firstRow, lastRow } = usePageBounds(table);
 
@@ -40,13 +41,13 @@ export const Microtrait: FC<{
     } = {};
     try {
       /* TODO: remove these comments disabling querying
-              response = await dispatch(
-                getMicroTraitCell.initiate({
-                  collection_id,
-                  cell_id: cell.cell_id,
-                })
-              );
-              */
+       */
+      response = await dispatch(
+        getMicroTraitCell.initiate({
+          collection_id,
+          cell_id: cell.cell_id,
+        })
+      );
       response = { data: { values: [{ id: 'id_val', val: 0 }] } };
     } catch (e) {
       // eslint-disable-next-line no-console
@@ -100,6 +101,7 @@ export const Microtrait: FC<{
 
 const useMicrotrait = (collection_id: string | undefined) => {
   const matchId = useMatchId(collection_id);
+  // const matchId = '';
   const selId = useGenerateSelectionId(collection_id || '', {
     skip: !collection_id,
   });
@@ -111,8 +113,7 @@ const useMicrotrait = (collection_id: string | undefined) => {
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const unused = [matchId, selId, matchMark, selMark].join('');
-  /* TODO: remove these comments disabling querying
+  // const unused = [matchId, selId, matchMark, selMark].join('');
   const pageLastIdCache: Record<string, string> = useMemo(
     () => ({}),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -150,10 +151,10 @@ const useMicrotrait = (collection_id: string | undefined) => {
   );
 
   // HeatMap cell query
-  fonst microtraitQuery = getMicroTrait.useQuery(heatMapParams, {
-    fkip: !collection_id,
+  const microtraitQuery = getMicroTrait.useQuery(heatMapParams, {
+    skip: !collection_id,
   });
-  */
+  /* TODO: remove these comments disabling querying
   const count_mock = 250;
   const count_columns_mock = 60;
   const count_columns_number = 48;
@@ -203,7 +204,9 @@ const useMicrotrait = (collection_id: string | undefined) => {
     ],
     []
   );
-  // const microtrait = microtraitQuery.data;
+  */
+  const microtrait = microtraitQuery.data;
+  /*
   const { pageIndex: pi, pageSize: ps } = pagination;
   const microtrait = {
     count: null,
@@ -213,8 +216,7 @@ const useMicrotrait = (collection_id: string | undefined) => {
     min_value: 0,
     selction_state: null,
   };
-  /* TODO: remove these comments disabling querying
-  console.log({ microtrait, queryData: microtraitQuery.data }); // eslint-disable-line no-console
+  */
   useBackoffPolling(
     microtraitQuery,
     (result) => {
@@ -244,7 +246,8 @@ const useMicrotrait = (collection_id: string | undefined) => {
     skip: !collection_id,
   });
 
-  */
+  /* TODO: remove these comments disabling querying
+  console.log({ microtrait, queryData: microtraitQuery.data }); // eslint-disable-line no-console
   const count = { count: count_mock };
   const countQuery = {};
   const microtraitQuery = {};
@@ -259,11 +262,12 @@ const useMicrotrait = (collection_id: string | undefined) => {
     [categories_mock]
   );
   const metaQuery = {};
+  */
   /*
+   */
   const { data: meta, ...metaQuery } = getMicroTraitMeta.useQuery(metaParams, {
     skip: !collection_id,
   });
-  */
 
   type RowDatum = NonNullable<typeof microtrait>['data'][number];
 
