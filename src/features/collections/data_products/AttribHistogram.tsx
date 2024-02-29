@@ -15,7 +15,8 @@ export const AttribHistogram = ({
   column: string;
   size?: [width: number, height: number];
 }) => {
-  const { filterMatch, filterSelection } = useFilters(collection_id);
+  const { filterMatch, filterSelection, columnMeta } =
+    useFilters(collection_id);
   const viewParams = useTableViewParams(collection_id, {
     filtered: true,
     selected: Boolean(filterMatch),
@@ -37,7 +38,13 @@ export const AttribHistogram = ({
     return (
       <Plot
         data={plotData}
-        layout={{ height: size[1], width: size[0], title: column }}
+        layout={{
+          height: size[1],
+          width: size[0],
+          title: column,
+          xaxis: { title: { text: columnMeta?.[column]?.display_name } },
+          yaxis: { title: { text: 'Count' } },
+        }}
       />
     );
   } else {

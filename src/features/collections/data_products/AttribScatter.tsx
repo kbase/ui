@@ -20,7 +20,8 @@ export const AttribScatter = ({
   downsample?: number;
   size?: [width: number, height: number];
 }) => {
-  const { filterMatch, filterSelection } = useFilters(collection_id);
+  const { filterMatch, filterSelection, columnMeta } =
+    useFilters(collection_id);
   const viewParams = useTableViewParams(collection_id, {
     filtered: true,
     selected: Boolean(filterMatch),
@@ -113,7 +114,13 @@ export const AttribScatter = ({
   // Controlled state for plot layout (so we can change the title dynamically)
   const [plotLayout, setPlotLayout] = useState<
     ComponentProps<typeof Plot>['layout']
-  >({ height: size?.[1], width: size?.[0], title: title });
+  >({
+    height: size?.[1],
+    width: size?.[0],
+    title: title,
+    xaxis: { title: { text: columnMeta?.[xColumn]?.display_name } },
+    yaxis: { title: { text: columnMeta?.[yColumn]?.display_name } },
+  });
 
   //Reset title on plot update, but don't create a new layout object (this causes an infinite loop)
   useEffect(() => {
@@ -121,8 +128,10 @@ export const AttribScatter = ({
       text: title,
       yref: 'paper',
     };
+    plotLayout.xaxis = { title: { text: columnMeta?.[xColumn]?.display_name } };
+    plotLayout.yaxis = { title: { text: columnMeta?.[yColumn]?.display_name } };
     setPlotLayout(plotLayout);
-  }, [title, plotLayout]);
+  }, [title, plotLayout, columnMeta, xColumn, yColumn]);
 
   const viewportChangeTimeout = useRef<number>();
 
