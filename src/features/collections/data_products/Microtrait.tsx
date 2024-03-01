@@ -48,7 +48,7 @@ export const Microtrait: FC<{
           cell_id: cell.cell_id,
         })
       );
-      response = { data: { values: [{ id: 'id_val', val: 0 }] } };
+      // response = { data: { values: [{ id: 'id_val', val: 0 }] } };
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error('Error getting MicroTraitCell data.');
@@ -305,6 +305,7 @@ const useMicrotrait = (collection_id: string | undefined) => {
     [meta]
   );
 
+  console.log({ mdata: microtrait?.data }); // eslint-disable-line no-console
   const table = useReactTable<RowDatum>({
     data: microtrait?.data || [],
     getRowId: (row) => String(row.kbase_display_name),

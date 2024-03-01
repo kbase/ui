@@ -1,5 +1,6 @@
 import { Column, Table } from '@tanstack/react-table';
-import { FC, ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+//import { FC, ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import { FC, ReactNode, useEffect, useRef, useState } from 'react';
 import Plot from 'react-plotly.js';
 import type Layout from 'react-plotly.js';
 import { HeatMapCell, HeatMapRow } from '../../../common/api/collectionsApi';
@@ -38,7 +39,7 @@ enum TooltipVisibleState {
 interface HeatMapMetadata {
   clientX: number;
   clientY: number;
-  meta: string | null;
+  meta: React.ReactElement | string | null;
   x: string | null;
   y: string | null;
   z: number;
@@ -76,9 +77,6 @@ export const HeatMapTooltipCursor: FC<HeatMapTooltipCursorProps> = ({
     clientX: clientXValue,
     clientY: clientYValue,
     meta: metaValue,
-    x: xValue,
-    y: yValue,
-    z: zValue,
   } = data;
   const setter = (value: React.SetStateAction<HeatMapMetadata>) => {
     setUpdatedState(true);
@@ -104,13 +102,8 @@ export const HeatMapTooltipCursor: FC<HeatMapTooltipCursorProps> = ({
           top: clientYValue,
         }}
       >
-        <pre>{`
-    cursor
-    x: ${xValue}
-    y: ${yValue}
-    z: ${zValue}
-    meta: ${metaValue}
-  `}</pre>
+        <pre>cursor</pre>
+        {metaValue}
       </div>
     </>
   );
@@ -142,13 +135,8 @@ export const HeatMapTooltipInspector: FC<HeatMapTooltipProps> = ({
           top: clientY,
         }}
       >
-        <pre>{`
-    inspector
-    x: ${x}
-    y: ${y}
-    z: ${z}
-    meta: ${meta}
-  `}</pre>
+        <pre>inspector</pre>
+        {meta}
         <Button onClick={closeHandler}>Close</Button>
       </div>
     </>
@@ -160,7 +148,7 @@ export const HeatMapTooltipInspector: FC<HeatMapTooltipProps> = ({
  */
 interface HeatMapData {
   values_bool: (number | null)[][];
-  values_meta: (string | null)[][];
+  values_meta: (React.ReactElement | string | null)[][];
   values_num: (number | null)[][];
   xs: string[];
   ys: string[];
@@ -256,6 +244,8 @@ const relayoutHandlerFactory =
     }) => boolean;
   }) =>
   (evt: Readonly<Plotly.PlotRelayoutEvent>) => {
+    console.log('event relayout'); // eslint-disable-line no-console
+    /*
     if (cooldownRelayoutRef.current.hot) {
       console.log('too hot for relayout'); // eslint-disable-line no-console
       return;
@@ -266,6 +256,7 @@ const relayoutHandlerFactory =
     }
     console.log('cooldownRelayoutRef is HOT: relayout'); // eslint-disable-line no-console
     cooldownRelayoutRef.current.hot = true;
+    */
     const { ncols, nrows } = plotMeta;
     const xMaxFinite = getNumber({
       value: Number(evt['xaxis.range[1]']),
@@ -297,7 +288,6 @@ const relayoutHandlerFactory =
       xMin,
       yMin,
     };
-    console.log('event relayout'); // eslint-disable-line no-console
     console.log(newPlotWindow); // eslint-disable-line no-console
     setHover(false);
     setPlotWindow(newPlotWindow);
@@ -318,16 +308,80 @@ const heatMapInfoDefaults: HeatMapMetadata = {
   z: 0,
 };
 
-const plotlyFromTable = ({ table }: { table: Table<HeatMapRow> }) => {
+const CellLabelMeta: FC<{
+  getCellLabelCallback: () => ReactNode | Promise<ReactNode>;
+}> = ({ getCellLabelCallback }) => {
+  const [label, setLabel] = useState<ReactNode | Promise<ReactNode>>(<></>);
+  useEffect(() => {
+    let ignore = false;
+    const callback = async () => {
+      const result = (await getCellLabelCallback()) || <></>;
+      if (!ignore) {
+        setLabel(result);
+      }
+    };
+    callback();
+    return () => {
+      ignore = true;
+    };
+  }, [getCellLabelCallback]);
+  return <>{label}</>;
+};
+
+const plotlyFromTable = ({
+  table,
+  getCellLabel,
+}: {
+  table: Table<HeatMapRow>;
+  getCellLabel: HeatMapCallback['getCellLabel'];
+}) => {
   const rows = table.getSortedRowModel().rows;
   const cols = table.getAllFlatColumns().filter((col) => col.parent);
-  const xs = cols.map((col) => col.id);
+  const xs: string[] = cols.map((col, cix) => {
+    if (cix === 13) {
+      console.log({ col }); // eslint-disable-line no-console
+    }
+    return col.columnDef.header as string;
+  });
   const ys = rows.map((row) => row.id);
   const values_num = rows.map((row) =>
     row.getAllCells().map((cell) => cell.getValue() as number)
   );
   const values_meta = rows.map(
-    (row) => row.getAllCells().map((cell) => '.') //`${row.getValue(cell.id)}`)
+    (row) => {
+      const cells = row.getAllCells();
+      const hmcs: HeatMapCell[] = cells.map((cell) => ({
+        cell_id: cell.id,
+        col_id: cell.column.id,
+        val: cell.getValue() as number | boolean,
+      }));
+      return cells.map((cell, cix) => {
+        const hmc: HeatMapCell = {
+          cell_id: cell.id,
+          col_id: cell.column.id,
+          val: cell.getValue() as number | boolean,
+        };
+        const hmr: HeatMapRow = {
+          match: false,
+          sel: false,
+          kbase_id: row.id,
+          kbase_display_name: row.id,
+          cells: hmcs,
+        };
+        if (row.index === 13 && cix === 17) {
+          // eslint-disable-next-line no-console
+          console.log({
+            cell,
+            value: cell.getValue(),
+            label: getCellLabel(hmc, hmr, cell.column),
+          });
+        }
+        const getCellLabelCallback = async () =>
+          await getCellLabel(hmc, hmr, cell.column);
+        return <CellLabelMeta getCellLabelCallback={getCellLabelCallback} />;
+      });
+    }
+    // row.getAllCells().map((cell) => `${row.getValue(cell.id)}`)
   );
   /*
    */
@@ -386,6 +440,7 @@ export const HeatMap = ({
   );
   */
   const { ncols, nrows, values_meta, values_num, xs, ys } = plotlyFromTable({
+    getCellLabel,
     table,
   });
   const NCOLS = 300;
@@ -399,10 +454,21 @@ export const HeatMap = ({
     xMin: 0,
     yMin: 0,
   });
+  useEffect(() => {
+    setPlotWindow({ xMax: ncols, yMax: nrows, xMin: 0, yMin: 0 });
+  }, [ncols, nrows]);
   const plotState = {
     plotWindow,
     setPlotWindow,
   };
+  const data: HeatMapData = {
+    values_bool,
+    values_meta,
+    values_num,
+    xs,
+    ys,
+  };
+  /*
   const data: HeatMapData = useMemo(
     () => ({
       values_bool,
@@ -413,6 +479,7 @@ export const HeatMap = ({
     }),
     [values_bool, values_meta, values_num, xs, ys]
   );
+  */
   /* END DATA (fake currently) */
 
   const tooltipCursorMetaDataSetterRef = useRef<HeatMapMetadataSetter | null>(
@@ -472,7 +539,7 @@ export const HeatMap = ({
         // eslint-disable-next-line no-console
         console.log('event <HeatMap /> div Wheel');
         if (tooltipState === TooltipVisibleState.cursor) {
-          console.log('one per customer'); // eslint-disable-line no-console
+          // console.log('one per customer'); // eslint-disable-line no-console
           return;
         }
         if (cooldownWheelRef.current.hot) {
@@ -576,10 +643,13 @@ export const HeatMapInner = ({
 
   const { values_meta, values_num, xs, ys } = data;
   const { ncols, nrows } = plotMeta;
-  console.log(plotMeta); // eslint-disable-line no-console
   const { plotWindow } = plotState;
   const heatMapWidth = (innerWidth * 2) / 3;
-  console.log('event render HeatMapInner', { table, tooltipState }); // eslint-disable-line no-console
+  // eslint-disable-next-line no-console
+  console.log('event render HeatMapInner', {
+    table,
+    tooltipState,
+  });
   const config = { displaylogo: false, scrollZoom: true };
   const otherProps = { ...heatMapTooltipProps, visible: tooltipState };
   return (
@@ -672,7 +742,7 @@ export const HeatMapInner = ({
           const props = {
             clientX: evt.event.clientX + 10,
             clientY: evt.event.clientY + 10,
-            meta: `(${rix}, ${cix}) ${values_meta[rix][cix]}`,
+            meta: values_meta[rix][cix],
             x: pointData.x as string,
             y: pointData.y as string,
             z: 0,
@@ -707,7 +777,7 @@ export const HeatMapInner = ({
               clientX: cX,
               clientY: cY,
               // hover: true,
-              meta: `(${rix}, ${cix}) ${values_meta[rix][cix]}`,
+              meta: values_meta[rix][cix],
               // visible: TooltipVisibleState.cursor,
               x: pointData.x as string,
               y: pointData.y as string,
