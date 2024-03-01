@@ -635,7 +635,7 @@ export const collectionsApi = baseApi.injectEndpoints({
       query: ({ selection_id, workspace_id, object_name, ws_type, ...body }) =>
         collectionsService({
           method: 'POST',
-          url: encode`/selections/${selection_id}/toSet/${workspace_id}/obj/${object_name}/type/${ws_type}`,
+          url: encode`/selections/${selection_id}/toset/${workspace_id}/obj/${object_name}/type/${ws_type}`,
           body: body,
           headers: {
             authorization: `Bearer ${store.getState().auth.token}`,
