@@ -71,6 +71,10 @@ $border: 1px solid use-color("base-lighter");
   justify-content: space-between;
 }
 
+.search-box {
+  width: 400px;
+}
+
 .detail_content {
   background-color: use-color("base-lightest");
   display: flex;

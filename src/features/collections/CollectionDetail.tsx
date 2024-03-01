@@ -12,7 +12,7 @@ import { snakeCaseToHumanReadable } from '../../common/utils/stringUtils';
 import { MATCHER_LABELS, MatchModal } from './MatchModal';
 import { SelectionModal } from './SelectionModal';
 import { ExportModal } from './ExportModal';
-import { Button } from '../../common/components';
+import { Button, Input } from '../../common/components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faArrowRightArrowLeft,
@@ -134,32 +134,32 @@ export const CollectionDetail = () => {
           {!showOverview && (
             <>
               <div className={styles['collection_toolbar']}>
-                <Button
-                  ref={filterMenuRef}
-                  icon={<FontAwesomeIcon icon={faFilter} />}
-                  onClick={handleToggleFilters}
-                  disabled={filtersAvailable}
-                >
-                  Filters
-                </Button>
-                {/* <FilterMenu
-              collectionId={collection.id}
-              anchorEl={filterMenuRef.current}
-              open={filterOpen}
-              onClose={() => setFiltersOpen(false)}
-            /> */}
-                <Button
-                  icon={<FontAwesomeIcon icon={faArrowRightArrowLeft} />}
-                  variant="contained"
-                  onClick={() => {
-                    setModalView('match');
-                    modal?.show();
-                  }}
-                >
-                  {match
-                    ? `Matching by ${MATCHER_LABELS.get(match.matcher_id)}`
-                    : `Match my Data`}
-                </Button>
+                <Stack direction="row" spacing={1}>
+                  <Input
+                    className={styles['search-box']}
+                    placeholder="Search genomes by classification"
+                  />
+                  <Button
+                    ref={filterMenuRef}
+                    icon={<FontAwesomeIcon icon={faFilter} />}
+                    onClick={handleToggleFilters}
+                    disabled={filtersAvailable}
+                  >
+                    Filters
+                  </Button>
+                  <Button
+                    icon={<FontAwesomeIcon icon={faArrowRightArrowLeft} />}
+                    variant="contained"
+                    onClick={() => {
+                      setModalView('match');
+                      modal?.show();
+                    }}
+                  >
+                    {match
+                      ? `Matching by ${MATCHER_LABELS.get(match.matcher_id)}`
+                      : `Match my Data`}
+                  </Button>
+                </Stack>
                 <Button
                   icon={<FontAwesomeIcon icon={faCircleCheck} />}
                   variant={selection.length > 0 ? 'contained' : 'outlined'}
