@@ -114,8 +114,6 @@ export const CollectionDetail = () => {
     // When the currDataProduct/showOverview changes, close the filter menu
     return () => setFiltersOpen(false);
   }, [currDataProduct, showOverview]);
-  const filtersAvailable =
-    currDataProduct && currDataProduct.product === 'genome_attribs';
 
   if (!collection) return <Loader type="spinner" />;
   return (
@@ -143,7 +141,6 @@ export const CollectionDetail = () => {
                     ref={filterMenuRef}
                     icon={<FontAwesomeIcon icon={faFilter} />}
                     onClick={handleToggleFilters}
-                    disabled={filtersAvailable}
                   >
                     Filters
                   </Button>
