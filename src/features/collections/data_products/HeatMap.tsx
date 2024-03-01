@@ -350,15 +350,25 @@ const plotlyFromTable = ({
   const values_meta = rows.map(
     (row) => {
       const cells = row.getAllCells();
-      const hmcs: HeatMapCell[] = cells.map((cell) => ({
-        cell_id: cell.id,
-        col_id: cell.column.id,
-        val: cell.getValue() as number | boolean,
-      }));
+      const hmcs: HeatMapCell[] = cells.map((cell) => {
+        const col_id = cell.column.id;
+        const cell_id = cell.row.original.cells.filter(
+          (cell_) => cell_.col_id === col_id
+        )[0].cell_id;
+        return {
+          cell_id,
+          col_id,
+          val: cell.getValue() as number | boolean,
+        };
+      });
       return cells.map((cell, cix) => {
+        const col_id = cell.column.id;
+        const cell_id = cell.row.original.cells.filter(
+          (cell_) => cell_.col_id === col_id
+        )[0].cell_id;
         const hmc: HeatMapCell = {
-          cell_id: cell.id,
-          col_id: cell.column.id,
+          cell_id,
+          col_id,
           val: cell.getValue() as number | boolean,
         };
         const hmr: HeatMapRow = {
