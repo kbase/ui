@@ -25,8 +25,8 @@ interface MatchState {
 }
 
 interface FilterRange {
-  startInclusive?: boolean;
-  endInclusive?: boolean;
+  startExclusive?: boolean;
+  endExclusive?: boolean;
   range: [number, number];
 }
 
@@ -410,11 +410,11 @@ export const useFilters = (collectionId: string | undefined) => {
           fEnd = new Date(filterState.value.range[1]).toISOString();
         }
         filterValue = [
-          filterState.value.startInclusive ? '[' : '',
+          filterState.value.startExclusive ? '(' : '[',
           fStart,
           ',',
           fEnd,
-          filterState.value.endInclusive ? ']' : '',
+          filterState.value.endExclusive ? ')' : ']',
         ].join('');
       }
       if (filterValue === undefined) {
