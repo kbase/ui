@@ -28,6 +28,8 @@ import {
   useSelectionId,
 } from '../collectionsSlice';
 import classes from './../Collections.module.scss';
+import { AttribHistogram } from './AttribHistogram';
+import { AttribScatter } from './AttribScatter';
 import { Paper, Stack } from '@mui/material';
 import { formatNumber } from '../../../common/utils/stringUtils';
 
@@ -248,11 +250,34 @@ export const GenomeAttribs: FC<{
           <Pagination table={table} maxPage={10000 / pagination.pageSize} />
         </div>
       </Paper>
+      <Stack direction={'row'} spacing={1}>
+        <Paper variant="outlined">
+          <AttribScatter
+            collection_id={collection_id}
+            xColumn={
+              collection_id === 'GTDB' ? 'checkm_completeness' : 'Completeness'
+            }
+            yColumn={
+              collection_id === 'GTDB'
+                ? 'checkm_contamination'
+                : 'Contamination'
+            }
+          />
+        </Paper>
+        <Paper variant="outlined">
+          <AttribHistogram
+            collection_id={collection_id}
+            column={
+              collection_id === 'GTDB' ? 'checkm_completeness' : 'Completeness'
+            }
+          />
+        </Paper>
+      </Stack>
     </Stack>
   );
 };
 
-const useTableViewParams = (
+export const useTableViewParams = (
   collection_id: string | undefined,
   view: { filtered: boolean; selected: boolean; matched: boolean }
 ) => {
@@ -264,7 +289,7 @@ const useTableViewParams = (
   return useMemo(
     () => ({
       collection_id: collection_id ?? '',
-      ...(view.filtered ? { filters: filterParams } : {}),
+      ...(view.filtered ? { ...filterParams } : {}),
       ...(view.selected ? { selection_id: selectionId } : {}),
       ...(view.matched ? { match_id: matchId } : {}),
     }),
