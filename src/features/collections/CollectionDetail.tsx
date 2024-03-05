@@ -32,7 +32,7 @@ import {
   useFilters,
   useMatchId,
 } from './collectionsSlice';
-import { useAppDispatch } from '../../common/hooks';
+import { useAppDispatch, useDebounce } from '../../common/hooks';
 import { Slider, MenuItem, TextField, Stack, Divider } from '@mui/material';
 import { useForm } from 'react-hook-form';
 import { CollectionOverview } from './CollectionOverview';
@@ -43,6 +43,9 @@ export const detailDataProductPath = ':id/:data_product';
 
 type ModalView = 'match' | 'select' | 'export';
 export type SetModalView = React.Dispatch<React.SetStateAction<ModalView>>;
+
+const filterInputDebounceRate = 600;
+const filterSliderDebounceRate = 100;
 
 export const CollectionDetail = () => {
   const params = useParams();
@@ -443,13 +446,12 @@ const DateRangeFilterControls = ({
   const { error: minError } = getFieldState('min', formState);
   const { error: maxError } = getFieldState('max', formState);
   const dispatch = useAppDispatch();
-  const sliderTimeout = useRef<number>();
   const [sliderPosition, setSliderPosition] = useState<[string, string]>([
     values.min,
     values.max,
   ]);
 
-  const setFilterRange = () => {
+  const setFilterRange = useDebounce(() => {
     const validState = getValues();
     const shouldClear =
       parseDate(validState.min) === filter.min_value &&
@@ -472,10 +474,18 @@ const DateRangeFilterControls = ({
         ])
       );
     }
-  };
+  });
 
   const submit = handleSubmit(() => {
-    setFilterRange();
+    setFilterRange(0)();
+  });
+
+  const debounceSubmit = handleSubmit(() => {
+    setFilterRange(filterInputDebounceRate)();
+  });
+
+  const debounceSubmitSliders = handleSubmit(() => {
+    setFilterRange(filterSliderDebounceRate)();
   });
 
   useEffect(() => {
@@ -500,8 +510,9 @@ const DateRangeFilterControls = ({
           {...register('min', {
             valueAsDate: true,
             validate: (value) => parseDate(value) < parseDate(values.max),
+            onBlur: submit,
+            onChange: debounceSubmit,
           })}
-          onBlur={submit}
           error={Boolean(minError)}
           size="small"
           variant="outlined"
@@ -510,8 +521,9 @@ const DateRangeFilterControls = ({
           {...register('max', {
             valueAsDate: true,
             validate: (value) => parseDate(value) > parseDate(values.min),
+            onBlur: submit,
+            onChange: debounceSubmit,
           })}
-          onBlur={submit}
           error={Boolean(maxError)}
           size="small"
           variant="outlined"
@@ -539,9 +551,7 @@ const DateRangeFilterControls = ({
             formatDate(range[1]),
           ];
           setSliderPosition(sliderRange);
-          const thisTimeout = (sliderTimeout.current = window.setTimeout(() => {
-            if (sliderTimeout.current === thisTimeout) submit();
-          }, 100));
+          debounceSubmitSliders();
         }}
         valueLabelDisplay="auto"
       />
@@ -577,13 +587,12 @@ const RangeFilterControls = ({
   const { error: minError } = getFieldState('min', formState);
   const { error: maxError } = getFieldState('max', formState);
   const dispatch = useAppDispatch();
-  const sliderTimeout = useRef<number>();
   const [sliderPosition, setSliderPosition] = useState<[number, number]>([
     values.min,
     values.max,
   ]);
 
-  const setFilterRange = () => {
+  const setFilterRange = useDebounce(() => {
     const validState = getValues();
     const shouldClear =
       validState.min === filter.min_value &&
@@ -606,10 +615,18 @@ const RangeFilterControls = ({
         ])
       );
     }
-  };
+  });
 
   const submit = handleSubmit(() => {
-    setFilterRange();
+    setFilterRange(0)();
+  });
+
+  const debounceSubmit = handleSubmit(() => {
+    setFilterRange(filterInputDebounceRate)();
+  });
+
+  const debounceSubmitSliders = handleSubmit(() => {
+    setFilterRange(filterSliderDebounceRate)();
   });
 
   useEffect(() => {
@@ -636,8 +653,9 @@ const RangeFilterControls = ({
             validate: (value) =>
               value < values.max &&
               (filter.type === 'float' || Number.isInteger(value)),
+            onChange: debounceSubmit,
+            onBlur: submit,
           })}
-          onBlur={submit}
           error={Boolean(minError)}
           size="small"
           variant="outlined"
@@ -648,8 +666,9 @@ const RangeFilterControls = ({
             validate: (value) =>
               value > values.min &&
               (filter.type === 'float' || Number.isInteger(value)),
+            onChange: debounceSubmit,
+            onBlur: submit,
           })}
-          onBlur={submit}
           error={Boolean(maxError)}
           size="small"
           variant="outlined"
@@ -676,9 +695,7 @@ const RangeFilterControls = ({
           setValue('min', range[0]);
           setValue('max', range[1]);
           setSliderPosition([range[0], range[1]]);
-          const thisTimeout = (sliderTimeout.current = window.setTimeout(() => {
-            if (sliderTimeout.current === thisTimeout) submit();
-          }, 100));
+          debounceSubmitSliders();
         }}
         valueLabelDisplay="auto"
       />
@@ -697,20 +714,21 @@ const TextFilterControls = ({
   const dispatch = useAppDispatch();
   const [text, setText] = useState<string>(filter.value ?? '');
 
+  const debounceSubmit = useDebounce((value: string) => {
+    dispatch(setFilter([collectionId, context, column, { ...filter, value }]));
+  });
+
   return (
     <TextField
       key={column}
       value={text}
-      onChange={(e) => setText(e.currentTarget.value)}
+      onChange={(e) => {
+        setText(e.currentTarget.value);
+        debounceSubmit(filterInputDebounceRate)(e.currentTarget.value);
+      }}
       onBlur={(e) => {
-        dispatch(
-          setFilter([
-            collectionId,
-            context,
-            column,
-            { ...filter, value: e.currentTarget.value },
-          ])
-        );
+        setText(e.currentTarget.value);
+        debounceSubmit(0)(e.currentTarget.value);
       }}
       helperText={
         {
