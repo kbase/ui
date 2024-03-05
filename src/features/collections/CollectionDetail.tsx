@@ -251,8 +251,9 @@ const FilterChips = ({ collectionId }: { collectionId: string }) => {
       {filterEntries.map(([column, filter]) => {
         return (
           <FilterChip
-            name={column}
             filter={filter}
+            key={`${column}-${filter.type}`}
+            name={column}
             onDelete={() => clearFilterState(column)}
           />
         );
@@ -277,7 +278,7 @@ const FilterMenu = (props: {
         {filterEntries.flatMap(([column, filter]) => {
           const hasVal = Boolean(filter.value);
           const children = [
-            <Divider key={column + '__label'} textAlign="left">
+            <Divider key={`${column}__label`} textAlign="left">
               <FilterChip
                 name={column}
                 filter={filter}
@@ -287,7 +288,7 @@ const FilterMenu = (props: {
                 onDelete={hasVal ? () => clearFilterState(column) : undefined}
               />
             </Divider>,
-            <MenuItem>
+            <MenuItem key={`${column}__label`}>
               <FilterControls
                 column={column}
                 filter={filter}
