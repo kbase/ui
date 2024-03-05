@@ -890,19 +890,16 @@ export const collectionsApi = baseApi.injectEndpoints({
   }),
 });
 
+export type CollectionsReturnType =
+  typeof collectionsApi['endpoints'][keyof typeof collectionsApi['endpoints']]['initiate'];
+
 export const parseCollectionsError = (
   /**result.error object from any collections query.
    * The type definition is unfortunately a bit visually hairy.
    * But all the typedef is doing is extracting the error type.*/
   error:
     | Extract<
-        Awaited<
-          ReturnType<
-            ReturnType<
-              typeof collectionsApi['endpoints'][keyof typeof collectionsApi['endpoints']]['initiate']
-            >
-          >
-        >,
+        Awaited<ReturnType<ReturnType<CollectionsReturnType>>>,
         { error: unknown }
       >['error']
     | undefined
