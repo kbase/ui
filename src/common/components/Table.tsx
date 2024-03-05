@@ -108,13 +108,15 @@ export const Table = <Datum,>({
 };
 
 export const Pagination = <Datum,>({
-  table,
   maxPage,
+  table,
+  className = '',
   /**Odd, >=9*/
   totalButtons = 9,
 }: {
-  table: TableType<Datum>;
   maxPage: number;
+  table: TableType<Datum>;
+  className?: string;
   totalButtons?: number;
 }) => {
   if (totalButtons < 9 || totalButtons % 2 !== 1)
@@ -136,6 +138,8 @@ export const Pagination = <Datum,>({
     buttons.push(p);
   }
 
+  const extraClasses = className ? `${className} ` : '';
+  const classNamePagination = `${extraClasses}${classes.pagination}`;
   // add skip-to-start
   if (buttons[0] !== start) {
     buttons[0] = start;
@@ -147,9 +151,10 @@ export const Pagination = <Datum,>({
   }
   buttons.unshift(
     <Button
-      key="prev"
+      className={classNamePagination}
       color="base"
       disabled={!table.getCanPreviousPage()}
+      key="prev"
       onClick={() => table.previousPage()}
     >
       <FAIcon icon={faArrowLeftLong} />
@@ -160,16 +165,22 @@ export const Pagination = <Datum,>({
   if (buttons[buttons.length - 1] !== end) {
     buttons[buttons.length - 1] = end;
     buttons[buttons.length - 2] = (
-      <Button key="etc-end" color="base" disabled>
+      <Button
+        key="etc-end"
+        className={classNamePagination}
+        color="base"
+        disabled
+      >
         {'...'}
       </Button>
     );
   }
   buttons.push(
     <Button
-      key="next"
+      className={classNamePagination}
       color="base"
       disabled={!table.getCanNextPage() || curr >= maxPage}
+      key="next"
       onClick={() => table.nextPage()}
     >
       <FAIcon icon={faArrowRightLong} />
@@ -178,10 +189,11 @@ export const Pagination = <Datum,>({
   const buttonList = buttons.map((button, ix) =>
     typeof button === 'number' ? (
       <Button
-        key={button}
+        className={classNamePagination}
         color="base"
         disabled={button === curr || button > maxPage}
         hidden={button > maxPage} // Hides the max page when we can't display it
+        key={button}
         onClick={() => table.setPageIndex(button)}
       >
         {button + 1}
@@ -191,7 +203,7 @@ export const Pagination = <Datum,>({
     )
   );
   return (
-    <div className={classes['pagination']} data-testid="pagination">
+    <div className={classNamePagination} data-testid="pagination">
       {buttonList}
     </div>
   );
