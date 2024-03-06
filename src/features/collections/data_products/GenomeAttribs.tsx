@@ -30,8 +30,9 @@ import {
 import classes from './../Collections.module.scss';
 import { AttribHistogram } from './AttribHistogram';
 import { AttribScatter } from './AttribScatter';
-import { Paper, Stack } from '@mui/material';
+import { Paper, Stack, Tooltip, Typography } from '@mui/material';
 import { formatNumber } from '../../../common/utils/stringUtils';
+import { Link } from 'react-router-dom';
 
 export const GenomeAttribs: FC<{
   collection_id: string;
@@ -159,24 +160,55 @@ export const GenomeAttribs: FC<{
     data?.fields.findIndex((f) => f.name === '__match__') ?? -1;
   const idIndex = data?.fields.findIndex((f) => f.name === 'kbase_id') ?? -1;
 
+  const columns = useTableColumns({
+    fields: data?.fields.map((field) => ({
+      id: field.name,
+      displayName: columnMeta?.[field.name]?.display_name ?? field.name,
+      options: {
+        textAlign: ['float', 'int'].includes(
+          columnMeta?.[field.name]?.type ?? ''
+        )
+          ? 'right'
+          : 'left',
+      },
+      render:
+        field.name === 'kbase_id'
+          ? (cell) => {
+              const upa = (cell.getValue() as string).replace(/_/g, '/');
+              return (
+                <Link
+                  to={`https://ci-europa.kbase.us/legacy/dataview/${upa}`}
+                  target="_blank"
+                >
+                  {upa}
+                </Link>
+              );
+            }
+          : field.name === 'classification'
+          ? (cell) => {
+              return (
+                <Tooltip
+                  title={`${cell.getValue()}`}
+                  placement="top"
+                  arrow
+                  enterDelay={800}
+                >
+                  <Typography sx={{ direction: 'rtl' }}>
+                    {cell.getValue() as string}
+                  </Typography>
+                </Tooltip>
+              );
+            }
+          : undefined,
+    })),
+    order: ['kbase_display_name', 'kbase_id', 'genome_size'],
+    exclude: ['__match__', '__sel__'],
+  });
+
   const table = useReactTable<unknown[]>({
     data: data?.table || [],
     getRowId: (row) => String(row[idIndex]),
-    columns: useTableColumns({
-      fields: data?.fields.map((field) => ({
-        id: field.name,
-        displayName: columnMeta?.[field.name]?.display_name ?? field.name,
-        options: {
-          textAlign: ['float', 'int'].includes(
-            columnMeta?.[field.name]?.type ?? ''
-          )
-            ? 'right'
-            : 'left',
-        },
-      })),
-      order: ['kbase_display_name', 'genome_size'],
-      exclude: ['__match__', '__sel__'],
-    }),
+    columns: columns,
 
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),

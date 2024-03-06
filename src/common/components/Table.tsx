@@ -1,4 +1,4 @@
-import { MouseEventHandler, useMemo } from 'react';
+import { useMemo } from 'react';
 import {
   createColumnHelper,
   ColumnDef,
@@ -6,6 +6,7 @@ import {
   HeaderGroup,
   Table as TableType,
   Row,
+  CellContext,
 } from '@tanstack/react-table';
 import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -21,6 +22,7 @@ import { Button } from './Button';
 import { CheckBox } from './CheckBox';
 import { Loader } from './Loader';
 import { HeatMapRow } from '../api/collectionsApi';
+import { Tooltip } from '@mui/material';
 
 type ColumnOptions = {
   textAlign?: 'left' | 'right' | 'center';
@@ -46,10 +48,6 @@ export const Table = <Datum,>({
     'footer',
     table.getFooterGroups()
   );
-
-  const setCellTitle: MouseEventHandler<HTMLTableCellElement> = (e) => {
-    e.currentTarget.setAttribute('title', e.currentTarget.innerText);
-  };
 
   return (
     <div
@@ -77,14 +75,25 @@ export const Table = <Datum,>({
                 {row.getVisibleCells().map((cell) => (
                   <td
                     key={cell.id}
-                    onMouseOver={setCellTitle} // TODO: Change this to a tooltip
                     style={{
                       textAlign: (
                         cell.column.columnDef.meta as Partial<ColumnOptions>
                       )?.textAlign,
                     }}
                   >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    <Tooltip
+                      title={`${cell.getValue()}`}
+                      placement="top"
+                      arrow
+                      enterDelay={800}
+                    >
+                      <span>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </span>
+                    </Tooltip>
                   </td>
                 ))}
               </tr>
@@ -313,6 +322,7 @@ export const useTableColumns = ({
     displayName?: string;
     id: string;
     options?: ColumnOptions;
+    render?: (cellData: CellContext<unknown[], unknown>) => unknown;
   }[];
   order?: string[];
   exclude?: string[];
@@ -322,7 +332,7 @@ export const useTableColumns = ({
       rowData: RowData
     ) => RowData[number];
   } = {};
-  fields.forEach(({ id }, index) => {
+  fields.forEach(({ id, render }, index) => {
     accessors[id] = (rowData) => rowData[index];
   });
 
@@ -350,6 +360,15 @@ export const useTableColumns = ({
           header: field.displayName ?? field.id.replace(/_/g, ' ').trim(),
           id: field.id,
           meta: field.options,
+          cell:
+            field.render ||
+            ((cell: CellContext<unknown[], unknown>) => {
+              const val = cell.getValue();
+              if (typeof val === 'string') return cell.getValue();
+              if (typeof val === 'number')
+                return (cell.getValue() as number).toLocaleString();
+              return cell.getValue();
+            }),
         })
       );
     },
