@@ -10,6 +10,10 @@ $border: 1px solid use-color("base-lighter");
 
 .collections-main .inner-container {
   margin-left: 0;
+}
+
+.collections-list {
+  overflow: scroll;
   padding: 1rem;
 }
 
@@ -44,7 +48,10 @@ $border: 1px solid use-color("base-lighter");
 
 .collection_detail,
 .data_product_detail {
+  background-color: use-color("white");
+  border: $border;
   flex: 1;
+  min-width: 600px;
   overflow-y: auto;
   padding: 10px;
   width: 100%;
@@ -53,6 +60,8 @@ $border: 1px solid use-color("base-lighter");
 .detail_header {
   background-color: use-color("white");
   border-bottom: 1px solid use-color("silver");
+  height: 105px;
+  min-width: 600px;
   padding: 1rem;
 }
 

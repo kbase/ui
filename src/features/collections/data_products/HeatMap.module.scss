@@ -2,79 +2,35 @@
 
 $label-len: 20em;
 
-.layout {
-  display: flex;
-  flex-flow: row nowrap;
-  font-size: 10px;
-  width: 100%;
+:global(div.dragcover) {
+  pointer-events: none;
 }
 
-.layout-left {
-  display: flex;
-  flex-flow: column nowrap;
-  flex-shrink: 0;
-  overflow: hidden;
-  width: $label-len;
-}
-
-.layout-right {
-  display: flex;
-  flex-flow: column nowrap;
-  flex-grow: 1;
-  overflow: hidden;
+:root {
+  --dynamic: #00f;
 }
 
 .blank-origin {
   flex-grow: 0;
   flex-shrink: 0;
-  height: $label-len;
+  height: 1em;
   width: 100%;
 }
 
-.trait-names {
-  display: flex;
-  flex-flow: row nowrap;
-  flex-shrink: 0;
-  height: $label-len;
-  justify-content: space-around;
-  overflow: hidden;
+.heatmap-wrapper {
+  position: relative;
   width: 100%;
 
-  .label {
-    writing-mode: sideways-lr;
-  }
-
-  .label-wrapper {
-    flex-direction: column-reverse;
-  }
-
-  .label-indicator {
-    height: 1em;
+  .heatmap {
+    height: calc(100vh - 250px - 1rem);
     width: 100%;
   }
-}
 
-.row-names {
-  display: flex;
-  flex-flow: column nowrap;
-  height: 100%;
-  justify-content: space-around;
-  overflow: hidden;
-  width: $label-len;
-
-  .label {
-    flex-basis: 0;
-    line-height: 0px;
-    text-align: right;
-  }
-
-  .label-wrapper {
-    flex-direction: row-reverse;
-  }
-
-  .label-indicator {
-    height: 100%;
-    width: 1em;
+  .heatmap-hovercell {
+    border: solid use-color("info") 2px;
+    box-sizing: border-box;
+    pointer-events: none;
+    position: absolute;
   }
 }
 
@@ -103,20 +59,91 @@ $label-len: 20em;
     padding: 0.4em;
     white-space: nowrap;
   }
-}
 
-.heatmap-wrapper {
-  position: relative;
-  width: 100%;
-
-  .heatmap {
-    width: 100%;
+  .label.row {
+    background-color: var(--dynamic);
+    border: 1px solid #000;
   }
 
-  .heatmap-hovercell {
-    border: solid use-color("info") 2px;
-    box-sizing: border-box;
-    pointer-events: none;
-    position: absolute;
+}
+
+.layout {
+  display: flex;
+  flex-flow: row nowrap;
+  font-size: 10px;
+  height: calc(100vh - 250px - 1rem);
+  width: 100%;
+}
+
+.layout-left {
+  display: flex;
+  flex-flow: column nowrap;
+  flex-shrink: 0;
+  overflow: hidden;
+  width: $label-len;
+}
+
+.layout-right {
+  display: flex;
+  flex-flow: column nowrap;
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+.tooltip {
+  background: use-color("info-darker");
+  border-radius: 4px;
+  color: use-color("white");
+  font-size: 0.667rem;
+  font-weight: bold;
+  padding: 4px 8px;
+  position: fixed;
+  z-index: 1;
+}
+
+.trait-names {
+  display: flex;
+  flex-flow: row nowrap;
+  flex-shrink: 0;
+  justify-content: space-around;
+  overflow: hidden;
+  width: 100%;
+
+  .label.column {
+    background-color: #f0f;
+    border: 1px solid #000;
+    transform: rotate(90deg);
+  }
+
+  .label-wrapper {
+    flex-direction: column-reverse;
+  }
+
+  .label-indicator {
+    height: 1em;
+    width: 100%;
+  }
+}
+
+.row-names {
+  display: flex;
+  flex-flow: column nowrap;
+  height: 100%;
+  justify-content: space-around;
+  overflow: hidden;
+
+  .label {
+    flex-basis: 0;
+    line-height: 0px;
+    text-align: right;
+  }
+
+  .label-wrapper {
+    flex-direction: row-reverse;
+  }
+
+  .label-indicator {
+    height: 100%;
+    width: 1em;
   }
 }
