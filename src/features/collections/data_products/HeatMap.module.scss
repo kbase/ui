@@ -2,6 +2,10 @@
 
 $label-len: 20em;
 
+/*
+Plotly adds an body > div.dragcover element which breaks HeatMap tooltips.
+See the mouseout handler in the <HeatMap /> component.
+*/
 :global(div.dragcover) {
   pointer-events: none;
 }
