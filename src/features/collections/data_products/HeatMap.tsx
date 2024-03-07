@@ -3,7 +3,7 @@ import { FC, ReactNode, useEffect, useRef, useState } from 'react';
 import Plot from 'react-plotly.js';
 import type Layout from 'react-plotly.js';
 import { HeatMapCell, HeatMapRow } from '../../../common/api/collectionsApi';
-import { Button } from '../../../common/components';
+import { Button, Loader } from '../../../common/components';
 import { noOp } from '../../common';
 import classes from './HeatMap.module.scss';
 
@@ -67,6 +67,7 @@ type TooltipDataSetter = React.Dispatch<React.SetStateAction<TooltipData>>;
 /* tooltip interfaces */
 interface TooltipProps extends TooltipData {
   disabled: boolean;
+  loading?: boolean;
   onClick?: () => void;
 }
 
@@ -242,6 +243,7 @@ export const Tooltip: FC<TooltipProps> = ({
   x,
   y,
   z,
+  loading = false,
   onClick = noOp,
 }) => {
   /* derived values */
@@ -250,10 +252,12 @@ export const Tooltip: FC<TooltipProps> = ({
     pointerEvents: disabled ? 'none' : 'auto',
     top: clientY,
   };
+  const showSpinner = loading || !meta;
   /* Tooltip component */
   return (
     <>
       <div className={classes.tooltip} style={style}>
+        {showSpinner ? <Loader type="spinner" loading={true} /> : <></>}
         {meta}
         <br />
         <Button disabled={disabled} onClick={onClick}>
@@ -296,7 +300,7 @@ export const TooltipCursor: FC<TooltipCursorProps> = ({
   ) {
     tooltipCursorDataSetterRef.current = setter;
   }
-  /* */
+  /* If no data has been added then show nothing. */
   if (!updatedState) {
     return <></>;
   }
@@ -321,7 +325,9 @@ const CellLabelMeta: FC<{
   getCellLabelCallback: () => ReactNode | Promise<ReactNode>;
 }> = ({ getCellLabelCallback }) => {
   /* hooks */
-  const [label, setLabel] = useState<ReactNode | Promise<ReactNode>>(<></>);
+  const [label, setLabel] = useState<ReactNode | Promise<ReactNode>>(
+    <Loader type="spinner" loading={true} />
+  );
   useEffect(() => {
     let ignore = false;
     const callback = async () => {
