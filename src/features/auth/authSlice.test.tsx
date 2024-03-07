@@ -12,7 +12,6 @@ let testStore = createTestStore({});
 describe('authSlice', () => {
   beforeEach(() => {
     testStore = createTestStore({});
-    window.gtag = jest.fn();
   });
 
   test('useTryAuthFromToken sets auth token and username', async () => {

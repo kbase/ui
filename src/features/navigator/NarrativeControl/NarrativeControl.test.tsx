@@ -14,10 +14,6 @@ import {
 } from './NarrativeControl.stories';
 
 describe('The <NarrativeControl /> component...', () => {
-  beforeAll(() => {
-    window.gtag = jest.fn();
-  });
-
   test('renders.', () => {
     const { container } = render(
       <NarrativeControlTemplate narrativeDoc={testNarrativeDoc} />

@@ -48,7 +48,6 @@ consoleWarn.mockImplementation(noOp);
 describe('The <NarrativeView /> component...', () => {
   beforeAll(() => {
     enableFetchMocks();
-    window.gtag = jest.fn();
   });
 
   afterAll(() => {

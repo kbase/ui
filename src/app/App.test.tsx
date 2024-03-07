@@ -12,10 +12,6 @@ const consoleInfo = jest.spyOn(console, 'info');
 consoleInfo.mockImplementation(() => {});
 
 describe('The main UI for Europa...', () => {
-  beforeAll(() => {
-    window.gtag = jest.fn();
-  });
-
   afterAll(() => {
     consoleInfo.mockRestore();
   });

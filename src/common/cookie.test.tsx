@@ -12,7 +12,6 @@ describe('Cookie Utils', () => {
     getCookieSpy.mockImplementation(() => {
       return mockCookieString;
     });
-    window.gtag = jest.fn();
   });
 
   beforeEach(() => {

@@ -6,10 +6,6 @@ import { createTestStore } from '../../app/store';
 import SortSelect from './SortSelect';
 
 describe('The <SortSelect /> component...', () => {
-  beforeAll(() => {
-    window.gtag = jest.fn();
-  });
-
   test('renders', () => {
     const { container } = render(
       <Provider store={createTestStore()}>
