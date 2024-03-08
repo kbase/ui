@@ -7,14 +7,6 @@ import { Button, Loader } from '../../../common/components';
 import { noOp } from '../../common';
 import classes from './HeatMap.module.scss';
 
-/* globals */
-declare global {
-  interface Window {
-    resizeListenerRegistered: boolean | undefined;
-    resizeHandler: () => void;
-  }
-}
-
 /* enums, interfaces, types */
 enum TooltipRole {
   cursor = 'cursor',
@@ -199,6 +191,11 @@ const relayoutHandlerFactory =
   }) =>
   (evt: Readonly<Plotly.PlotRelayoutEvent>) => {
     const { ncols, nrows } = heatMapMetaData;
+    /* Fixes plotly range bug.
+      When panning and zooming, it is possible to drag the plot outside the
+      window, sometimes when this happens the endpoints are not defined
+      properly. The following checks resolve this issue.
+    */
     const xMaxFinite = getNumber({
       value: Number(evt['xaxis.range[1]']),
       valueIfNotFinite: ncols,
@@ -367,14 +364,14 @@ export const PlotlyWrapper = ({
   /* hooks */
   const [innerWidth, setInnerWidth] = useState(window.innerWidth);
   /* globals */
-  window.resizeHandler = () => {
+  window.__kbase_resizeHandler = () => {
     setInnerWidth(window.innerWidth);
   };
-  if (!window.resizeListenerRegistered) {
+  if (!window.__kbase_resizeListenerRegistered) {
     window.addEventListener('resize', () => {
-      return window.resizeHandler();
+      return window.__kbase_resizeHandler();
     });
-    window.resizeListenerRegistered = true;
+    window.__kbase_resizeListenerRegistered = true;
   }
   /* derived values */
   const { values_meta, values_num, xs, ys } = data;
