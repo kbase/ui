@@ -1,0 +1,19 @@
+version: '3.8'
+networks:
+    kbase-dev:
+        name: kbase-dev
+services:
+    node-tool:
+        working_dir: /app
+        build:
+          context: ../..
+          dockerfile: tools/node/Dockerfile
+        container_name: node-builder
+        dns: 8.8.8.8
+        networks:
+          - kbase-dev
+        environment:
+          # Add any environment variables supported by scripts
+          - WATCH
+        volumes:
+            - $DIR:/app
