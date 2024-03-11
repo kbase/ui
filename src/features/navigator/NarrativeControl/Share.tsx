@@ -329,7 +329,7 @@ export const Share: FC<{
   const usernameShares = useAppSelector(shares);
   const usernameAuthed = useAppSelector(authUsername);
   const wsId = narrativeDoc.access_group;
-  const wsPermsQuery = getwsPermissions.useQuery({ wsId });
+  const wsPermsQuery = getwsPermissions.useQuery({ wsIds: [wsId] });
   const shareSelectId = useId();
   const [toggleTrigger] = setwsGlobalPermissions.useMutation();
   useEffect(() => {
