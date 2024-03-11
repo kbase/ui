@@ -97,7 +97,7 @@ export const ExportModal = ({ collectionId }: { collectionId: string }) => {
     triggerExport({
       selection_id: selectionId,
       workspace_id: narrative.access_group.toString(),
-      ws_type: 'badtype', //type.value.toString(),
+      ws_type: type.value.toString(),
       object_name: name,
       description: desc,
       match_id: matchId,
