@@ -1,0 +1,20 @@
+version: '3.6'
+networks:
+  kbase-dev:
+    name: kbase-dev
+services:
+  europa-ui:
+    build:
+      context: .
+      dockerfile: ../tools/node/Dockerfile
+    image: kbase/europa-ui:dev
+    container_name: europa-ui
+    hostname: europa-ui
+    dns: 8.8.8.8
+    volumes:
+      # Update this to wherever you want VS Code to mount the folder of your project
+      - ..:/workspace:cached
+    networks:
+      - kbase-dev
+    command: /bin/sh -c "while sleep 1000; do :; done"
+ 
