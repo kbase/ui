@@ -9,11 +9,12 @@ import { useBackoffPolling } from '../../../common/hooks';
 import { snakeCaseToHumanReadable } from '../../../common/utils/stringUtils';
 import { useMatchId, useSelectionId } from '../collectionsSlice';
 import classes from './TaxaCount.module.scss';
-import { Paper, Stack } from '@mui/material';
+import { Paper, PaperProps, Stack } from '@mui/material';
 
 export const TaxaCount: FC<{
   collection_id: string;
-}> = ({ collection_id }) => {
+  paperProps?: PaperProps;
+}> = ({ collection_id, paperProps }) => {
   // Ranks
   const ranksParams = useMemo(() => ({ collection_id }), [collection_id]);
   const ranksQuery = listTaxaCountRanks.useQuery(ranksParams);
@@ -24,7 +25,7 @@ export const TaxaCount: FC<{
         value: rank,
         label: snakeCaseToHumanReadable(rank),
       })) || [];
-    setRank(opts?.[0]);
+    setRank(opts?.[opts.length - 1]);
     return opts;
   }, [ranksQuery.data]);
 
@@ -58,7 +59,7 @@ export const TaxaCount: FC<{
   if (ranksQuery.isLoading || countsQuery.isLoading) return <Loader />;
 
   return (
-    <Paper variant="outlined">
+    <Paper variant="outlined" {...paperProps}>
       <Stack spacing={1}>
         <div className={classes['chart-toolbar']}>
           <Select

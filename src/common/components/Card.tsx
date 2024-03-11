@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { useNavigate } from 'react-router-dom';
 import classes from './Card.module.scss';
+import { Stack } from '@mui/material';
 
 /**
  * Component for rendering a data summary as a card.
@@ -23,13 +24,30 @@ export const Card: FC<{
   subtitle?: string | ReactElement;
   /** Image for the card, any react element, but preferably and `<img>` */
   image?: ReactElement;
+  /** Configurable sizes for the image next to the title */
+  imageSize?: 'sm' | 'md' | 'lg';
+  /** Optional content section to display under the titles */
+  content?: string | ReactElement;
+  /** Optional footer section to display at the bottom of the card */
+  footer?: string | ReactElement;
   /** When true, the card will appear selected */
   selected?: boolean;
   /** An internal link, when defined clicking the Card will navigate to the link */
   linkTo?: string;
   onClick?: (e: React.MouseEvent) => void;
   className?: string;
-}> = ({ title, subtitle, image, onClick, linkTo, selected, className }) => {
+}> = ({
+  title,
+  subtitle,
+  image,
+  imageSize = 'sm',
+  content,
+  footer,
+  onClick,
+  linkTo,
+  selected,
+  className,
+}) => {
   const navigate = useNavigate();
   const rootDiv = useRef<HTMLDivElement>(null);
 
@@ -52,6 +70,9 @@ export const Card: FC<{
 
   if (className) classNames += `${className}`;
 
+  const imageClasses =
+    classes['image-wrapper'] + ' ' + classes[`image-${imageSize}`];
+
   const clickableProps: HTMLAttributes<HTMLDivElement> | undefined =
     clickableRole
       ? {
@@ -68,20 +89,30 @@ export const Card: FC<{
       : undefined;
 
   return (
-    <div
+    <Stack
       className={classNames}
       ref={rootDiv}
+      spacing={2}
       {...clickableProps}
       data-testid="card"
     >
-      {image ? <div className={classes['image-wrapper']}>{image}</div> : null}
-      <div className={classes['body']}>
-        <div>{title}</div>
-        {subtitle ? (
-          <div className={classes['subtitle']}>{subtitle}</div>
-        ) : null}
-      </div>
-    </div>
+      <Stack
+        className={classes['header']}
+        direction="row"
+        spacing={2}
+        alignItems="center"
+      >
+        {image ? <div className={imageClasses}>{image}</div> : null}
+        <div className={classes['body']}>
+          <div>{title}</div>
+          {subtitle ? (
+            <div className={classes['subtitle']}>{subtitle}</div>
+          ) : null}
+        </div>
+      </Stack>
+      {content && <div className={classes['content']}>{content}</div>}
+      {footer && <div className={classes['footer']}>{footer}</div>}
+    </Stack>
   );
 };
 

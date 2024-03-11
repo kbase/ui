@@ -72,8 +72,15 @@ export const CollectionOverview: FC<{
     <Grid container spacing={2}>
       <Grid item xs={3}>
         <Card sx={{ height: '100%' }}>
+          <CardHeader
+            title={
+              <Typography variant="h6" fontWeight="bold">
+                Details
+              </Typography>
+            }
+            sx={{ paddingBottom: 0 }}
+          />
           <CardContent>
-            <h3>Details</h3>
             <Typography
               sx={{ fontSize: 12 }}
               color="text.secondary"
@@ -102,12 +109,21 @@ export const CollectionOverview: FC<{
       </Grid>
       <Grid item xs={9}>
         <Card sx={{ height: '100%' }}>
+          <CardHeader
+            title={
+              <Typography variant="h6" fontWeight="bold">
+                Description
+              </Typography>
+            }
+            sx={{ paddingBottom: 0 }}
+          />
           <CardContent>
-            <h3>Description</h3>
             <div>{collection.desc}</div>
             {collection.attribution && (
               <>
-                <h4>Attribution</h4>
+                <Typography fontWeight="bold" sx={{ marginTop: 2 }}>
+                  Attribution
+                </Typography>
                 <div
                   dangerouslySetInnerHTML={{
                     __html: marked(purify.sanitize(collection.attribution)),
@@ -120,19 +136,19 @@ export const CollectionOverview: FC<{
       </Grid>
       <Grid item xs={6}>
         <Card sx={{ height: '100%' }}>
+          <CardHeader
+            title={
+              <Typography variant="h6" fontWeight="bold">
+                In this Collection
+              </Typography>
+            }
+            sx={{ paddingBottom: 0 }}
+          />
           <CardContent>
-            <h3>In this Collection</h3>
             <Stack direction={'row'} spacing={2}>
               {hasGenomes ? (
                 <Card>
                   <CardContent>
-                    <Typography
-                      sx={{ fontSize: 12 }}
-                      color="text.secondary"
-                      gutterBottom
-                    >
-                      Primary Data
-                    </Typography>
                     <Button
                       variant="text"
                       href={`/collections/${collection_id}/genome_attribs`}
@@ -158,13 +174,6 @@ export const CollectionOverview: FC<{
               {hasSamples ? (
                 <Card>
                   <CardContent>
-                    <Typography
-                      sx={{ fontSize: 12 }}
-                      color="text.secondary"
-                      gutterBottom
-                    >
-                      Secondary Data
-                    </Typography>
                     <Button
                       variant="text"
                       href={`/collections/${collection_id}/samples`}
@@ -192,8 +201,15 @@ export const CollectionOverview: FC<{
       </Grid>
       <Grid item xs={6}>
         <Card sx={{ height: '100%' }}>
+          <CardHeader
+            title={
+              <Typography variant="h6" fontWeight="bold">
+                Actions
+              </Typography>
+            }
+            sx={{ paddingBottom: 0 }}
+          />
           <CardContent>
-            <h3>Actions</h3>
             <Stack direction={'row'} spacing={2}>
               <Card
                 onClick={() => {
@@ -246,11 +262,24 @@ export const CollectionOverview: FC<{
       </Grid>
       {taxa_count ? (
         <Grid item xs={6}>
-          <Card sx={{ height: '100%' }}>
+          <Card sx={{ height: '100%', overflow: 'visible' }}>
             <CardHeader
-              title={<Typography variant="h6">Taxa Counts</Typography>}
+              title={
+                <Typography variant="h6" fontWeight="bold">
+                  Taxa Counts
+                </Typography>
+              }
+              sx={{ paddingBottom: 0 }}
             />
-            <TaxaCount collection_id={collection_id}></TaxaCount>
+            <CardContent>
+              <TaxaCount
+                collection_id={collection_id}
+                paperProps={{
+                  variant: 'elevation',
+                  elevation: 0,
+                }}
+              />
+            </CardContent>
           </Card>
         </Grid>
       ) : (
@@ -265,6 +294,10 @@ export const CollectionOverview: FC<{
             <SampleAttribs
               mapOnly={true}
               collection_id={collection_id}
+              paperProps={{
+                variant: 'elevation',
+                elevation: 0,
+              }}
             ></SampleAttribs>
           </Card>
         </Grid>

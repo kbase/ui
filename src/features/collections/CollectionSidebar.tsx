@@ -8,11 +8,18 @@ import { Button } from '../../common/components/Button';
 import { useNavigate } from 'react-router-dom';
 import classes from './Collections.module.scss';
 
+interface DataProductMeta {
+  product: DataProduct['product'];
+  displayName: string;
+  section: string;
+}
+
 /**
  * List of data products with associated metadata and listed
  * in the order they should appear in the sidebar.
+ * This could eventually be part of the DataProduct that is returned by the database.
  */
-const dataProductsMeta = [
+export const dataProductsMeta: DataProductMeta[] = [
   {
     product: 'genome_attribs',
     displayName: 'Genome Attributes',

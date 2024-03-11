@@ -11,6 +11,8 @@ import { Modal } from '../layout/Modal';
 import { useAppParam } from '../params/hooks';
 import { useSelectionId } from './collectionsSlice';
 import { useParamsForNarrativeDropdown } from './hooks';
+import { Stack } from '@mui/material';
+import classes from './Collections.module.scss';
 
 export const ExportModal = ({ collectionId }: { collectionId: string }) => {
   const selectionId = useSelectionId(collectionId);
@@ -67,32 +69,42 @@ export const ExportModal = ({ collectionId }: { collectionId: string }) => {
     <Modal
       title={'Save To Narrative'}
       body={
-        <>
-          <Select
-            placeholder="Select export type..."
-            disabled={typesResult.isFetching}
-            onChange={(opts) => setTypeSel(opts[0])}
-            options={(typesResult.data?.types ?? []).map((type) => ({
-              value: type,
-              label: type,
-            }))}
-          />
-          <Select
-            placeholder="Select narrative..."
-            onSearch={setNarrativeSearch}
-            onChange={(opts) => setNarrativeSel(opts[0])}
-            options={narrativeOptions}
-          />
-          <Input
-            value={name}
-            onChange={(e) => setName(e.currentTarget.value)}
-            label={<>Object Name</>}
-          />
-          <Input
-            value={desc}
-            onChange={(e) => setDesc(e.currentTarget.value)}
-            label={<>Object description (optional)</>}
-          />
+        <Stack className={classes['export-modal']} spacing={2}>
+          <Stack spacing={1}>
+            <label>Export type</label>
+            <Select
+              placeholder="Select export type..."
+              disabled={typesResult.isFetching}
+              onChange={(opts) => setTypeSel(opts[0])}
+              options={(typesResult.data?.types ?? []).map((type) => ({
+                value: type,
+                label: type,
+              }))}
+            />
+          </Stack>
+          <Stack spacing={1}>
+            <label>Narrative to export to</label>
+            <Select
+              placeholder="Select narrative..."
+              onSearch={setNarrativeSearch}
+              onChange={(opts) => setNarrativeSel(opts[0])}
+              options={narrativeOptions}
+            />
+          </Stack>
+          <Stack spacing={1}>
+            <label>Data object name</label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.currentTarget.value)}
+            />
+          </Stack>
+          <Stack spacing={1}>
+            <label>Data object descrition (optional)</label>
+            <Input
+              value={desc}
+              onChange={(e) => setDesc(e.currentTarget.value)}
+            />
+          </Stack>
           {exportError ? <p className="">{exportError}</p> : <></>}
           {exportResult.data ? (
             <p className="">
@@ -119,7 +131,7 @@ export const ExportModal = ({ collectionId }: { collectionId: string }) => {
           ) : (
             <></>
           )}
-        </>
+        </Stack>
       }
       footer={
         <Button

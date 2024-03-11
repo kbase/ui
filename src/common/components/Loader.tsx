@@ -1,5 +1,9 @@
-import { faSpinner } from '@fortawesome/free-solid-svg-icons';
+import {
+  faExclamationCircle,
+  faSpinner,
+} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Box, Chip, Stack } from '@mui/material';
 
 /**
  * Component for rendering loading states
@@ -13,8 +17,29 @@ export const Loader = (props: {
   children?: React.ReactNode | React.ReactNode[];
   /** Overrides the loader style to render a custom loader*/
   render?: React.ReactNode | React.ReactNode[];
+  size?: [width: string, height: string];
+  error?: string;
 }) => {
-  if (props.loading ?? true) {
+  const isLoading = props.loading ?? true;
+  if (props.size && (isLoading || props.error)) {
+    const {
+      size: [width, height],
+      ...forwardProps
+    } = props;
+    return (
+      <Box sx={{ width, height, position: 'relative' }}>
+        <Stack
+          direction="row"
+          justifyContent="center"
+          alignItems="center"
+          sx={{ width: 1, height: '100%' }}
+        >
+          <Loader {...forwardProps} />
+        </Stack>
+      </Box>
+    );
+  }
+  if (isLoading) {
     if (props.render !== undefined) return <>{props.render}</>;
     switch (props.type) {
       case 'text':
@@ -23,6 +48,16 @@ export const Loader = (props: {
       default:
         return <FontAwesomeIcon icon={faSpinner} spin />;
     }
+  }
+  if (props.error) {
+    return (
+      <Chip
+        icon={<FontAwesomeIcon icon={faExclamationCircle} />}
+        variant="outlined"
+        color="error"
+        label={props.error}
+      />
+    );
   } else {
     return <>{props.children}</>;
   }

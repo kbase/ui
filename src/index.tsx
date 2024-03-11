@@ -6,6 +6,8 @@ import './index.scss';
 import App from './app/App';
 import { store } from './app/store';
 import reportWebVitals from './reportWebVitals';
+import { ThemeProvider } from '@mui/material';
+import { theme } from './theme';
 
 const container = document.getElementById('root');
 
@@ -14,9 +16,11 @@ const root = container && createRoot(container);
 const Root: React.FC = () => (
   <React.StrictMode>
     <Provider store={store}>
-      <Router basename={process.env.PUBLIC_URL}>
-        <App />
-      </Router>
+      <ThemeProvider theme={theme}>
+        <Router basename={process.env.PUBLIC_URL}>
+          <App />
+        </Router>
+      </ThemeProvider>
     </Provider>
   </React.StrictMode>
 );
