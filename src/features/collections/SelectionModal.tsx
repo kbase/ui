@@ -1,7 +1,6 @@
 import { useAppDispatch, useAppSelector } from '../../common/hooks';
 import { setLocalSelection, useCurrentSelection } from './collectionsSlice';
 import { Button } from '../../common/components';
-import { useEffect } from 'react';
 import { Modal } from '../layout/Modal';
 
 export const SelectionModal = ({
@@ -17,11 +16,6 @@ export const SelectionModal = ({
   const verifiedSelectionId = useAppSelector(
     (state) => state.collections.clns[collectionId]?.selection._verifiedId
   );
-
-  // Reset selection when collectionId changes
-  useEffect(() => {
-    dispatch(setLocalSelection([collectionId, []]));
-  }, [collectionId, dispatch]);
 
   return (
     <Modal

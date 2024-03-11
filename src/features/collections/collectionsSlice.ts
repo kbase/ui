@@ -1,10 +1,12 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
+import { toast } from 'react-hot-toast';
 import {
   ColumnMeta,
   createSelection,
   getSelection,
 } from '../../common/api/collectionsApi';
+import { parseError } from '../../common/api/utils/parseError';
 import {
   useAppDispatch,
   useAppSelector,
@@ -23,8 +25,8 @@ interface MatchState {
 }
 
 interface FilterRange {
-  startInclusive?: boolean;
-  endInclusive?: boolean;
+  startExclusive?: boolean;
+  endExclusive?: boolean;
   range: [number, number];
 }
 
@@ -255,80 +257,89 @@ export const useCurrentSelection = (collectionId: string | undefined) =>
       : []
   ) ?? [];
 
-export const useSelectionId = (
+export const useSelectionId = (collectionId: string) => {
+  return useAppSelector(
+    (state) => state.collections.clns[collectionId]?.selection._verifiedId
+  );
+};
+
+export const useGenerateSelectionId = (
   collectionId: string,
   { skip = false }: { skip?: boolean } = {}
 ) => {
   const dispatch = useAppDispatch();
-
-  const current = useCurrentSelection(collectionId);
-  const _verifiedId = useAppSelector(
-    (state) => state.collections.clns[collectionId]?.selection._verifiedId
-  );
+  const currentSelection = useCurrentSelection(collectionId);
+  const selectionRef = useRef(currentSelection);
+  selectionRef.current = currentSelection;
+  const serializedSelection = JSON.stringify(currentSelection);
   const _pendingId = useAppSelector(
     (state) => state.collections.clns[collectionId]?.selection._pendingId
   );
-
-  const [createSelectionMutation, createSelectionResult] =
-    createSelection.useMutation();
-
-  const shouldSkipCreation = skip || _verifiedId || current.length < 1;
-
-  useEffect(() => {
-    if (!shouldSkipCreation) {
-      createSelectionMutation({
-        collection_id: collectionId,
-        selection_ids: current,
-      });
-    }
-  }, [collectionId, createSelectionMutation, current, shouldSkipCreation]);
-
-  useEffect(() => {
-    if (!skip && createSelectionResult.data) {
-      dispatch(
-        setPendingSelectionId([
-          collectionId,
-          createSelectionResult.data.selection_id,
-        ])
-      );
-    }
-  }, [collectionId, createSelectionResult, dispatch, skip]);
-
-  const shouldSkipValidation = skip || !_pendingId;
-
-  const getMatchQuery = getSelection.useQuery(
-    { selection_id: _pendingId || '' },
-    {
-      skip: shouldSkipValidation,
-    }
+  const _verifiedId = useAppSelector(
+    (state) => state.collections.clns[collectionId]?.selection._verifiedId
   );
-  useBackoffPolling(getMatchQuery, (result) => {
+
+  const [createSelectionMutation] = createSelection.useMutation();
+
+  useEffect(() => {
+    //When selection changes ask for a new ID
+    if (selectionRef.current.length < 1 || skip) {
+      return;
+    }
+    const mutation = createSelectionMutation({
+      collection_id: collectionId,
+      selection_ids: selectionRef.current,
+    });
+    mutation.then((value) => {
+      const { data } = { data: undefined, ...value };
+      if (data) {
+        dispatch(setPendingSelectionId([collectionId, data.selection_id]));
+      }
+    });
+    return () => {
+      if (
+        selectionChanged(selectionRef.current, JSON.parse(serializedSelection))
+      ) {
+        mutation.abort();
+      }
+    };
+  }, [
+    collectionId,
+    createSelectionMutation,
+    serializedSelection,
+    dispatch,
+    skip,
+  ]);
+
+  const validateSelectionParams = useMemo(
+    () => ({ selection_id: _pendingId || '' }),
+    [_pendingId]
+  );
+  const validateSelection = getSelection.useQuery(validateSelectionParams, {
+    skip: !_pendingId || !!_verifiedId,
+  });
+
+  useBackoffPolling(validateSelection, (result) => {
+    if (result.error) toast(parseError(result.error).message);
     if (result.data?.state === 'processing') return true;
     return false;
   });
 
-  const pollDone =
-    getMatchQuery.error || getMatchQuery.data?.state !== 'processing';
-
   useEffect(() => {
-    if (pollDone) {
-      dispatch(setPendingSelectionId([collectionId, undefined]));
-      if (getMatchQuery.data && getMatchQuery.data.state === 'complete') {
-        if (!selectionChanged(current, getMatchQuery.data.selection_ids)) {
-          dispatch(
-            setSelectionId([collectionId, getMatchQuery.data.selection_id])
-          );
-        }
+    if (validateSelection.data?.state === 'complete') {
+      if (
+        !selectionChanged(
+          selectionRef.current,
+          validateSelection.data.selection_ids
+        ) &&
+        _verifiedId !== validateSelection.data.selection_id
+      ) {
+        dispatch(
+          setSelectionId([collectionId, validateSelection.data.selection_id])
+        );
       }
     }
-  }, [
-    collectionId,
-    current,
-    dispatch,
-    getMatchQuery.data,
-    getMatchQuery.error,
-    pollDone,
-  ]);
+  }, [_verifiedId, collectionId, dispatch, validateSelection.data]);
 
   return _verifiedId;
 };
@@ -399,11 +410,11 @@ export const useFilters = (collectionId: string | undefined) => {
           fEnd = new Date(filterState.value.range[1]).toISOString();
         }
         filterValue = [
-          filterState.value.startInclusive ? '[' : '',
+          filterState.value.startExclusive ? '(' : '[',
           fStart,
           ',',
           fEnd,
-          filterState.value.endInclusive ? ']' : '',
+          filterState.value.endExclusive ? ')' : ']',
         ].join('');
       }
       if (filterValue === undefined) {

@@ -2,17 +2,29 @@
 
 $border: 1px solid use-color("base-lighter");
 
-.container {
+.collections-main {
   background-color: use-color("base-lightest");
-  display: flex;
-  flex: 1;
-  height: 100%;
-  overflow-y: auto;
-  width: 100%;
+  border-left: 1px solid use-color("silver");
+  min-height: 100%;
 }
 
-.collections-list {
+.collections-main .inner-container {
+  margin-left: 0;
   padding: 1rem;
+}
+
+.collections-subtitle {
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin: 0;
+  padding: 2rem 1rem 1rem;
+}
+
+.collection-card-title {
+  color: use-color("primary");
+  font-size: 1.15rem;
+  font-weight: bold;
+  margin: 0;
 }
 
 .collection_wrapper {
@@ -57,6 +69,19 @@ $border: 1px solid use-color("base-lighter");
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+}
+
+.search-box {
+  width: 400px;
+}
+
+.detail_content {
+  background-color: use-color("base-lightest");
+  display: flex;
+  flex: 1;
+  height: 100%;
+  overflow-y: auto;
+  width: 100%;
 }
 
 .dp_columns {
@@ -105,4 +130,21 @@ $border: 1px solid use-color("base-lighter");
 
 .pagination-wrapper {
   padding: 1rem;
+}
+
+.match-modal,
+.export-modal {
+  width: 700px;
+}
+
+@media (max-width: 900px) {
+  .match-modal,
+  .export-modal {
+    width: 80vw;
+  }
+}
+
+
+.match-number-input {
+  display: inline-block;
 }

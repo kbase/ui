@@ -24,17 +24,18 @@ import { useAppDispatch } from '../../../common/hooks';
 import {
   setLocalSelection,
   useCurrentSelection,
+  useGenerateSelectionId,
   useMatchId,
-  useSelectionId,
 } from '../collectionsSlice';
 import classes from './../Collections.module.scss';
-import { Grid, Paper, Stack } from '@mui/material';
+import { Grid, Paper, PaperProps, Stack } from '@mui/material';
 import { formatNumber } from '../../../common/utils/stringUtils';
 
 export const SampleAttribs: FC<{
   collection_id: string;
   mapOnly?: boolean;
-}> = ({ collection_id, mapOnly }) => {
+  paperProps?: PaperProps;
+}> = ({ collection_id, mapOnly, paperProps }) => {
   // Context
   const dispatch = useAppDispatch();
 
@@ -44,7 +45,9 @@ export const SampleAttribs: FC<{
   const [selectMark, setSelectMark] = useState(true);
   // we don't use the server marks to show the selected state,
   // so no need to fetch the selection unless we are filtering the table
-  const selectionId = useSelectionId(collection_id, { skip: selectMark });
+  const selectionId = useGenerateSelectionId(collection_id, {
+    skip: selectMark,
+  });
 
   const [sorting, setSorting] = useState<SortingState>([]);
   const requestSort = useMemo(() => {
@@ -184,7 +187,7 @@ export const SampleAttribs: FC<{
     pageCount: Math.ceil((countData?.count || 0) / pagination.pageSize),
     onPaginationChange: setPagination,
 
-    enableRowSelection: true,
+    enableRowSelection: false,
     onRowSelectionChange: setSelectionFromSamples,
 
     state: {
@@ -235,7 +238,7 @@ export const SampleAttribs: FC<{
   }, [L, leafletMap, markers]);
 
   const map = (
-    <Paper variant="outlined">
+    <Paper variant="outlined" {...paperProps}>
       <LeafletMap height={'800px'} map={leaflet} />
     </Paper>
   );
@@ -244,7 +247,7 @@ export const SampleAttribs: FC<{
   return (
     <Grid container columnSpacing={1}>
       <Grid item md={6}>
-        <Paper variant="outlined">
+        <Paper variant="outlined" {...paperProps}>
           <Stack
             className={classes['table-toolbar']}
             direction="row"

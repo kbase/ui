@@ -241,6 +241,15 @@ interface CollectionsResults {
     data?: null;
     count?: number;
   };
+  getAttribHistogram: {
+    bins: number[];
+    values: number[];
+  };
+  getAttribScatter: {
+    xcolumn: string;
+    ycolumn: string;
+    data: { x: number; y: number }[];
+  };
   getGenomeAttribsMeta: {
     count: number;
     columns: Array<ColumnMeta>;
@@ -376,6 +385,23 @@ interface CollectionsParams {
   getGenomeAttribsMeta: {
     collection_id: Collection['id'];
     load_ver_override?: Collection['ver_tag'];
+  };
+  getAttribHistogram: {
+    collection_id: Collection['id'];
+    column: string;
+    match_id?: Match['match_id'];
+    selection_id?: Selection['selection_id'];
+    load_ver_override?: Collection['ver_tag'];
+    filters?: Record<string, string>;
+  };
+  getAttribScatter: {
+    collection_id: Collection['id'];
+    xcolumn: string;
+    ycolumn: string;
+    match_id?: Match['match_id'];
+    selection_id?: Selection['selection_id'];
+    load_ver_override?: Collection['ver_tag'];
+    filters?: Record<string, string>;
   };
   getMicroTrait: {
     collection_id: Collection['id'];
@@ -609,7 +635,7 @@ export const collectionsApi = baseApi.injectEndpoints({
       query: ({ selection_id, workspace_id, object_name, ws_type, ...body }) =>
         collectionsService({
           method: 'POST',
-          url: encode`/selections/${selection_id}/toSet/${workspace_id}/obj/${object_name}/type/${ws_type}`,
+          url: encode`/selections/${selection_id}/toset/${workspace_id}/obj/${object_name}/type/${ws_type}`,
           body: body,
           headers: {
             authorization: `Bearer ${store.getState().auth.token}`,
@@ -677,6 +703,36 @@ export const collectionsApi = baseApi.injectEndpoints({
           method: 'GET',
           url: encode`/collections/${collection_id}/data_products/genome_attribs/meta`,
           params: { collection_id, ...options },
+          headers: {
+            authorization: `Bearer ${store.getState().auth.token}`,
+          },
+        }),
+    }),
+
+    getAttribHistogram: builder.query<
+      CollectionsResults['getAttribHistogram'],
+      CollectionsParams['getAttribHistogram']
+    >({
+      query: ({ collection_id, ...options }) =>
+        collectionsService({
+          method: 'GET',
+          url: encode`/collections/${collection_id}/data_products/genome_attribs/hist`,
+          params: options,
+          headers: {
+            authorization: `Bearer ${store.getState().auth.token}`,
+          },
+        }),
+    }),
+
+    getAttribScatter: builder.query<
+      CollectionsResults['getAttribScatter'],
+      CollectionsParams['getAttribScatter']
+    >({
+      query: ({ collection_id, ...options }) =>
+        collectionsService({
+          method: 'GET',
+          url: encode`/collections/${collection_id}/data_products/genome_attribs/scatter`,
+          params: options,
           headers: {
             authorization: `Bearer ${store.getState().auth.token}`,
           },
@@ -876,6 +932,8 @@ export const {
   listTaxaCountRanks,
   getTaxaCountRank,
   getGenomeAttribs,
+  getAttribHistogram,
+  getAttribScatter,
   getGenomeAttribsMeta,
   getMicroTrait,
   getMicroTraitMeta,

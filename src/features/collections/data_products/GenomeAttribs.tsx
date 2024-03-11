@@ -23,12 +23,16 @@ import {
   setLocalSelection,
   useCurrentSelection,
   useFilters,
+  useGenerateSelectionId,
   useMatchId,
   useSelectionId,
 } from '../collectionsSlice';
 import classes from './../Collections.module.scss';
-import { Paper, Stack } from '@mui/material';
+import { AttribHistogram } from './AttribHistogram';
+import { AttribScatter } from './AttribScatter';
+import { Paper, Stack, Tooltip, Typography } from '@mui/material';
 import { formatNumber } from '../../../common/utils/stringUtils';
+import { Link } from 'react-router-dom';
 
 export const GenomeAttribs: FC<{
   collection_id: string;
@@ -95,10 +99,11 @@ export const GenomeAttribs: FC<{
     () => ({
       match_mark: Boolean(matchId && !filterMatch),
       selection_mark: Boolean(selectionId && !filterSelection),
+      match_id: matchId ?? undefined,
+      sel_id: selectionId ?? undefined,
     }),
     [filterMatch, filterSelection, matchId, selectionId]
   );
-
   // Requests
   const attribParams = useMemo(
     () => ({
@@ -155,24 +160,55 @@ export const GenomeAttribs: FC<{
     data?.fields.findIndex((f) => f.name === '__match__') ?? -1;
   const idIndex = data?.fields.findIndex((f) => f.name === 'kbase_id') ?? -1;
 
+  const columns = useTableColumns({
+    fields: data?.fields.map((field) => ({
+      id: field.name,
+      displayName: columnMeta?.[field.name]?.display_name ?? field.name,
+      options: {
+        textAlign: ['float', 'int'].includes(
+          columnMeta?.[field.name]?.type ?? ''
+        )
+          ? 'right'
+          : 'left',
+      },
+      render:
+        field.name === 'kbase_id'
+          ? (cell) => {
+              const upa = (cell.getValue() as string).replace(/_/g, '/');
+              return (
+                <Link
+                  to={`https://ci-europa.kbase.us/legacy/dataview/${upa}`}
+                  target="_blank"
+                >
+                  {upa}
+                </Link>
+              );
+            }
+          : field.name === 'classification'
+          ? (cell) => {
+              return (
+                <Tooltip
+                  title={`${cell.getValue()}`}
+                  placement="top"
+                  arrow
+                  enterDelay={800}
+                >
+                  <Typography sx={{ direction: 'rtl' }}>
+                    {cell.getValue() as string}
+                  </Typography>
+                </Tooltip>
+              );
+            }
+          : undefined,
+    })),
+    order: ['kbase_display_name', 'kbase_id', 'genome_size'],
+    exclude: ['__match__', '__sel__'],
+  });
+
   const table = useReactTable<unknown[]>({
     data: data?.table || [],
     getRowId: (row) => String(row[idIndex]),
-    columns: useTableColumns({
-      fields: data?.fields.map((field) => ({
-        id: field.name,
-        displayName: columnMeta?.[field.name]?.display_name ?? field.name,
-        options: {
-          textAlign: ['float', 'int'].includes(
-            columnMeta?.[field.name]?.type ?? ''
-          )
-            ? 'right'
-            : 'left',
-        },
-      })),
-      order: ['kbase_display_name', 'genome_size'],
-      exclude: ['__match__', '__sel__'],
-    }),
+    columns: columns,
 
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -246,23 +282,46 @@ export const GenomeAttribs: FC<{
           <Pagination table={table} maxPage={10000 / pagination.pageSize} />
         </div>
       </Paper>
+      <Stack direction={'row'} spacing={1}>
+        <Paper variant="outlined">
+          <AttribScatter
+            collection_id={collection_id}
+            xColumn={
+              collection_id === 'GTDB' ? 'checkm_completeness' : 'Completeness'
+            }
+            yColumn={
+              collection_id === 'GTDB'
+                ? 'checkm_contamination'
+                : 'Contamination'
+            }
+          />
+        </Paper>
+        <Paper variant="outlined">
+          <AttribHistogram
+            collection_id={collection_id}
+            column={
+              collection_id === 'GTDB' ? 'checkm_completeness' : 'Completeness'
+            }
+          />
+        </Paper>
+      </Stack>
     </Stack>
   );
 };
 
-const useTableViewParams = (
+export const useTableViewParams = (
   collection_id: string | undefined,
   view: { filtered: boolean; selected: boolean; matched: boolean }
 ) => {
   const { filterParams } = useFilters(collection_id);
   const matchId = useMatchId(collection_id);
-  const selectionId = useSelectionId(collection_id || '', {
+  const selectionId = useGenerateSelectionId(collection_id || '', {
     skip: !collection_id,
   });
   return useMemo(
     () => ({
       collection_id: collection_id ?? '',
-      ...(view.filtered ? { filters: filterParams } : {}),
+      ...(view.filtered ? { ...filterParams } : {}),
       ...(view.selected ? { selection_id: selectionId } : {}),
       ...(view.matched ? { match_id: matchId } : {}),
     }),

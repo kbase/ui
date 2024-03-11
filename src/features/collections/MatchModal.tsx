@@ -24,6 +24,9 @@ import { Modal } from '../layout/Modal';
 import { Loader } from '../../common/components/Loader';
 import { useForm } from 'react-hook-form';
 import { NarrativeDoc } from '../../common/types/NarrativeDoc';
+import { Alert, Stack } from '@mui/material';
+import { faCheckCircle, faWarning } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 export const MatchModal = ({ collectionId }: { collectionId: string }) => {
   const matchId = useMatchId(collectionId);
@@ -92,34 +95,54 @@ const ViewMatch = ({ collectionId }: { collectionId: string }) => {
       }
       body={
         <Loader type="spinner" loading={matchQuery.isLoading}>
-          <ul>
-            <li>Match ID: {match?.match_id}</li>
-            <li>Match Status: {match?.state}</li>
-            <li>
-              Match Params:{' '}
-              <ul>
-                {Object.entries(match?.user_parameters || {}).map(
-                  ([key, value]) => (
-                    <li>
-                      {key}: {JSON.stringify(value)}
-                    </li>
-                  )
-                )}
-              </ul>
-            </li>
-            {match?.state === 'complete' ? (
-              <li>
-                You input a total of <strong>{upaCount}</strong> data objects,
-                matching{' '}
-                <strong className={classes['match-highlight']}>
-                  {matchCount}
-                </strong>{' '}
-                collection items.
-              </li>
-            ) : (
-              <></>
+          <Stack sx={{ marginTop: 4, marginBottom: 4, textAlign: 'center' }}>
+            {match?.state === 'processing' && (
+              <>
+                <Loader type="spinner" loading={true} />
+                <p>Processing match</p>
+              </>
             )}
-          </ul>
+            {match?.state === 'complete' && (
+              <>
+                <FontAwesomeIcon icon={faCheckCircle} size="2x" />
+                {matchCount === 1 && <p>Found {matchCount} match</p>}
+                {matchCount !== 1 && <p>Found {matchCount} matches</p>}
+              </>
+            )}
+            {match?.state === 'failed' && (
+              <>
+                <FontAwesomeIcon icon={faWarning} size="2x" />
+                <p>There was a problem processing your match</p>
+              </>
+            )}
+          </Stack>
+          {match?.state !== 'processing' && (
+            <ul>
+              {match?.state === 'complete' ? (
+                <li>
+                  You input a total of <strong>{upaCount}</strong> data{' '}
+                  {upaCount === 1 ? 'object' : 'objects'}, matching{' '}
+                  <strong>{matchCount}</strong> collection{' '}
+                  {matchCount === 1 ? 'item' : 'items'}.
+                </li>
+              ) : (
+                <></>
+              )}
+              <li>
+                Match Params:{' '}
+                <ul>
+                  {Object.entries(match?.user_parameters || {}).map(
+                    ([key, value]) => (
+                      <li>
+                        {key}: {JSON.stringify(value)}
+                      </li>
+                    )
+                  )}
+                </ul>
+              </li>
+              <li>Match ID: {match?.match_id}</li>
+            </ul>
+          )}
         </Loader>
       }
       footer={
@@ -154,8 +177,26 @@ export const MATCHER_LABELS = new Map<string, string>(
     minhash_homology: 'MinHash Homology',
   })
 );
+
+export const MATCHER_HELP_TEXT = new Map<string, string>(
+  Object.entries({
+    gtdb_lineage: `
+      This matcher works by comparing the GTDB lineage from your input objects to the classification field for data in this collection.
+      Input objects must have been run through the GTDB app in order to have lineage values.
+    `,
+    minhash_homology: `
+      This matcher works by running a mash homology search using the input objects as queries against the collection data.
+      More info: https://doi.org/10.1186/s13059-016-0997-x
+    `,
+  })
+);
+
 const getMatcherLabel = (matcherId: string) =>
   MATCHER_LABELS.get(matcherId.toLowerCase()) ??
+  `Unknown Matcher "${matcherId}"`;
+
+const getMatcherHelpText = (matcherId: string) =>
+  MATCHER_HELP_TEXT.get(matcherId.toLowerCase()) ??
   `Unknown Matcher "${matcherId}"`;
 
 const CreateMatch = ({ collectionId }: { collectionId: string }) => {
@@ -229,6 +270,12 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
   const [userParams, setUserParams] = useState<
     Record<string, unknown> | undefined
   >(undefined);
+
+  useEffect(() => {
+    //When the matcher changes, reset user params
+    return () => setUserParams({});
+  }, [matcherSelected?.id]);
+
   const validate = useMemo(
     () => new Ajv({ strict: false }).compile(matchUserParams ?? {}),
     [matchUserParams]
@@ -274,63 +321,76 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
         'Match data objects in this collection to objects in a narrative.'
       }
       body={
-        <div className={classes['matching']}>
-          <label htmlFor={idMatcher}>Matcher</label>
-          <Select
-            id={idMatcher}
-            disabled={!matchersQuery.data}
-            loading={matchersQuery.isFetching}
-            options={matcherOptions}
-            {...register('matcher')}
-            onChange={(opt) => {
-              setValue(
-                'matcher',
-                matchers?.find((d) => d.id === opt[0]?.value)
-              );
-              setValue('dataObjs', []);
-            }}
-          />
-          {matchUserParams ? (
-            <MatcherUserParams
-              key={matcherSelected.id}
-              params={matchUserParams}
-              value={userParams}
-              onChange={setUserParams}
-              errors={(!validate(userParams) && validate.errors) || []}
+        <Stack className={classes['match-modal']} spacing={2}>
+          <Stack spacing={2}>
+            <Stack spacing={1}>
+              <label htmlFor={idMatcher}>Select matching strategy</label>
+              <Select
+                id={idMatcher}
+                disabled={!matchersQuery.data}
+                loading={matchersQuery.isFetching}
+                options={matcherOptions}
+                {...register('matcher')}
+                onChange={(opt) => {
+                  setValue(
+                    'matcher',
+                    matchers?.find((d) => d.id === opt[0]?.value)
+                  );
+                  setValue('dataObjs', []);
+                }}
+              />
+              {matcherSelected && (
+                <Alert severity="info">
+                  {getMatcherHelpText(matcherSelected.id)}
+                </Alert>
+              )}
+            </Stack>
+            {matchUserParams ? (
+              <MatcherUserParams
+                key={matcherSelected.id}
+                params={matchUserParams}
+                value={userParams}
+                onChange={setUserParams}
+                errors={(!validate(userParams) && validate.errors) || []}
+              />
+            ) : (
+              <></>
+            )}
+          </Stack>
+          <Stack spacing={1}>
+            <label htmlFor={idNarrative}>Narrative</label>
+            <Select
+              id={idNarrative}
+              disabled={!matcherSelected}
+              options={narrativeOptions}
+              loading={narrativeQuery.isFetching}
+              onSearch={setNarrativeSearch}
+              onChange={(opt) => {
+                setValue(
+                  'narrative',
+                  narrativeOptions.find((d) => d.value === opt[0]?.value)?.data
+                );
+                setValue('dataObjs', []);
+              }}
             />
-          ) : (
-            <></>
-          )}
-          <label htmlFor={idNarrative}>Narrative</label>
-          <Select
-            id={idNarrative}
-            disabled={!matcherSelected}
-            options={narrativeOptions}
-            loading={narrativeQuery.isFetching}
-            onSearch={setNarrativeSearch}
-            onChange={(opt) => {
-              setValue(
-                'narrative',
-                narrativeOptions.find((d) => d.value === opt[0]?.value)?.data
-              );
-              setValue('dataObjs', []);
-            }}
-          />
-          <label htmlFor={idDataObject}>Data Object(s)</label>
-          <Select
-            id={idDataObject}
-            key={JSON.stringify(narrativeSelected)}
-            multiple={true}
-            disabled={!narrativeSelected}
-            options={dataObjsOptions}
-            loading={dataObjsQuery.isFetching}
-            onChange={(opts) =>
-              setValue(
-                'dataObjs',
-                opts.map((opt) => opt.value.toString())
-              )
-            }
-          />
+          </Stack>
+          <Stack spacing={1}>
+            <label htmlFor={idDataObject}>Data Object(s)</label>
+            <Select
+              id={idDataObject}
+              key={JSON.stringify(narrativeSelected)}
+              multiple={true}
+              disabled={!narrativeSelected}
+              options={dataObjsOptions}
+              loading={dataObjsQuery.isFetching}
+              onChange={(opts) =>
+                setValue(
+                  'dataObjs',
+                  opts.map((opt) => opt.value.toString())
+                )
+              }
+            />
+          </Stack>
           <br></br>
           {matchErr ? (
             <>
@@ -339,7 +399,7 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
               <code>{matchErr}</code>
             </>
           ) : null}
-        </div>
+        </Stack>
       }
       footer={
         <Button disabled={createReady} onClick={handleCreate}>

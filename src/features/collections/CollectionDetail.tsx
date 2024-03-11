@@ -12,7 +12,7 @@ import { snakeCaseToHumanReadable } from '../../common/utils/stringUtils';
 import { MATCHER_LABELS, MatchModal } from './MatchModal';
 import { SelectionModal } from './SelectionModal';
 import { ExportModal } from './ExportModal';
-import { Button } from '../../common/components';
+import { Button, Input } from '../../common/components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faArrowRightArrowLeft,
@@ -21,7 +21,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { useModalControls } from '../layout/Modal';
 import { Loader } from '../../common/components/Loader';
-import { CollectionSidebar } from './CollectionSidebar';
+import { CollectionSidebar, dataProductsMeta } from './CollectionSidebar';
 import {
   clearFilter,
   clearFiltersAndColumnMeta,
@@ -32,7 +32,7 @@ import {
   useFilters,
   useMatchId,
 } from './collectionsSlice';
-import { useAppDispatch } from '../../common/hooks';
+import { useAppDispatch, useDebounce } from '../../common/hooks';
 import { Slider, MenuItem, TextField, Stack, Divider } from '@mui/material';
 import { useForm } from 'react-hook-form';
 import { CollectionOverview } from './CollectionOverview';
@@ -43,6 +43,9 @@ export const detailDataProductPath = ':id/:data_product';
 
 type ModalView = 'match' | 'select' | 'export';
 export type SetModalView = React.Dispatch<React.SetStateAction<ModalView>>;
+
+const filterInputDebounceRate = 600;
+const filterSliderDebounceRate = 100;
 
 export const CollectionDetail = () => {
   const params = useParams();
@@ -62,6 +65,15 @@ export const CollectionDetail = () => {
     collection?.data_products.find(
       (dp) => dp.product === params.data_product
     ) || collection?.data_products[0];
+  const currDataProductMeta = dataProductsMeta.find((d) => {
+    return d.product === currDataProduct?.product;
+  });
+  // Set page title to data product display name or human-readbale
+  const dataProductTitle =
+    currDataProductMeta?.displayName ||
+    (currDataProduct
+      ? snakeCaseToHumanReadable(currDataProduct.product)
+      : null);
 
   // Redirect if the data_product specified by the url DNE
   useEffect(() => {
@@ -101,6 +113,11 @@ export const CollectionDetail = () => {
     setFiltersOpen(!filterOpen);
   };
 
+  useEffect(() => {
+    // When the currDataProduct/showOverview changes, close the filter menu
+    return () => setFiltersOpen(false);
+  }, [currDataProduct, showOverview]);
+
   if (!collection) return <Loader type="spinner" />;
   return (
     <div className={styles['collection_wrapper']}>
@@ -110,54 +127,43 @@ export const CollectionDetail = () => {
         currDataProduct={currDataProduct}
         showOverview={showOverview}
       />
-      <div className={styles['collection_main']}>
+      <main className={styles['collection_main']}>
         <div className={styles['detail_header']}>
           <h2>
-            {showOverview
-              ? 'Overview'
-              : currDataProduct &&
-                snakeCaseToHumanReadable(currDataProduct.product)}
+            {showOverview ? 'Overview' : currDataProduct && dataProductTitle}
           </h2>
           {!showOverview && (
             <>
               <div className={styles['collection_toolbar']}>
-                <Button
-                  ref={filterMenuRef}
-                  icon={<FontAwesomeIcon icon={faFilter} />}
-                  variant="outlined"
-                  color={'primary-lighter'}
-                  textColor={'primary'}
-                  onClick={handleToggleFilters}
-                >
-                  Filters
-                </Button>
-                {/* <FilterMenu
-              collectionId={collection.id}
-              anchorEl={filterMenuRef.current}
-              open={filterOpen}
-              onClose={() => setFiltersOpen(false)}
-            /> */}
-                <Button
-                  icon={<FontAwesomeIcon icon={faArrowRightArrowLeft} />}
-                  variant="outlined"
-                  color={match ? 'primary' : 'primary-lighter'}
-                  textColor={match ? 'primary-lighter' : 'primary'}
-                  onClick={() => {
-                    setModalView('match');
-                    modal?.show();
-                  }}
-                >
-                  {match
-                    ? `Matching by ${MATCHER_LABELS.get(match.matcher_id)}`
-                    : `Match my Data`}
-                </Button>
+                <Stack direction="row" spacing={1}>
+                  <Input
+                    className={styles['search-box']}
+                    placeholder="Search genomes by classification"
+                  />
+                  <Button
+                    ref={filterMenuRef}
+                    icon={<FontAwesomeIcon icon={faFilter} />}
+                    onClick={handleToggleFilters}
+                  >
+                    Filters
+                  </Button>
+                  <Button
+                    icon={<FontAwesomeIcon icon={faArrowRightArrowLeft} />}
+                    variant="contained"
+                    onClick={() => {
+                      setModalView('match');
+                      modal?.show();
+                    }}
+                  >
+                    {match
+                      ? `Matching by ${MATCHER_LABELS.get(match.matcher_id)}`
+                      : `Match my Data`}
+                  </Button>
+                </Stack>
                 <Button
                   icon={<FontAwesomeIcon icon={faCircleCheck} />}
-                  variant="outlined"
-                  color={selection.length > 0 ? 'primary' : 'primary-lighter'}
-                  textColor={
-                    selection.length > 0 ? 'primary-lighter' : 'primary'
-                  }
+                  variant={selection.length > 0 ? 'contained' : 'outlined'}
+                  textColor={selection.length > 0 ? 'white' : 'primary'}
                   onClick={() => {
                     setModalView('select');
                     modal?.show();
@@ -172,7 +178,7 @@ export const CollectionDetail = () => {
             </>
           )}
         </div>
-        <div className={styles['container']}>
+        <div className={styles['detail_content']}>
           <FilterMenu
             collectionId={collection.id}
             anchorEl={filterMenuRef.current}
@@ -196,7 +202,7 @@ export const CollectionDetail = () => {
             )}
           </div>
         </div>
-      </div>
+      </main>
       {modalView === 'match' ? (
         <MatchModal
           key={[collection.id, matchId].join('|')}
@@ -440,9 +446,12 @@ const DateRangeFilterControls = ({
   const { error: minError } = getFieldState('min', formState);
   const { error: maxError } = getFieldState('max', formState);
   const dispatch = useAppDispatch();
-  const sliderTimeout = useRef<number>();
+  const [sliderPosition, setSliderPosition] = useState<[string, string]>([
+    values.min,
+    values.max,
+  ]);
 
-  const setFilterRange = () => {
+  const setFilterRange = useDebounce(() => {
     const validState = getValues();
     const shouldClear =
       parseDate(validState.min) === filter.min_value &&
@@ -465,11 +474,34 @@ const DateRangeFilterControls = ({
         ])
       );
     }
-  };
+  });
 
   const submit = handleSubmit(() => {
-    setFilterRange();
+    setFilterRange(0)();
   });
+
+  const debounceSubmit = handleSubmit(() => {
+    setFilterRange(filterInputDebounceRate)();
+  });
+
+  const debounceSubmitSliders = handleSubmit(() => {
+    setFilterRange(filterSliderDebounceRate)();
+  });
+
+  useEffect(() => {
+    //Set slider position from values
+    setSliderPosition([values.min, values.max]);
+  }, [values.min, values.max]);
+
+  const [filterMin, filterMax] = [filter.min_value, filter.max_value];
+  useEffect(() => {
+    //Clear when the filter is cleared
+    if (!filter.value) {
+      setValue('min', formatDate(filterMin));
+      setValue('max', formatDate(filterMax));
+      setSliderPosition([formatDate(filterMin), formatDate(filterMax)]);
+    }
+  }, [filter.value, filterMax, filterMin, setValue]);
 
   return (
     <Stack>
@@ -478,8 +510,9 @@ const DateRangeFilterControls = ({
           {...register('min', {
             valueAsDate: true,
             validate: (value) => parseDate(value) < parseDate(values.max),
+            onBlur: submit,
+            onChange: debounceSubmit,
           })}
-          onBlur={submit}
           error={Boolean(minError)}
           size="small"
           variant="outlined"
@@ -488,8 +521,9 @@ const DateRangeFilterControls = ({
           {...register('max', {
             valueAsDate: true,
             validate: (value) => parseDate(value) > parseDate(values.min),
+            onBlur: submit,
+            onChange: debounceSubmit,
           })}
-          onBlur={submit}
           error={Boolean(maxError)}
           size="small"
           variant="outlined"
@@ -499,9 +533,10 @@ const DateRangeFilterControls = ({
         size="small"
         disableSwap
         getAriaLabel={() => `filter range for column ${column}`}
-        value={[parseDate(values.min), parseDate(values.max)]}
+        value={sliderPosition.map(parseDate)}
         min={filter.min_value}
         max={filter.max_value}
+        step={(filter.max_value - filter.min_value) / 100}
         valueLabelFormat={formatDate}
         marks={[filter.min_value, filter.max_value].map((v) => ({
           value: v,
@@ -511,11 +546,12 @@ const DateRangeFilterControls = ({
           const range = newValue as [number, number];
           setValue('min', formatDate(range[0]));
           setValue('max', formatDate(range[1]));
-          // Debounce setting the filter state from the slider for better UX
-          if (sliderTimeout.current) clearTimeout(sliderTimeout.current);
-          sliderTimeout.current = window.setTimeout(() => {
-            submit();
-          }, 100);
+          const sliderRange: [string, string] = [
+            formatDate(range[0]),
+            formatDate(range[1]),
+          ];
+          setSliderPosition(sliderRange);
+          debounceSubmitSliders();
         }}
         valueLabelDisplay="auto"
       />
@@ -551,9 +587,12 @@ const RangeFilterControls = ({
   const { error: minError } = getFieldState('min', formState);
   const { error: maxError } = getFieldState('max', formState);
   const dispatch = useAppDispatch();
-  const sliderTimeout = useRef<number>();
+  const [sliderPosition, setSliderPosition] = useState<[number, number]>([
+    values.min,
+    values.max,
+  ]);
 
-  const setFilterRange = () => {
+  const setFilterRange = useDebounce(() => {
     const validState = getValues();
     const shouldClear =
       validState.min === filter.min_value &&
@@ -576,11 +615,34 @@ const RangeFilterControls = ({
         ])
       );
     }
-  };
+  });
 
   const submit = handleSubmit(() => {
-    setFilterRange();
+    setFilterRange(0)();
   });
+
+  const debounceSubmit = handleSubmit(() => {
+    setFilterRange(filterInputDebounceRate)();
+  });
+
+  const debounceSubmitSliders = handleSubmit(() => {
+    setFilterRange(filterSliderDebounceRate)();
+  });
+
+  useEffect(() => {
+    //Set slider position from values
+    setSliderPosition([values.min, values.max]);
+  }, [values.min, values.max]);
+
+  const [filterMin, filterMax] = [filter.min_value, filter.max_value];
+  useEffect(() => {
+    //Clear when the filter is cleared
+    if (!filter.value) {
+      setValue('min', filterMin);
+      setValue('max', filterMax);
+      setSliderPosition([filterMin, filterMax]);
+    }
+  }, [filter.value, filterMax, filterMin, setValue]);
 
   return (
     <Stack>
@@ -591,8 +653,9 @@ const RangeFilterControls = ({
             validate: (value) =>
               value < values.max &&
               (filter.type === 'float' || Number.isInteger(value)),
+            onChange: debounceSubmit,
+            onBlur: submit,
           })}
-          onBlur={submit}
           error={Boolean(minError)}
           size="small"
           variant="outlined"
@@ -603,8 +666,9 @@ const RangeFilterControls = ({
             validate: (value) =>
               value > values.min &&
               (filter.type === 'float' || Number.isInteger(value)),
+            onChange: debounceSubmit,
+            onBlur: submit,
           })}
-          onBlur={submit}
           error={Boolean(maxError)}
           size="small"
           variant="outlined"
@@ -614,9 +678,14 @@ const RangeFilterControls = ({
         size="small"
         disableSwap
         getAriaLabel={() => `filter range for column ${column}`}
-        value={[values.min, values.max]}
+        value={sliderPosition}
         min={filter.min_value}
         max={filter.max_value}
+        step={
+          filter.type === 'int'
+            ? 1
+            : (filter.max_value - filter.min_value) / 100
+        }
         marks={[filter.min_value, filter.max_value].map((v) => ({
           value: v,
           label: v,
@@ -625,11 +694,8 @@ const RangeFilterControls = ({
           const range = newValue as [number, number];
           setValue('min', range[0]);
           setValue('max', range[1]);
-          // Debounce setting the filter state from the slider for better UX
-          if (sliderTimeout.current) clearTimeout(sliderTimeout.current);
-          sliderTimeout.current = window.setTimeout(() => {
-            submit();
-          }, 100);
+          setSliderPosition([range[0], range[1]]);
+          debounceSubmitSliders();
         }}
         valueLabelDisplay="auto"
       />
@@ -648,20 +714,21 @@ const TextFilterControls = ({
   const dispatch = useAppDispatch();
   const [text, setText] = useState<string>(filter.value ?? '');
 
+  const debounceSubmit = useDebounce((value: string) => {
+    dispatch(setFilter([collectionId, context, column, { ...filter, value }]));
+  });
+
   return (
     <TextField
       key={column}
       value={text}
-      onChange={(e) => setText(e.currentTarget.value)}
+      onChange={(e) => {
+        setText(e.currentTarget.value);
+        debounceSubmit(filterInputDebounceRate)(e.currentTarget.value);
+      }}
       onBlur={(e) => {
-        dispatch(
-          setFilter([
-            collectionId,
-            context,
-            column,
-            { ...filter, value: e.currentTarget.value },
-          ])
-        );
+        setText(e.currentTarget.value);
+        debounceSubmit(0)(e.currentTarget.value);
       }}
       helperText={
         {

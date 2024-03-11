@@ -111,3 +111,19 @@ export const usePageTracking = () => {
     window.gtag('event', 'page_view', pageView);
   }, [location, me]);
 };
+
+/**
+ * Callback debouncer which returns a function that accepts a delay and returns a debounced callback.
+ * This is useful when multiple callback delays are desired, such that they share a single timeout state.
+ * e.g. debounced(0)('foo') will clear the timeout for debounced(600)('blah') and the cb will be called with 'foo'
+ */
+export const useDebounce = <T extends (...args: Parameters<T>) => void>(
+  cb: T
+) => {
+  const timeout = useRef<number>();
+  return (delay: number) =>
+    (...args: Parameters<T>) => {
+      clearTimeout(timeout.current);
+      timeout.current = window.setTimeout(() => cb(...args), delay);
+    };
+};
