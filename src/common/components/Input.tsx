@@ -4,6 +4,7 @@ import {
   useState,
   ComponentProps,
   ReactElement,
+  FocusEventHandler,
 } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -38,13 +39,15 @@ export const Input = forwardRef<HTMLInputElement, InputInterface>(
       getInputContainerClasses()
     );
 
-    const handleFocus = () => {
+    const handleFocus: FocusEventHandler<HTMLInputElement> = (...args) => {
+      if (rest.onFocus) rest.onFocus(...args);
       setInputContainerClasses(
         `${getInputContainerClasses()} ${classes.focus}`
       );
     };
 
-    const handleBlur = () => {
+    const handleBlur: FocusEventHandler<HTMLInputElement> = (...args) => {
+      if (rest.onBlur) rest.onBlur(...args);
       setInputContainerClasses(getInputContainerClasses());
     };
 
