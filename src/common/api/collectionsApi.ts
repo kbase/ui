@@ -632,11 +632,17 @@ export const collectionsApi = baseApi.injectEndpoints({
       CollectionsResults['exportSelection'],
       CollectionsParams['exportSelection']
     >({
-      query: ({ selection_id, workspace_id, object_name, ws_type, ...body }) =>
+      query: ({
+        selection_id,
+        workspace_id,
+        object_name,
+        ws_type,
+        description,
+      }) =>
         collectionsService({
           method: 'POST',
           url: encode`/selections/${selection_id}/toset/${workspace_id}/obj/${object_name}/type/${ws_type}`,
-          body: body,
+          body: { description },
           headers: {
             authorization: `Bearer ${store.getState().auth.token}`,
           },

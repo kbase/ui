@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   exportSelection,
   getSelectionTypes,
@@ -11,28 +11,60 @@ import { Modal } from '../layout/Modal';
 import { useAppParam } from '../params/hooks';
 import { useSelectionId } from './collectionsSlice';
 import { useParamsForNarrativeDropdown } from './hooks';
-import { Stack } from '@mui/material';
+import { Alert, Stack } from '@mui/material';
 import classes from './Collections.module.scss';
+import { useAppSelector } from '../../common/hooks';
+import { getwsPermissions } from '../../common/api/workspaceApi';
+import { NarrativeDoc } from '../../common/types/NarrativeDoc';
 
 export const ExportModal = ({ collectionId }: { collectionId: string }) => {
   const selectionId = useSelectionId(collectionId);
   const matchId = useAppParam('match');
+  const username = useAppSelector((state) => state.auth.username);
+
+  const [type, setType] = useState<SelectOption | undefined>();
+  const [narrativeSearch, setNarrativeSearch] = useState('');
+  const [narrative, setNarrative] = useState<NarrativeDoc | undefined>();
   const [name, setName] = useState<string>('');
   const [desc, setDesc] = useState<string>('');
-  const [narrativeSel, setNarrativeSel] = useState<SelectOption | undefined>();
-  const [typeSel, setTypeSel] = useState<SelectOption | undefined>();
-  const [narrativeSearch, setNarrativeSearch] = useState('');
+  const [showFormErrors, setShowFormErrors] = useState(false);
+
+  // Reset state on selectionId change
+  useEffect(() => {
+    setType(undefined);
+    setNarrativeSearch('');
+    setNarrative(undefined);
+    setName('');
+    setDesc('');
+    setShowFormErrors(false);
+  }, [selectionId]);
 
   const narrativeSearchParams = useParamsForNarrativeDropdown(narrativeSearch);
   const narrativeQuery = getNarratives.useQuery(narrativeSearchParams);
-  const narrativeOptions = (narrativeQuery?.data?.hits || []).map((hit) => ({
-    value: [hit.access_group, hit.obj_id, hit.version].join('/'),
-    label: hit.narrative_title,
-    data: hit,
-  }));
-  const narrativeSelected = narrativeOptions.find(
-    (d) => d.value === narrativeSel?.value
-  )?.data;
+  const narrativePermParams = useMemo(
+    () => ({
+      wsIds: Array.from(
+        new Set(
+          (narrativeQuery?.data?.hits || []).map((hit) => {
+            return hit.access_group;
+          })
+        )
+      ),
+    }),
+    [narrativeQuery?.data?.hits]
+  );
+  const wsPermissions = getwsPermissions.useQuery(narrativePermParams, {
+    skip: !narrativeQuery?.data?.hits.length || !username,
+  });
+  const permittedWs = (wsPermissions?.data?.[0]?.perms ?? []).flatMap(
+    (perm, index) => {
+      const permitted = ['a', 'w'].includes(perm[username || '']);
+      return permitted ? [narrativePermParams.wsIds[index]] : [];
+    }
+  );
+  const permittedNarratives = (narrativeQuery?.data?.hits || []).filter(
+    (narrative) => permittedWs.includes(narrative.access_group)
+  );
 
   const typesParams = useMemo(
     () => ({ selection_id: selectionId ?? '' }),
@@ -42,29 +74,45 @@ export const ExportModal = ({ collectionId }: { collectionId: string }) => {
     skip: !selectionId,
   });
 
+  const typeTitle = type?.value.toString().endsWith('.Genome')
+    ? 'Genome'
+    : type?.value.toString().endsWith('.Assembly')
+    ? 'Assembly'
+    : '';
+
+  const formErrors: string[] = [];
+  if (!type) formErrors.push('No type selected.');
+  if (!narrative) formErrors.push('No narrative selected.');
+  if (!name) formErrors.push('Name is required.');
+  if (!/^[a-z0-9_.-]*$/i.test(name))
+    formErrors.push('Name must be alphanumeric (A-Z, -, _, .) with no spaces.');
+  if (Number.isInteger(Number(name)))
+    formErrors.push('Name must not be an integer.');
+
   const [triggerExport, exportResult] = exportSelection.useMutation();
+
   const handleExport = () => {
-    if (!complete) return;
+    setShowFormErrors(true);
+    if (formErrors.length > 0 || !narrative || !selectionId || !type) return;
     triggerExport({
       selection_id: selectionId,
-      workspace_id: narrativeSelected?.access_group.toString(),
-      ws_type: typeSel?.value.toString(),
+      workspace_id: narrative.access_group.toString(),
+      ws_type: 'badtype', //type.value.toString(),
       object_name: name,
       description: desc,
       match_id: matchId,
     });
   };
 
-  let exportError = '';
   const parsedErr = parseCollectionsError(exportResult.error);
+
+  let exportError = '';
   if (parsedErr) {
-    exportError = `${parsedErr.error.httpcode}: ${parsedErr.error.message}`;
+    exportError = `${parsedErr.error.message}`;
   } else if (exportResult.error) {
     exportError = 'An unknown error occurred while saving to the narrative.';
   }
 
-  const complete =
-    selectionId && typeSel?.value && narrativeSelected?.access_group && name;
   return (
     <Modal
       title={'Save To Narrative'}
@@ -75,7 +123,7 @@ export const ExportModal = ({ collectionId }: { collectionId: string }) => {
             <Select
               placeholder="Select export type..."
               disabled={typesResult.isFetching}
-              onChange={(opts) => setTypeSel(opts[0])}
+              onChange={(opts) => setType(opts[0])}
               options={(typesResult.data?.types ?? []).map((type) => ({
                 value: type,
                 label: type,
@@ -87,27 +135,44 @@ export const ExportModal = ({ collectionId }: { collectionId: string }) => {
             <Select
               placeholder="Select narrative..."
               onSearch={setNarrativeSearch}
-              onChange={(opts) => setNarrativeSel(opts[0])}
-              options={narrativeOptions}
+              onChange={(opts) =>
+                setNarrative(
+                  permittedNarratives.find(
+                    (narrative) => opts[0].value === narrativeUpa(narrative)
+                  )
+                )
+              }
+              options={permittedNarratives.map((narrative) => ({
+                value: narrativeUpa(narrative),
+                label: narrative.narrative_title,
+              }))}
             />
           </Stack>
           <Stack spacing={1}>
-            <label>Data object name</label>
+            <label>New {typeTitle ? typeTitle + ' ' : ''}Set Object Name</label>
             <Input
               value={name}
+              onBlur={() => setShowFormErrors(true)}
               onChange={(e) => setName(e.currentTarget.value)}
             />
           </Stack>
           <Stack spacing={1}>
-            <label>Data object descrition (optional)</label>
+            <label>Object Description (optional)</label>
             <Input
               value={desc}
               onChange={(e) => setDesc(e.currentTarget.value)}
             />
           </Stack>
-          {exportError ? <p className="">{exportError}</p> : <></>}
+          {showFormErrors && formErrors.length ? (
+            <Alert severity="warning" sx={{ whiteSpace: ' pre-line' }}>
+              {formErrors.join('\n')}
+            </Alert>
+          ) : (
+            <></>
+          )}
+          {exportError ? <Alert severity="error">{exportError}</Alert> : <></>}
           {exportResult.data ? (
-            <p className="">
+            <Alert severity="success">
               <strong>Data object created!</strong>
               <ul>
                 <li> {exportResult.data.set.type}</li>
@@ -127,7 +192,7 @@ export const ExportModal = ({ collectionId }: { collectionId: string }) => {
                   </a>
                 </li>
               </ul>
-            </p>
+            </Alert>
           ) : (
             <></>
           )}
@@ -135,8 +200,8 @@ export const ExportModal = ({ collectionId }: { collectionId: string }) => {
       }
       footer={
         <Button
-          disabled={!complete || exportResult.isLoading}
           onClick={handleExport}
+          disabled={showFormErrors && formErrors.length > 0}
         >
           Save to Narrative
         </Button>
@@ -144,3 +209,6 @@ export const ExportModal = ({ collectionId }: { collectionId: string }) => {
     />
   );
 };
+
+const narrativeUpa = (narrative: NarrativeDoc) =>
+  [narrative.access_group, narrative.obj_id, narrative.version].join('/');

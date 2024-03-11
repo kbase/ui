@@ -37,7 +37,11 @@ export const SelectionModal = ({
           >
             Clear Selection
           </Button>
-          <Button color="primary" onClick={() => showExport()}>
+          <Button
+            color="primary"
+            onClick={() => showExport()}
+            disabled={!verifiedSelectionId}
+          >
             Save Selection to Narrative
           </Button>
         </>
