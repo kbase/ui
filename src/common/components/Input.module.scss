@@ -22,6 +22,10 @@
     background-color: use-color("success-lightest");
     border: 1px solid use-color("success");
   }
+
+  &.hidden {
+    display: none;
+  }
 }
 
 .input {
