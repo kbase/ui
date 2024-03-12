@@ -48,9 +48,9 @@ const filterInputDebounceRate = 600;
 const filterSliderDebounceRate = 100;
 
 const pageConfig: Record<string, ('filter' | 'match' | 'search')[]> = {
-  samples: ['filter'],
-  biolog: ['filter'],
-  microtrait: ['filter'],
+  samples: [],
+  biolog: [],
+  microtrait: [],
   genome_attribs: ['filter', 'match', 'search'],
   taxa_count: ['filter', 'match'],
 };
