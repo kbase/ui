@@ -218,3 +218,18 @@ $border: 1px solid use-color("base-lighter");
 .match-number-input {
   display: inline-block;
 }
+
+.range-filter {
+  /* stylelint-disable-next-line selector-class-pattern */
+  :global(.MuiInputBase-root) {
+    font-size: 0.85rem;
+  }
+}
+
+.slider-container {
+  align-items: center;
+
+  > * {
+    max-width: 215px;
+  }
+}

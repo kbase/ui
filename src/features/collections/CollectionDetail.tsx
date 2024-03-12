@@ -763,7 +763,7 @@ const RangeFilterControls = ({
   }, [filter.value, filterMax, filterMin, setValue]);
 
   return (
-    <Stack>
+    <Stack className={styles['range-filter']}>
       <Stack direction="row" spacing={2}>
         <TextField
           {...register('min', {
@@ -792,31 +792,33 @@ const RangeFilterControls = ({
           variant="outlined"
         />
       </Stack>
-      <Slider
-        size="small"
-        disableSwap
-        getAriaLabel={() => `filter range for column ${column}`}
-        value={sliderPosition}
-        min={filter.min_value}
-        max={filter.max_value}
-        step={
-          filter.type === 'int'
-            ? 1
-            : (filter.max_value - filter.min_value) / 100
-        }
-        marks={[filter.min_value, filter.max_value].map((v) => ({
-          value: v,
-          label: v,
-        }))}
-        onChange={(ev, newValue) => {
-          const range = newValue as [number, number];
-          setValue('min', range[0]);
-          setValue('max', range[1]);
-          setSliderPosition([range[0], range[1]]);
-          debounceSubmitSliders();
-        }}
-        valueLabelDisplay="auto"
-      />
+      <Stack className={styles['slider-container']}>
+        <Slider
+          size="small"
+          disableSwap
+          getAriaLabel={() => `filter range for column ${column}`}
+          value={sliderPosition}
+          min={filter.min_value}
+          max={filter.max_value}
+          step={
+            filter.type === 'int'
+              ? 1
+              : (filter.max_value - filter.min_value) / 100
+          }
+          marks={[filter.min_value, filter.max_value].map((v) => ({
+            value: v,
+            label: v,
+          }))}
+          onChange={(ev, newValue) => {
+            const range = newValue as [number, number];
+            setValue('min', range[0]);
+            setValue('max', range[1]);
+            setSliderPosition([range[0], range[1]]);
+            debounceSubmitSliders();
+          }}
+          valueLabelDisplay="auto"
+        />
+      </Stack>
     </Stack>
   );
 };
