@@ -176,6 +176,11 @@ $border: 1px solid use-color("base-lighter");
   margin: 0;
 }
 
+.filter-container:not(:last-child) {
+  border-bottom: 1px dashed use-color("base-light");
+  padding-bottom: 1rem;
+}
+
 .filter-label {
   transition: 0.25s;
 

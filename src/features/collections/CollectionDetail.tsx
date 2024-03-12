@@ -318,20 +318,52 @@ const FilterChips = ({ collectionId }: { collectionId: string }) => {
   );
 };
 
-const FilterMenu = (props: {
+const FilterMenu = ({
+  collectionId,
+  open,
+  onClose,
+  ...rest
+}: {
   collectionId: string;
   anchorEl: Element | null;
   open: boolean;
   onClose: () => void;
 }) => {
+  const { columnMeta } = useFilters(collectionId);
   const {
     context,
     categorizedFilters,
     clearFilterState,
     clearAllFiltersState,
-  } = useFilterEntries(props.collectionId);
+  } = useFilterEntries(collectionId);
 
-  if (props.open) {
+  /**
+   * Store category expanded state in an object
+   */
+  const [expandedByCategory, setExpandedByCategory] = useState(() => {
+    const expanded: { [key: string]: boolean } = {};
+    categorizedFilters.forEach((category) => {
+      expanded[category.category] = false;
+    });
+    return expanded;
+  });
+
+  /**
+   * Only allow one category to be expanded at a time.
+   */
+  const handleExpand = (expanded: boolean, category: string) => {
+    const newValue = { ...expandedByCategory };
+    Object.keys(expandedByCategory).forEach((c) => {
+      if (expanded && c === category) {
+        newValue[c] = true;
+      } else {
+        newValue[c] = false;
+      }
+    });
+    setExpandedByCategory(newValue);
+  };
+
+  if (open) {
     return (
       <div className={styles['filters_panel']}>
         <Stack direction="row" className={styles['filters-panel-header']}>
@@ -348,7 +380,7 @@ const FilterMenu = (props: {
               role="button"
               color="base"
               variant="text"
-              onClick={() => props.onClose()}
+              onClick={() => onClose()}
             >
               <FontAwesomeIcon icon={faX} />
             </Button>
@@ -361,6 +393,10 @@ const FilterMenu = (props: {
                 key={category.category}
                 className={styles['filter-category']}
                 elevation={0}
+                expanded={expandedByCategory[category.category]}
+                onChange={(e, expanded) =>
+                  handleExpand(expanded, category.category)
+                }
               >
                 <AccordionSummary
                   expandIcon={<FontAwesomeIcon icon={faAngleRight} />}
@@ -381,7 +417,10 @@ const FilterMenu = (props: {
                     {category.filters.flatMap(([column, filter]) => {
                       const hasVal = Boolean(filter.value);
                       return (
-                        <Stack spacing={1}>
+                        <Stack
+                          className={styles['filter-container']}
+                          spacing={1}
+                        >
                           <div>
                             <label
                               className={`${styles['filter-label']} ${
@@ -393,7 +432,9 @@ const FilterMenu = (props: {
                                   : undefined
                               }
                             >
-                              {column}
+                              {columnMeta
+                                ? columnMeta[column].display_name
+                                : snakeCaseToHumanReadable(column)}
                               {hasVal && (
                                 <FontAwesomeIcon icon={faCircleXmark} />
                               )}
@@ -403,7 +444,7 @@ const FilterMenu = (props: {
                             column={column}
                             filter={filter}
                             context={context}
-                            collectionId={props.collectionId}
+                            collectionId={collectionId}
                           />
                         </Stack>
                       );
