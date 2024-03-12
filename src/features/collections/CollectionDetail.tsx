@@ -18,6 +18,9 @@ import {
   faArrowRightArrowLeft,
   faCircleCheck,
   faFilter,
+  faAngleRight,
+  faX,
+  faCircleXmark,
 } from '@fortawesome/free-solid-svg-icons';
 import { useModalControls } from '../layout/Modal';
 import { Loader } from '../../common/components/Loader';
@@ -31,9 +34,17 @@ import {
   useCurrentSelection,
   useFilters,
   useMatchId,
+  clearAllFilters,
 } from './collectionsSlice';
 import { useAppDispatch, useDebounce } from '../../common/hooks';
-import { Slider, MenuItem, TextField, Stack, Divider } from '@mui/material';
+import {
+  Slider,
+  TextField,
+  Stack,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+} from '@mui/material';
 import { useForm } from 'react-hook-form';
 import { CollectionOverview } from './CollectionOverview';
 import { FilterChip } from '../../common/components/FilterChip';
@@ -238,7 +249,15 @@ const useFilterEntries = (collectionId: string) => {
   const categorizedFilters = useMemo(
     () =>
       categories
-        .sort((a, b) => a.localeCompare(b))
+        .sort((a, b) => {
+          if (a === 'Other') {
+            return 1;
+          } else if (b === 'Other') {
+            return -1;
+          } else {
+            return a.localeCompare(b);
+          }
+        })
         .map((category) => ({
           category: category,
           filters: Object.entries(filters ?? []).filter(
@@ -261,11 +280,16 @@ const useFilterEntries = (collectionId: string) => {
     dispatch(clearFilter([collectionId, context, column]));
   };
 
+  const clearAllFiltersState = () => {
+    dispatch(clearAllFilters([collectionId, context]));
+  };
+
   return {
     context,
     filters,
     filterEntries,
     clearFilterState,
+    clearAllFiltersState,
     categorizedFilters,
   };
 };
@@ -300,50 +324,96 @@ const FilterMenu = (props: {
   open: boolean;
   onClose: () => void;
 }) => {
-  const { context, categorizedFilters, clearFilterState } = useFilterEntries(
-    props.collectionId
-  );
+  const {
+    context,
+    categorizedFilters,
+    clearFilterState,
+    clearAllFiltersState,
+  } = useFilterEntries(props.collectionId);
 
   if (props.open) {
     return (
       <div className={styles['filters_panel']}>
-        {categorizedFilters.map((category) => {
-          return (
-            <React.Fragment key={category.category}>
-              <h5>{category.category}</h5>
-              {category.filters.flatMap(([column, filter]) => {
-                const hasVal = Boolean(filter.value);
-                const children = [
-                  <Divider
-                    variant={'inset'}
-                    key={column + '__label'}
-                    textAlign="left"
-                  >
-                    <FilterChip
-                      name={column}
-                      filter={filter}
-                      color={hasVal ? 'primary' : 'default'}
-                      showValue={false}
-                      showWhenUnused={true}
-                      onDelete={
-                        hasVal ? () => clearFilterState(column) : undefined
-                      }
-                    />
-                  </Divider>,
-                  <MenuItem>
-                    <FilterControls
-                      column={column}
-                      filter={filter}
-                      context={context}
-                      collectionId={props.collectionId}
-                    />
-                  </MenuItem>,
-                ];
-                return children;
-              })}
-            </React.Fragment>
-          );
-        })}
+        <Stack direction="row" className={styles['filters-panel-header']}>
+          <h3>Genome Filters</h3>
+          <Stack direction="row" spacing={1}>
+            <Button
+              size="small"
+              color="gray"
+              onClick={() => clearAllFiltersState()}
+            >
+              Reset
+            </Button>
+            <Button
+              role="button"
+              color="base"
+              variant="text"
+              onClick={() => props.onClose()}
+            >
+              <FontAwesomeIcon icon={faX} />
+            </Button>
+          </Stack>
+        </Stack>
+        <div>
+          {categorizedFilters.map((category) => {
+            return (
+              <Accordion
+                key={category.category}
+                className={styles['filter-category']}
+                elevation={0}
+              >
+                <AccordionSummary
+                  expandIcon={<FontAwesomeIcon icon={faAngleRight} />}
+                  aria-controls="panel1-content"
+                  id="panel1-header"
+                  sx={{
+                    '& .MuiAccordionSummary-expandIconWrapper.Mui-expanded': {
+                      transform: 'rotate(90deg)',
+                    },
+                  }}
+                >
+                  <h4 className={styles['filter-category-label']}>
+                    {category.category}
+                  </h4>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Stack spacing={3}>
+                    {category.filters.flatMap(([column, filter]) => {
+                      const hasVal = Boolean(filter.value);
+                      return (
+                        <Stack spacing={1}>
+                          <div>
+                            <label
+                              className={`${styles['filter-label']} ${
+                                hasVal ? styles['active'] : ''
+                              }`}
+                              onClick={
+                                hasVal
+                                  ? () => clearFilterState(column)
+                                  : undefined
+                              }
+                            >
+                              {column}
+                              {hasVal && (
+                                <FontAwesomeIcon icon={faCircleXmark} />
+                              )}
+                            </label>
+                          </div>
+                          <FilterControls
+                            column={column}
+                            filter={filter}
+                            context={context}
+                            collectionId={props.collectionId}
+                          />
+                        </Stack>
+                      );
+                    })}
+                  </Stack>
+                </AccordionDetails>
+              </Accordion>
+            );
+          })}
+        </div>
       </div>
     );
   } else {
@@ -786,7 +856,8 @@ const TextFilterControls = ({
           ngram: 'N-gram Search',
         }[filter.type]
       }
-      variant="standard"
+      variant="outlined"
+      size="small"
     />
   );
 };

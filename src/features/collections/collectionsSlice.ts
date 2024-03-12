@@ -207,6 +207,20 @@ export const CollectionSlice = createSlice({
         delete cln.filters[context][columnName].value;
       }
     },
+    clearAllFilters: (
+      state,
+      {
+        payload: [collectionId, context],
+      }: PayloadAction<[collectionId: string, context: string]>
+    ) => {
+      const cln = collectionState(state, collectionId);
+      if (!cln.filters[context]) cln.filters[context] = {};
+      Object.keys(cln.filters[context]).forEach((columnName) => {
+        if (cln.filters[context][columnName].value) {
+          delete cln.filters[context][columnName].value;
+        }
+      });
+    },
     clearFiltersAndColumnMeta: (
       state,
       {
@@ -245,6 +259,7 @@ export const {
   setFilterContext,
   setFilter,
   clearFilter,
+  clearAllFilters,
   clearFiltersAndColumnMeta,
   setColumnMeta,
   setFilterMatch,
