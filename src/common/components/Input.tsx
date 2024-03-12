@@ -19,7 +19,8 @@ interface InputInterface extends ComponentProps<'input'> {
 
 export const Input = forwardRef<HTMLInputElement, InputInterface>(
   (props, ref) => {
-    const { className, errors, label, maxLength, validated, ...rest } = props;
+    const { className, errors, label, maxLength, validated, hidden, ...rest } =
+      props;
     const { name } = rest; // react-hook-form internals
     const idForLabel = useMemo(() => `input-${uuidv4()}`, []);
     const statusClass = errors ? classes.error : classes.success;
@@ -28,31 +29,31 @@ export const Input = forwardRef<HTMLInputElement, InputInterface>(
       validated ? statusClass : '',
       className,
     ].join(' ');
+
+    const [focused, setFocused] = useState(false);
+
+    const handleFocus: FocusEventHandler<HTMLInputElement> = (...args) => {
+      setFocused(true);
+      if (rest.onFocus) rest.onFocus(...args);
+    };
+
+    const handleBlur: FocusEventHandler<HTMLInputElement> = (...args) => {
+      setFocused(false);
+      if (rest.onBlur) rest.onBlur(...args);
+    };
+
     const getInputContainerClasses = () => {
       return [
         classes['input-container'],
         validated ? statusClass : '',
+        hidden ? classes.hidden : '',
+        focused ? classes.focus : '',
         className,
       ].join(' ');
     };
-    const [inputContainerClasses, setInputContainerClasses] = useState(
-      getInputContainerClasses()
-    );
-
-    const handleFocus: FocusEventHandler<HTMLInputElement> = (...args) => {
-      if (rest.onFocus) rest.onFocus(...args);
-      setInputContainerClasses(
-        `${getInputContainerClasses()} ${classes.focus}`
-      );
-    };
-
-    const handleBlur: FocusEventHandler<HTMLInputElement> = (...args) => {
-      if (rest.onBlur) rest.onBlur(...args);
-      setInputContainerClasses(getInputContainerClasses());
-    };
 
     return (
-      <span className={inputContainerClasses}>
+      <span className={getInputContainerClasses()}>
         {label && (
           <label className={labelClass} htmlFor={idForLabel}>
             {label}
@@ -68,6 +69,7 @@ export const Input = forwardRef<HTMLInputElement, InputInterface>(
           onBlur={handleBlur}
           onFocus={handleFocus}
           type={props.type || 'text'}
+          hidden={hidden}
         />
       </span>
     );
