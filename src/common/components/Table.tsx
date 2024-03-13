@@ -7,6 +7,7 @@ import {
   Table as TableType,
   Row,
 } from '@tanstack/react-table';
+import type { RowData } from '@tanstack/react-table';
 import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
 import {
   faArrowLeftLong,
@@ -22,9 +23,19 @@ import { CheckBox } from './CheckBox';
 import { Loader } from './Loader';
 import { HeatMapRow } from '../api/collectionsApi';
 
+/*
+See also: https://tanstack.com/table/v8/docs/api/core/column-def#meta
+This supports passing arbitrary data into the table.
+ */
+declare module '@tanstack/react-table' {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface ColumnMeta<TData extends RowData, TValue> {
+    [key: string]: string;
+  }
+}
+
 type ColumnOptions = {
   textAlign?: 'left' | 'right' | 'center';
-  type: string;
 };
 
 export const Table = <Datum,>({

@@ -115,9 +115,10 @@ interface HeatMapColumnCategory {
 
 export interface HeatMapColumn {
   col_id: string;
-  name: string;
   description: string;
+  name: string;
   type: 'float' | 'int' | 'bool' | 'count';
+  [key: string]: string;
 }
 
 interface ClientError {

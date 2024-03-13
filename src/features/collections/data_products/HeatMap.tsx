@@ -1,5 +1,4 @@
 import { Column, Table } from '@tanstack/react-table';
-import type { RowData } from '@tanstack/react-table';
 import { FC, ReactNode, useEffect, useRef, useState } from 'react';
 import Plot from 'react-plotly.js';
 import type Layout from 'react-plotly.js';
@@ -9,14 +8,6 @@ import { noOp } from '../../common';
 import classes from './HeatMap.module.scss';
 
 /* enums, interfaces, types */
-
-declare module '@tanstack/react-table' {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  interface ColumnMeta<TData extends RowData, TValue> {
-    type: string;
-  }
-}
-
 enum TooltipRole {
   cursor = 'cursor',
   inspector = 'inspector',
