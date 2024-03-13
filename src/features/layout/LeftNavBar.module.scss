@@ -60,7 +60,7 @@ ul.nav_list {
 }
 
 @each $state, $_ in $palette {
-  .nav_notifs.nav_notifs-bg--#{$state} {
+  ul.nav_list li.nav_item .nav_notifs.nav_notifs-bg--#{$state} {
     background-color: use-color($state);
 
     @if (lightness(use-color($state)) > 40) {
