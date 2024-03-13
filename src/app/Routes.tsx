@@ -6,8 +6,6 @@ import {
   useLocation,
 } from 'react-router-dom';
 
-import Auth from '../features/auth/Auth';
-import Count from '../features/count/Counter';
 import Legacy, { LEGACY_BASE_ROUTE } from '../features/legacy/Legacy';
 import { Fallback } from '../features/legacy/IFrameFallback';
 import Navigator, {
@@ -49,8 +47,6 @@ const Routes: FC = () => {
         path="/profile"
         element={<Authed element={<ProfileWrapper />} />}
       />
-      <Route path="/count" element={<Authed element={<Count />} />} />
-      <Route path="/auth" element={<Auth />} />
 
       {/* Navigator */}
       <Route
