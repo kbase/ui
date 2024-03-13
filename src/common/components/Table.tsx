@@ -24,6 +24,7 @@ import { HeatMapRow } from '../api/collectionsApi';
 
 type ColumnOptions = {
   textAlign?: 'left' | 'right' | 'center';
+  type: string;
 };
 
 export const Table = <Datum,>({

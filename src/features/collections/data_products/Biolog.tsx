@@ -62,6 +62,8 @@ export const Biolog: FC<{
     } else {
       return (
         <>
+          Type: {column.columnDef.meta?.type}
+          <hr />
           Row: {row.kbase_id}
           <br />
           Col: {column.columnDef.header}

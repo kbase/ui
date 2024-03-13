@@ -1,4 +1,5 @@
 import { Column, Table } from '@tanstack/react-table';
+import type { RowData } from '@tanstack/react-table';
 import { FC, ReactNode, useEffect, useRef, useState } from 'react';
 import Plot from 'react-plotly.js';
 import type Layout from 'react-plotly.js';
@@ -8,6 +9,14 @@ import { noOp } from '../../common';
 import classes from './HeatMap.module.scss';
 
 /* enums, interfaces, types */
+
+declare module '@tanstack/react-table' {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface ColumnMeta<TData extends RowData, TValue> {
+    type: string;
+  }
+}
+
 enum TooltipRole {
   cursor = 'cursor',
   inspector = 'inspector',
@@ -24,8 +33,8 @@ export interface HeatMapCallback {
 interface HeatMapData {
   values_meta: (React.ReactElement | string | null)[][];
   values_num: (number | null)[][];
-  xs: string[];
-  ys: string[];
+  headersColumn: string[];
+  headersRow: string[];
 }
 
 interface HeatMapMetaData {
@@ -49,9 +58,6 @@ interface TooltipData {
   clientX: number;
   clientY: number;
   meta: React.ReactElement | string | null;
-  x: string | null;
-  y: string | null;
-  z: number;
 }
 
 type TooltipDataSetter = React.Dispatch<React.SetStateAction<TooltipData>>;
@@ -97,9 +103,6 @@ const heatMapInfoDefaults: TooltipData = {
   clientX: 0,
   clientY: 0,
   meta: '',
-  x: '',
-  y: '',
-  z: 0,
 };
 
 /* utilities */
@@ -121,57 +124,57 @@ const getPlotlyFromTanstack = ({
 }) => {
   const rows = table.getSortedRowModel().rows;
   const cols = table.getAllFlatColumns().filter((col) => col.parent);
-  const xs: string[] = cols.map((col, cix) => {
+  const headersColumn: string[] = cols.map((col, cix) => {
     return col.columnDef.header as string;
   });
-  const ys = rows.map((row) => row.id);
+  const headersRow = rows.map((row) => row.id);
   const values_num = rows.map((row) =>
     row.getAllCells().map((cell) => cell.getValue() as number)
   );
-  const values_meta = rows.map((row) => {
+  const values_meta = rows.map((row, rix) => {
     const cells = row.getAllCells();
-    const hmcs: HeatMapCell[] = cells.map((cell) => {
+    const hmcs: HeatMapCell[] = cells.map((cell, cix) => {
       const col_id = cell.column.id;
-      const cell_id = cell.row.original.cells.filter(
+      const { cell_id, val } = cell.row.original.cells.filter(
         (cell_) => cell_.col_id === col_id
-      )[0].cell_id;
+      )[0];
       return {
         cell_id,
         col_id,
-        val: cell.getValue() as number | boolean,
+        val,
       };
     });
     return cells.map((cell, cix) => {
       const col_id = cell.column.id;
-      const cell_id = cell.row.original.cells.filter(
+      const { cell_id, val } = cell.row.original.cells.filter(
         (cell_) => cell_.col_id === col_id
-      )[0].cell_id;
+      )[0];
       const hmc: HeatMapCell = {
         cell_id,
         col_id,
-        val: cell.getValue() as number | boolean,
+        val,
       };
       const hmr: HeatMapRow = {
         match: false,
         sel: false,
-        kbase_id: row.id,
+        kbase_id: row.original.kbase_id,
         kbase_display_name: row.id,
         cells: hmcs,
       };
       const getCellLabelCallback = async () =>
         await getCellLabel(hmc, hmr, cell.column);
-      return <CellLabelMeta getCellLabelCallback={getCellLabelCallback} />;
+      return <CellLabel getCellLabelCallback={getCellLabelCallback} />;
     });
   });
-  const ncols = xs.length;
-  const nrows = ys.length;
+  const ncols = headersColumn.length;
+  const nrows = headersRow.length;
   const output = {
     ncols,
     nrows,
     values_num,
     values_meta,
-    xs,
-    ys,
+    headersColumn,
+    headersRow,
   };
   return output;
 };
@@ -237,9 +240,6 @@ export const Tooltip: FC<TooltipProps> = ({
   clientY,
   disabled,
   meta,
-  x,
-  y,
-  z,
   loading = false,
   onClick = noOp,
 }) => {
@@ -272,9 +272,6 @@ export const TooltipCursor: FC<TooltipCursorProps> = ({
   meta,
   tooltipCursorDataSetterRef,
   updated,
-  x,
-  y,
-  z,
 }) => {
   /* hooks */
   const [updatedState, setUpdatedState] = useState(updated);
@@ -282,9 +279,6 @@ export const TooltipCursor: FC<TooltipCursorProps> = ({
     clientX,
     clientY,
     meta,
-    x,
-    y,
-    z,
   });
   /* the refs are set here */
   const setter = (value: React.SetStateAction<TooltipData>) => {
@@ -317,8 +311,8 @@ export const TooltipInspector: FC<TooltipInspectorProps> = ({
   return <Tooltip disabled={false} onClick={closeHandler} {...tooltipProps} />;
 };
 
-/* <CellLabelMeta /> component */
-const CellLabelMeta: FC<{
+/* <CellLabel /> component */
+const CellLabel: FC<{
   getCellLabelCallback: () => ReactNode | Promise<ReactNode>;
 }> = ({ getCellLabelCallback }) => {
   /* hooks */
@@ -338,7 +332,7 @@ const CellLabelMeta: FC<{
       ignore = true;
     };
   }, [getCellLabelCallback]);
-  /* CellLabelMeta component */
+  /* CellLabel component */
   return <>{label}</>;
 };
 
@@ -364,17 +358,21 @@ export const PlotlyWrapper = ({
   /* hooks */
   const [innerWidth, setInnerWidth] = useState(window.innerWidth);
   /* globals */
-  window.__kbase_resizeHandler = () => {
+  if (!window.__kbase) {
+    window.__kbase = {};
+  }
+  window.__kbase.resizeHandler = () => {
     setInnerWidth(window.innerWidth);
   };
-  if (!window.__kbase_resizeListenerRegistered) {
+  if (!window.__kbase.resizeListenerRegistered) {
     window.addEventListener('resize', () => {
-      return window.__kbase_resizeHandler();
+      if (!window.__kbase.resizeHandler) return;
+      return window.__kbase.resizeHandler();
     });
-    window.__kbase_resizeListenerRegistered = true;
+    window.__kbase.resizeListenerRegistered = true;
   }
   /* derived values */
-  const { values_meta, values_num, xs, ys } = data;
+  const { values_meta, values_num, headersColumn, headersRow } = data;
   const { ncols, nrows } = heatMapMetaData;
   const { plotlyWindow } = plotlyState;
   // This value is arbitrary, but should depend on innerWidth.
@@ -394,11 +392,11 @@ export const PlotlyWrapper = ({
             ],
             hoverinfo: 'none',
             type: 'heatmap',
-            x: xs,
-            y: ys,
-            z: Array(xs.length)
+            x: headersColumn,
+            y: headersRow,
+            z: Array(headersColumn.length)
               .fill(0)
-              .map(() => Array(ys.length).fill(0)),
+              .map(() => Array(headersRow.length).fill(0)),
           },
           {
             colorscale: [
@@ -407,8 +405,8 @@ export const PlotlyWrapper = ({
             ],
             hoverinfo: 'none',
             type: 'heatmap',
-            x: xs,
-            y: ys,
+            x: headersColumn,
+            y: headersRow,
             z: values_num,
           },
         ]}
@@ -446,9 +444,6 @@ export const PlotlyWrapper = ({
             clientX: evt.event.clientX + 10,
             clientY: evt.event.clientY + 10,
             meta: values_meta[rix][cix],
-            x: pointData.x as string,
-            y: pointData.y as string,
-            z: 0,
           };
           setTooltipRole(TooltipRole.inspector);
           setTooltipInspectorProps(props);
@@ -466,9 +461,6 @@ export const PlotlyWrapper = ({
               clientX: cX,
               clientY: cY,
               meta: values_meta[rix][cix],
-              x: pointData.x as string,
-              y: pointData.y as string,
-              z: 0,
             });
           }
         }}
@@ -494,7 +486,7 @@ export const HeatMap = ({
   getCellLabel: HeatMapCallback['getCellLabel'];
 }) => {
   /* Convert data from tanstack table format to Plotly format. */
-  const { ncols, nrows, values_meta, values_num, xs, ys } =
+  const { ncols, nrows, values_meta, values_num, headersColumn, headersRow } =
     getPlotlyFromTanstack({
       getCellLabel,
       table,
@@ -520,8 +512,8 @@ export const HeatMap = ({
   const data: HeatMapData = {
     values_meta,
     values_num,
-    xs,
-    ys,
+    headersColumn,
+    headersRow,
   };
   const heatMapMetaData = { ncols, nrows };
   const plotlyState = {

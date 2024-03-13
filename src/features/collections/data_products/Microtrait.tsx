@@ -61,7 +61,9 @@ export const Microtrait: FC<{
     } else {
       return (
         <>
-          Row: {row.kbase_id}
+          Type: {column.columnDef.meta?.type}
+          <hr />
+          Row: ({row.kbase_id}) {row.kbase_display_name}
           <br />
           Col: {column.columnDef.header}
           <br />

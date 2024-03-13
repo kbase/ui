@@ -99,13 +99,13 @@ export interface HeatMapCell {
   val: number | boolean;
 }
 
-export interface HeatMapRow<Meta = unknown> {
+export interface HeatMapRow {
   match: boolean;
   sel: boolean;
   kbase_id: KBaseId;
   kbase_display_name: string;
   cells: HeatMapCell[];
-  meta?: Meta;
+  meta?: Record<string, string>;
 }
 
 interface HeatMapColumnCategory {

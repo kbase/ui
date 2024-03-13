@@ -172,6 +172,7 @@ export const GenomeAttribs: FC<{
           )
             ? 'right'
             : 'left',
+          type: columnMeta?.[field.name]?.type ?? '',
         },
       })),
       order: ['kbase_display_name', 'genome_size'],
