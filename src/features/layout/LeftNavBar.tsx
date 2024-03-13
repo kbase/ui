@@ -1,7 +1,6 @@
 /* LeftNavBar */
 import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
 import {
-  faExclamation,
   faCompass,
   faUsers,
   faBook,
@@ -42,9 +41,9 @@ const LeftNavBar: FC = () => {
           path="/legacy/feeds"
           desc="Feeds"
           icon={faBullhorn}
-          notifs={feeds?.unseen.global}
+          badge={feeds?.unseen.global}
         />
-        {token ? <DevNav /> : <></>}
+        <DevNav />
       </ul>
     </nav>
   );
@@ -60,12 +59,16 @@ const DevNav: FC = () => {
   const customroles = me && new Set(me.customroles);
   const devRole = customroles && customroles.has('UI_COLLECTIONS');
   const dev = devDomain || devRole;
-  if (!dev) return <></>;
+  if (!me || !dev) return <></>;
   return (
     <>
-      <NavItem path="/count" desc="Count" icon={faExclamation} />
-      <NavItem path="/auth" desc="Auth" icon={faExclamation} />
-      <NavItem path="/collections" desc="Collections" icon={faBoxesStacked} />
+      <NavItem
+        path="/collections"
+        desc="Collections"
+        icon={faBoxesStacked}
+        badge={'beta'}
+        badgeColor={'primary'}
+      />
     </>
   );
 };
@@ -74,8 +77,9 @@ const NavItem: FC<{
   path: string;
   desc: string;
   icon: IconDefinition;
-  notifs?: number;
-}> = ({ path, desc, icon, notifs }) => {
+  badge?: number | string;
+  badgeColor?: string;
+}> = ({ path, desc, icon, badge, badgeColor }) => {
   const location = useLocation();
   let itemClasses = classes.nav_item;
   if (location.pathname === path) {
@@ -86,8 +90,15 @@ const NavItem: FC<{
       <Link to={path}>
         <FAIcon className={classes.nav_icon} icon={icon} />
         <span className={classes.nav_desc}>{desc}</span>
-        {notifs && notifs > 0 ? (
-          <span className={classes.nav_notifs}>{notifs}</span>
+        {badge ? (
+          <span
+            className={[
+              classes.nav_notifs,
+              badgeColor ? classes[`nav_notifs-bg--${badgeColor}`] : '',
+            ].join(' ')}
+          >
+            {badge}
+          </span>
         ) : (
           <></>
         )}

@@ -2,7 +2,6 @@ import { Action, combineReducers, configureStore } from '@reduxjs/toolkit';
 import { baseApi } from '../common/api';
 import auth from '../features/auth/authSlice';
 import collections from '../features/collections/collectionsSlice';
-import count from '../features/count/countSlice';
 import icons from '../features/icons/iconSlice';
 import layout from '../features/layout/layoutSlice';
 import navigator from '../features/navigator/navigatorSlice';
@@ -12,7 +11,6 @@ import profile from '../features/profile/profileSlice';
 const everyReducer = combineReducers({
   auth,
   collections,
-  count,
   icons,
   layout,
   navigator,

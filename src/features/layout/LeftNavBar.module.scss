@@ -49,11 +49,24 @@ ul.nav_list {
       border: 3px solid use-color("white");
       border-radius: 0.8em;
       color: use-color("white");
+      font-size: 12px;
       font-weight: bold;
       padding: 0.1666em 0.3333em;
       position: absolute;
       right: 0;
       top: 0;
+    }
+  }
+}
+
+@each $state, $_ in $palette {
+  .nav_notifs.nav_notifs-bg--#{$state} {
+    background-color: use-color($state);
+
+    @if (lightness(use-color($state)) > 40) {
+      color: use-color("black");
+    } @else {
+      color: use-color("white");
     }
   }
 }
