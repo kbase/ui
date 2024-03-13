@@ -16,7 +16,7 @@ import { Pagination, usePageBounds } from '../../../common/components/Table';
 import { useAppDispatch, useBackoffPolling } from '../../../common/hooks';
 import { useAppParam } from '../../params/hooks';
 import { useGenerateSelectionId } from '../collectionsSlice';
-import { HeatMap, MAX_HEATMAP_PAGE } from './HeatMap';
+import { HeatMap, HeatMapCallback, MAX_HEATMAP_PAGE } from './HeatMap';
 import { formatNumber } from '../../../common/utils/stringUtils';
 import classes from './../Collections.module.scss';
 import { Paper } from '@mui/material';
@@ -28,50 +28,63 @@ export const Biolog: FC<{
   const { table, count } = useBiolog(collection_id);
   const { firstRow, lastRow } = usePageBounds(table);
 
+  /* see also Microtrait.getCellLabel */
+  const getCellLabel: HeatMapCallback['getCellLabel'] = async (
+    cell,
+    row,
+    column
+  ) => {
+    let response: {
+      data?: { values: { id: string; val: number | boolean }[] };
+      error?: unknown;
+    } = {};
+    try {
+      response = await dispatch(
+        getBiologCell.initiate({
+          collection_id,
+          cell_id: cell.cell_id,
+        })
+      );
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error('Error getting MicroTraitCell data.');
+      return <></>;
+    }
+    const { data, error } = response;
+    if (!data) {
+      return (
+        <>
+          {'Error loading cell data:'}
+          <br />
+          {error ? JSON.stringify(parseError(error)) : 'Unknown error'}
+        </>
+      );
+    } else {
+      return (
+        <>
+          Type: {column.columnDef.meta?.type}
+          <hr />
+          Row: {row.kbase_id}
+          <br />
+          Col: {column.columnDef.header}
+          <br />
+          Val: {`${cell.val}`}
+          <>
+            {data.values.map(({ id, val }) => (
+              <div key={id}>{`- ${id}:${val}`}</div>
+            ))}
+          </>
+        </>
+      );
+    }
+  };
   return (
     <Paper variant="outlined">
       <div className={classes['table-toolbar']}>
         Showing {formatNumber(firstRow)} - {formatNumber(lastRow)} of{' '}
         {formatNumber(count?.count || 0)} genomes
       </div>
-      <HeatMap
-        table={table}
-        rowNameAccessor={(row) => row.kbase_display_name}
-        getCellLabel={async (cell, row, column) => {
-          const { data, error } = await dispatch(
-            getBiologCell.initiate({
-              collection_id,
-              cell_id: cell.cell_id,
-            })
-          );
-          if (!data) {
-            return (
-              <>
-                {'Error loading cell data:'}
-                <br />
-                {error ? parseError(error) : 'Unknown error'}
-              </>
-            );
-          } else {
-            return (
-              <>
-                Row: {row.kbase_id}
-                <br />
-                Col: {column.columnDef.header}
-                <br />
-                Val: {cell.val.toString()}
-                <>
-                  {Object.entries(row.meta as Record<string, string>).map(
-                    ([id, val]) => (
-                      <div key={id}>{`- ${id}:${val}`}</div>
-                    )
-                  )}
-                </>
-              </>
-            );
-          }
-        }}
-      />
+      <HeatMap table={table} getCellLabel={getCellLabel} />
       <div className={classes['pagination-wrapper']}>
         <Pagination table={table} maxPage={MAX_HEATMAP_PAGE} />
       </div>
