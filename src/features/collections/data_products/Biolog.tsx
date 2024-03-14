@@ -158,7 +158,9 @@ const useBiolog = (collection_id: string | undefined) => {
   useEffect(() => {
     if (!biologQuery.isFetching && biologQuery.data) {
       pageLastIdCache[pagination.pageIndex] =
-        biologQuery.data.data[biologQuery.data.data.length - 1].kbase_id;
+        biologQuery.data.data[
+          biologQuery.data.data.length - 1
+        ].kbase_display_name;
     }
   }, [
     biologQuery.data,
