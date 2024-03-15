@@ -160,7 +160,7 @@ const useMicrotrait = (collection_id: string | undefined) => {
       pageLastIdCache[pagination.pageIndex] =
         microtraitQuery.data.data[
           microtraitQuery.data.data.length - 1
-        ].kbase_id;
+        ].kbase_display_name;
     }
   }, [
     microtraitQuery.data,
