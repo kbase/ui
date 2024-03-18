@@ -314,6 +314,10 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
   const idNarrative = useId();
   const idDataObject = useId();
 
+  // React complains that the provided ref is useless for a FC.
+  const registerMatcher = Object.fromEntries(
+    Object.entries(register('matcher')).filter(([key]) => key !== 'ref')
+  );
   return (
     <Modal
       title={'Match Data Object'}
@@ -330,7 +334,7 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
                 disabled={!matchersQuery.data}
                 loading={matchersQuery.isFetching}
                 options={matcherOptions}
-                {...register('matcher')}
+                {...registerMatcher}
                 onChange={(opt) => {
                   setValue(
                     'matcher',

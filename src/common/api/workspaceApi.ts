@@ -30,7 +30,7 @@ interface wsParams {
   deleteWorkspace: { wsId: number };
   getwsNarrative: { upa: string };
   getwsObjectByName: { upa: string };
-  getwsPermissions: { wsId: number };
+  getwsPermissions: { wsIds: number[] };
   listObjects: {
     ids?: number[];
     workspaces?: string[];
@@ -141,10 +141,10 @@ const wsApi = baseApi.injectEndpoints({
       wsResults['getwsPermissions'],
       wsParams['getwsPermissions']
     >({
-      query: ({ wsId }) =>
+      query: ({ wsIds }) =>
         ws({
           method: 'Workspace.get_permissions_mass',
-          params: [{ workspaces: [{ id: wsId }] }],
+          params: [{ workspaces: wsIds.map((wsId) => ({ id: wsId })) }],
         }),
     }),
     listObjects: builder.query<

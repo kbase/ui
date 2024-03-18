@@ -99,13 +99,13 @@ export interface HeatMapCell {
   val: number | boolean;
 }
 
-export interface HeatMapRow<Meta = unknown> {
+export interface HeatMapRow {
   match: boolean;
   sel: boolean;
   kbase_id: KBaseId;
   kbase_display_name: string;
   cells: HeatMapCell[];
-  meta?: Meta;
+  meta?: Record<string, string>;
 }
 
 interface HeatMapColumnCategory {
@@ -115,9 +115,10 @@ interface HeatMapColumnCategory {
 
 export interface HeatMapColumn {
   col_id: string;
-  name: string;
   description: string;
+  name: string;
   type: 'float' | 'int' | 'bool' | 'count';
+  [key: string]: string;
 }
 
 interface ClientError {
@@ -632,11 +633,17 @@ export const collectionsApi = baseApi.injectEndpoints({
       CollectionsResults['exportSelection'],
       CollectionsParams['exportSelection']
     >({
-      query: ({ selection_id, workspace_id, object_name, ws_type, ...body }) =>
+      query: ({
+        selection_id,
+        workspace_id,
+        object_name,
+        ws_type,
+        description,
+      }) =>
         collectionsService({
           method: 'POST',
           url: encode`/selections/${selection_id}/toset/${workspace_id}/obj/${object_name}/type/${ws_type}`,
-          body: body,
+          body: { description },
           headers: {
             authorization: `Bearer ${store.getState().auth.token}`,
           },
@@ -890,19 +897,16 @@ export const collectionsApi = baseApi.injectEndpoints({
   }),
 });
 
+export type CollectionsReturnType =
+  typeof collectionsApi['endpoints'][keyof typeof collectionsApi['endpoints']]['initiate'];
+
 export const parseCollectionsError = (
   /**result.error object from any collections query.
    * The type definition is unfortunately a bit visually hairy.
    * But all the typedef is doing is extracting the error type.*/
   error:
     | Extract<
-        Awaited<
-          ReturnType<
-            ReturnType<
-              typeof collectionsApi['endpoints'][keyof typeof collectionsApi['endpoints']]['initiate']
-            >
-          >
-        >,
+        Awaited<ReturnType<ReturnType<CollectionsReturnType>>>,
         { error: unknown }
       >['error']
     | undefined

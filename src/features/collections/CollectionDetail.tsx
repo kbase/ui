@@ -47,6 +47,14 @@ export type SetModalView = React.Dispatch<React.SetStateAction<ModalView>>;
 const filterInputDebounceRate = 600;
 const filterSliderDebounceRate = 100;
 
+const pageConfig: Record<string, ('filter' | 'match' | 'search')[]> = {
+  samples: [],
+  biolog: [],
+  microtrait: [],
+  genome_attribs: ['filter', 'match', 'search'],
+  taxa_count: ['filter', 'match'],
+};
+
 export const CollectionDetail = () => {
   const params = useParams();
   const navigate = useNavigate();
@@ -118,6 +126,19 @@ export const CollectionDetail = () => {
     return () => setFiltersOpen(false);
   }, [currDataProduct, showOverview]);
 
+  const showMatchButton = (
+    (params.data_product && pageConfig[params.data_product]) ||
+    []
+  ).includes('match');
+  const showFilterButton = (
+    (params.data_product && pageConfig[params.data_product]) ||
+    []
+  ).includes('filter');
+  const showSearch = (
+    (params.data_product && pageConfig[params.data_product]) ||
+    []
+  ).includes('search');
+
   if (!collection) return <Loader type="spinner" />;
   return (
     <div className={styles['collection_wrapper']}>
@@ -137,10 +158,12 @@ export const CollectionDetail = () => {
               <div className={styles['collection_toolbar']}>
                 <Stack direction="row" spacing={1}>
                   <Input
+                    hidden={!showSearch}
                     className={styles['search-box']}
                     placeholder="Search genomes by classification"
                   />
                   <Button
+                    hidden={!showFilterButton}
                     ref={filterMenuRef}
                     icon={<FontAwesomeIcon icon={faFilter} />}
                     onClick={handleToggleFilters}
@@ -148,6 +171,7 @@ export const CollectionDetail = () => {
                     Filters
                   </Button>
                   <Button
+                    hidden={!showMatchButton}
                     icon={<FontAwesomeIcon icon={faArrowRightArrowLeft} />}
                     variant="contained"
                     onClick={() => {
@@ -251,8 +275,9 @@ const FilterChips = ({ collectionId }: { collectionId: string }) => {
       {filterEntries.map(([column, filter]) => {
         return (
           <FilterChip
-            name={column}
             filter={filter}
+            key={`${column}-${filter.type}`}
+            name={column}
             onDelete={() => clearFilterState(column)}
           />
         );
@@ -277,7 +302,7 @@ const FilterMenu = (props: {
         {filterEntries.flatMap(([column, filter]) => {
           const hasVal = Boolean(filter.value);
           const children = [
-            <Divider key={column + '__label'} textAlign="left">
+            <Divider key={`${column}__label`} textAlign="left">
               <FilterChip
                 name={column}
                 filter={filter}
@@ -287,7 +312,7 @@ const FilterMenu = (props: {
                 onDelete={hasVal ? () => clearFilterState(column) : undefined}
               />
             </Divider>,
-            <MenuItem>
+            <MenuItem key={`${column}__label`}>
               <FilterControls
                 column={column}
                 filter={filter}
