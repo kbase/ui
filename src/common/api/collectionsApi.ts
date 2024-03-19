@@ -311,6 +311,10 @@ interface CollectionsResults {
     data?: null;
     count?: number;
   };
+  getSampleAttribsMeta: {
+    count: number;
+    columns: Array<ColumnMeta>;
+  };
   getSampleLocations: {
     match_state: ProcessState;
     selection_state: ProcessState;
@@ -468,6 +472,10 @@ interface CollectionsParams {
     selection_id?: Selection['selection_id'];
     selection_mark?: boolean;
     count?: boolean;
+    load_ver_override?: Collection['ver_tag'];
+  };
+  getSampleAttribsMeta: {
+    collection_id: Collection['id'];
     load_ver_override?: Collection['ver_tag'];
   };
   getSampleLocations: {
@@ -880,6 +888,22 @@ export const collectionsApi = baseApi.injectEndpoints({
           },
         }),
     }),
+
+    getSampleAttribsMeta: builder.query<
+      CollectionsResults['getSampleAttribsMeta'],
+      CollectionsParams['getSampleAttribsMeta']
+    >({
+      query: ({ collection_id, ...options }) =>
+        collectionsService({
+          method: 'GET',
+          url: encode`/collections/${collection_id}/data_products/samples/meta`,
+          params: { collection_id, ...options },
+          headers: {
+            authorization: `Bearer ${store.getState().auth.token}`,
+          },
+        }),
+    }),
+
     getSampleLocations: builder.query<
       CollectionsResults['getSampleLocations'],
       CollectionsParams['getSampleLocations']
@@ -948,5 +972,6 @@ export const {
   getBiologCell,
   getBiologMissing,
   getSampleAttribs,
+  getSampleAttribsMeta,
   getSampleLocations,
 } = collectionsApi.endpoints;
