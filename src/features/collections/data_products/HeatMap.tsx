@@ -1,7 +1,7 @@
 import { Column, Table } from '@tanstack/react-table';
 import { FC, ReactNode, useEffect, useRef, useState } from 'react';
+import Plotly from 'plotly.js';
 import Plot from 'react-plotly.js';
-import type Layout from 'react-plotly.js';
 import { HeatMapCell, HeatMapRow } from '../../../common/api/collectionsApi';
 import { Button, Loader } from '../../../common/components';
 import { noOp } from '../../common';
@@ -105,6 +105,12 @@ const getNumber = ({
   valueIfNotFinite: number;
 }) => (Number.isFinite(Number(value)) ? Number(value) : valueIfNotFinite);
 
+const encodeIndexAsZeroWidthBits = (index: number) => {
+  return Array.from(index.toString(2))
+    .map((bit) => '\u200b\u200c'[Number(bit)])
+    .join('');
+};
+
 /* convert the tanstack table data into the format Plotly expects */
 const getPlotlyFromTanstack = ({
   table,
@@ -116,9 +122,25 @@ const getPlotlyFromTanstack = ({
   const rows = table.getSortedRowModel().rows;
   const cols = table.getAllFlatColumns().filter((col) => col.parent);
   const headersColumn: string[] = cols.map((col, cix) => {
-    return col.columnDef.header as string;
+    // Plotly reacts poorly if ticklabels are not unique.
+    const zeroWidthKey = encodeIndexAsZeroWidthBits(cix);
+    const value = col.columnDef.header as string;
+    const abbr =
+      value.length < 13
+        ? value
+        : `${value.slice(0, 6)}...${value.slice(-6)}${zeroWidthKey}`;
+    return abbr;
   });
-  const headersRow = rows.map((row) => row.id);
+  const headersRow = rows.map((row, rix) => {
+    // Plotly reacts poorly if ticklabels are not unique.
+    const zeroWidthKey = encodeIndexAsZeroWidthBits(rix);
+    const value = row.id;
+    const abbr =
+      value.length < 13
+        ? value
+        : `${value.slice(0, 8)}...${value.slice(-6)}${zeroWidthKey}`;
+    return abbr;
+  });
   const values_num = rows.map((row) =>
     row.getAllCells().map((cell) => cell.getValue() as number)
   );
@@ -368,7 +390,18 @@ export const PlotlyWrapper = ({
   const { plotlyWindow } = plotlyState;
   // This value is arbitrary, but should depend on innerWidth.
   const heatMapWidth = (innerWidth * 2) / 3;
-  const config = { displaylogo: false, scrollZoom: true };
+  const modeBarButtonsToRemove: Plotly.ModeBarDefaultButtons[] = [
+    'autoScale2d',
+    'pan2d',
+    'zoom2d',
+    'zoomIn2d',
+    'zoomOut2d',
+  ];
+  const config = {
+    displaylogo: false,
+    scrollZoom: true,
+    modeBarButtonsToRemove,
+  };
   const otherProps = { ...tooltipProps, visible: tooltipRole };
   /* PlotlyWrapper component */
   return (
@@ -378,37 +411,24 @@ export const PlotlyWrapper = ({
         data={[
           {
             colorscale: [
-              [0, '#f00'],
-              [1, '#00f'],
-            ],
-            hoverinfo: 'none',
-            type: 'heatmap',
-            x: headersColumn,
-            y: headersRow,
-            z: Array(headersColumn.length)
-              .fill(0)
-              .map(() => Array(headersRow.length).fill(0)),
-          },
-          {
-            colorscale: [
               [0, '#fff'],
               [1, '#b6151c'],
             ],
             hoverinfo: 'none',
+            showscale: false,
             type: 'heatmap',
             x: headersColumn,
+            xgap: 1,
             y: headersRow,
+            ygap: 1,
             z: values_num,
           },
         ]}
         debug={true}
-        // The types for layout lag behind plotly's capabilities.
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
         layout={
           {
             dragmode: 'pan',
-            legend: { bordercolor: '#000', borderwidth: 1 },
+            margin: { l: 150, t: 150 },
             width: heatMapWidth,
             xaxis: {
               autotypenumbers: 'strict',
@@ -423,7 +443,8 @@ export const PlotlyWrapper = ({
               maxallowed: nrows,
               range: [plotlyWindow.yMin, plotlyWindow.yMax],
             },
-          } as Partial<Layout>
+          } as Partial<Plotly.Layout>
+          // The types for layout lag behind plotly's capabilities.
         }
         onClick={(evt) => {
           // TODO: fix this type. Compare:

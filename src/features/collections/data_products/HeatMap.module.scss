@@ -105,6 +105,14 @@ See the mouseout handler in the <HeatMap /> component.
   z-index: 1;
 }
 
+.tooltip a {
+  color: use-color("accent-cool-light");
+}
+
+.tooltip a:visited {
+  color: use-color("accent-cool");
+}
+
 .trait-names {
   display: flex;
   flex-flow: row nowrap;
