@@ -1,4 +1,4 @@
-import { FC, ReactElement } from 'react';
+import { FC, ReactElement, useEffect } from 'react';
 import {
   Navigate,
   Route,
@@ -21,12 +21,14 @@ import {
   detailDataProductPath,
 } from '../features/collections/Collections';
 import {
+  useAppDispatch,
   useAppSelector,
   useFilteredParams,
   usePageTracking,
 } from '../common/hooks';
+import { setLoginControlDisabled } from '../features/layout/layoutSlice';
 
-export const LOGIN_ROUTE = '/legacy/login';
+export const LOGIN_ROUTE = `/${LEGACY_BASE_ROUTE}/login`;
 export const ROOT_REDIRECT_ROUTE = '/narratives';
 
 const Routes: FC = () => {
@@ -34,7 +36,15 @@ const Routes: FC = () => {
   usePageTracking();
   return (
     <RRRoutes>
-      <Route path={`${LEGACY_BASE_ROUTE}/*`} element={<Legacy />} />
+      <Route path={`${LEGACY_BASE_ROUTE}/*`}>
+        {/* disable login controls in contexts for which Login is not a viable or recommended action  */}
+        <Route path={'login'} element={<DisableLogin element={<Legacy />} />} />
+        <Route
+          path={`auth2/login/continue`} // Auth2 plugin login continue page
+          element={<DisableLogin element={<Legacy />} />}
+        />
+        <Route path="*" element={<Legacy />} />
+      </Route>
       <Route
         path="/profile/:usernameRequested/narratives"
         element={<Authed element={<ProfileWrapper />} />}
@@ -114,6 +124,17 @@ export const Authed: FC<{ element: ReactElement }> = ({ element }) => {
     );
 
   return <>{element}</>;
+};
+
+export const DisableLogin: FC<{ element: ReactElement }> = ({ element }) => {
+  const dispatch = useAppDispatch();
+  useEffect(() => {
+    dispatch(setLoginControlDisabled(true));
+    return () => {
+      dispatch(setLoginControlDisabled(false));
+    };
+  }, [dispatch, element]);
+  return element;
 };
 
 export const HashRouteRedirect = () => {

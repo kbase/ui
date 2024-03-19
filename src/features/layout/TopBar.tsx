@@ -1,3 +1,4 @@
+import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
 import {
   faBars,
   faEnvelope,
@@ -16,38 +17,20 @@ import {
   faUser,
   faWrench,
 } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
 import { FC, useMemo } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
-import { toast } from 'react-hot-toast';
-import { Link } from 'react-router-dom';
-import { LOGIN_ROUTE } from '../../app/Routes';
-import { resetStateAction } from '../../app/store';
-import { revokeToken } from '../../common/api/authService';
-import { getUserProfile } from '../../common/api/userProfileApi';
 import logo from '../../common/assets/logo/46_square.png';
 import { Dropdown } from '../../common/components';
 import { useAppDispatch, useAppSelector } from '../../common/hooks';
 import { authUsername, setAuth } from '../auth/authSlice';
-import { noOp } from '../common';
 import classes from './TopBar.module.scss';
-
-/**
- * A set of url pathname regular expressions which, when matching the current url
- * pathname, cause the login control to be disabled.
- *
- * This is convenient for the Login view, as it helps indicate login is active,
- * and for the "continue" views, which are encountered during sign-in, which
- * clicking the sign-in button would disrupt.
- *
- * In other words, the login button should be disabled in a context for which
- * Login is not a viable or recommended action.
- */
-const LOGIN_CONTROL_DISABLED_WHITELIST = [
-  /\/legacy\/login/,
-  /\/legacy\/auth2\/login\/continue/,
-];
+import { Button } from '@mui/material';
+import { getUserProfile } from '../../common/api/userProfileApi';
+import { revokeToken } from '../../common/api/authService';
+import { toast } from 'react-hot-toast';
+import { noOp } from '../common';
+import { resetStateAction } from '../../app/store';
 
 export default function TopBar() {
   const username = useAppSelector(authUsername);
@@ -73,43 +56,20 @@ export default function TopBar() {
   );
 }
 
-export const LoginPrompt: FC = () => {
-  const location = useLocation();
-  const disabled = LOGIN_CONTROL_DISABLED_WHITELIST.some((path) => {
-    return path.test(location.pathname);
-  });
-
-  if (disabled) {
-    // Mirrors the appearance of the "real" Sign In button below by using the
-    // same display class. NB: We do this because, unfortunately, Link, used for
-    // the real button, does not have a disabled state.
-    return (
-      // Note that although eslint gives this warning, a "button" role is not actually
-      // generated for the button component, at least for the native button.
-      // eslint-disable-next-line jsx-a11y/no-redundant-roles
-      <button
-        className={[classes.login_prompt, classes.disabled].join(' ')}
-        disabled
-        aria-disabled
-        role="button"
-      >
-        <FAIcon icon={faSignIn} />
-        <span>Sign In</span>
-      </button>
-    );
-  }
-
-  // Sign in should be disabled on the sign-in page! The sign-in page may have a search
-  // param suffix, so we split it off.
+const LoginPrompt: FC = () => {
+  const disabled = useAppSelector((state) => state.layout.loginControlDisabled);
   return (
-    <Link
-      role="button"
-      to={{ pathname: LOGIN_ROUTE }}
+    <Button
+      role="link"
+      variant="text"
+      href={'/legacy/login'}
+      disabled={disabled}
+      aria-disabled={disabled}
       className={classes.login_prompt}
     >
       <FAIcon icon={faSignIn} />
       <span>Sign In</span>
-    </Link>
+    </Button>
   );
 };
 
