@@ -1,3 +1,4 @@
+import { Alert, Stack } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 import {
   exportSelection,
@@ -7,15 +8,15 @@ import {
 import { getNarratives } from '../../common/api/searchApi';
 import { Select, Input, Button, SelectOption } from '../../common/components';
 import { uriEncodeTemplateTag as encode } from '../../common/utils/stringUtils';
-import { Modal } from '../layout/Modal';
-import { useAppParam } from '../params/hooks';
-import { useSelectionId } from './collectionsSlice';
-import { useParamsForNarrativeDropdown } from './hooks';
-import { Alert, Stack } from '@mui/material';
-import classes from './Collections.module.scss';
+import { DataViewLink } from '../../common/components';
 import { useAppSelector } from '../../common/hooks';
 import { getwsPermissions } from '../../common/api/workspaceApi';
 import { NarrativeDoc } from '../../common/types/NarrativeDoc';
+import { useAppParam } from '../params/hooks';
+import { Modal } from '../layout/Modal';
+import { useSelectionId } from './collectionsSlice';
+import classes from './Collections.module.scss';
+import { useParamsForNarrativeDropdown } from './hooks';
 
 export const ExportModal = ({ collectionId }: { collectionId: string }) => {
   const selectionId = useSelectionId(collectionId);
@@ -187,9 +188,9 @@ export const ExportModal = ({ collectionId }: { collectionId: string }) => {
                   </a>
                 </li>
                 <li>
-                  <a href={`/#dataview/${exportResult.data.set.upa}`}>
+                  <DataViewLink identifier={exportResult.data.set.upa}>
                     Go to DataView
-                  </a>
+                  </DataViewLink>
                 </li>
               </ul>
             </Alert>

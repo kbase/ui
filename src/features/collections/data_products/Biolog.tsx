@@ -1,3 +1,4 @@
+import { Paper } from '@mui/material';
 import {
   getCoreRowModel,
   getPaginationRowModel,
@@ -12,14 +13,14 @@ import {
   getBiologMeta,
 } from '../../../common/api/collectionsApi';
 import { parseError } from '../../../common/api/utils/parseError';
+import { DataViewLink } from '../../../common/components';
 import { Pagination, usePageBounds } from '../../../common/components/Table';
 import { useAppDispatch, useBackoffPolling } from '../../../common/hooks';
+import { formatNumber } from '../../../common/utils/stringUtils';
 import { useAppParam } from '../../params/hooks';
+import classes from '../Collections.module.scss';
 import { useGenerateSelectionId } from '../collectionsSlice';
 import { HeatMap, HeatMapCallback, MAX_HEATMAP_PAGE } from './HeatMap';
-import { formatNumber } from '../../../common/utils/stringUtils';
-import classes from './../Collections.module.scss';
-import { Paper } from '@mui/material';
 
 export const Biolog: FC<{
   collection_id: string;
@@ -47,7 +48,7 @@ export const Biolog: FC<{
       );
     } catch (e) {
       // eslint-disable-next-line no-console
-      console.error('Error getting MicroTraitCell data.');
+      console.error('Error getting BiologCell data.');
       return <></>;
     }
     const { data, error } = response;
@@ -64,7 +65,10 @@ export const Biolog: FC<{
         <>
           Type: {column.columnDef.meta?.type}
           <hr />
-          Row: {row.kbase_id}
+          Row: (
+          <DataViewLink identifier={row.kbase_id}>
+            {row.kbase_id}
+          </DataViewLink>) {row.kbase_display_name}
           <br />
           Col: {column.columnDef.header}
           <br />
@@ -213,7 +217,7 @@ const useBiolog = (collection_id: string | undefined) => {
 
   const table = useReactTable<RowDatum>({
     data: biolog?.data || [],
-    getRowId: (row) => String(row.kbase_id),
+    getRowId: (row) => String(row.kbase_display_name),
     columns: useMemo(
       () =>
         (meta?.categories ?? []).slice(0, 30).map((category) => {
