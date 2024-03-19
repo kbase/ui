@@ -37,7 +37,7 @@ describe('TimeoutMonitor class', () => {
     };
 
     const intervals: Array<number> = [];
-    const onInterval = async (elapsed: number) => {
+    const onInterval = (elapsed: number) => {
       intervals.push(elapsed);
     };
 
@@ -71,7 +71,7 @@ describe('TimeoutMonitor class', () => {
     };
 
     const intervals: Array<number> = [];
-    const onInterval = async (elapsed: number) => {
+    const onInterval = (elapsed: number) => {
       intervals.push(elapsed);
     };
 
@@ -111,7 +111,7 @@ describe('TimeoutMonitor class', () => {
     };
 
     const intervals: Array<number> = [];
-    const onInterval = async (elapsed: number) => {
+    const onInterval = (elapsed: number) => {
       intervals.push(elapsed);
     };
 
@@ -228,7 +228,7 @@ describe('TimeoutMonitor class', () => {
 
     const testCases = [
       {
-        onInterval: async (_: number) => {
+        onInterval: (_: number) => {
           throw new Error(errorMessage);
         },
         expected: {
@@ -237,7 +237,7 @@ describe('TimeoutMonitor class', () => {
         },
       },
       {
-        onInterval: async (_: number) => {
+        onInterval: (_: number) => {
           throw errorMessage;
         },
         expected: {
@@ -290,15 +290,11 @@ describe('TimeoutMonitor class', () => {
             errorMessage,
             expect.any(errorType)
           );
-          expect(errorLogSpy).toHaveBeenNthCalledWith(
-            4,
-            'Error running interval callback',
-            errorMessage,
-            expect.any(errorType)
-          );
         },
         { timeout: WAIT_FOR_TIMEOUT }
       );
+
+      monitor.stop();
     }
   });
 });

@@ -1,4 +1,4 @@
-export type IntervalCallback = (elapsed: number) => Promise<void>;
+export type IntervalCallback = (elapsed: number) => void;
 export type TimeoutCallback = (elapsed: number) => void;
 
 export enum TimeoutMonitorStatus {
@@ -76,7 +76,7 @@ export default class TimeoutMonitor {
     };
   }
 
-  async start() {
+  start() {
     if (this.state.status !== TimeoutMonitorStatus.NONE) {
       return;
     }
@@ -94,10 +94,10 @@ export default class TimeoutMonitor {
    * than setInterval, because onInterval will consume some time, and we never
    * want the onInterval calls to overlap.
    */
-  private async monitoringLoop() {
+  private monitoringLoop() {
     // Run initial interval callback.
     try {
-      this.onInterval && (await this.onInterval(0));
+      this.onInterval && this.onInterval(0);
     } catch (ex) {
       const message = ex instanceof Error ? ex.message : 'Unknown error';
       // eslint-disable-next-line no-console
@@ -105,7 +105,7 @@ export default class TimeoutMonitor {
     }
 
     const loop = () => {
-      return window.setTimeout(async () => {
+      return window.setTimeout(() => {
         if (this.state.status !== TimeoutMonitorStatus.RUNNING) {
           return null;
         }
@@ -126,7 +126,7 @@ export default class TimeoutMonitor {
           };
         }
         try {
-          this.onInterval && (await this.onInterval(this.state.elapsed));
+          this.onInterval && this.onInterval(this.state.elapsed);
         } catch (ex) {
           const message = ex instanceof Error ? ex.message : 'Unknown error';
           // eslint-disable-next-line no-console
