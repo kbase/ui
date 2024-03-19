@@ -97,7 +97,7 @@
     "webpack": "^5.75.0"
   },
   "engines": {
-    "node": ">=16.13.0"
+    "node": ">=20.11.1"
   },
   "eslintConfig": {
     "overrides": [
