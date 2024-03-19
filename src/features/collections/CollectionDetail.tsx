@@ -1,9 +1,5 @@
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import {
-  getCollection,
-  getGenomeAttribsMeta,
-  getMatch,
-} from '../../common/api/collectionsApi';
+import { getCollection, getMatch } from '../../common/api/collectionsApi';
 import { usePageTitle } from '../layout/layoutSlice';
 import styles from './Collections.module.scss';
 import { useEffect, useRef, useState } from 'react';
@@ -24,8 +20,7 @@ import { Loader } from '../../common/components/Loader';
 import { CollectionSidebar, dataProductsMeta } from './CollectionSidebar';
 import {
   clearFilter,
-  clearFiltersAndColumnMeta,
-  setColumnMeta,
+  FilterContextScope,
   FilterState,
   setFilter,
   useCurrentSelection,
@@ -47,12 +42,21 @@ export type SetModalView = React.Dispatch<React.SetStateAction<ModalView>>;
 const filterInputDebounceRate = 600;
 const filterSliderDebounceRate = 100;
 
-const pageConfig: Record<string, ('filter' | 'match' | 'search')[]> = {
-  samples: [],
-  biolog: [],
-  microtrait: [],
-  genome_attribs: ['filter', 'match', 'search'],
-  taxa_count: ['filter', 'match'],
+const pageConfig: Record<
+  string,
+  {
+    features: ('filter' | 'match' | 'search')[];
+    filterScope?: FilterContextScope;
+  }
+> = {
+  samples: { features: [], filterScope: 'samples' },
+  biolog: { features: [], filterScope: 'biolog' },
+  microtrait: { features: [], filterScope: 'microtrait' },
+  genome_attribs: {
+    features: ['filter', 'match', 'search'],
+    filterScope: 'genomes',
+  },
+  taxa_count: { features: ['filter', 'match'], filterScope: 'genomes' },
 };
 
 export const CollectionDetail = () => {
@@ -127,15 +131,15 @@ export const CollectionDetail = () => {
   }, [currDataProduct, showOverview]);
 
   const showMatchButton = (
-    (params.data_product && pageConfig[params.data_product]) ||
+    (params.data_product && pageConfig[params.data_product].features) ||
     []
   ).includes('match');
   const showFilterButton = (
-    (params.data_product && pageConfig[params.data_product]) ||
+    (params.data_product && pageConfig[params.data_product].features) ||
     []
   ).includes('filter');
   const showSearch = (
-    (params.data_product && pageConfig[params.data_product]) ||
+    (params.data_product && pageConfig[params.data_product].features) ||
     []
   ).includes('search');
 
@@ -248,7 +252,7 @@ export const CollectionDetail = () => {
 };
 
 const useFilterEntries = (collectionId: string) => {
-  const { context, filters } = useCollectionFilters(collectionId);
+  const { context, filters } = useFilters(collectionId);
   const dispatch = useAppDispatch();
 
   const filterEntries = Object.entries(filters || {});
@@ -328,68 +332,6 @@ const FilterMenu = (props: {
   } else {
     return null;
   }
-};
-
-const useCollectionFilters = (collectionId: string | undefined) => {
-  const dispatch = useAppDispatch();
-  const { context, filters } = useFilters(collectionId);
-  const { data: filterData, isLoading } = getGenomeAttribsMeta.useQuery(
-    { collection_id: collectionId || '' },
-    { skip: !collectionId }
-  );
-  useEffect(() => {
-    if (collectionId && filterData) {
-      dispatch(clearFiltersAndColumnMeta([collectionId, context]));
-      filterData.columns.forEach((column) => {
-        const current = filters && filters[column.key];
-        dispatch(setColumnMeta([collectionId, context, column.key, column]));
-        if (
-          column.type === 'date' ||
-          column.type === 'float' ||
-          column.type === 'int'
-        ) {
-          let min = column.min_value;
-          let max = column.max_value;
-          if (column.type === 'date') {
-            min = new Date(min).getTime();
-            max = new Date(max).getTime();
-          }
-          dispatch(
-            setFilter([
-              collectionId,
-              context,
-              column.key,
-              {
-                type: column.type,
-                min_value: min,
-                max_value: max,
-                value:
-                  current?.type === column.type ? current.value : undefined,
-              },
-            ])
-          );
-        } else if (column.type === 'string') {
-          dispatch(
-            setFilter([
-              collectionId,
-              context,
-              column.key,
-              {
-                type: column.filter_strategy,
-                value:
-                  current?.type === column.filter_strategy
-                    ? current.value
-                    : undefined,
-              },
-            ])
-          );
-        }
-      });
-    }
-    // Exclude filters from deps to prevent circular dep
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterData, context, collectionId, dispatch]);
-  return { filters, context, isLoading };
 };
 
 interface FilterControlProps {
