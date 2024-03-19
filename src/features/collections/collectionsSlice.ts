@@ -48,7 +48,7 @@ export type FilterState =
 interface ClnState {
   selection: SelectionState;
   match: MatchState;
-  filterContext: string;
+  filterContext: FilterContext;
   filterMatch: boolean;
   filterSelection: boolean;
   filters: {
@@ -67,7 +67,16 @@ interface CollectionsState {
   clns: { [id: string]: ClnState | undefined };
 }
 
-const defaultFilterContext = '__DEFAULT';
+export const defaultFilterContext = '__DEFAULT' as const;
+export type FilterContextScope =
+  | 'genomes'
+  | 'samples'
+  | 'biolog'
+  | 'microtrait';
+export type FilterContextMode = 'all' | 'matched' | 'selected';
+export type FilterContext =
+  | `${FilterContextScope}.${FilterContextMode}`
+  | typeof defaultFilterContext;
 
 const initialCollection: ClnState = {
   selection: { current: [] },
@@ -131,7 +140,9 @@ export const CollectionSlice = createSlice({
       state,
       {
         payload: [collectionId, context],
-      }: PayloadAction<[collectionId: string, context: string | undefined]>
+      }: PayloadAction<
+        [collectionId: string, context: FilterContext | undefined]
+      >
     ) => {
       const cln = collectionState(state, collectionId);
       if (context) {
