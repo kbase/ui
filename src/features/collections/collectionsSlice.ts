@@ -74,6 +74,7 @@ export type FilterContextScope =
   | 'biolog'
   | 'microtrait';
 export type FilterContextMode = 'all' | 'matched' | 'selected';
+// template literal type defining all possible filter contexts
 export type FilterContext =
   | `${FilterContextScope}.${FilterContextMode}`
   | typeof defaultFilterContext;
