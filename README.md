@@ -52,6 +52,18 @@ Run `nvm install` to install and use the node version from `.nvmrc`.
 - If you receive the following error message after running `npm start`:
 `Invalid options object. Dev Server has been initialized using an options object that does not match the API schema.`
 then you may need to set the following environment variable: `DANGEROUSLY_DISABLE_HOST_CHECK=true`
+- If you are using a Mac with an M1 or M2 chip, you may run into an 
+error caused by `canvas` and `node-gyp` after running `npm install`.
+    
+    - First, make sure your global python version (`python --version`) 
+    is under 3.12.
+    - If the install step still isn't working, try to install node-canvas 
+    from source by following the Installation: Mac OS X, HomeBrew steps below 
+    or on [this page](https://github.com/Automattic/node-canvas/wiki/Installation:-Mac-OS-X).
+        
+        - `brew install pkg-config cairo pango libpng jpeg giflib librsvg` 
+    - This python aspect of this issue may become obsolete once 
+    the `node-gyp` peer dependency is able to upgrade to v10+.
 
 
 ## Available Scripts

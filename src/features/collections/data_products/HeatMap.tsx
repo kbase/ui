@@ -1,383 +1,563 @@
-import { Column, flexRender, Table } from '@tanstack/react-table';
-import {
-  HTMLProps,
-  ReactNode,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import {
-  HeatMapCell,
-  HeatMapColumn,
-  HeatMapRow,
-} from '../../../common/api/collectionsApi';
+import { Column, Table } from '@tanstack/react-table';
+import { FC, ReactNode, useEffect, useRef, useState } from 'react';
+import Plot from 'react-plotly.js';
+import type Layout from 'react-plotly.js';
+import { HeatMapCell, HeatMapRow } from '../../../common/api/collectionsApi';
+import { Button, Loader } from '../../../common/components';
+import { noOp } from '../../common';
 import classes from './HeatMap.module.scss';
-import { zoom } from 'd3-zoom';
-import { select } from 'd3-selection';
-import { Loader } from '../../../common/components/Loader';
-import { Tooltip, useHover } from '../../../common/components/Tooltip';
 
-export const MAX_HEATMAP_PAGE = 10000;
+/* enums, interfaces, types */
+enum TooltipRole {
+  cursor = 'cursor',
+  inspector = 'inspector',
+}
 
-/**
- * Generic Collections HeatMap viz, accepts a table with cell values of 0-1
- */
-export const HeatMap = ({
-  table,
-  rowNameAccessor,
-  getCellLabel,
-}: {
-  table: Table<HeatMapRow>;
-  rowNameAccessor: (row: HeatMapRow, index: number) => string;
+export interface HeatMapCallback {
   getCellLabel: (
     cell: HeatMapCell,
     row: HeatMapRow,
     column: Column<HeatMapRow, unknown>
   ) => ReactNode | Promise<ReactNode>;
+}
+
+interface HeatMapData {
+  values_meta: (React.ReactElement | string | null)[][];
+  values_num: (number | null)[][];
+  headersColumn: string[];
+  headersRow: string[];
+}
+
+interface HeatMapMetaData {
+  ncols: number;
+  nrows: number;
+}
+
+interface PlotlyWindow {
+  xMax: number;
+  yMax: number;
+  xMin: number;
+  yMin: number;
+}
+
+interface PlotlyState {
+  plotlyWindow: PlotlyWindow;
+  setPlotlyWindow: React.Dispatch<React.SetStateAction<PlotlyWindow>>;
+}
+
+interface TooltipData {
+  clientX: number;
+  clientY: number;
+  meta: React.ReactElement | string | null;
+}
+
+type TooltipDataSetter = React.Dispatch<React.SetStateAction<TooltipData>>;
+
+/* tooltip interfaces */
+interface TooltipProps extends TooltipData {
+  disabled: boolean;
+  loading?: boolean;
+  onClick?: () => void;
+}
+
+interface TooltipCursorProps extends TooltipData {
+  updated: boolean;
+  tooltipCursorDataSetterRef: React.MutableRefObject<TooltipDataSetter | null>;
+}
+
+interface TooltipInspectorProps extends TooltipData {
+  setTooltipRole: React.Dispatch<React.SetStateAction<TooltipRole>>;
+}
+
+/**
+ * PlotlyWrapperProps
+ */
+interface PlotlyWrapperProps {
+  data: HeatMapData;
+  getCellLabel: HeatMapCallback['getCellLabel'];
+  heatMapMetaData: HeatMapMetaData;
+  hover: boolean;
+  plotlyState: PlotlyState;
+  relayoutHandler: (evt: Readonly<Plotly.PlotRelayoutEvent>) => void;
+  setHover: React.Dispatch<React.SetStateAction<boolean>>;
+  setTooltipInspectorProps: TooltipDataSetter;
+  setTooltipRole: React.Dispatch<React.SetStateAction<TooltipRole>>;
+  tooltipCursorDataSetterRef?: React.MutableRefObject<TooltipDataSetter | null>;
+  tooltipProps: TooltipData;
+  tooltipRole: TooltipRole;
+}
+
+/* constants */
+export const MAX_HEATMAP_PAGE = 10000;
+
+const heatMapInfoDefaults: TooltipData = {
+  clientX: 0,
+  clientY: 0,
+  meta: '',
+};
+
+/* utilities */
+const getNumber = ({
+  value,
+  valueIfNotFinite,
+}: {
+  value: number;
+  valueIfNotFinite: number;
+}) => (Number.isFinite(Number(value)) ? Number(value) : valueIfNotFinite);
+
+/* convert the tanstack table data into the format Plotly expects */
+const getPlotlyFromTanstack = ({
+  table,
+  getCellLabel,
+}: {
+  table: Table<HeatMapRow>;
+  getCellLabel: HeatMapCallback['getCellLabel'];
 }) => {
-  const rows = table.getRowModel().rows;
-  const columnHeaders = table
-    .getFlatHeaders()
-    .filter((header) => header.subHeaders.length === 0);
-
-  const width = columnHeaders.length;
-  const height = rows.length;
-
-  const hasSomeSelected = rows.some((row) => row.original.sel);
-  const hasSomeMatched = rows.some((row) => row.original.match);
-
-  if (
-    rows[0] &&
-    columnHeaders &&
-    rows[0].getVisibleCells().length !== columnHeaders.length
-  )
-    throw new Error(
-      'heatmap has more headers than cell columns, something went wrong'
-    );
-
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const heatMapImage = useMemo(() => {
-    const inMemoryCanvas = document.createElement('canvas');
-    inMemoryCanvas.setAttribute('width', String(width));
-    inMemoryCanvas.setAttribute('height', String(height));
-    // const ctx = canvasRef.current?.getContext('2d');
-    const ctx = inMemoryCanvas.getContext('2d');
-    if (ctx && width > 0 && height > 0) {
-      const imageData = ctx.createImageData(width, height);
-      rows.forEach((row) =>
-        row.getVisibleCells().forEach((cell, cellIndex) => {
-          const x = cellIndex;
-          const y = row.index;
-          const pixelPos = (y * width + x) * 4;
-          const col = normValToRGBA(Number(cell.getValue()));
-          imageData.data[pixelPos] = col[0];
-          imageData.data[pixelPos + 1] = col[1];
-          imageData.data[pixelPos + 2] = col[2];
-          imageData.data[pixelPos + 3] = col[3];
-        })
-      );
-      ctx.putImageData(imageData, 0, 0);
-      return inMemoryCanvas;
-    }
-  }, [rows, width, height]);
-
-  const [zoomState, setZoomState] = useState<{
-    x: number;
-    y: number;
-    k: number;
-  }>({ x: 0, y: 0, k: 1 });
-
-  // Keep canvas up to date as zoom changes.
-  const dynamicCanvasWidth = Math.floor(
-    canvasRef.current?.getBoundingClientRect().width || width
+  const rows = table.getSortedRowModel().rows;
+  const cols = table.getAllFlatColumns().filter((col) => col.parent);
+  const headersColumn: string[] = cols.map((col, cix) => {
+    return col.columnDef.header as string;
+  });
+  const headersRow = rows.map((row) => row.id);
+  const values_num = rows.map((row) =>
+    row.getAllCells().map((cell) => cell.getValue() as number)
   );
-  useEffect(() => {
-    const ctx = canvasRef.current?.getContext('2d');
-    if (canvasRef.current && heatMapImage && ctx) {
-      ctx.imageSmoothingEnabled = false;
-      ctx.resetTransform();
-      ctx.clearRect(
-        0,
-        0,
-        canvasRef.current?.width || 0,
-        canvasRef.current?.height || 0
-      );
-      ctx.translate(zoomState.x, zoomState.y);
-      ctx.scale(dynamicCanvasWidth / width, dynamicCanvasWidth / width);
-      ctx.scale(zoomState.k, zoomState.k);
-      ctx.drawImage(heatMapImage, 0, 0);
-
-      // Ensure zoom is set up on the canvas each draw
-      select<Element, unknown>(canvasRef.current).call(
-        zoom()
-          .scaleExtent([1, 100])
-          .translateExtent([
-            [0, 0],
-            [canvasRef.current.width, canvasRef.current.height],
-          ])
-          .extent([
-            [0, 0],
-            [canvasRef.current.width, canvasRef.current.height],
-          ])
-          .on('zoom', ({ transform, ...args }) => {
-            setZoomState(transform);
-          })
-      );
-    }
-  }, [
-    heatMapImage,
-    width,
-    zoomState.k,
-    zoomState.x,
-    zoomState.y,
-    dynamicCanvasWidth,
-  ]);
-
-  // Calculate virtual scroll from zoom
-  let visibleColHeaders = columnHeaders;
-  let colOffset = 0;
-  let visibleRows = rows;
-  let rowOffset = 0;
-  if (canvasRef.current) {
-    // Calculate visible col headers for virtual scroll
-    const visibleColCount = Math.floor(columnHeaders.length / zoomState.k);
-    const pxPerCol = canvasRef.current.width / columnHeaders.length;
-    const fractionalColPos0 = -zoomState.x / pxPerCol / zoomState.k;
-    const colPos0 = Math.ceil(fractionalColPos0);
-    visibleColHeaders = columnHeaders.slice(colPos0, colPos0 + visibleColCount);
-    colOffset = (colPos0 - fractionalColPos0) * pxPerCol * zoomState.k;
-
-    // Calculate visible row headers for virtual scroll
-    const visibleRowCount = Math.floor(rows.length / zoomState.k);
-    const pxPerRow = canvasRef.current.height / rows.length;
-    const fractionalRowPos0 = -zoomState.y / pxPerRow / zoomState.k;
-    const rowPos0 = Math.ceil(fractionalRowPos0);
-    visibleRows = rows.slice(rowPos0, rowPos0 + visibleRowCount);
-    rowOffset = (rowPos0 - fractionalRowPos0) * pxPerRow * zoomState.k;
-  }
-
-  const hoverState = useHover();
-
-  const [hoverCellElement, setHoverCellElement] =
-    useState<HTMLDivElement | null>(null);
-  const [hoverCell, setHoverCell] = useState<
-    | {
-        top: number;
-        left: number;
-        size: number;
-        label: ReactNode;
-        loading: boolean;
-        cell: HeatMapCell;
-      }
-    | undefined
-  >(undefined);
-
-  const handleHeatmapMove: HTMLProps<HTMLCanvasElement>['onMouseMove'] = async (
-    e
-  ) => {
-    hoverState.hoverMove();
-
-    // Calculate hoverCell position
-    const canvas = e.currentTarget.getClientRects()[0];
-    const visCellWidth = (canvas.width / width) * zoomState.k;
-
-    const xIndex = Math.floor(
-      ((e.clientX - canvas.x - zoomState.x) / canvas.width / zoomState.k) *
-        width
-    );
-    const yIndex = Math.floor(
-      ((e.clientY - canvas.y - zoomState.y) / canvas.height / zoomState.k) *
-        height
-    );
-
-    const xZoomOffset = zoomState.x / visCellWidth;
-
-    const yZoomOffset = zoomState.y / visCellWidth;
-
-    const cell = rows[yIndex].original.cells[xIndex];
-    const row = rows[yIndex].original;
-    const column = columnHeaders[xIndex].column;
-
-    // If somehow we are hovering a cell that doesnt exist, return
-    if (!(cell && column && row)) {
-      return;
-    }
-
-    const loadingHoverCell = {
-      top: (yIndex + yZoomOffset) * visCellWidth,
-      left: (xIndex + xZoomOffset) * visCellWidth,
-      size: visCellWidth,
-      label: undefined,
-      loading: true,
-      cell: cell,
-    };
-    setHoverCell(loadingHoverCell);
-
-    // Await the cell label
-    const label = await getCellLabel(cell, row, column);
-    // Check a new mouseMove event hasn't set the hoverCell in the meantime
-    setHoverCell((currHoverCell) => {
-      if (currHoverCell?.cell !== loadingHoverCell.cell) return currHoverCell;
-      return { ...loadingHoverCell, label, loading: false };
+  const values_meta = rows.map((row, rix) => {
+    const cells = row.getAllCells();
+    const hmcs: HeatMapCell[] = cells.map((cell, cix) => {
+      const col_id = cell.column.id;
+      const { cell_id, val } = cell.row.original.cells.filter(
+        (cell_) => cell_.col_id === col_id
+      )[0];
+      return {
+        cell_id,
+        col_id,
+        val,
+      };
     });
+    return cells.map((cell, cix) => {
+      const col_id = cell.column.id;
+      const { cell_id, val } = cell.row.original.cells.filter(
+        (cell_) => cell_.col_id === col_id
+      )[0];
+      const hmc: HeatMapCell = {
+        cell_id,
+        col_id,
+        val,
+      };
+      const hmr: HeatMapRow = {
+        match: false,
+        sel: false,
+        kbase_id: row.original.kbase_id,
+        kbase_display_name: row.id,
+        cells: hmcs,
+      };
+      const getCellLabelCallback = async () =>
+        await getCellLabel(hmc, hmr, cell.column);
+      return <CellLabel getCellLabelCallback={getCellLabelCallback} />;
+    });
+  });
+  const ncols = headersColumn.length;
+  const nrows = headersRow.length;
+  const output = {
+    ncols,
+    nrows,
+    values_num,
+    values_meta,
+    headersColumn,
+    headersRow,
+  };
+  return output;
+};
+
+/* handlers */
+const relayoutHandlerFactory =
+  ({
+    heatMapMetaData,
+    setHover,
+    setPlotlyWindow,
+    setTooltipRole,
+  }: {
+    heatMapMetaData: HeatMapMetaData;
+    setHover: React.Dispatch<React.SetStateAction<boolean>>;
+    setPlotlyWindow: PlotlyState['setPlotlyWindow'];
+    setTooltipRole: React.Dispatch<React.SetStateAction<TooltipRole>>;
+  }) =>
+  (evt: Readonly<Plotly.PlotRelayoutEvent>) => {
+    const { ncols, nrows } = heatMapMetaData;
+    /* Fixes plotly range bug.
+      When panning and zooming, it is possible to drag the plot outside the
+      window, sometimes when this happens the endpoints are not defined
+      properly. The following checks resolve this issue.
+    */
+    const xMaxFinite = getNumber({
+      value: Number(evt['xaxis.range[1]']),
+      valueIfNotFinite: ncols,
+    });
+    const yMaxFinite = getNumber({
+      value: Number(evt['yaxis.range[1]']),
+      valueIfNotFinite: nrows,
+    });
+    const xMinFinite = getNumber({
+      value: Number(evt['xaxis.range[0]']),
+      valueIfNotFinite: 0,
+    });
+    const yMinFinite = getNumber({
+      value: Number(evt['yaxis.range[0]']),
+      valueIfNotFinite: 0,
+    });
+    const xMaxBug = Math.min(xMaxFinite, ncols);
+    const yMaxBug = Math.min(yMaxFinite, nrows);
+    const xMinBug = Math.max(xMinFinite, 0);
+    const yMinBug = Math.max(yMinFinite, 0);
+    const [xMax, xMin] =
+      xMinBug < xMaxBug ? [xMaxBug, xMinBug] : [xMinBug, xMaxBug];
+    const [yMax, yMin] =
+      yMinBug < yMaxBug ? [yMaxBug, yMinBug] : [yMinBug, yMaxBug];
+    const newPlotlyWindow = {
+      xMax,
+      yMax,
+      xMin,
+      yMin,
+    };
+    setHover(false);
+    setPlotlyWindow(newPlotlyWindow);
   };
 
-  if (!heatMapImage) {
-    return (
-      <>
-        Loading and generating heatmap <Loader />
-      </>
-    );
-  }
-
+/* components */
+/* <Tooltip /> component */
+export const Tooltip: FC<TooltipProps> = ({
+  clientX,
+  clientY,
+  disabled,
+  meta,
+  loading = false,
+  onClick = noOp,
+}) => {
+  /* derived values */
+  const style: React.CSSProperties = {
+    left: clientX,
+    pointerEvents: disabled ? 'none' : 'auto',
+    top: clientY,
+  };
+  const showSpinner = loading || !meta;
+  /* Tooltip component */
   return (
     <>
-      <div className={classes['layout']}>
-        <div className={classes['layout-left']}>
-          <div className={classes['blank-origin']}></div>
-          <div
-            className={classes['row-names']}
-            style={{ paddingTop: `${rowOffset}px` }}
-          >
-            {visibleRows.map((row, index) => (
-              <div
-                className={classes['label-wrapper']}
-                key={row.id}
-                title={rowNameAccessor(row.original, index)}
-              >
-                <LabelIndicator
-                  label={row.original.sel ? 'Selected' : ''}
-                  visible={hasSomeSelected}
-                  className={[
-                    classes['label-indicator'],
-                    row.original.sel ? classes['label-indicator--primary'] : '',
-                  ].join(' ')}
-                />
-                <div
-                  className={[
-                    classes['label-indicator'],
-                    row.original.match
-                      ? classes['label-indicator--accent-warm']
-                      : '',
-                  ].join(' ')}
-                  title={row.original.match ? 'Matched' : ''}
-                  style={{ display: hasSomeMatched ? undefined : 'none' }}
-                />
-                <div className={classes['label']}>
-                  {rowNameAccessor(row.original, index)}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className={classes['layout-right']}>
-          <div
-            className={classes['trait-names']}
-            style={{ paddingLeft: `${colOffset}px` }}
-          >
-            {visibleColHeaders.map((header) => {
-              const colType = (
-                header.column.columnDef.meta as HeatMapColumn | undefined
-              )?.type;
-              return (
-                <div
-                  className={classes['label-wrapper']}
-                  key={header.id}
-                  title={flexRender(
-                    header.column.columnDef.header,
-                    header.getContext()
-                  )?.toString()}
-                >
-                  <LabelIndicator
-                    label={colType}
-                    visible={true}
-                    className={[
-                      classes['label-indicator'],
-                      classes[
-                        colType === 'count'
-                          ? 'label-indicator--info-dark'
-                          : 'label-indicator--warning-dark'
-                      ],
-                    ].join(' ')}
-                  />
-                  <div className={classes['label']}>
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          <div className={classes['heatmap-wrapper']}>
-            <canvas
-              className={classes['heatmap']}
-              ref={canvasRef}
-              width={dynamicCanvasWidth}
-              height={(dynamicCanvasWidth / width) * height}
-              onMouseMove={handleHeatmapMove}
-              onMouseOut={hoverState.hoverCancel}
-            />
-            <div
-              className={classes['heatmap-hovercell']}
-              hidden={!hoverState.isHovering}
-              ref={setHoverCellElement}
-              key={JSON.stringify([
-                hoverCell?.cell.cell_id,
-                zoomState,
-                hoverState.isHovering,
-              ])}
-              style={{
-                left: `${hoverCell?.left ?? 0}px`,
-                top: `${hoverCell?.top ?? 0}px`,
-                height: `${hoverCell?.size ?? 0}px`,
-                width: `${hoverCell?.size ?? 0}px`,
-              }}
-            ></div>
-          </div>
-        </div>
+      <div className={classes.tooltip} style={style}>
+        {showSpinner ? <Loader type="spinner" loading={true} /> : <></>}
+        {meta}
+        <br />
+        <Button disabled={disabled} onClick={onClick}>
+          Close
+        </Button>
       </div>
-      <Tooltip target={hoverCellElement} visible={hoverState.isHovering}>
-        {hoverCell?.loading ? <Loader /> : hoverCell?.label}
-      </Tooltip>
     </>
   );
 };
 
-const _normCol = (val: number, c: number) => (255 - c) * (1 - val) + c;
-const normValToRGBA = (val: number): Uint8Array =>
-  new Uint8Array([
-    _normCol(val, 182),
-    _normCol(val, 21),
-    _normCol(val, 28),
-    255,
-  ]);
-
-const LabelIndicator = ({
-  className,
-  label,
-  visible,
-}: {
-  className: string;
-  label: ReactNode;
-  visible: boolean;
+/* <TooltipCursor /> component */
+export const TooltipCursor: FC<TooltipCursorProps> = ({
+  clientX,
+  clientY,
+  meta,
+  tooltipCursorDataSetterRef,
+  updated,
 }) => {
-  const hoverState = useHover();
-  const [labelEle, setLabelEle] = useState<HTMLDivElement | null>(null);
+  /* hooks */
+  const [updatedState, setUpdatedState] = useState(updated);
+  const [data, setData] = useState({
+    clientX,
+    clientY,
+    meta,
+  });
+  /* the refs are set here */
+  const setter = (value: React.SetStateAction<TooltipData>) => {
+    setUpdatedState(true);
+    setData(value);
+  };
+  if (
+    tooltipCursorDataSetterRef &&
+    Object.hasOwn(tooltipCursorDataSetterRef, 'current')
+  ) {
+    tooltipCursorDataSetterRef.current = setter;
+  }
+  /* If no data has been added then show nothing. */
+  if (!updatedState) {
+    return <></>;
+  }
+  /* TooltipCursor component */
+  return <Tooltip disabled={true} {...data} />;
+};
+
+/* <TooltipInspector /> component */
+export const TooltipInspector: FC<TooltipInspectorProps> = ({
+  setTooltipRole,
+  ...tooltipProps
+}) => {
+  const closeHandler = () => {
+    setTooltipRole(TooltipRole.cursor);
+  };
+  /* TooltipInspector component */
+  return <Tooltip disabled={false} onClick={closeHandler} {...tooltipProps} />;
+};
+
+/* <CellLabel /> component */
+const CellLabel: FC<{
+  getCellLabelCallback: () => ReactNode | Promise<ReactNode>;
+}> = ({ getCellLabelCallback }) => {
+  /* hooks */
+  const [label, setLabel] = useState<ReactNode | Promise<ReactNode>>(
+    <Loader type="spinner" loading={true} />
+  );
+  useEffect(() => {
+    let ignore = false;
+    const callback = async () => {
+      const result = (await getCellLabelCallback()) || <></>;
+      if (!ignore) {
+        setLabel(result);
+      }
+    };
+    callback();
+    return () => {
+      ignore = true;
+    };
+  }, [getCellLabelCallback]);
+  /* CellLabel component */
+  return <>{label}</>;
+};
+
+/**
+ * PlotlyWrapper
+ *   The <PlotlyWrapper /> component wraps plotly <Plot /> and
+ *   <TooltipInspector />.
+ */
+export const PlotlyWrapper = ({
+  data,
+  getCellLabel,
+  heatMapMetaData,
+  hover,
+  plotlyState,
+  relayoutHandler,
+  setHover,
+  setTooltipInspectorProps,
+  setTooltipRole,
+  tooltipCursorDataSetterRef,
+  tooltipProps,
+  tooltipRole,
+}: PlotlyWrapperProps) => {
+  /* hooks */
+  const [innerWidth, setInnerWidth] = useState(window.innerWidth);
+  /* globals */
+  if (!window.__kbase) {
+    window.__kbase = {};
+  }
+  window.__kbase.resizeHandler = () => {
+    setInnerWidth(window.innerWidth);
+  };
+  if (!window.__kbase.resizeListenerRegistered) {
+    window.addEventListener('resize', () => {
+      if (!window.__kbase.resizeHandler) return;
+      return window.__kbase.resizeHandler();
+    });
+    window.__kbase.resizeListenerRegistered = true;
+  }
+  /* derived values */
+  const { values_meta, values_num, headersColumn, headersRow } = data;
+  const { ncols, nrows } = heatMapMetaData;
+  const { plotlyWindow } = plotlyState;
+  // This value is arbitrary, but should depend on innerWidth.
+  const heatMapWidth = (innerWidth * 2) / 3;
+  const config = { displaylogo: false, scrollZoom: true };
+  const otherProps = { ...tooltipProps, visible: tooltipRole };
+  /* PlotlyWrapper component */
   return (
-    <>
-      <div
-        className={className}
-        ref={setLabelEle}
-        style={{ display: visible ? undefined : 'none' }}
-        onMouseMove={hoverState.hoverMove}
-        onMouseOut={hoverState.hoverCancel}
+    <div className={classes.layout}>
+      <Plot
+        config={config}
+        data={[
+          {
+            colorscale: [
+              [0, '#f00'],
+              [1, '#00f'],
+            ],
+            hoverinfo: 'none',
+            type: 'heatmap',
+            x: headersColumn,
+            y: headersRow,
+            z: Array(headersColumn.length)
+              .fill(0)
+              .map(() => Array(headersRow.length).fill(0)),
+          },
+          {
+            colorscale: [
+              [0, '#fff'],
+              [1, '#b6151c'],
+            ],
+            hoverinfo: 'none',
+            type: 'heatmap',
+            x: headersColumn,
+            y: headersRow,
+            z: values_num,
+          },
+        ]}
+        debug={true}
+        // The types for layout lag behind plotly's capabilities.
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        layout={
+          {
+            dragmode: 'pan',
+            legend: { bordercolor: '#000', borderwidth: 1 },
+            width: heatMapWidth,
+            xaxis: {
+              autotypenumbers: 'strict',
+              minallowed: 0,
+              maxallowed: ncols,
+              range: [plotlyWindow.xMin, plotlyWindow.xMax],
+              side: 'top',
+            },
+            yaxis: {
+              autotypenumbers: 'strict',
+              minallowed: 0,
+              maxallowed: nrows,
+              range: [plotlyWindow.yMin, plotlyWindow.yMax],
+            },
+          } as Partial<Layout>
+        }
+        onClick={(evt) => {
+          // TODO: fix this type. Compare:
+          const pointData = evt.points[0];
+          // https://github.com/DefinitelyTyped/DefinitelyTyped/blob/b3e5e59abb9cc19cc674c89fd3cc4e2275f10f7b/types/plotly.js/index.d.ts#L66-L77
+          // https://github.com/plotly/plotly.js/blob/24b6f75e2d3b58cb1cd9cdd850894720404373d3/src/traces/heatmapgl/convert.js#L58
+          const [rix, cix] = pointData.pointIndex as unknown as number[];
+          const props = {
+            clientX: evt.event.clientX + 10,
+            clientY: evt.event.clientY + 10,
+            meta: values_meta[rix][cix],
+          };
+          setTooltipRole(TooltipRole.inspector);
+          setTooltipInspectorProps(props);
+        }}
+        onHover={(evt) => {
+          const pointData = evt.points[0];
+          const [rix, cix] = pointData.pointIndex as unknown as number[];
+          const [cX, cY] = [evt.event.clientX + 10, evt.event.clientY + 10];
+          if (!hover) {
+            setHover(true);
+          }
+          if (tooltipCursorDataSetterRef?.current) {
+            /* TODO: tooltip content updates */
+            tooltipCursorDataSetterRef.current({
+              clientX: cX,
+              clientY: cY,
+              meta: values_meta[rix][cix],
+            });
+          }
+        }}
+        onRelayout={relayoutHandler}
       />
-      <Tooltip target={labelEle} visible={hoverState.isHovering}>
-        {label}
-      </Tooltip>
-    </>
+      {/* why does typescript choke on this */}
+      {/* <Plot data={data} layout={{ title: 'heatmap' }} /> */}
+      {tooltipRole === TooltipRole.inspector ? (
+        <TooltipInspector setTooltipRole={setTooltipRole} {...otherProps} />
+      ) : (
+        <></>
+      )}
+    </div>
+  );
+};
+
+/* <HeatMap /> component */
+export const HeatMap = ({
+  table,
+  getCellLabel,
+}: {
+  table: Table<HeatMapRow>;
+  getCellLabel: HeatMapCallback['getCellLabel'];
+}) => {
+  /* Convert data from tanstack table format to Plotly format. */
+  const { ncols, nrows, values_meta, values_num, headersColumn, headersRow } =
+    getPlotlyFromTanstack({
+      getCellLabel,
+      table,
+    });
+  /* hooks */
+  const [hover, setHover] = useState(false);
+  const [plotlyWindow, setPlotlyWindow] = useState({
+    xMax: ncols,
+    yMax: nrows,
+    xMin: 0,
+    yMin: 0,
+  });
+  useEffect(() => {
+    setPlotlyWindow({ xMax: ncols, yMax: nrows, xMin: 0, yMin: 0 });
+  }, [ncols, nrows]);
+  const [tooltipProps, setTooltipInspectorProps] = useState({
+    ...heatMapInfoDefaults,
+  });
+  const [tooltipRole, setTooltipRole] = useState(TooltipRole.cursor);
+  // tooltip ref for updating cursor tooltip information
+  const tooltipCursorDataSetterRef = useRef<TooltipDataSetter | null>(null);
+  /* derived values */
+  const data: HeatMapData = {
+    values_meta,
+    values_num,
+    headersColumn,
+    headersRow,
+  };
+  const heatMapMetaData = { ncols, nrows };
+  const plotlyState = {
+    plotlyWindow,
+    setPlotlyWindow,
+  };
+  // Should the cursor tooltip be shown?
+  const showTooltipCursor = tooltipRole === TooltipRole.cursor && hover;
+  return (
+    <div
+      onMouseOut={() => {
+        // Note that plotly puts a div.dragcover under the mouse on click, so
+        // this will fire on click events as well unless we disable
+        // pointer-events for this element.
+        if (hover) {
+          setHover(false);
+        }
+      }}
+      onPointerDown={() => {
+        /* TODO: handle pointerdown and allow copy/paste functionality */
+      }}
+      onWheel={() => {
+        /* TODO: wheel cooldown/debounce */
+      }}
+    >
+      {showTooltipCursor ? (
+        <TooltipCursor
+          {...tooltipProps}
+          tooltipCursorDataSetterRef={tooltipCursorDataSetterRef}
+          updated={false}
+        />
+      ) : (
+        <></>
+      )}
+      <PlotlyWrapper
+        data={data}
+        getCellLabel={getCellLabel}
+        heatMapMetaData={heatMapMetaData}
+        hover={hover}
+        plotlyState={plotlyState}
+        relayoutHandler={relayoutHandlerFactory({
+          heatMapMetaData,
+          setHover,
+          setPlotlyWindow,
+          setTooltipRole,
+        })}
+        setTooltipInspectorProps={setTooltipInspectorProps}
+        setHover={setHover}
+        setTooltipRole={setTooltipRole}
+        tooltipCursorDataSetterRef={tooltipCursorDataSetterRef}
+        tooltipProps={tooltipProps}
+        tooltipRole={tooltipRole}
+      />
+    </div>
   );
 };
