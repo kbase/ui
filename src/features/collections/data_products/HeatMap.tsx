@@ -97,6 +97,9 @@ const heatMapInfoDefaults: TooltipData = {
 };
 
 /* utilities */
+const abbrHeader = (header: string) =>
+  header.length < 19 ? header : `${header.slice(0, 8)}...${header.slice(-8)}`;
+
 const getNumber = ({
   value,
   valueIfNotFinite,
@@ -104,12 +107,6 @@ const getNumber = ({
   value: number;
   valueIfNotFinite: number;
 }) => (Number.isFinite(Number(value)) ? Number(value) : valueIfNotFinite);
-
-const encodeIndexAsZeroWidthBits = (index: number) => {
-  return Array.from(index.toString(2))
-    .map((bit) => '\u200b\u200c'[Number(bit)])
-    .join('');
-};
 
 /* convert the tanstack table data into the format Plotly expects */
 const getPlotlyFromTanstack = ({
@@ -122,24 +119,12 @@ const getPlotlyFromTanstack = ({
   const rows = table.getSortedRowModel().rows;
   const cols = table.getAllFlatColumns().filter((col) => col.parent);
   const headersColumn: string[] = cols.map((col, cix) => {
-    // Plotly reacts poorly if ticklabels are not unique.
-    const zeroWidthKey = encodeIndexAsZeroWidthBits(cix);
-    const value = col.columnDef.header as string;
-    const abbr =
-      value.length < 13
-        ? value
-        : `${value.slice(0, 6)}...${value.slice(-6)}${zeroWidthKey}`;
-    return abbr;
+    const headerRaw = col.columnDef.header as string;
+    return abbrHeader(headerRaw);
   });
   const headersRow = rows.map((row, rix) => {
-    // Plotly reacts poorly if ticklabels are not unique.
-    const zeroWidthKey = encodeIndexAsZeroWidthBits(rix);
-    const value = row.id;
-    const abbr =
-      value.length < 13
-        ? value
-        : `${value.slice(0, 8)}...${value.slice(-6)}${zeroWidthKey}`;
-    return abbr;
+    const headerRaw = row.id;
+    return abbrHeader(headerRaw);
   });
   const values_num = rows.map((row) =>
     row.getAllCells().map((cell) => cell.getValue() as number)
@@ -389,7 +374,7 @@ export const PlotlyWrapper = ({
   const { ncols, nrows } = heatMapMetaData;
   const { plotlyWindow } = plotlyState;
   // This value is arbitrary, but should depend on innerWidth.
-  const heatMapWidth = (innerWidth * 2) / 3;
+  const heatMapWidth = (innerWidth * 4) / 5;
   const modeBarButtonsToRemove: Plotly.ModeBarDefaultButtons[] = [
     'autoScale2d',
     'pan2d',
@@ -402,6 +387,12 @@ export const PlotlyWrapper = ({
     scrollZoom: true,
     modeBarButtonsToRemove,
   };
+  const xCoords = Array(ncols)
+    .fill(0)
+    .map((z, ix) => ix);
+  const yCoords = Array(nrows)
+    .fill(0)
+    .map((z, ix) => ix);
   const otherProps = { ...tooltipProps, visible: tooltipRole };
   /* PlotlyWrapper component */
   return (
@@ -417,9 +408,9 @@ export const PlotlyWrapper = ({
             hoverinfo: 'none',
             showscale: false,
             type: 'heatmap',
-            x: headersColumn,
+            x: xCoords,
             xgap: 1,
-            y: headersRow,
+            y: yCoords,
             ygap: 1,
             z: values_num,
           },
@@ -436,12 +427,18 @@ export const PlotlyWrapper = ({
               maxallowed: ncols,
               range: [plotlyWindow.xMin, plotlyWindow.xMax],
               side: 'top',
+              tickmode: 'array',
+              ticktext: headersColumn,
+              tickvals: xCoords,
             },
             yaxis: {
               autotypenumbers: 'strict',
               minallowed: 0,
               maxallowed: nrows,
               range: [plotlyWindow.yMin, plotlyWindow.yMax],
+              tickmode: 'array',
+              ticktext: headersRow,
+              tickvals: yCoords,
             },
           } as Partial<Plotly.Layout>
           // The types for layout lag behind plotly's capabilities.
