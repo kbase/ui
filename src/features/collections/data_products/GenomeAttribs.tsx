@@ -193,7 +193,13 @@ export const GenomeAttribs: FC<{
                   arrow
                   enterDelay={800}
                 >
-                  <Typography sx={{ direction: 'rtl' }}>
+                  <Typography
+                    sx={{
+                      direction: 'rtl',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
                     {cell.getValue() as string}
                   </Typography>
                 </Tooltip>
