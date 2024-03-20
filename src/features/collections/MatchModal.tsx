@@ -92,7 +92,7 @@ const ViewMatch = ({ collectionId }: { collectionId: string }) => {
     <Modal
       title={'Match Data Object'}
       subtitle={
-        'Match data objects in this collection to objects in a narrative.'
+        'Match data objects in your narrative to Genome data in this collection.'
       }
       body={
         <Loader type="spinner" loading={matchQuery.isLoading}>
@@ -107,7 +107,9 @@ const ViewMatch = ({ collectionId }: { collectionId: string }) => {
               <>
                 <FontAwesomeIcon icon={faCheckCircle} size="2x" />
                 {matchCount === 1 && <p>Found {matchCount} match</p>}
-                {matchCount !== 1 && <p>Found {matchCount} matches</p>}
+                {matchCount !== 1 && (
+                  <p>Found {matchCount.toLocaleString()} matches</p>
+                )}
               </>
             )}
             {match?.state === 'failed' && (
@@ -121,9 +123,10 @@ const ViewMatch = ({ collectionId }: { collectionId: string }) => {
             <Stack>
               {match?.state === 'complete' ? (
                 <p>
-                  You input a total of <strong>{upaCount}</strong> data{' '}
+                  You input a total of{' '}
+                  <strong>{upaCount.toLocaleString()}</strong> data{' '}
                   {upaCount === 1 ? 'object' : 'objects'}, matching{' '}
-                  <strong>{matchCount}</strong> collection{' '}
+                  <strong>{matchCount.toLocaleString()}</strong> collection{' '}
                   {matchCount === 1 ? 'item' : 'items'}.
                 </p>
               ) : (
@@ -301,9 +304,8 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
   });
 
   if (createMatchResult.isError) {
-    matchErr += `Match request failed: ${
-      parseError(createMatchResult.error).message
-    }`;
+    matchErr = JSON.parse(parseError(createMatchResult.error).message).error
+      .message;
   }
 
   const createdMatchId = createMatchResult.data?.match_id;
@@ -401,11 +403,12 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
           </Stack>
           <br></br>
           {matchErr ? (
-            <>
-              <br />
-              <br />
-              <code>{matchErr}</code>
-            </>
+            <Alert severity="error">
+              <label>
+                <strong>Encountered a problem building your match</strong>
+              </label>
+              <div>{matchErr}</div>
+            </Alert>
           ) : null}
         </Stack>
       }
