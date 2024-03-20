@@ -27,6 +27,7 @@ import { NarrativeDoc } from '../../common/types/NarrativeDoc';
 import { Alert, Stack } from '@mui/material';
 import { faCheckCircle, faWarning } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { snakeCaseToHumanReadable } from '../../common/utils/stringUtils';
 
 export const MatchModal = ({ collectionId }: { collectionId: string }) => {
   const matchId = useMatchId(collectionId);
@@ -117,31 +118,32 @@ const ViewMatch = ({ collectionId }: { collectionId: string }) => {
             )}
           </Stack>
           {match?.state !== 'processing' && (
-            <ul>
+            <Stack>
               {match?.state === 'complete' ? (
-                <li>
+                <p>
                   You input a total of <strong>{upaCount}</strong> data{' '}
                   {upaCount === 1 ? 'object' : 'objects'}, matching{' '}
                   <strong>{matchCount}</strong> collection{' '}
                   {matchCount === 1 ? 'item' : 'items'}.
-                </li>
+                </p>
               ) : (
                 <></>
               )}
-              <li>
-                Match Params:{' '}
-                <ul>
+              <Stack spacing={1}>
+                <label>
+                  <strong>Match Params</strong>
+                </label>
+                <div>
                   {Object.entries(match?.user_parameters || {}).map(
                     ([key, value]) => (
-                      <li>
-                        {key}: {JSON.stringify(value)}
-                      </li>
+                      <div>
+                        {snakeCaseToHumanReadable(key)}: {JSON.stringify(value)}
+                      </div>
                     )
                   )}
-                </ul>
-              </li>
-              <li>Match ID: {match?.match_id}</li>
-            </ul>
+                </div>
+              </Stack>
+            </Stack>
           )}
         </Loader>
       }
