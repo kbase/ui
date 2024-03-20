@@ -362,11 +362,12 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
             )}
           </Stack>
           <Stack spacing={1}>
-            <label htmlFor={idNarrative}>Narrative</label>
+            <label htmlFor={idNarrative}>Narrative Test</label>
             <Select
               id={idNarrative}
               disabled={!matcherSelected}
               options={narrativeOptions}
+              menuPlacement="auto"
               loading={narrativeQuery.isFetching}
               onSearch={setNarrativeSearch}
               onChange={(opt) => {
@@ -386,6 +387,7 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
               multiple={true}
               disabled={!narrativeSelected}
               options={dataObjsOptions}
+              menuPlacement="auto"
               loading={dataObjsQuery.isFetching}
               onChange={(opts) =>
                 setValue(
