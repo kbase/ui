@@ -10,17 +10,16 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { DataProduct } from './DataProduct';
 import { snakeCaseToHumanReadable } from '../../common/utils/stringUtils';
 import { MATCHER_LABELS, MatchModal } from './MatchModal';
-import { SelectionModal } from './SelectionModal';
 import { ExportModal } from './ExportModal';
 import { Button, Input } from '../../common/components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faArrowRightArrowLeft,
-  faCircleCheck,
   faFilter,
   faAngleRight,
   faX,
   faCircleXmark,
+  faFileExport,
 } from '@fortawesome/free-solid-svg-icons';
 import { useModalControls } from '../layout/Modal';
 import { Loader } from '../../common/components/Loader';
@@ -196,15 +195,15 @@ export const CollectionDetail = () => {
                   </Button>
                 </Stack>
                 <Button
-                  icon={<FontAwesomeIcon icon={faCircleCheck} />}
+                  icon={<FontAwesomeIcon icon={faFileExport} />}
                   variant={selection.length > 0 ? 'contained' : 'outlined'}
                   textColor={selection.length > 0 ? 'white' : 'primary'}
                   onClick={() => {
-                    setModalView('select');
+                    setModalView('export');
                     modal?.show();
                   }}
                 >
-                  {`${selection.length} items in selection`}
+                  {`${selection.length.toLocaleString()} selected items`}
                 </Button>
               </div>
               <div>
@@ -242,12 +241,6 @@ export const CollectionDetail = () => {
         <MatchModal
           key={[collection.id, matchId].join('|')}
           collectionId={collection.id}
-        />
-      ) : modalView === 'select' ? (
-        <SelectionModal
-          key={collection.id}
-          collectionId={collection.id}
-          showExport={() => setModalView('export')}
         />
       ) : modalView === 'export' ? (
         <ExportModal key={collection.id} collectionId={collection.id} />

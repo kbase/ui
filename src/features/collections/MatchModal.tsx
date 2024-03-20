@@ -20,13 +20,18 @@ import { store } from '../../app/store';
 import { useParamsForNarrativeDropdown } from './hooks';
 import { MatcherUserParams } from './MatcherUserParams';
 import Ajv from 'ajv';
-import { Modal } from '../layout/Modal';
+import { Modal, useModalControls } from '../layout/Modal';
 import { Loader } from '../../common/components/Loader';
 import { useForm } from 'react-hook-form';
 import { NarrativeDoc } from '../../common/types/NarrativeDoc';
 import { Alert, Stack } from '@mui/material';
-import { faCheckCircle, faWarning } from '@fortawesome/free-solid-svg-icons';
+import {
+  faCheckCircle,
+  faSpinner,
+  faWarning,
+} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { snakeCaseToHumanReadable } from '../../common/utils/stringUtils';
 
 export const MatchModal = ({ collectionId }: { collectionId: string }) => {
   const matchId = useMatchId(collectionId);
@@ -43,6 +48,7 @@ const ViewMatch = ({ collectionId }: { collectionId: string }) => {
   const matchId = useMatchId(collectionId);
   const updateAppParams = useUpdateAppParams();
   const selectionSize = useCurrentSelection(collectionId).length;
+  const { close } = useModalControls();
 
   const matchQuery = getMatch.useQuery(matchId || '', {
     skip: !matchId,
@@ -91,81 +97,124 @@ const ViewMatch = ({ collectionId }: { collectionId: string }) => {
     <Modal
       title={'Match Data Object'}
       subtitle={
-        'Match data objects in this collection to objects in a narrative.'
+        'Match data objects in your narrative to Genome data in this collection.'
       }
       body={
-        <Loader type="spinner" loading={matchQuery.isLoading}>
-          <Stack sx={{ marginTop: 4, marginBottom: 4, textAlign: 'center' }}>
-            {match?.state === 'processing' && (
-              <>
-                <Loader type="spinner" loading={true} />
-                <p>Processing match</p>
-              </>
-            )}
-            {match?.state === 'complete' && (
-              <>
-                <FontAwesomeIcon icon={faCheckCircle} size="2x" />
-                {matchCount === 1 && <p>Found {matchCount} match</p>}
-                {matchCount !== 1 && <p>Found {matchCount} matches</p>}
-              </>
-            )}
-            {match?.state === 'failed' && (
-              <>
-                <FontAwesomeIcon icon={faWarning} size="2x" />
-                <p>There was a problem processing your match</p>
-              </>
-            )}
-          </Stack>
-          {match?.state !== 'processing' && (
-            <ul>
-              {match?.state === 'complete' ? (
-                <li>
-                  You input a total of <strong>{upaCount}</strong> data{' '}
-                  {upaCount === 1 ? 'object' : 'objects'}, matching{' '}
-                  <strong>{matchCount}</strong> collection{' '}
-                  {matchCount === 1 ? 'item' : 'items'}.
-                </li>
-              ) : (
-                <></>
+        <div>
+          <Loader type="spinner" loading={matchQuery.isLoading}>
+            <Stack
+              sx={{
+                justifyContent: 'center',
+                marginTop: 4,
+                marginBottom: 4,
+                textAlign: 'center',
+              }}
+            >
+              {match?.state === 'processing' && (
+                <>
+                  <div>
+                    <FontAwesomeIcon icon={faSpinner} size="2x" spin />
+                  </div>
+                  <p>Processing match</p>
+                </>
               )}
-              <li>
-                Match Params:{' '}
-                <ul>
-                  {Object.entries(match?.user_parameters || {}).map(
-                    ([key, value]) => (
-                      <li>
-                        {key}: {JSON.stringify(value)}
-                      </li>
-                    )
+              {match?.state === 'complete' && (
+                <>
+                  <div>
+                    <FontAwesomeIcon icon={faCheckCircle} size="2x" />
+                  </div>
+                  {matchCount === 1 && <p>Found {matchCount} match</p>}
+                  {matchCount !== 1 && (
+                    <p>Found {matchCount.toLocaleString()} matches</p>
                   )}
-                </ul>
-              </li>
-              <li>Match ID: {match?.match_id}</li>
-            </ul>
-          )}
-        </Loader>
+                </>
+              )}
+              {match?.state === 'failed' && (
+                <>
+                  <FontAwesomeIcon icon={faWarning} size="2x" />
+                  <p>There was a problem processing your match</p>
+                </>
+              )}
+            </Stack>
+            {match?.state !== 'processing' && (
+              <Alert severity="success">
+                <Stack spacing={2}>
+                  {match?.state === 'complete' ? (
+                    <div>
+                      You input a total of{' '}
+                      <strong>{upaCount.toLocaleString()}</strong> data{' '}
+                      {upaCount === 1 ? 'object' : 'objects'}, matching{' '}
+                      <strong>{matchCount.toLocaleString()}</strong> collection{' '}
+                      {matchCount === 1 ? 'item' : 'items'}.
+                    </div>
+                  ) : (
+                    <></>
+                  )}
+                  <Stack spacing={1}>
+                    <label>
+                      <strong>Match Params</strong>
+                    </label>
+                    <div>
+                      {Object.entries(match?.user_parameters || {}).map(
+                        ([key, value]) => (
+                          <div>
+                            {snakeCaseToHumanReadable(key)}:{' '}
+                            {JSON.stringify(value)}
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </Stack>
+                </Stack>
+              </Alert>
+            )}
+          </Loader>
+        </div>
       }
       footer={
-        <>
-          <Button onClick={handleClear}>Clear Match</Button>
-          <Button
-            onClick={handleSelectAll}
-            disabled={match?.state !== 'complete' || matchTooLargeForSelection}
-            title={
-              matchTooLargeForSelection
-                ? 'Cannot select this match (too many items)'
-                : ''
-            }
-          >
-            Select All Matched
-          </Button>
-          <Button
-            onClick={handleDeselectAll}
-            disabled={match?.state !== 'complete'}
-          >
-            Deselect All Matched
-          </Button>
-        </>
+        <Stack
+          direction="row"
+          spacing={1}
+          justifyContent="space-between"
+          sx={{
+            width: '100%',
+          }}
+        >
+          <Stack direction="row" spacing={1}>
+            <Button color="gray" onClick={handleClear}>
+              Clear Match
+            </Button>
+            <Button
+              color="gray"
+              onClick={handleDeselectAll}
+              disabled={match?.state !== 'complete'}
+            >
+              Deselect All Matched
+            </Button>
+            <Button
+              color="gray"
+              onClick={handleSelectAll}
+              disabled={
+                match?.state !== 'complete' || matchTooLargeForSelection
+              }
+              title={
+                matchTooLargeForSelection
+                  ? 'Cannot select this match (too many items)'
+                  : ''
+              }
+            >
+              Select All Matched
+            </Button>
+          </Stack>
+          <Stack direction="row" spacing={1}>
+            <Button
+              onClick={() => close()}
+              disabled={match?.state !== 'complete'}
+            >
+              Close
+            </Button>
+          </Stack>
+        </Stack>
       }
     />
   );
@@ -299,9 +348,8 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
   });
 
   if (createMatchResult.isError) {
-    matchErr += `Match request failed: ${
-      parseError(createMatchResult.error).message
-    }`;
+    matchErr = JSON.parse(parseError(createMatchResult.error).message).error
+      .message;
   }
 
   const createdMatchId = createMatchResult.data?.match_id;
@@ -362,11 +410,12 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
             )}
           </Stack>
           <Stack spacing={1}>
-            <label htmlFor={idNarrative}>Narrative</label>
+            <label htmlFor={idNarrative}>Narrative Test</label>
             <Select
               id={idNarrative}
               disabled={!matcherSelected}
               options={narrativeOptions}
+              menuPlacement="auto"
               loading={narrativeQuery.isFetching}
               onSearch={setNarrativeSearch}
               onChange={(opt) => {
@@ -386,6 +435,7 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
               multiple={true}
               disabled={!narrativeSelected}
               options={dataObjsOptions}
+              menuPlacement="auto"
               loading={dataObjsQuery.isFetching}
               onChange={(opts) =>
                 setValue(
@@ -397,11 +447,12 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
           </Stack>
           <br></br>
           {matchErr ? (
-            <>
-              <br />
-              <br />
-              <code>{matchErr}</code>
-            </>
+            <Alert severity="error">
+              <label>
+                <strong>Encountered a problem building your match</strong>
+              </label>
+              <div>{matchErr}</div>
+            </Alert>
           ) : null}
         </Stack>
       }

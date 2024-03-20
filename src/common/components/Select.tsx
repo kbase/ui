@@ -49,6 +49,8 @@ export interface SelectProps {
   value?: SingleValue<SelectOption> | MultiValue<SelectOption>;
   /** If defined, sets the value of the placeholder */
   placeholder?: string;
+  /** Set where the menu should open in relation to the input */
+  menuPlacement?: ReactSelectProps['menuPlacement'];
 }
 
 export const handleChangeFactory = (
@@ -127,6 +129,7 @@ export const Select: FC<SelectProps> = (props) => {
       isDisabled={props.disabled}
       isLoading={props.loading}
       isMulti={props.multiple}
+      menuPlacement={props.menuPlacement}
       onChange={handleChange}
       value={props.value}
       options={options}
