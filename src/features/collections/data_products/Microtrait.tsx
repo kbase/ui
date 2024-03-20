@@ -1,3 +1,4 @@
+import { Paper } from '@mui/material';
 import {
   getCoreRowModel,
   getPaginationRowModel,
@@ -12,13 +13,15 @@ import {
   getMicroTraitMeta,
 } from '../../../common/api/collectionsApi';
 import { parseError } from '../../../common/api/utils/parseError';
+import { DataViewLink } from '../../../common/components';
 import { Pagination, usePageBounds } from '../../../common/components/Table';
-import { useMatchId, useGenerateSelectionId } from '../collectionsSlice';
 import { useAppDispatch, useBackoffPolling } from '../../../common/hooks';
-import { HeatMap, HeatMapCallback, MAX_HEATMAP_PAGE } from './HeatMap';
-import classes from './../Collections.module.scss';
-import { Paper } from '@mui/material';
 import { formatNumber } from '../../../common/utils/stringUtils';
+import classes from '../Collections.module.scss';
+import { useMatchId, useGenerateSelectionId } from '../collectionsSlice';
+import { HeatMap, HeatMapCallback, MAX_HEATMAP_PAGE } from './HeatMap';
+
+const getUPAFromEncoded = (encoded: string) => encoded.replaceAll('_', '/');
 
 export const Microtrait: FC<{
   collection_id: string;
@@ -63,7 +66,11 @@ export const Microtrait: FC<{
         <>
           Type: {column.columnDef.meta?.type}
           <hr />
-          Row: ({row.kbase_id}) {row.kbase_display_name}
+          Row: (
+          <DataViewLink identifier={getUPAFromEncoded(row.kbase_id)}>
+            {getUPAFromEncoded(row.kbase_id)}
+          </DataViewLink>
+          ) {row.kbase_display_name}
           <br />
           Col: {column.columnDef.header}
           <br />

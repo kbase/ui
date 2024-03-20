@@ -11,7 +11,38 @@ class ParamsClass {
     readonly sort: string | null = '-updated',
     readonly view: string | null = 'data',
     // Matching
-    readonly match: string | null = null
+    readonly match: string | null = null,
+    //
+    // Search parameter whitelist for kbase-ui and plugins. If one encounters a
+    // search parameter which is mysteriously disappearing or causing a route to
+    // fail, add it here.
+    //
+    // Current behavior for legacy endpoints is that, without whitelisting
+    // search parameters, the parameter is "seen" by the legacy component, but
+    // Europa will remove it from the location bar. This breaks page reloading
+    // or url capture, even though technically kbase-ui and it's plugins will
+    // receive the initial search parameters.
+    //
+    // For search
+    readonly q: string | null = null,
+    // For narrative opening
+    readonly n: string | null = null,
+    readonly check: string | null = null,
+    // For kbase-ui navigation via auth
+    readonly nextrequest: string | null = null,
+    readonly source: string | null = null,
+    // for account management ui
+    readonly tab: string | null = null,
+    // for landing pages
+    readonly sub: string | null = null,
+    readonly subid: string | null = null,
+    // orcidlink linking params
+    readonly skip_prompt: string | null = null,
+    readonly ui_options: string | null = null,
+    readonly return_link: string | null = null,
+    // orcid link error redirect
+    readonly code: string | null = null,
+    readonly message: string | null = null
   ) {}
 }
 

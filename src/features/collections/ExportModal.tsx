@@ -1,3 +1,4 @@
+import { Alert, Stack, Typography } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 import {
   exportSelection,
@@ -5,8 +6,11 @@ import {
   parseCollectionsError,
 } from '../../common/api/collectionsApi';
 import { getNarratives } from '../../common/api/searchApi';
-import { Select, Input, Button, SelectOption } from '../../common/components';
+import { getwsPermissions } from '../../common/api/workspaceApi';
+import { DataViewLink, Select, Input, Button, SelectOption } from '../../common/components';
+import { useAppDispatch, useAppSelector } from '../../common/hooks';
 import { uriEncodeTemplateTag as encode } from '../../common/utils/stringUtils';
+import { NarrativeDoc } from '../../common/types/NarrativeDoc';
 import { Modal } from '../layout/Modal';
 import { useAppParam } from '../params/hooks';
 import {
@@ -14,12 +18,8 @@ import {
   useCurrentSelection,
   useSelectionId,
 } from './collectionsSlice';
-import { useParamsForNarrativeDropdown } from './hooks';
-import { Alert, Stack, Typography } from '@mui/material';
 import classes from './Collections.module.scss';
-import { useAppDispatch, useAppSelector } from '../../common/hooks';
-import { getwsPermissions } from '../../common/api/workspaceApi';
-import { NarrativeDoc } from '../../common/types/NarrativeDoc';
+import { useParamsForNarrativeDropdown } from './hooks';
 
 export const ExportModal = ({ collectionId }: { collectionId: string }) => {
   const dispatch = useAppDispatch();
@@ -206,9 +206,9 @@ export const ExportModal = ({ collectionId }: { collectionId: string }) => {
                   </a>
                 </li>
                 <li>
-                  <a href={`/#dataview/${exportResult.data.set.upa}`}>
+                  <DataViewLink identifier={exportResult.data.set.upa}>
                     Go to DataView
-                  </a>
+                  </DataViewLink>
                 </li>
               </ul>
             </Alert>

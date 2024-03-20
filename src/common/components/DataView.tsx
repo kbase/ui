@@ -9,6 +9,25 @@ interface DataViewProps {
   dataObjects: DataObject[];
 }
 
+interface DataViewRowProps {
+  wsId: number;
+  obj: DataObject;
+}
+
+export const DataViewLink: FC<{
+  identifier: string;
+  children?: React.ReactNode;
+  className?: string;
+}> = ({ children, identifier }) => (
+  <a
+    className={`${classes.dataview} ${classes.className}`}
+    href={`/#dataview/${identifier}`}
+    rel="noopener noreferrer"
+  >
+    {children}
+  </a>
+);
+
 const DataView: FC<DataViewProps> = ({ wsId, dataObjects }) => {
   if (!dataObjects?.length) {
     return (
@@ -32,10 +51,6 @@ const DataView: FC<DataViewProps> = ({ wsId, dataObjects }) => {
   );
 };
 
-interface DataViewRowProps {
-  wsId: number;
-  obj: DataObject;
-}
 const DataViewRow: FC<DataViewRowProps> = ({ wsId, obj }) => (
   <div className={classes.dataview_row_outer}>
     <div>
@@ -43,9 +58,9 @@ const DataViewRow: FC<DataViewRowProps> = ({ wsId, obj }) => (
     </div>
     <div className={classes.dataview_row_inner}>
       <div className={classes.dataview}>
-        <a href={`/#dataview/${wsId}/${obj.name}`} rel="noopener noreferrer">
+        <DataViewLink identifier={`${wsId}/${obj.name}`}>
           {obj.name}
-        </a>
+        </DataViewLink>
       </div>
       <div data-testid="readable-type" className={classes.dataview_row_type}>
         {obj.readableType}
