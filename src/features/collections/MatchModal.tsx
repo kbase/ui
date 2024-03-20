@@ -20,7 +20,7 @@ import { store } from '../../app/store';
 import { useParamsForNarrativeDropdown } from './hooks';
 import { MatcherUserParams } from './MatcherUserParams';
 import Ajv from 'ajv';
-import { Modal } from '../layout/Modal';
+import { Modal, useModalControls } from '../layout/Modal';
 import { Loader } from '../../common/components/Loader';
 import { useForm } from 'react-hook-form';
 import { NarrativeDoc } from '../../common/types/NarrativeDoc';
@@ -44,6 +44,7 @@ const ViewMatch = ({ collectionId }: { collectionId: string }) => {
   const matchId = useMatchId(collectionId);
   const updateAppParams = useUpdateAppParams();
   const selectionSize = useCurrentSelection(collectionId).length;
+  const { close } = useModalControls();
 
   const matchQuery = getMatch.useQuery(matchId || '', {
     skip: !matchId,
@@ -120,57 +121,78 @@ const ViewMatch = ({ collectionId }: { collectionId: string }) => {
             )}
           </Stack>
           {match?.state !== 'processing' && (
-            <Stack>
-              {match?.state === 'complete' ? (
-                <p>
-                  You input a total of{' '}
-                  <strong>{upaCount.toLocaleString()}</strong> data{' '}
-                  {upaCount === 1 ? 'object' : 'objects'}, matching{' '}
-                  <strong>{matchCount.toLocaleString()}</strong> collection{' '}
-                  {matchCount === 1 ? 'item' : 'items'}.
-                </p>
-              ) : (
-                <></>
-              )}
-              <Stack spacing={1}>
-                <label>
-                  <strong>Match Params</strong>
-                </label>
-                <div>
-                  {Object.entries(match?.user_parameters || {}).map(
-                    ([key, value]) => (
-                      <div>
-                        {snakeCaseToHumanReadable(key)}: {JSON.stringify(value)}
-                      </div>
-                    )
-                  )}
-                </div>
+            <Alert severity="success">
+              <Stack spacing={2}>
+                {match?.state === 'complete' ? (
+                  <div>
+                    You input a total of{' '}
+                    <strong>{upaCount.toLocaleString()}</strong> data{' '}
+                    {upaCount === 1 ? 'object' : 'objects'}, matching{' '}
+                    <strong>{matchCount.toLocaleString()}</strong> collection{' '}
+                    {matchCount === 1 ? 'item' : 'items'}.
+                  </div>
+                ) : (
+                  <></>
+                )}
+                <Stack spacing={1}>
+                  <label>
+                    <strong>Match Params</strong>
+                  </label>
+                  <div>
+                    {Object.entries(match?.user_parameters || {}).map(
+                      ([key, value]) => (
+                        <div>
+                          {snakeCaseToHumanReadable(key)}:{' '}
+                          {JSON.stringify(value)}
+                        </div>
+                      )
+                    )}
+                  </div>
+                </Stack>
               </Stack>
-            </Stack>
+            </Alert>
           )}
         </Loader>
       }
       footer={
-        <>
-          <Button onClick={handleClear}>Clear Match</Button>
-          <Button
-            onClick={handleSelectAll}
-            disabled={match?.state !== 'complete' || matchTooLargeForSelection}
-            title={
-              matchTooLargeForSelection
-                ? 'Cannot select this match (too many items)'
-                : ''
-            }
-          >
-            Select All Matched
-          </Button>
-          <Button
-            onClick={handleDeselectAll}
-            disabled={match?.state !== 'complete'}
-          >
-            Deselect All Matched
-          </Button>
-        </>
+        <Stack
+          direction="row"
+          spacing={1}
+          justifyContent="space-between"
+          sx={{
+            width: '100%',
+          }}
+        >
+          <Stack direction="row" spacing={1}>
+            <Button color="gray" onClick={handleClear}>
+              Clear Match
+            </Button>
+            <Button
+              color="gray"
+              onClick={handleDeselectAll}
+              disabled={match?.state !== 'complete'}
+            >
+              Deselect All Matched
+            </Button>
+            <Button
+              color="gray"
+              onClick={handleSelectAll}
+              disabled={
+                match?.state !== 'complete' || matchTooLargeForSelection
+              }
+              title={
+                matchTooLargeForSelection
+                  ? 'Cannot select this match (too many items)'
+                  : ''
+              }
+            >
+              Select All Matched
+            </Button>
+          </Stack>
+          <Stack direction="row" spacing={1}>
+            <Button onClick={() => close()}>Close</Button>
+          </Stack>
+        </Stack>
       }
     />
   );
