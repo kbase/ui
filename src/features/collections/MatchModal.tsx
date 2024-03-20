@@ -25,7 +25,11 @@ import { Loader } from '../../common/components/Loader';
 import { useForm } from 'react-hook-form';
 import { NarrativeDoc } from '../../common/types/NarrativeDoc';
 import { Alert, Stack } from '@mui/material';
-import { faCheckCircle, faWarning } from '@fortawesome/free-solid-svg-icons';
+import {
+  faCheckCircle,
+  faSpinner,
+  faWarning,
+} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { snakeCaseToHumanReadable } from '../../common/utils/stringUtils';
 
@@ -96,63 +100,76 @@ const ViewMatch = ({ collectionId }: { collectionId: string }) => {
         'Match data objects in your narrative to Genome data in this collection.'
       }
       body={
-        <Loader type="spinner" loading={matchQuery.isLoading}>
-          <Stack sx={{ marginTop: 4, marginBottom: 4, textAlign: 'center' }}>
-            {match?.state === 'processing' && (
-              <>
-                <Loader type="spinner" loading={true} />
-                <p>Processing match</p>
-              </>
-            )}
-            {match?.state === 'complete' && (
-              <>
-                <FontAwesomeIcon icon={faCheckCircle} size="2x" />
-                {matchCount === 1 && <p>Found {matchCount} match</p>}
-                {matchCount !== 1 && (
-                  <p>Found {matchCount.toLocaleString()} matches</p>
-                )}
-              </>
-            )}
-            {match?.state === 'failed' && (
-              <>
-                <FontAwesomeIcon icon={faWarning} size="2x" />
-                <p>There was a problem processing your match</p>
-              </>
-            )}
-          </Stack>
-          {match?.state !== 'processing' && (
-            <Alert severity="success">
-              <Stack spacing={2}>
-                {match?.state === 'complete' ? (
+        <div>
+          <Loader type="spinner" loading={matchQuery.isLoading}>
+            <Stack
+              sx={{
+                justifyContent: 'center',
+                marginTop: 4,
+                marginBottom: 4,
+                textAlign: 'center',
+              }}
+            >
+              {match?.state === 'processing' && (
+                <>
                   <div>
-                    You input a total of{' '}
-                    <strong>{upaCount.toLocaleString()}</strong> data{' '}
-                    {upaCount === 1 ? 'object' : 'objects'}, matching{' '}
-                    <strong>{matchCount.toLocaleString()}</strong> collection{' '}
-                    {matchCount === 1 ? 'item' : 'items'}.
+                    <FontAwesomeIcon icon={faSpinner} size="2x" spin />
                   </div>
-                ) : (
-                  <></>
-                )}
-                <Stack spacing={1}>
-                  <label>
-                    <strong>Match Params</strong>
-                  </label>
+                  <p>Processing match</p>
+                </>
+              )}
+              {match?.state === 'complete' && (
+                <>
                   <div>
-                    {Object.entries(match?.user_parameters || {}).map(
-                      ([key, value]) => (
-                        <div>
-                          {snakeCaseToHumanReadable(key)}:{' '}
-                          {JSON.stringify(value)}
-                        </div>
-                      )
-                    )}
+                    <FontAwesomeIcon icon={faCheckCircle} size="2x" />
                   </div>
+                  {matchCount === 1 && <p>Found {matchCount} match</p>}
+                  {matchCount !== 1 && (
+                    <p>Found {matchCount.toLocaleString()} matches</p>
+                  )}
+                </>
+              )}
+              {match?.state === 'failed' && (
+                <>
+                  <FontAwesomeIcon icon={faWarning} size="2x" />
+                  <p>There was a problem processing your match</p>
+                </>
+              )}
+            </Stack>
+            {match?.state !== 'processing' && (
+              <Alert severity="success">
+                <Stack spacing={2}>
+                  {match?.state === 'complete' ? (
+                    <div>
+                      You input a total of{' '}
+                      <strong>{upaCount.toLocaleString()}</strong> data{' '}
+                      {upaCount === 1 ? 'object' : 'objects'}, matching{' '}
+                      <strong>{matchCount.toLocaleString()}</strong> collection{' '}
+                      {matchCount === 1 ? 'item' : 'items'}.
+                    </div>
+                  ) : (
+                    <></>
+                  )}
+                  <Stack spacing={1}>
+                    <label>
+                      <strong>Match Params</strong>
+                    </label>
+                    <div>
+                      {Object.entries(match?.user_parameters || {}).map(
+                        ([key, value]) => (
+                          <div>
+                            {snakeCaseToHumanReadable(key)}:{' '}
+                            {JSON.stringify(value)}
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </Stack>
                 </Stack>
-              </Stack>
-            </Alert>
-          )}
-        </Loader>
+              </Alert>
+            )}
+          </Loader>
+        </div>
       }
       footer={
         <Stack
@@ -190,7 +207,12 @@ const ViewMatch = ({ collectionId }: { collectionId: string }) => {
             </Button>
           </Stack>
           <Stack direction="row" spacing={1}>
-            <Button onClick={() => close()}>Close</Button>
+            <Button
+              onClick={() => close()}
+              disabled={match?.state !== 'complete'}
+            >
+              Close
+            </Button>
           </Stack>
         </Stack>
       }
