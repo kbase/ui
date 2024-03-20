@@ -32,6 +32,7 @@ import { Slider, MenuItem, TextField, Stack, Divider } from '@mui/material';
 import { useForm } from 'react-hook-form';
 import { CollectionOverview } from './CollectionOverview';
 import { FilterChip } from '../../common/components/FilterChip';
+import { FilterContextTabs } from './Filters';
 
 export const detailPath = ':id';
 export const detailDataProductPath = ':id/:data_product';
@@ -46,17 +47,15 @@ const pageConfig: Record<
   string,
   {
     features: ('filter' | 'match' | 'search')[];
-    filterScope?: FilterContextScope;
   }
 > = {
-  samples: { features: [], filterScope: 'samples' },
-  biolog: { features: [], filterScope: 'biolog' },
-  microtrait: { features: [], filterScope: 'microtrait' },
+  samples: { features: [] },
+  biolog: { features: [] },
+  microtrait: { features: [] },
   genome_attribs: {
     features: ['filter', 'match', 'search'],
-    filterScope: 'genomes',
   },
-  taxa_count: { features: ['filter', 'match'], filterScope: 'genomes' },
+  taxa_count: { features: ['filter', 'match'] },
 };
 
 export const CollectionDetail = () => {
@@ -214,6 +213,7 @@ export const CollectionDetail = () => {
             onClose={() => setFiltersOpen(false)}
           />
           <div className={styles['data_product_detail']}>
+            <FilterContextTabs collectionId={collection.id} />
             {showOverview ? (
               <CollectionOverview
                 collection_id={collection.id}

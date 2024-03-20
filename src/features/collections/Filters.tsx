@@ -1,3 +1,4 @@
+import { Chip, Stack, Tab, Tabs } from '@mui/material';
 import { useCallback, useEffect, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import {
@@ -8,16 +9,92 @@ import {
   getSampleAttribsMeta,
 } from '../../common/api/collectionsApi';
 import { parseError } from '../../common/api/utils/parseError';
-import { useAppDispatch } from '../../common/hooks';
+import { useAppDispatch, useAppSelector } from '../../common/hooks';
 import {
   clearFiltersAndColumnMeta,
+  ContextTabsState,
   defaultFilterContext,
   FilterContext,
   setColumnMeta,
   setFilter,
   setFilterContext,
+  setFilterContextTabs,
+  useFilterContext,
   useFilters,
 } from './collectionsSlice';
+
+export const FilterContextTabs = ({
+  collectionId,
+}: {
+  collectionId: string;
+}) => {
+  const dispatch = useAppDispatch();
+  const tabs = useAppSelector((state) => state.collections.contextTabs);
+  const context = useFilterContext(collectionId);
+
+  useEffect(() => {
+    // reset context if not a tab option
+    if (!tabs) return;
+    if (tabs.map((tab) => tab.value).includes(context)) {
+      setFilterContext([collectionId, tabs[0].value]);
+    }
+  }, [collectionId, context, tabs]);
+
+  if (!tabs) return <></>;
+  return (
+    <Tabs
+      value={context}
+      onChange={(e, value) => {
+        dispatch(setFilterContext([collectionId, value]));
+      }}
+      aria-label="basic tabs example"
+    >
+      {tabs.map((tab) => {
+        return (
+          <Tab
+            label={
+              <Stack direction="row" alignItems={'center'} gap={1}>
+                {tab.label}
+                {tab.count !== undefined ? (
+                  <Chip size="small" label={tab.count} />
+                ) : (
+                  <></>
+                )}
+              </Stack>
+            }
+            value={tab.value}
+            disabled={!!tab.disabled}
+          ></Tab>
+        );
+      })}
+    </Tabs>
+  );
+};
+
+/** Sets filter context tab options, if only a context string is provided, sets a fixed filter context*/
+export const useFilterContextTabs = (
+  collectionId: string,
+  contexts: FilterContext | ContextTabsState[]
+) => {
+  const dispatch = useAppDispatch();
+  const serialized = JSON.stringify(contexts);
+  const contextRef = useRef(contexts);
+  contextRef.current = contexts;
+
+  useEffect(() => {
+    if (typeof contextRef.current === 'string') {
+      dispatch(setFilterContextTabs([collectionId, undefined]));
+      dispatch(setFilterContext([collectionId, contextRef.current]));
+    } else {
+      dispatch(setFilterContextTabs([collectionId, contextRef.current]));
+      dispatch(setFilterContext([collectionId, contextRef.current[0].value]));
+    }
+    return () => {
+      dispatch(setFilterContextTabs([collectionId, undefined]));
+      dispatch(setFilterContext([collectionId, defaultFilterContext]));
+    };
+  }, [collectionId, dispatch, serialized]);
+};
 
 export const useContextFilters = (
   collectionId: string | undefined,

@@ -63,10 +63,6 @@ interface ClnState {
   };
 }
 
-interface CollectionsState {
-  clns: { [id: string]: ClnState | undefined };
-}
-
 export const defaultFilterContext = '__DEFAULT' as const;
 export type FilterContextScope =
   | 'genomes'
@@ -88,6 +84,18 @@ const initialCollection: ClnState = {
   filters: {},
   columnMeta: {},
 };
+
+export interface ContextTabsState {
+  label: string;
+  value: FilterContext;
+  count?: number;
+  disabled?: boolean;
+}
+
+interface CollectionsState {
+  clns: { [id: string]: ClnState | undefined };
+  contextTabs?: ContextTabsState[];
+}
 
 const initialState: CollectionsState = {
   clns: {},
@@ -151,6 +159,16 @@ export const CollectionSlice = createSlice({
       } else {
         cln.filterContext = defaultFilterContext;
       }
+    },
+    setFilterContextTabs: (
+      state,
+      {
+        payload: [collectionId, contexts],
+      }: PayloadAction<
+        [collectionId: string, contexts: ContextTabsState[] | undefined]
+      >
+    ) => {
+      state.contextTabs = contexts;
     },
     setColumnMeta: (
       state,
@@ -254,6 +272,7 @@ export const {
   setPendingSelectionId,
   setMatchId,
   setFilterContext,
+  setFilterContextTabs,
   setFilter,
   clearFilter,
   clearFiltersAndColumnMeta,
@@ -369,6 +388,15 @@ export const useMatchId = (collectionId: string | undefined) => {
     }
   }, [collectionId, dispatch, matchIdParm, shouldUpdate]);
   return matchId;
+};
+
+export const useFilterContext = (collectionId: string | undefined) => {
+  return useAppSelector((state) =>
+    collectionId
+      ? state.collections.clns[collectionId]?.filterContext ??
+        defaultFilterContext
+      : defaultFilterContext
+  );
 };
 
 export const useFilters = (collectionId: string | undefined) => {

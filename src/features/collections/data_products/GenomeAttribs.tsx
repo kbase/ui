@@ -33,6 +33,7 @@ import { AttribScatter } from './AttribScatter';
 import { Paper, Stack, Tooltip, Typography } from '@mui/material';
 import { formatNumber } from '../../../common/utils/stringUtils';
 import { Link } from 'react-router-dom';
+import { useFilterContextTabs } from '../Filters';
 
 export const GenomeAttribs: FC<{
   collection_id: string;
@@ -84,6 +85,13 @@ export const GenomeAttribs: FC<{
       );
     },
   ];
+
+  // set filter context tabs
+  useFilterContextTabs(collection_id, [
+    { label: 'All', value: 'genomes.all' },
+    { label: 'Matched', value: 'genomes.matched', count: 12 },
+    { label: 'Selected', value: 'genomes.selected', disabled: true },
+  ]);
 
   const view = useMemo(
     () => ({
