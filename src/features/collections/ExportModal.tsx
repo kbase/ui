@@ -7,7 +7,13 @@ import {
 } from '../../common/api/collectionsApi';
 import { getNarratives } from '../../common/api/searchApi';
 import { getwsPermissions } from '../../common/api/workspaceApi';
-import { DataViewLink, Select, Input, Button, SelectOption } from '../../common/components';
+import {
+  DataViewLink,
+  Select,
+  Input,
+  Button,
+  SelectOption,
+} from '../../common/components';
 import { useAppDispatch, useAppSelector } from '../../common/hooks';
 import { uriEncodeTemplateTag as encode } from '../../common/utils/stringUtils';
 import { NarrativeDoc } from '../../common/types/NarrativeDoc';
