@@ -10,6 +10,7 @@ $border: 1px solid use-color("base-lighter");
 
 .collections-main .inner-container {
   margin-left: 0;
+  padding-left: 1rem;
 }
 
 .collections-list {
@@ -48,7 +49,7 @@ $border: 1px solid use-color("base-lighter");
 
 .collection_detail,
 .data_product_detail {
-  background-color: use-color("white");
+  background-color: use-color("base-lightest");
   border: $border;
   flex: 1;
   min-width: 600px;
@@ -71,7 +72,7 @@ $border: 1px solid use-color("base-lighter");
 }
 
 .match-highlight {
-  background-color: use-color("warning-lighter");
+  background-color: use-color("warning-lightest");
 }
 
 .collection_toolbar {
