@@ -19,7 +19,7 @@ import {
   setFilter,
   setFilterContext,
   setFilterContextTabs,
-  useFilterContext,
+  useFilterContextState,
   useFilters,
 } from './collectionsSlice';
 
@@ -30,20 +30,16 @@ export const FilterContextTabs = ({
 }) => {
   const dispatch = useAppDispatch();
   const tabs = useAppSelector((state) => state.collections.contextTabs);
-  const context = useFilterContext(collectionId);
+  const context = useFilterContextState(collectionId);
+  useContextFilterQueryManagement(collectionId, context);
 
-  useEffect(() => {
-    // reset context if not a tab option
-    if (!tabs) return;
-    if (tabs.map((tab) => tab.value).includes(context)) {
-      setFilterContext([collectionId, tabs[0].value]);
-    }
-  }, [collectionId, context, tabs]);
+  const selectedTab = tabs && tabs.find((t) => t.value === context);
 
   if (!tabs) return <></>;
+
   return (
     <Tabs
-      value={context}
+      value={selectedTab?.value ?? tabs[0].value}
       onChange={(e, value) => {
         dispatch(setFilterContext([collectionId, value]));
       }}
@@ -52,6 +48,7 @@ export const FilterContextTabs = ({
       {tabs.map((tab) => {
         return (
           <Tab
+            key={tab.value}
             label={
               <Stack direction="row" alignItems={'center'} gap={1}>
                 {tab.label}
@@ -72,31 +69,42 @@ export const FilterContextTabs = ({
 };
 
 /** Sets filter context tab options, if only a context string is provided, sets a fixed filter context*/
-export const useFilterContextTabs = (
+export const useFilterContexts = (
   collectionId: string,
-  contexts: FilterContext | ContextTabsState[]
+  contexts:
+    | FilterContext
+    | [ContextTabsState & { disabled?: false }, ...ContextTabsState[]]
 ) => {
   const dispatch = useAppDispatch();
   const serialized = JSON.stringify(contexts);
-  const contextRef = useRef(contexts);
-  contextRef.current = contexts;
+  const context = useFilterContextState(collectionId, undefined);
+  const contextRef = useRef(context);
+  contextRef.current = context;
 
   useEffect(() => {
-    if (typeof contextRef.current === 'string') {
+    const contexts = JSON.parse(serialized) as
+      | FilterContext
+      | ContextTabsState[];
+    if (typeof contexts === 'string') {
       dispatch(setFilterContextTabs([collectionId, undefined]));
-      dispatch(setFilterContext([collectionId, contextRef.current]));
+      dispatch(setFilterContext([collectionId, contexts]));
     } else {
-      dispatch(setFilterContextTabs([collectionId, contextRef.current]));
-      dispatch(setFilterContext([collectionId, contextRef.current[0].value]));
+      dispatch(setFilterContextTabs([collectionId, contexts]));
+      if (
+        contexts &&
+        !contexts.find((c) => c.value === contextRef.current && !c.disabled)
+      ) {
+        dispatch(setFilterContext([collectionId, contexts[0].value]));
+      }
     }
     return () => {
       dispatch(setFilterContextTabs([collectionId, undefined]));
-      dispatch(setFilterContext([collectionId, defaultFilterContext]));
     };
   }, [collectionId, dispatch, serialized]);
 };
 
-export const useContextFilters = (
+// Controls filter metadata queries for all possible contexts
+export const useContextFilterQueryManagement = (
   collectionId: string | undefined,
   context: FilterContext = defaultFilterContext
 ) => {
@@ -107,6 +115,8 @@ export const useContextFilters = (
   // create ref for filters, as we want to use them in effects non-dependently
   const filtersRef = useRef(filters);
   filtersRef.current = filters;
+  // create a ref to store a mapping between requestID and triggering context
+  const requestContext = useRef<Record<string, FilterContext>>({});
 
   // Define all our queries
   const [triggerGenome, genomeResult] = getGenomeAttribsMeta.useLazyQuery();
@@ -125,24 +135,30 @@ export const useContextFilters = (
   type CommonTriggerReturn = ReturnType<typeof triggers[number]>;
   type CommonResult = typeof results[number];
 
-  const handleErrors = useCallback(
+  const handleResult = useCallback(
     <T extends CommonResult>(
       result: T,
       collectionId: string | undefined
-    ): T['data'] | undefined => {
+    ): { filterData?: T['data']; context?: FilterContext } => {
       if (result.isError) {
-        toast('Filter Loading failed: ' + parseError(result.error).message);
+        const err = parseError(result.error);
+        if (err.name !== 'AbortError')
+          toast('Filter Loading failed: ' + parseError(result.error).message);
       }
-      if (!collectionId || !result?.data) return;
-      return result.data;
+      const context = result.requestId
+        ? requestContext.current[result.requestId]
+        : undefined;
+      if (!collectionId || !result?.data || !context || result.isError)
+        return {};
+      return { filterData: result.data, context };
     },
     []
   );
 
   const handleTableFilters = useCallback(
     <T extends typeof genomeResult | typeof sampleResult>(result: T) => {
-      const filterData = handleErrors(result, collectionId);
-      if (!filterData || !collectionId) return;
+      const { filterData, context } = handleResult(result, collectionId);
+      if (!filterData || !collectionId || !context) return;
       dispatch(clearFiltersAndColumnMeta([collectionId, context]));
       filterData.columns.forEach((column) => {
         const current = filtersRef.current && filtersRef.current[column.key];
@@ -190,13 +206,13 @@ export const useContextFilters = (
         }
       });
     },
-    [collectionId, context, dispatch, handleErrors]
+    [collectionId, dispatch, handleResult]
   );
 
   const handleHeatmapFilters = useCallback(
     <T extends typeof biologResult | typeof microtraitResult>(result: T) => {
-      const filterData = handleErrors(result, collectionId);
-      if (!filterData || !collectionId) return;
+      const { filterData, context } = handleResult(result, collectionId);
+      if (!filterData || !collectionId || !context) return;
       dispatch(clearFiltersAndColumnMeta([collectionId, context]));
       filterData.categories.forEach((category) => {
         category.columns.forEach((column) => {
@@ -233,13 +249,12 @@ export const useContextFilters = (
         });
       });
     },
-    [collectionId, context, dispatch, handleErrors]
+    [collectionId, dispatch, handleResult]
   );
 
   // When the context (or collection) changes, set the filter context and trigger appropriate query
   useEffect(() => {
     if (!collectionId) return;
-    dispatch(setFilterContext([collectionId, context]));
     let filterQueryTriggered: CommonTriggerReturn | undefined;
     if (context.startsWith('genomes.') || context === defaultFilterContext) {
       filterQueryTriggered = triggerGenome({ collection_id: collectionId });
@@ -252,6 +267,7 @@ export const useContextFilters = (
     } else {
       throw new Error(`No filter query matches filter context "${context}"`);
     }
+    requestContext.current[filterQueryTriggered.requestId] = context;
 
     return () => {
       // Abort request if context changes while running (prevents race conditions)

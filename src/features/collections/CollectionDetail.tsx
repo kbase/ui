@@ -20,7 +20,6 @@ import { Loader } from '../../common/components/Loader';
 import { CollectionSidebar, dataProductsMeta } from './CollectionSidebar';
 import {
   clearFilter,
-  FilterContextScope,
   FilterState,
   setFilter,
   useCurrentSelection,

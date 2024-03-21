@@ -49,8 +49,6 @@ interface ClnState {
   selection: SelectionState;
   match: MatchState;
   filterContext: FilterContext;
-  filterMatch: boolean;
-  filterSelection: boolean;
   filters: {
     [context: string]: {
       [columnName: string]: FilterState;
@@ -79,8 +77,6 @@ const initialCollection: ClnState = {
   selection: { current: [] },
   match: {},
   filterContext: defaultFilterContext,
-  filterMatch: false,
-  filterSelection: false,
   filters: {},
   columnMeta: {},
 };
@@ -204,24 +200,6 @@ export const CollectionSlice = createSlice({
       if (!cln.filters[context]) cln.filters[context] = {};
       cln.filters[context][columnName] = filterState;
     },
-    setFilterMatch: (
-      state,
-      {
-        payload: [collectionId, filter],
-      }: PayloadAction<[collectionId: string, filter: boolean]>
-    ) => {
-      const cln = collectionState(state, collectionId);
-      cln.filterMatch = filter;
-    },
-    setFilterSelection: (
-      state,
-      {
-        payload: [collectionId, filter],
-      }: PayloadAction<[collectionId: string, filter: boolean]>
-    ) => {
-      const cln = collectionState(state, collectionId);
-      cln.filterSelection = filter;
-    },
     clearFilter: (
       state,
       {
@@ -277,8 +255,6 @@ export const {
   clearFilter,
   clearFiltersAndColumnMeta,
   setColumnMeta,
-  setFilterMatch,
-  setFilterSelection,
 } = CollectionSlice.actions;
 
 export const useCurrentSelection = (collectionId: string | undefined) =>
@@ -390,33 +366,26 @@ export const useMatchId = (collectionId: string | undefined) => {
   return matchId;
 };
 
-export const useFilterContext = (collectionId: string | undefined) => {
+export const useFilterContextState = (
+  collectionId?: string,
+  fallback: FilterContext | undefined = defaultFilterContext
+) => {
   return useAppSelector((state) =>
     collectionId
-      ? state.collections.clns[collectionId]?.filterContext ??
-        defaultFilterContext
-      : defaultFilterContext
+      ? state.collections.clns[collectionId]?.filterContext ?? fallback
+      : fallback
   );
 };
 
-export const useFilters = (collectionId: string | undefined) => {
-  const context = useAppSelector((state) =>
-    collectionId
-      ? state.collections.clns[collectionId]?.filterContext ??
-        defaultFilterContext
-      : defaultFilterContext
-  );
+export const useFilters = (
+  collectionId: string | undefined,
+  filterContext?: FilterContext
+) => {
+  const currentContext = useFilterContextState(collectionId);
+  const context = filterContext ?? currentContext;
   const filters = useAppSelector((state) =>
     collectionId
       ? state.collections.clns[collectionId]?.filters?.[context]
-      : undefined
-  );
-  const filterMatch = useAppSelector((state) =>
-    collectionId ? state.collections.clns[collectionId]?.filterMatch : undefined
-  );
-  const filterSelection = useAppSelector((state) =>
-    collectionId
-      ? state.collections.clns[collectionId]?.filterSelection
       : undefined
   );
   const columnMeta = useAppSelector((state) =>
@@ -476,8 +445,6 @@ export const useFilters = (collectionId: string | undefined) => {
     filterParams,
     context,
     filters,
-    filterMatch,
-    filterSelection,
     columnMeta,
   };
 };

@@ -20,12 +20,11 @@ export const AttribScatter = ({
   downsample?: number;
   size?: [width: number, height: number];
 }) => {
-  const { filterMatch, filterSelection, columnMeta } =
-    useFilters(collection_id);
+  const { context, columnMeta } = useFilters(collection_id);
   const viewParams = useTableViewParams(collection_id, {
     filtered: true,
-    selected: Boolean(filterMatch),
-    matched: Boolean(filterSelection),
+    selected: context.endsWith('.selected'),
+    matched: context.endsWith('.matched'),
   });
   const { data, isLoading, error } = getAttribScatter.useQuery({
     ...viewParams,

@@ -9,7 +9,6 @@ import {
 } from '@tanstack/react-table';
 import { FC, useMemo, useState } from 'react';
 import { getGenomeAttribs } from '../../../common/api/collectionsApi';
-import { CheckBox } from '../../../common/components/CheckBox';
 import {
   Pagination,
   Table,
@@ -18,8 +17,7 @@ import {
 } from '../../../common/components/Table';
 import { useAppDispatch } from '../../../common/hooks';
 import {
-  setFilterMatch,
-  setFilterSelection,
+  FilterContext,
   setLocalSelection,
   useCurrentSelection,
   useFilters,
@@ -33,7 +31,7 @@ import { AttribScatter } from './AttribScatter';
 import { Paper, Stack, Tooltip, Typography } from '@mui/material';
 import { formatNumber } from '../../../common/utils/stringUtils';
 import { Link } from 'react-router-dom';
-import { useFilterContextTabs } from '../Filters';
+import { useFilterContexts } from '../Filters';
 
 export const GenomeAttribs: FC<{
   collection_id: string;
@@ -45,8 +43,7 @@ export const GenomeAttribs: FC<{
   const matchId = useMatchId(collection_id);
   const selectionId = useSelectionId(collection_id);
   // get the shared filter state
-  const { filterMatch, filterSelection, columnMeta } =
-    useFilters(collection_id);
+  const { columnMeta, context } = useFilters(collection_id);
 
   const [sorting, setSorting] = useState<SortingState>([]);
   const requestSort = useMemo(() => {
@@ -86,37 +83,20 @@ export const GenomeAttribs: FC<{
     },
   ];
 
-  // set filter context tabs
-  useFilterContextTabs(collection_id, [
-    { label: 'All', value: 'genomes.all' },
-    { label: 'Matched', value: 'genomes.matched', count: 12 },
-    { label: 'Selected', value: 'genomes.selected', disabled: true },
-  ]);
+  const view = {
+    matched: true,
+    selected: true,
+    filtered: true,
+    match_mark: !context.endsWith('.matched'),
+    selection_mark: !context.endsWith('.selected'),
+  };
 
-  const view = useMemo(
-    () => ({
-      matched: Boolean(matchId && filterMatch),
-      selected: Boolean(selectionId && filterSelection),
-      filtered: true,
-    }),
-    [filterMatch, filterSelection, matchId, selectionId]
-  );
   const viewParams = useTableViewParams(collection_id, view);
 
-  const markParams = useMemo(
-    () => ({
-      match_mark: Boolean(matchId && !filterMatch),
-      selection_mark: Boolean(selectionId && !filterSelection),
-      match_id: matchId ?? undefined,
-      sel_id: selectionId ?? undefined,
-    }),
-    [filterMatch, filterSelection, matchId, selectionId]
-  );
   // Requests
   const attribParams = useMemo(
     () => ({
       ...viewParams,
-      ...markParams,
       // sort params
       sort_on: requestSort.by,
       sort_desc: requestSort.desc,
@@ -126,7 +106,6 @@ export const GenomeAttribs: FC<{
     }),
     [
       viewParams,
-      markParams,
       requestSort.by,
       requestSort.desc,
       pagination.pageIndex,
@@ -134,9 +113,49 @@ export const GenomeAttribs: FC<{
     ]
   );
 
+  const selectionTabLoading =
+    context === 'genomes.selected' && selectionId === undefined;
+
   // Current Data
-  const { data, isFetching } = getGenomeAttribs.useQuery(attribParams);
-  const { count } = useGenomeAttribsCount(collection_id, view);
+  const { data, isFetching } = getGenomeAttribs.useQuery(attribParams, {
+    skip: selectionTabLoading,
+  });
+  const { count } = useGenomeAttribsCount(collection_id, view, context);
+  const { count: allCount } = useGenomeAttribsCount(
+    collection_id,
+    {
+      matched: false,
+      selected: false,
+      filtered: true,
+    },
+    'genomes.all'
+  );
+  const { count: matchedCount } = useGenomeAttribsCount(
+    collection_id,
+    {
+      matched: true,
+      selected: false,
+      filtered: true,
+    },
+    'genomes.matched'
+  );
+
+  // set filter context tabs
+  useFilterContexts(collection_id, [
+    { label: 'All', value: 'genomes.all', count: allCount },
+    {
+      label: 'Matched',
+      value: 'genomes.matched',
+      count: matchId ? matchedCount : undefined,
+      disabled: !matchId,
+    },
+    {
+      label: 'Selected',
+      value: 'genomes.selected',
+      count: currentSelection.length || undefined,
+      disabled: !currentSelection.length,
+    },
+  ]);
 
   // Prefetch requests
   const nextParams = useMemo(
@@ -251,32 +270,10 @@ export const GenomeAttribs: FC<{
             Showing {formatNumber(firstRow)} - {formatNumber(lastRow)} of{' '}
             {formatNumber(count || 0)} genomes
           </span>
-          <span>
-            <CheckBox
-              checked={Boolean(filterMatch)}
-              onChange={(e) =>
-                dispatch(
-                  setFilterMatch([collection_id, e.currentTarget.checked])
-                )
-              }
-            />{' '}
-            Filter by Match
-          </span>
-          <span>
-            <CheckBox
-              checked={Boolean(filterSelection)}
-              onChange={(e) =>
-                dispatch(
-                  setFilterSelection([collection_id, e.currentTarget.checked])
-                )
-              }
-            />{' '}
-            Filter by Selection
-          </span>
         </Stack>
         <Table
           table={table}
-          isLoading={isFetching}
+          isLoading={isFetching || selectionTabLoading}
           rowClass={(row) => {
             // match highlights
             return matchIndex !== undefined &&
@@ -317,11 +314,20 @@ export const GenomeAttribs: FC<{
   );
 };
 
+interface TableView {
+  filtered: boolean;
+  selected: boolean;
+  matched: boolean;
+  match_mark?: boolean;
+  selection_mark?: boolean;
+}
+
 export const useTableViewParams = (
   collection_id: string | undefined,
-  view: { filtered: boolean; selected: boolean; matched: boolean }
+  view: TableView,
+  context?: FilterContext
 ) => {
-  const { filterParams } = useFilters(collection_id);
+  const { filterParams } = useFilters(collection_id, context);
   const matchId = useMatchId(collection_id);
   const selectionId = useGenerateSelectionId(collection_id || '', {
     skip: !collection_id,
@@ -332,6 +338,8 @@ export const useTableViewParams = (
       ...(view.filtered ? { ...filterParams } : {}),
       ...(view.selected ? { selection_id: selectionId } : {}),
       ...(view.matched ? { match_id: matchId } : {}),
+      match_mark: view.match_mark,
+      selection_mark: view.selection_mark,
     }),
     [
       collection_id,
@@ -339,17 +347,20 @@ export const useTableViewParams = (
       matchId,
       selectionId,
       view.filtered,
+      view.match_mark,
       view.matched,
       view.selected,
+      view.selection_mark,
     ]
   );
 };
 
 export const useGenomeAttribsCount = (
   collection_id: string | undefined,
-  view: { filtered: boolean; selected: boolean; matched: boolean }
+  view: TableView,
+  context?: FilterContext
 ) => {
-  const viewParams = useTableViewParams(collection_id, view);
+  const viewParams = useTableViewParams(collection_id, view, context);
   const params = useMemo(() => ({ ...viewParams, count: true }), [viewParams]);
 
   // Requests
