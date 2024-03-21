@@ -15,6 +15,8 @@ import {
   ContextTabsState,
   defaultFilterContext,
   FilterContext,
+  FilterContextMode,
+  FilterContextScope,
   setColumnMeta,
   setFilter,
   setFilterContext,
@@ -255,26 +257,26 @@ export const useContextFilterQueryManagement = (
   // When the context (or collection) changes, set the filter context and trigger appropriate query
   useEffect(() => {
     if (!collectionId) return;
-    let filterQueryTriggered: CommonTriggerReturn | undefined;
+    let request: CommonTriggerReturn | undefined;
     if (context === defaultFilterContext) {
       return;
-    } else if (context.startsWith('genomes.')) {
-      filterQueryTriggered = triggerGenome({ collection_id: collectionId });
-    } else if (context.startsWith('samples.')) {
-      filterQueryTriggered = triggerSample({ collection_id: collectionId });
-    } else if (context.startsWith('microtrait.')) {
-      filterQueryTriggered = triggerMicrotrait({ collection_id: collectionId });
-    } else if (context.startsWith('biolog.')) {
-      filterQueryTriggered = triggerBiolog({ collection_id: collectionId });
+    } else if ('genomes' === filterContextScope(context)) {
+      request = triggerGenome({ collection_id: collectionId });
+    } else if ('samples' === filterContextScope(context)) {
+      request = triggerSample({ collection_id: collectionId });
+    } else if ('microtrait' === filterContextScope(context)) {
+      request = triggerMicrotrait({ collection_id: collectionId });
+    } else if ('biolog' === filterContextScope(context)) {
+      request = triggerBiolog({ collection_id: collectionId });
     } else {
       throw new Error(`No filter query matches filter context "${context}"`);
     }
-    requestContext.current[filterQueryTriggered.requestId] = context;
+    requestContext.current[request.requestId] = context;
 
     return () => {
       // Abort request if context changes while running (prevents race conditions)
-      if (filterQueryTriggered) {
-        filterQueryTriggered.abort();
+      if (request) {
+        request.abort();
       }
     };
   }, [
@@ -306,4 +308,20 @@ export const useContextFilterQueryManagement = (
   }, [handleHeatmapFilters, microtraitResult]);
 
   return { filters, context };
+};
+
+export const filterContextScope = (
+  context: FilterContext | undefined
+): FilterContextScope | undefined => {
+  return !context || context === 'none'
+    ? undefined
+    : (context.split('.')[0] as FilterContextScope);
+};
+
+export const filterContextMode = (
+  context: FilterContext | undefined
+): FilterContextMode | undefined => {
+  return !context || context === 'none'
+    ? undefined
+    : (context.split('.')[1] as FilterContextMode);
 };

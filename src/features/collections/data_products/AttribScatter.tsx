@@ -6,6 +6,7 @@ import { downsample as LTTB } from 'downsample-lttb-ts';
 import { useTableViewParams } from './GenomeAttribs';
 import { useFilters } from '../collectionsSlice';
 import { parseError } from '../../../common/api/utils/parseError';
+import { filterContextMode } from '../Filters';
 
 export const AttribScatter = ({
   collection_id,
@@ -23,8 +24,8 @@ export const AttribScatter = ({
   const { context, columnMeta } = useFilters(collection_id);
   const viewParams = useTableViewParams(collection_id, {
     filtered: true,
-    selected: context.endsWith('.selected'),
-    matched: context.endsWith('.matched'),
+    selected: filterContextMode(context) === 'selected',
+    matched: filterContextMode(context) === 'matched',
   });
   const { data, isLoading, error } = getAttribScatter.useQuery({
     ...viewParams,

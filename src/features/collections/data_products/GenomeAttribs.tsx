@@ -31,7 +31,7 @@ import { AttribScatter } from './AttribScatter';
 import { Paper, Stack, Tooltip, Typography } from '@mui/material';
 import { formatNumber } from '../../../common/utils/stringUtils';
 import { Link } from 'react-router-dom';
-import { useFilterContexts } from '../Filters';
+import { filterContextMode, useFilterContexts } from '../Filters';
 
 export const GenomeAttribs: FC<{
   collection_id: string;
@@ -87,8 +87,8 @@ export const GenomeAttribs: FC<{
     matched: true,
     selected: true,
     filtered: true,
-    match_mark: !context.endsWith('.matched'),
-    selection_mark: !context.endsWith('.selected'),
+    selection_mark: filterContextMode(context) !== 'selected',
+    match_mark: filterContextMode(context) !== 'matched',
   };
 
   const viewParams = useTableViewParams(collection_id, view);
