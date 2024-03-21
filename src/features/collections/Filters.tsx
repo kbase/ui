@@ -256,7 +256,9 @@ export const useContextFilterQueryManagement = (
   useEffect(() => {
     if (!collectionId) return;
     let filterQueryTriggered: CommonTriggerReturn | undefined;
-    if (context.startsWith('genomes.') || context === defaultFilterContext) {
+    if (context === defaultFilterContext) {
+      return;
+    } else if (context.startsWith('genomes.')) {
       filterQueryTriggered = triggerGenome({ collection_id: collectionId });
     } else if (context.startsWith('samples.')) {
       filterQueryTriggered = triggerSample({ collection_id: collectionId });

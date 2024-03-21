@@ -61,7 +61,7 @@ interface ClnState {
   };
 }
 
-export const defaultFilterContext = '__DEFAULT' as const;
+export const defaultFilterContext = 'none' as const;
 export type FilterContextScope =
   | 'genomes'
   | 'samples'
@@ -367,7 +367,7 @@ export const useMatchId = (collectionId: string | undefined) => {
 };
 
 export const useFilterContextState = (
-  collectionId?: string,
+  collectionId: string | undefined,
   fallback: FilterContext | undefined = defaultFilterContext
 ) => {
   return useAppSelector((state) =>
