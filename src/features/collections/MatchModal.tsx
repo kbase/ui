@@ -62,7 +62,10 @@ const ViewMatch = ({ collectionId }: { collectionId: string }) => {
       )
   );
   const match = matchQuery.data;
-
+  const matchStategy =
+    match?.state === 'complete'
+      ? snakeCaseToHumanReadable(match.matcher_id)
+      : '';
   const matchCount = match?.state === 'complete' ? match.matches.length : 0;
   const upaCount = match?.state === 'complete' ? match.upas.length : 0;
 
@@ -152,7 +155,13 @@ const ViewMatch = ({ collectionId }: { collectionId: string }) => {
                   )}
                   <Stack spacing={1}>
                     <label>
-                      <strong>Match Params</strong>
+                      <strong>Matching Strategy</strong>
+                    </label>
+                    <div>{matchStategy}</div>
+                  </Stack>
+                  <Stack spacing={1}>
+                    <label>
+                      <strong>Parameters</strong>
                     </label>
                     <div>
                       {Object.entries(match?.user_parameters || {}).map(
