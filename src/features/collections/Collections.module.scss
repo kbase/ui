@@ -44,7 +44,11 @@ $border: 1px solid use-color("base-lighter");
 .clickable-overview-card {
   border: 1px solid use-color("silver");
   cursor: pointer;
-  transition: 0.25s;
+  
+  /* stylelint-disable-next-line selector-class-pattern */
+  &:global(.MuiPaper-root) {
+    transition: 0.25s;
+  }
 
   &:hover {
     background-color: use-color("light-gray");
