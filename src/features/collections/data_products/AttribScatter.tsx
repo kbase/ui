@@ -20,7 +20,7 @@ export const AttribScatter = ({
   downsample?: number;
   size?: [width: number, height: number];
 }) => {
-  const { filterMatch, filterSelection, columnMeta } =
+  const { filterMatch, filterSelection, columnMeta, filterPanelOpen } =
     useFilters(collection_id);
   const viewParams = useTableViewParams(collection_id, {
     filtered: true,
@@ -167,6 +167,12 @@ export const AttribScatter = ({
         setViewport({ xMin, xMax, yMin, yMax });
     }, 50);
   };
+
+  // Force the chart to refresh when the filter panel opens or closes.
+  // This ensures that the sizing of the chart responds to the width changes.
+  useEffect(() => {
+    setPlotLayout({ ...plotLayout });
+  }, [filterPanelOpen, plotLayout]);
 
   if (plotData && !isLoading && !error) {
     return (
