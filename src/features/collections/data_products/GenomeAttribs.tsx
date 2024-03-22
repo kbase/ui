@@ -30,7 +30,7 @@ import {
 import classes from './../Collections.module.scss';
 import { AttribHistogram } from './AttribHistogram';
 import { AttribScatter } from './AttribScatter';
-import { Paper, Stack, Tooltip, Typography } from '@mui/material';
+import { Grid, Paper, Stack, Tooltip, Typography } from '@mui/material';
 import { formatNumber } from '../../../common/utils/stringUtils';
 import { Link } from 'react-router-dom';
 
@@ -242,54 +242,17 @@ export const GenomeAttribs: FC<{
   const { firstRow, lastRow } = usePageBounds(table);
 
   return (
-    <Stack spacing={1}>
-      <Paper variant="outlined">
-        <Stack className={classes['table-toolbar']} direction="row" spacing={1}>
-          <span>
-            Showing {formatNumber(firstRow)} - {formatNumber(lastRow)} of{' '}
-            {formatNumber(count || 0)} genomes
-          </span>
-          <span>
-            <CheckBox
-              checked={Boolean(filterMatch)}
-              onChange={(e) =>
-                dispatch(
-                  setFilterMatch([collection_id, e.currentTarget.checked])
-                )
-              }
-            />{' '}
-            Filter by Match
-          </span>
-          <span>
-            <CheckBox
-              checked={Boolean(filterSelection)}
-              onChange={(e) =>
-                dispatch(
-                  setFilterSelection([collection_id, e.currentTarget.checked])
-                )
-              }
-            />{' '}
-            Filter by Selection
-          </span>
-        </Stack>
-        <Table
-          table={table}
-          isLoading={isFetching}
-          rowClass={(row) => {
-            // match highlights
-            return matchIndex !== undefined &&
-              matchIndex !== -1 &&
-              row.original[matchIndex]
-              ? classes['match-highlight']
-              : '';
+    <Grid container spacing={1}>
+      <Grid item md={6}>
+        <Paper
+          variant="outlined"
+          sx={{
+            height: '400px',
+            minWidth: '450px',
+            position: 'relative',
+            width: '100%',
           }}
-        />
-        <div className={classes['pagination-wrapper']}>
-          <Pagination table={table} maxPage={10000 / pagination.pageSize} />
-        </div>
-      </Paper>
-      <Stack direction={'row'} spacing={1}>
-        <Paper variant="outlined">
+        >
           <AttribScatter
             collection_id={collection_id}
             xColumn={
@@ -302,7 +265,17 @@ export const GenomeAttribs: FC<{
             }
           />
         </Paper>
-        <Paper variant="outlined">
+      </Grid>
+      <Grid item md={6}>
+        <Paper
+          variant="outlined"
+          sx={{
+            height: '400px',
+            minWidth: '450px',
+            position: 'relative',
+            width: '100%',
+          }}
+        >
           <AttribHistogram
             collection_id={collection_id}
             column={
@@ -310,8 +283,59 @@ export const GenomeAttribs: FC<{
             }
           />
         </Paper>
-      </Stack>
-    </Stack>
+      </Grid>
+      <Grid item xs={12}>
+        <Paper variant="outlined">
+          <Stack
+            className={classes['table-toolbar']}
+            direction="row"
+            spacing={1}
+          >
+            <span>
+              Showing {formatNumber(firstRow)} - {formatNumber(lastRow)} of{' '}
+              {formatNumber(count || 0)} genomes
+            </span>
+            <span>
+              <CheckBox
+                checked={Boolean(filterMatch)}
+                onChange={(e) =>
+                  dispatch(
+                    setFilterMatch([collection_id, e.currentTarget.checked])
+                  )
+                }
+              />{' '}
+              Filter by Match
+            </span>
+            <span>
+              <CheckBox
+                checked={Boolean(filterSelection)}
+                onChange={(e) =>
+                  dispatch(
+                    setFilterSelection([collection_id, e.currentTarget.checked])
+                  )
+                }
+              />{' '}
+              Filter by Selection
+            </span>
+          </Stack>
+          <Table
+            table={table}
+            isLoading={isFetching}
+            rowClass={(row) => {
+              // match highlights
+              return matchIndex !== undefined &&
+                matchIndex !== -1 &&
+                row.original[matchIndex]
+                ? classes['match-highlight']
+                : '';
+            }}
+          />
+          <div className={classes['pagination-wrapper']}>
+            <Pagination table={table} maxPage={10000 / pagination.pageSize} />
+          </div>
+        </Paper>
+      </Grid>
+    </Grid>
   );
 };
 

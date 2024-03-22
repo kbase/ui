@@ -12,7 +12,7 @@ export const AttribScatter = ({
   xColumn,
   yColumn,
   downsample = 10000,
-  size = [600, 600],
+  size,
 }: {
   collection_id: string;
   xColumn: string;
@@ -117,6 +117,7 @@ export const AttribScatter = ({
   >({
     height: size?.[1],
     width: size?.[0],
+    margin: { t: 80 },
     title: title,
     xaxis: { title: { text: columnMeta?.[xColumn]?.display_name } },
     yaxis: { title: { text: columnMeta?.[yColumn]?.display_name } },
@@ -168,13 +169,20 @@ export const AttribScatter = ({
   };
 
   if (plotData && !isLoading && !error) {
-    return <Plot data={plotData} layout={plotLayout} onUpdate={handleUpdate} />;
+    return (
+      <Plot
+        data={plotData}
+        layout={plotLayout}
+        onUpdate={handleUpdate}
+        useResizeHandler={true}
+        style={{ width: '100%', height: '100%' }}
+      />
+    );
   } else {
     return (
       <Loader
         loading={isLoading}
         error={error ? parseError(error).message : undefined}
-        size={[`${size[0]}px`, `${size[1]}px`]}
       />
     );
   }

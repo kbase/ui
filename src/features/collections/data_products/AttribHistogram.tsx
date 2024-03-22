@@ -9,7 +9,7 @@ import { useTableViewParams } from './GenomeAttribs';
 export const AttribHistogram = ({
   collection_id,
   column,
-  size = [600, 600],
+  size,
 }: {
   collection_id: string;
   column: string;
@@ -39,19 +39,21 @@ export const AttribHistogram = ({
       <Plot
         data={plotData}
         layout={{
-          height: size[1],
-          width: size[0],
+          height: size?.[1],
+          width: size?.[0],
+          margin: { t: 80 },
           title: column,
           xaxis: { title: { text: columnMeta?.[column]?.display_name } },
           yaxis: { title: { text: 'Count' } },
         }}
+        useResizeHandler={true}
+        style={{ width: '100%', height: '100%' }}
       />
     );
   } else {
     return (
       <Loader
         loading={isLoading}
-        size={[`${size[0]}px`, `${size[1]}px`]}
         error={error ? parseError(error).message : undefined}
       />
     );
