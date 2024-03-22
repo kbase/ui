@@ -25,11 +25,30 @@ $border: 1px solid use-color("base-lighter");
   padding: 2rem 1rem 1rem;
 }
 
+.collection-card {
+  height: 100%;
+
+  /* stylelint-disable-next-line selector-class-pattern */
+  &:global(.MuiStack-root) {
+    border-radius: 4px !important;
+  }
+}
+
 .collection-card-title {
   color: use-color("primary");
   font-size: 1.15rem;
   font-weight: bold;
   margin: 0;
+}
+
+.clickable-overview-card {
+  border: 1px solid use-color("silver");
+  cursor: pointer;
+  transition: 0.25s;
+
+  &:hover {
+    background-color: use-color("light-gray");
+  }
 }
 
 .collection_wrapper {
