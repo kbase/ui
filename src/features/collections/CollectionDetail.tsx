@@ -211,7 +211,9 @@ export const CollectionDetail = () => {
                     modal?.show();
                   }}
                 >
-                  {`${selection.length.toLocaleString()} selected items`}
+                  {`Export (${selection.length.toLocaleString()} selected ${
+                    selection.length === 1 ? 'item' : 'items'
+                  })`}
                 </Button>
               </div>
               <div>
