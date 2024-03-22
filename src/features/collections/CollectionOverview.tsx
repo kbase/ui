@@ -163,7 +163,10 @@ export const CollectionOverview: FC<{
                       </Typography>
                     </Button>
                     <Typography color="text.primary">
-                      {genomeCount?.count ?? <Loader></Loader>} total
+                      {genomeCount?.count?.toLocaleString() ?? (
+                        <Loader></Loader>
+                      )}{' '}
+                      total
                     </Typography>
                   </CardContent>
                 </Card>
@@ -188,7 +191,10 @@ export const CollectionOverview: FC<{
                       </Typography>
                     </Button>
                     <Typography color="text.primary">
-                      {sampleCount?.count ?? <Loader></Loader>} total
+                      {sampleCount?.count?.toLocaleString() ?? (
+                        <Loader></Loader>
+                      )}{' '}
+                      total
                     </Typography>
                   </CardContent>
                 </Card>
