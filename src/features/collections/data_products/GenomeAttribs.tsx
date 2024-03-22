@@ -249,6 +249,7 @@ export const GenomeAttribs: FC<{
           sx={{
             height: '400px',
             minWidth: '350px',
+            padding: '1px',
             position: 'relative',
             width: '100%',
           }}
@@ -272,6 +273,7 @@ export const GenomeAttribs: FC<{
           sx={{
             height: '400px',
             minWidth: '350px',
+            padding: '1px',
             position: 'relative',
             width: '100%',
           }}

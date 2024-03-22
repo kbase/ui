@@ -29,8 +29,8 @@ $border: 1px solid use-color("base-lighter");
   height: 100%;
 
   /* stylelint-disable-next-line selector-class-pattern */
-  &:global(.MuiStack-root) {
-    border-radius: 4px !important;
+  > :global(.MuiStack-root) {
+    border-radius: 4px;
   }
 }
 
