@@ -83,7 +83,7 @@ const initialCollection: ClnState = {
 
 const initialState: CollectionsState = {
   clns: {},
-  filterPanelOpen: true,
+  filterPanelOpen: false,
 };
 
 export const CollectionSlice = createSlice({
