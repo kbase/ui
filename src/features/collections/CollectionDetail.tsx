@@ -295,10 +295,11 @@ const useFilterEntries = (collectionId: string) => {
         .map((category) => ({
           category: category,
           filters: Object.entries(filters ?? []).filter(
-            ([filterName, filter]) => filter.category === category
+            ([filterName, filter]) =>
+              columnMeta?.[filterName].category === category
           ),
         })),
-    [categories, filters]
+    [categories, filters, columnMeta]
   );
 
   // Use same filter order if ignoring categories for consistency
