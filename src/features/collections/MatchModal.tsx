@@ -32,6 +32,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { snakeCaseToHumanReadable } from '../../common/utils/stringUtils';
+import { marked } from 'marked';
 
 export const MatchModal = ({ collectionId }: { collectionId: string }) => {
   const matchId = useMatchId(collectionId);
@@ -238,14 +239,10 @@ export const MATCHER_LABELS = new Map<string, string>(
 
 export const MATCHER_HELP_TEXT = new Map<string, string>(
   Object.entries({
-    gtdb_lineage: `
-      This matcher works by comparing the GTDB lineage from your input objects to the classification field for data in this collection.
-      Input objects must have been run through the GTDB app in order to have lineage values.
-    `,
-    minhash_homology: `
-      This matcher works by running a mash homology search using the input objects as queries against the collection data.
-      More info: https://doi.org/10.1186/s13059-016-0997-x
-    `,
+    gtdb_lineage: `This matcher works by comparing the GTDB lineage from your input objects to the classification field for data in this collection.
+    Input objects must have been run through the GTDB app in order to have lineage values.`,
+    minhash_homology: `This matcher works by running a mash homology search using the input objects as queries against the collection data.
+    More info: [https://doi.org/10.1186/s13059-016-0997-x](https://doi.org/10.1186/s13059-016-0997-x)`,
   })
 );
 
@@ -402,7 +399,11 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
               />
               {matcherSelected && (
                 <Alert severity="info">
-                  {getMatcherHelpText(matcherSelected.id)}
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html: marked(getMatcherHelpText(matcherSelected.id)),
+                    }}
+                  />
                 </Alert>
               )}
             </Stack>
