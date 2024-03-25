@@ -10,6 +10,7 @@ $border: 1px solid use-color("base-lighter");
 
 .collections-main .inner-container {
   margin-left: 0;
+  padding-left: 1rem;
 }
 
 .collections-list {
@@ -24,11 +25,34 @@ $border: 1px solid use-color("base-lighter");
   padding: 2rem 1rem 1rem;
 }
 
+.collection-card {
+  height: 100%;
+
+  /* stylelint-disable-next-line selector-class-pattern */
+  > :global(.MuiStack-root) {
+    border-radius: 4px;
+  }
+}
+
 .collection-card-title {
   color: use-color("primary");
   font-size: 1.15rem;
   font-weight: bold;
   margin: 0;
+}
+
+.clickable-overview-card {
+  border: 1px solid use-color("silver");
+  cursor: pointer;
+  
+  /* stylelint-disable-next-line selector-class-pattern */
+  &:global(.MuiPaper-root) {
+    transition: 0.25s;
+  }
+
+  &:hover {
+    background-color: use-color("light-gray");
+  }
 }
 
 .collection_wrapper {
@@ -48,7 +72,7 @@ $border: 1px solid use-color("base-lighter");
 
 .collection_detail,
 .data_product_detail {
-  background-color: use-color("white");
+  background-color: use-color("base-lightest");
   border: $border;
   flex: 1;
   min-width: 600px;
@@ -60,7 +84,6 @@ $border: 1px solid use-color("base-lighter");
 .detail_header {
   background-color: use-color("white");
   border-bottom: 1px solid use-color("silver");
-  height: 105px;
   min-width: 600px;
   padding: 1rem;
 }
@@ -71,7 +94,7 @@ $border: 1px solid use-color("base-lighter");
 }
 
 .match-highlight {
-  background-color: use-color("warning-lighter");
+  background-color: use-color("warning-lightest");
 }
 
 .collection_toolbar {

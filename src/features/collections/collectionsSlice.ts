@@ -66,6 +66,7 @@ interface ClnState {
 
 interface CollectionsState {
   clns: { [id: string]: ClnState | undefined };
+  filterPanelOpen: boolean;
 }
 
 const defaultFilterContext = '__DEFAULT';
@@ -82,6 +83,7 @@ const initialCollection: ClnState = {
 
 const initialState: CollectionsState = {
   clns: {},
+  filterPanelOpen: false,
 };
 
 export const CollectionSlice = createSlice({
@@ -231,6 +233,9 @@ export const CollectionSlice = createSlice({
       cln.filters[context] = {};
       cln.columnMeta[context] = {};
     },
+    setFilterPanelOpen: (state, { payload: open }: PayloadAction<boolean>) => {
+      state.filterPanelOpen = open;
+    },
   },
 });
 
@@ -264,6 +269,7 @@ export const {
   setColumnMeta,
   setFilterMatch,
   setFilterSelection,
+  setFilterPanelOpen,
 } = CollectionSlice.actions;
 
 export const useCurrentSelection = (collectionId: string | undefined) =>
@@ -395,6 +401,9 @@ export const useFilters = (collectionId: string | undefined) => {
       ? state.collections.clns[collectionId]?.filterSelection
       : undefined
   );
+  const filterPanelOpen = useAppSelector(
+    (state) => state.collections.filterPanelOpen
+  );
   const columnMeta = useAppSelector((state) =>
     collectionId
       ? state.collections.clns[collectionId]?.columnMeta?.[context]
@@ -454,6 +463,7 @@ export const useFilters = (collectionId: string | undefined) => {
     filters,
     filterMatch,
     filterSelection,
+    filterPanelOpen,
     columnMeta,
   };
 };

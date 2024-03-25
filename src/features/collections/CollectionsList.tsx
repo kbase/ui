@@ -3,7 +3,7 @@ import { usePageTitle } from '../layout/layoutSlice';
 import { useNavigate } from 'react-router-dom';
 import classes from './Collections.module.scss';
 import { Card } from '../../common/components/Card';
-import { Chip, Container, Grid, Stack } from '@mui/material';
+import { Chip, Container, Grid, Paper, Stack } from '@mui/material';
 import TextClamp from '../../common/components/TextClamp';
 import { FC } from 'react';
 import { dataProductsMeta } from './CollectionSidebar';
@@ -48,27 +48,31 @@ const CollectionCard: FC<{
     return dpMeta?.section;
   });
   return (
-    <Card
-      title={
-        <h3 className={classes['collection-card-title']}>{collection.name}</h3>
-      }
-      subtitle={collection.ver_tag}
-      onClick={handleClick}
-      image={
-        <img
-          src={collection.icon_url}
-          alt={`${collection.name} collection icon`}
-        />
-      }
-      imageSize="md"
-      content={<TextClamp lines={3}>{collection.desc}</TextClamp>}
-      footer={
-        <Stack direction="row" spacing={1}>
-          {chips.map((chip) => (
-            <Chip key={chip} label={chip} />
-          ))}
-        </Stack>
-      }
-    />
+    <Paper className={classes['collection-card']}>
+      <Card
+        title={
+          <h3 className={classes['collection-card-title']}>
+            {collection.name}
+          </h3>
+        }
+        subtitle={collection.ver_tag}
+        onClick={handleClick}
+        image={
+          <img
+            src={collection.icon_url}
+            alt={`${collection.name} collection icon`}
+          />
+        }
+        imageSize="md"
+        content={<TextClamp lines={3}>{collection.desc}</TextClamp>}
+        footer={
+          <Stack direction="row" spacing={1}>
+            {chips.map((chip) => (
+              <Chip key={chip} label={chip} />
+            ))}
+          </Stack>
+        }
+      />
+    </Paper>
   );
 };

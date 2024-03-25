@@ -34,6 +34,7 @@ import {
   useFilters,
   useMatchId,
   clearAllFilters,
+  setFilterPanelOpen,
 } from './collectionsSlice';
 import { useAppDispatch, useDebounce } from '../../common/hooks';
 import {
@@ -69,6 +70,7 @@ export const CollectionDetail = () => {
   const params = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useAppDispatch();
 
   const collectionQuery = getCollection.useQuery(params.id || '', {
     skip: params.id === undefined,
@@ -119,22 +121,28 @@ export const CollectionDetail = () => {
   const matchQuery = getMatch.useQuery(matchId || '', {
     skip: !matchId,
   });
-  const match = matchQuery.data;
+  const match = matchQuery.currentData;
 
   const modal = useModalControls();
   const [modalView, setModalView] = useState<ModalView>('match');
 
-  const [filterOpen, setFiltersOpen] = useState(false);
+  const { filterPanelOpen } = useFilters(collection?.id);
   const filterMenuRef = useRef<HTMLButtonElement>(null);
 
   const handleToggleFilters = () => {
-    setFiltersOpen(!filterOpen);
+    if (collection?.id) {
+      dispatch(setFilterPanelOpen(!filterPanelOpen));
+    }
   };
 
   useEffect(() => {
     // When the currDataProduct/showOverview changes, close the filter menu
-    return () => setFiltersOpen(false);
-  }, [currDataProduct, showOverview]);
+    return () => {
+      if (collection?.id) {
+        dispatch(setFilterPanelOpen(false));
+      }
+    };
+  }, [dispatch, currDataProduct, showOverview, collection?.id]);
 
   const showMatchButton = (
     (params.data_product && pageConfig[params.data_product]) ||
@@ -203,7 +211,9 @@ export const CollectionDetail = () => {
                     modal?.show();
                   }}
                 >
-                  {`${selection.length.toLocaleString()} selected items`}
+                  {`Export (${selection.length.toLocaleString()} selected ${
+                    selection.length === 1 ? 'item' : 'items'
+                  })`}
                 </Button>
               </div>
               <div>
@@ -216,8 +226,12 @@ export const CollectionDetail = () => {
           <FilterMenu
             collectionId={collection.id}
             anchorEl={filterMenuRef.current}
-            open={filterOpen}
-            onClose={() => setFiltersOpen(false)}
+            open={filterPanelOpen ?? false}
+            onClose={() => {
+              if (collection?.id) {
+                dispatch(setFilterPanelOpen(filterPanelOpen));
+              }
+            }}
           />
           <div className={styles['data_product_detail']}>
             {showOverview ? (

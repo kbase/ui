@@ -9,7 +9,7 @@ import {
   faIdCard,
   faBullhorn,
   IconDefinition,
-  faBoxesStacked,
+  faLayerGroup,
 } from '@fortawesome/free-solid-svg-icons';
 import { FC } from 'react';
 import { Link, useLocation } from 'react-router-dom';
@@ -65,7 +65,7 @@ const DevNav: FC = () => {
       <NavItem
         path="/collections"
         desc="Collections"
-        icon={faBoxesStacked}
+        icon={faLayerGroup}
         badge={'beta'}
         badgeColor={'primary'}
       />

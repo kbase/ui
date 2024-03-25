@@ -12,7 +12,7 @@ export const AttribScatter = ({
   xColumn,
   yColumn,
   downsample = 10000,
-  size = [600, 600],
+  size,
 }: {
   collection_id: string;
   xColumn: string;
@@ -20,7 +20,7 @@ export const AttribScatter = ({
   downsample?: number;
   size?: [width: number, height: number];
 }) => {
-  const { filterMatch, filterSelection, columnMeta } =
+  const { filterMatch, filterSelection, columnMeta, filterPanelOpen } =
     useFilters(collection_id);
   const viewParams = useTableViewParams(collection_id, {
     filtered: true,
@@ -117,6 +117,7 @@ export const AttribScatter = ({
   >({
     height: size?.[1],
     width: size?.[0],
+    margin: { t: 80 },
     title: title,
     xaxis: { title: { text: columnMeta?.[xColumn]?.display_name } },
     yaxis: { title: { text: columnMeta?.[yColumn]?.display_name } },
@@ -167,14 +168,27 @@ export const AttribScatter = ({
     }, 50);
   };
 
+  // Force the chart to refresh when the filter panel opens or closes.
+  // This ensures that the sizing of the chart responds to the width changes.
+  useEffect(() => {
+    setPlotLayout({ ...plotLayout });
+  }, [filterPanelOpen, plotLayout]);
+
   if (plotData && !isLoading && !error) {
-    return <Plot data={plotData} layout={plotLayout} onUpdate={handleUpdate} />;
+    return (
+      <Plot
+        data={plotData}
+        layout={plotLayout}
+        onUpdate={handleUpdate}
+        useResizeHandler={true}
+        style={{ width: '100%', height: '100%' }}
+      />
+    );
   } else {
     return (
       <Loader
         loading={isLoading}
         error={error ? parseError(error).message : undefined}
-        size={[`${size[0]}px`, `${size[1]}px`]}
       />
     );
   }
