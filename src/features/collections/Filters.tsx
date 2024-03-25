@@ -55,7 +55,7 @@ export const FilterContextTabs = ({
               <Stack direction="row" alignItems={'center'} gap={1}>
                 {tab.label}
                 {tab.count !== undefined ? (
-                  <Chip size="small" label={tab.count} />
+                  <Chip size="small" label={tab.count.toLocaleString()} />
                 ) : (
                   <></>
                 )}

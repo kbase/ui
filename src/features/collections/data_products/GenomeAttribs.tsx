@@ -7,7 +7,7 @@ import {
   SortingState,
   RowSelectionState,
 } from '@tanstack/react-table';
-import { FC, useMemo, useState } from 'react';
+import { FC, useEffect, useMemo, useState } from 'react';
 import { getGenomeAttribs } from '../../../common/api/collectionsApi';
 import {
   Pagination,
@@ -156,6 +156,11 @@ export const GenomeAttribs: FC<{
       disabled: !currentSelection.length,
     },
   ]);
+
+  // Reset Pagination when context changes
+  useEffect(() => {
+    setPagination((pagination) => ({ ...pagination, pageIndex: 0 }));
+  }, [context]);
 
   // Prefetch requests
   const nextParams = useMemo(
