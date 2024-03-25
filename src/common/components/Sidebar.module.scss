@@ -44,12 +44,12 @@
 }
 
 .sidebar li.sidebar-item.selected > .sidebar-item-inner {
-  background-color: use-color("mid-green");
+  background-color: use-color("mid-green-light");
   color: use-color("black");
   font-weight: 500;
 
   &:hover {
-    background-color: use-color("mid-green-light");
+    background-color: use-color("mid-green-lighter");
   }
 }
 
