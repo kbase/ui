@@ -131,7 +131,7 @@ export const CollectionDetail = () => {
 
   const handleToggleFilters = () => {
     if (collection?.id) {
-      dispatch(setFilterPanelOpen([collection.id, !filterPanelOpen]));
+      dispatch(setFilterPanelOpen(!filterPanelOpen));
     }
   };
 
@@ -139,7 +139,7 @@ export const CollectionDetail = () => {
     // When the currDataProduct/showOverview changes, close the filter menu
     return () => {
       if (collection?.id) {
-        dispatch(setFilterPanelOpen([collection.id, false]));
+        dispatch(setFilterPanelOpen(false));
       }
     };
   }, [dispatch, currDataProduct, showOverview, collection?.id]);
@@ -229,7 +229,7 @@ export const CollectionDetail = () => {
             open={filterPanelOpen ?? false}
             onClose={() => {
               if (collection?.id) {
-                dispatch(setFilterPanelOpen([collection.id, !filterPanelOpen]));
+                dispatch(setFilterPanelOpen(filterPanelOpen));
               }
             }}
           />
