@@ -6,6 +6,7 @@ import { downsample as LTTB } from 'downsample-lttb-ts';
 import { useTableViewParams } from './GenomeAttribs';
 import { useFilters } from '../collectionsSlice';
 import { parseError } from '../../../common/api/utils/parseError';
+import { filterContextMode } from '../Filters';
 
 export const AttribScatter = ({
   collection_id,
@@ -20,12 +21,11 @@ export const AttribScatter = ({
   downsample?: number;
   size?: [width: number, height: number];
 }) => {
-  const { filterMatch, filterSelection, columnMeta, filterPanelOpen } =
-    useFilters(collection_id);
+  const { context, columnMeta, filterPanelOpen } = useFilters(collection_id);
   const viewParams = useTableViewParams(collection_id, {
     filtered: true,
-    selected: Boolean(filterMatch),
-    matched: Boolean(filterSelection),
+    selected: filterContextMode(context) === 'selected',
+    matched: filterContextMode(context) === 'matched',
   });
   const { data, isLoading, error } = getAttribScatter.useQuery({
     ...viewParams,
@@ -125,14 +125,21 @@ export const AttribScatter = ({
 
   //Reset title on plot update, but don't create a new layout object (this causes an infinite loop)
   useEffect(() => {
-    plotLayout.title = {
-      text: title,
-      yref: 'paper',
-    };
-    plotLayout.xaxis = { title: { text: columnMeta?.[xColumn]?.display_name } };
-    plotLayout.yaxis = { title: { text: columnMeta?.[yColumn]?.display_name } };
-    setPlotLayout(plotLayout);
-  }, [title, plotLayout, columnMeta, xColumn, yColumn]);
+    setPlotLayout((plotLayout) => {
+      const layout = { ...plotLayout };
+      layout.title = {
+        text: title,
+        yref: 'paper',
+      };
+      layout.xaxis = {
+        title: { text: columnMeta?.[xColumn]?.display_name },
+      };
+      layout.yaxis = {
+        title: { text: columnMeta?.[yColumn]?.display_name },
+      };
+      return layout;
+    });
+  }, [title, columnMeta, xColumn, yColumn]);
 
   const viewportChangeTimeout = useRef<number>();
 
@@ -171,8 +178,8 @@ export const AttribScatter = ({
   // Force the chart to refresh when the filter panel opens or closes.
   // This ensures that the sizing of the chart responds to the width changes.
   useEffect(() => {
-    setPlotLayout({ ...plotLayout });
-  }, [filterPanelOpen, plotLayout]);
+    setPlotLayout((plotLayout) => ({ ...plotLayout }));
+  }, [filterPanelOpen]);
 
   if (plotData && !isLoading && !error) {
     return (

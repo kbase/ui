@@ -10,6 +10,7 @@ import { snakeCaseToHumanReadable } from '../../../common/utils/stringUtils';
 import { useMatchId, useSelectionId } from '../collectionsSlice';
 import classes from './TaxaCount.module.scss';
 import { Paper, PaperProps, Stack } from '@mui/material';
+import { useFilterContexts } from '../Filters';
 
 export const TaxaCount: FC<{
   collection_id: string;
@@ -29,22 +30,29 @@ export const TaxaCount: FC<{
     return opts;
   }, [ranksQuery.data]);
 
-  // Counts
   const matchId = useMatchId(collection_id);
   const selectionId = useSelectionId(collection_id);
+
+  useFilterContexts(collection_id, 'none');
+
+  const displayMatch = Boolean(matchId);
+  const displaySel = Boolean(selectionId);
+
+  // Counts
   const countsParams = useMemo(
     () => ({
       collection_id,
       rank: String(rank?.value),
-      match_id: matchId,
-      selection_id: selectionId,
+      match_id: displayMatch ? matchId : undefined,
+      selection_id: displaySel ? selectionId : undefined,
     }),
-    [collection_id, matchId, rank?.value, selectionId]
+    [collection_id, rank?.value, displayMatch, matchId, displaySel, selectionId]
   );
 
   const countsQuery = getTaxaCountRank.useQuery(countsParams, {
     skip: !rank,
   });
+
   useBackoffPolling(countsQuery, (result) => {
     if (matchId && result?.data?.match_state === 'processing') return true;
     if (selectionId && result?.data?.selection_state === 'processing')
@@ -56,69 +64,72 @@ export const TaxaCount: FC<{
 
   const max = taxa.reduce((max, { count }) => (max > count ? max : count), 0);
 
-  if (ranksQuery.isLoading || countsQuery.isLoading) return <Loader />;
-
   return (
     <Paper variant="outlined" {...paperProps}>
       <Stack spacing={1}>
         <div className={classes['chart-toolbar']}>
           <Select
             value={rank}
+            loading={ranksQuery.isFetching}
             options={rankOptions}
             onChange={(opt) => setRank(opt[0])}
           />
         </div>
-        <div className={classes['figure']}>
-          <div className={classes['name-section']}>
-            {taxa.map(({ name }) => (
-              <Fragment key={name}>
-                <div className={classes['name']}>{name}</div>
-                {matchId ? (
-                  <div className={classes['sub-name']}>Matched</div>
-                ) : (
-                  <></>
-                )}
-                {selectionId ? (
-                  <div className={classes['sub-name']}>Selected</div>
-                ) : (
-                  <></>
-                )}
-              </Fragment>
-            ))}
-          </div>
-          <div className={classes['bars-section']}>
-            {taxa.map(({ name, count, match_count, sel_count }) => {
-              const width = Math.round((count / max) * 10000) / 100;
-              const matchWidth =
-                Math.round(((match_count || 0) / max) * 10000) / 100;
-              const selWidth =
-                Math.round(((sel_count || 0) / max) * 10000) / 100;
-              return (
+        {countsQuery.isFetching ? (
+          <Loader />
+        ) : (
+          <div className={classes['figure']}>
+            <div className={classes['name-section']}>
+              {taxa.map(({ name }) => (
                 <Fragment key={name}>
-                  <Bar width={width} count={count} />
-                  {matchId ? (
-                    <Bar
-                      className={classes['matched']}
-                      width={matchWidth}
-                      count={match_count || 0}
-                    />
+                  <div className={classes['name']}>{name}</div>
+                  {displayMatch ? (
+                    <div className={classes['sub-name']}>Matched</div>
                   ) : (
                     <></>
                   )}
-                  {selectionId ? (
-                    <Bar
-                      className={classes['selected']}
-                      width={selWidth}
-                      count={sel_count || 0}
-                    />
+                  {displaySel ? (
+                    <div className={classes['sub-name']}>Selected</div>
                   ) : (
                     <></>
                   )}
                 </Fragment>
-              );
-            })}
+              ))}
+            </div>
+            <div className={classes['bars-section']}>
+              {taxa.map(({ name, count, match_count, sel_count }) => {
+                const width = Math.round((count / max) * 10000) / 100;
+                const matchWidth =
+                  Math.round(((match_count || 0) / max) * 10000) / 100;
+                const selWidth =
+                  Math.round(((sel_count || 0) / max) * 10000) / 100;
+                return (
+                  <Fragment key={name}>
+                    <Bar width={width} count={count} />
+                    {displayMatch ? (
+                      <Bar
+                        className={classes['matched']}
+                        width={matchWidth}
+                        count={match_count || 0}
+                      />
+                    ) : (
+                      <></>
+                    )}
+                    {displaySel ? (
+                      <Bar
+                        className={classes['selected']}
+                        width={selWidth}
+                        count={sel_count || 0}
+                      />
+                    ) : (
+                      <></>
+                    )}
+                  </Fragment>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
       </Stack>
     </Paper>
   );

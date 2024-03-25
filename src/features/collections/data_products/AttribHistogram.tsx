@@ -4,6 +4,7 @@ import { getAttribHistogram } from '../../../common/api/collectionsApi';
 import { parseError } from '../../../common/api/utils/parseError';
 import { Loader } from '../../../common/components/Loader';
 import { useFilters } from '../collectionsSlice';
+import { filterContextMode } from '../Filters';
 import { useTableViewParams } from './GenomeAttribs';
 
 export const AttribHistogram = ({
@@ -15,12 +16,11 @@ export const AttribHistogram = ({
   column: string;
   size?: [width: number, height: number];
 }) => {
-  const { filterMatch, filterSelection, columnMeta, filterPanelOpen } =
-    useFilters(collection_id);
+  const { columnMeta, context, filterPanelOpen } = useFilters(collection_id);
   const viewParams = useTableViewParams(collection_id, {
     filtered: true,
-    selected: Boolean(filterMatch),
-    matched: Boolean(filterSelection),
+    selected: filterContextMode(context) === 'selected',
+    matched: filterContextMode(context) === 'matched',
   });
   const { data, isLoading, error } = getAttribHistogram.useQuery({
     ...viewParams,
@@ -51,8 +51,8 @@ export const AttribHistogram = ({
   // Force the chart to refresh when the filter panel opens or closes.
   // This ensures that the sizing of the chart responds to the width changes.
   useEffect(() => {
-    setPlotLayout({ ...plotLayout });
-  }, [filterPanelOpen, plotLayout]);
+    setPlotLayout((plotLayout) => ({ ...plotLayout }));
+  }, [filterPanelOpen]);
 
   if (plotData && !isLoading && !error) {
     return (
