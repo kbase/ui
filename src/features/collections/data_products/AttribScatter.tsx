@@ -125,14 +125,21 @@ export const AttribScatter = ({
 
   //Reset title on plot update, but don't create a new layout object (this causes an infinite loop)
   useEffect(() => {
-    plotLayout.title = {
-      text: title,
-      yref: 'paper',
-    };
-    plotLayout.xaxis = { title: { text: columnMeta?.[xColumn]?.display_name } };
-    plotLayout.yaxis = { title: { text: columnMeta?.[yColumn]?.display_name } };
-    setPlotLayout(plotLayout);
-  }, [title, plotLayout, columnMeta, xColumn, yColumn]);
+    setPlotLayout((plotLayout) => {
+      const layout = { ...plotLayout };
+      layout.title = {
+        text: title,
+        yref: 'paper',
+      };
+      layout.xaxis = {
+        title: { text: columnMeta?.[xColumn]?.display_name },
+      };
+      layout.yaxis = {
+        title: { text: columnMeta?.[yColumn]?.display_name },
+      };
+      return layout;
+    });
+  }, [title, columnMeta, xColumn, yColumn]);
 
   const viewportChangeTimeout = useRef<number>();
 
@@ -171,8 +178,8 @@ export const AttribScatter = ({
   // Force the chart to refresh when the filter panel opens or closes.
   // This ensures that the sizing of the chart responds to the width changes.
   useEffect(() => {
-    setPlotLayout({ ...plotLayout });
-  }, [filterPanelOpen, plotLayout]);
+    setPlotLayout((plotLayout) => ({ ...plotLayout }));
+  }, [filterPanelOpen]);
 
   if (plotData && !isLoading && !error) {
     return (

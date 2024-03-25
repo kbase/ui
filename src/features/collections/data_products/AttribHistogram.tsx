@@ -51,8 +51,8 @@ export const AttribHistogram = ({
   // Force the chart to refresh when the filter panel opens or closes.
   // This ensures that the sizing of the chart responds to the width changes.
   useEffect(() => {
-    setPlotLayout({ ...plotLayout });
-  }, [filterPanelOpen, plotLayout]);
+    setPlotLayout((plotLayout) => ({ ...plotLayout }));
+  }, [filterPanelOpen]);
 
   if (plotData && !isLoading && !error) {
     return (
