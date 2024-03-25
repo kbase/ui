@@ -121,7 +121,7 @@ export const CollectionDetail = () => {
   const matchQuery = getMatch.useQuery(matchId || '', {
     skip: !matchId,
   });
-  const match = matchQuery.data;
+  const match = matchQuery.currentData;
 
   const modal = useModalControls();
   const [modalView, setModalView] = useState<ModalView>('match');
