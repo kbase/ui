@@ -1,3 +1,4 @@
+import { Alert, Stack, Typography } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 import {
   exportSelection,
@@ -5,22 +6,33 @@ import {
   parseCollectionsError,
 } from '../../common/api/collectionsApi';
 import { getNarratives } from '../../common/api/searchApi';
-import { Select, Input, Button, SelectOption } from '../../common/components';
+import { getwsPermissions } from '../../common/api/workspaceApi';
+import {
+  DataViewLink,
+  Select,
+  Input,
+  Button,
+  SelectOption,
+} from '../../common/components';
+import { useAppDispatch, useAppSelector } from '../../common/hooks';
 import { uriEncodeTemplateTag as encode } from '../../common/utils/stringUtils';
+import { NarrativeDoc } from '../../common/types/NarrativeDoc';
 import { Modal } from '../layout/Modal';
 import { useAppParam } from '../params/hooks';
-import { useSelectionId } from './collectionsSlice';
-import { useParamsForNarrativeDropdown } from './hooks';
-import { Alert, Stack } from '@mui/material';
+import {
+  setLocalSelection,
+  useCurrentSelection,
+  useSelectionId,
+} from './collectionsSlice';
 import classes from './Collections.module.scss';
-import { useAppSelector } from '../../common/hooks';
-import { getwsPermissions } from '../../common/api/workspaceApi';
-import { NarrativeDoc } from '../../common/types/NarrativeDoc';
+import { useParamsForNarrativeDropdown } from './hooks';
 
 export const ExportModal = ({ collectionId }: { collectionId: string }) => {
+  const dispatch = useAppDispatch();
   const selectionId = useSelectionId(collectionId);
   const matchId = useAppParam('match');
   const username = useAppSelector((state) => state.auth.username);
+  const currentSelection = useCurrentSelection(collectionId);
 
   const [type, setType] = useState<SelectOption | undefined>();
   const [narrativeSearch, setNarrativeSearch] = useState('');
@@ -115,9 +127,22 @@ export const ExportModal = ({ collectionId }: { collectionId: string }) => {
 
   return (
     <Modal
-      title={'Save To Narrative'}
+      title={'Export Items'}
       body={
         <Stack className={classes['export-modal']} spacing={2}>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Typography fontSize="large">
+              <strong>{currentSelection.length.toLocaleString()}</strong> items
+              in selection
+            </Typography>
+            <Button
+              color="gray"
+              onClick={() => dispatch(setLocalSelection([collectionId, []]))}
+            >
+              Clear Selection
+            </Button>
+          </Stack>
+          <h3>Save to Narrative</h3>
           <Stack spacing={1}>
             <label>Export type</label>
             <Select
@@ -187,9 +212,9 @@ export const ExportModal = ({ collectionId }: { collectionId: string }) => {
                   </a>
                 </li>
                 <li>
-                  <a href={`/#dataview/${exportResult.data.set.upa}`}>
+                  <DataViewLink identifier={exportResult.data.set.upa}>
                     Go to DataView
-                  </a>
+                  </DataViewLink>
                 </li>
               </ul>
             </Alert>

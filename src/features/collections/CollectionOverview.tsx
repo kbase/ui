@@ -24,6 +24,7 @@ import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
 import { faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { useModalControls } from '../layout/Modal';
+import classes from './Collections.module.scss';
 
 const purify = createDOMPurify(window);
 
@@ -71,7 +72,7 @@ export const CollectionOverview: FC<{
   return (
     <Grid container spacing={2}>
       <Grid item xs={3}>
-        <Card sx={{ height: '100%' }}>
+        <Card sx={{ height: '100%' }} elevation={0}>
           <CardHeader
             title={
               <Typography variant="h6" fontWeight="bold">
@@ -108,7 +109,7 @@ export const CollectionOverview: FC<{
         </Card>
       </Grid>
       <Grid item xs={9}>
-        <Card sx={{ height: '100%' }}>
+        <Card sx={{ height: '100%' }} elevation={0}>
           <CardHeader
             title={
               <Typography variant="h6" fontWeight="bold">
@@ -135,7 +136,7 @@ export const CollectionOverview: FC<{
         </Card>
       </Grid>
       <Grid item xs={6}>
-        <Card sx={{ height: '100%' }}>
+        <Card sx={{ height: '100%' }} elevation={0}>
           <CardHeader
             title={
               <Typography variant="h6" fontWeight="bold">
@@ -147,13 +148,14 @@ export const CollectionOverview: FC<{
           <CardContent>
             <Stack direction={'row'} spacing={2}>
               {hasGenomes ? (
-                <Card>
+                <Card
+                  className={classes['clickable-overview-card']}
+                  onClick={() => {
+                    navigate(`/collections/${collection_id}/genome_attribs`);
+                  }}
+                >
                   <CardContent>
-                    <Button
-                      variant="text"
-                      href={`/collections/${collection_id}/genome_attribs`}
-                      sx={{ padding: '0' }}
-                    >
+                    <Button variant="text" sx={{ padding: '0' }}>
                       <Typography
                         sx={{ fontSize: 24, textTransform: 'none' }}
                         color="primary"
@@ -163,7 +165,10 @@ export const CollectionOverview: FC<{
                       </Typography>
                     </Button>
                     <Typography color="text.primary">
-                      {genomeCount?.count ?? <Loader></Loader>} total
+                      {genomeCount?.count?.toLocaleString() ?? (
+                        <Loader></Loader>
+                      )}{' '}
+                      total
                     </Typography>
                   </CardContent>
                 </Card>
@@ -172,13 +177,14 @@ export const CollectionOverview: FC<{
               )}
 
               {hasSamples ? (
-                <Card>
+                <Card
+                  className={classes['clickable-overview-card']}
+                  onClick={() => {
+                    navigate(`/collections/${collection_id}/samples`);
+                  }}
+                >
                   <CardContent>
-                    <Button
-                      variant="text"
-                      href={`/collections/${collection_id}/samples`}
-                      sx={{ padding: '0' }}
-                    >
+                    <Button variant="text" sx={{ padding: '0' }}>
                       <Typography
                         sx={{ fontSize: 24, textTransform: 'none' }}
                         color="primary"
@@ -188,7 +194,10 @@ export const CollectionOverview: FC<{
                       </Typography>
                     </Button>
                     <Typography color="text.primary">
-                      {sampleCount?.count ?? <Loader></Loader>} total
+                      {sampleCount?.count?.toLocaleString() ?? (
+                        <Loader></Loader>
+                      )}{' '}
+                      total
                     </Typography>
                   </CardContent>
                 </Card>
@@ -200,7 +209,7 @@ export const CollectionOverview: FC<{
         </Card>
       </Grid>
       <Grid item xs={6}>
-        <Card sx={{ height: '100%' }}>
+        <Card sx={{ height: '100%' }} elevation={0}>
           <CardHeader
             title={
               <Typography variant="h6" fontWeight="bold">
@@ -212,6 +221,7 @@ export const CollectionOverview: FC<{
           <CardContent>
             <Stack direction={'row'} spacing={2}>
               <Card
+                className={classes['clickable-overview-card']}
                 onClick={() => {
                   navigate(`/collections/${collection_id}/genome_attribs`);
                 }}
@@ -226,6 +236,7 @@ export const CollectionOverview: FC<{
                 </CardActions>
               </Card>
               <Card
+                className={classes['clickable-overview-card']}
                 onClick={() => {
                   navigate(`/collections/${collection_id}/genome_attribs`);
                   setModalView('match');
@@ -243,6 +254,7 @@ export const CollectionOverview: FC<{
                 </CardActions>
               </Card>
               <Card
+                className={classes['clickable-overview-card']}
                 onClick={() => {
                   navigate(`/collections/${collection_id}/genome_attribs`);
                 }}
@@ -262,7 +274,7 @@ export const CollectionOverview: FC<{
       </Grid>
       {taxa_count ? (
         <Grid item xs={6}>
-          <Card sx={{ height: '100%', overflow: 'visible' }}>
+          <Card sx={{ height: '100%', overflow: 'visible' }} elevation={0}>
             <CardHeader
               title={
                 <Typography variant="h6" fontWeight="bold">
@@ -287,7 +299,7 @@ export const CollectionOverview: FC<{
       )}
       {samples ? (
         <Grid item xs={6}>
-          <Card sx={{ height: '100%' }}>
+          <Card sx={{ height: '100%' }} elevation={0}>
             <CardHeader
               title={<Typography variant="h6">Sample Preview</Typography>}
             />

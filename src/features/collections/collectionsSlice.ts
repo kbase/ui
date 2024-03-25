@@ -30,7 +30,7 @@ interface FilterRange {
   range: [number, number];
 }
 
-export type FilterState =
+export type FilterState = { category?: string } & (
   | { type: 'fulltext' | 'prefix' | 'identity' | 'ngram'; value?: string }
   | {
       type: 'int' | 'float';
@@ -43,7 +43,8 @@ export type FilterState =
       value?: FilterRange;
       min_value: number;
       max_value: number;
-    };
+    }
+);
 
 interface ClnState {
   selection: SelectionState;
@@ -91,10 +92,12 @@ export interface ContextTabsState {
 interface CollectionsState {
   clns: { [id: string]: ClnState | undefined };
   contextTabs?: ContextTabsState[];
+  filterPanelOpen: boolean;
 }
 
 const initialState: CollectionsState = {
   clns: {},
+  filterPanelOpen: false,
 };
 
 export const CollectionSlice = createSlice({
@@ -214,6 +217,20 @@ export const CollectionSlice = createSlice({
         delete cln.filters[context][columnName].value;
       }
     },
+    clearAllFilters: (
+      state,
+      {
+        payload: [collectionId, context],
+      }: PayloadAction<[collectionId: string, context: string]>
+    ) => {
+      const cln = collectionState(state, collectionId);
+      if (!cln.filters[context]) cln.filters[context] = {};
+      Object.keys(cln.filters[context]).forEach((columnName) => {
+        if (cln.filters[context][columnName].value) {
+          delete cln.filters[context][columnName].value;
+        }
+      });
+    },
     clearFiltersAndColumnMeta: (
       state,
       {
@@ -223,6 +240,9 @@ export const CollectionSlice = createSlice({
       const cln = collectionState(state, collectionId);
       cln.filters[context] = {};
       cln.columnMeta[context] = {};
+    },
+    setFilterPanelOpen: (state, { payload: open }: PayloadAction<boolean>) => {
+      state.filterPanelOpen = open;
     },
   },
 });
@@ -253,8 +273,10 @@ export const {
   setFilterContextTabs,
   setFilter,
   clearFilter,
+  clearAllFilters,
   clearFiltersAndColumnMeta,
   setColumnMeta,
+  setFilterPanelOpen,
 } = CollectionSlice.actions;
 
 export const useCurrentSelection = (collectionId: string | undefined) =>
@@ -388,6 +410,9 @@ export const useFilters = (
       ? state.collections.clns[collectionId]?.filters?.[context]
       : undefined
   );
+  const filterPanelOpen = useAppSelector(
+    (state) => state.collections.filterPanelOpen
+  );
   const columnMeta = useAppSelector((state) =>
     collectionId
       ? state.collections.clns[collectionId]?.columnMeta?.[context]
@@ -445,6 +470,7 @@ export const useFilters = (
     filterParams,
     context,
     filters,
+    filterPanelOpen,
     columnMeta,
   };
 };
