@@ -3,10 +3,10 @@ import Plot from 'react-plotly.js';
 import { getAttribScatter } from '../../../common/api/collectionsApi';
 import { Loader } from '../../../common/components/Loader';
 import { downsample as LTTB } from 'downsample-lttb-ts';
-import { useTableViewParams } from './GenomeAttribs';
 import { useFilters } from '../collectionsSlice';
 import { parseError } from '../../../common/api/utils/parseError';
 import { filterContextMode } from '../Filters';
+import { useTableViewParams } from '../hooks';
 
 export const AttribScatter = ({
   collection_id,
