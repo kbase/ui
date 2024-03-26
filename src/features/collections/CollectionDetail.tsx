@@ -393,29 +393,15 @@ const FilterMenu = ({
   } = useFilterEntries(collectionId);
 
   /**
-   * Store category expanded state in an object
+   * Store expanded category string, empty string for none expanded
    */
-  const [expandedByCategory, setExpandedByCategory] = useState(() => {
-    const expanded: { [key: string]: boolean } = {};
-    categorizedFilters.forEach((category) => {
-      expanded[category.category] = false;
-    });
-    return expanded;
-  });
+  const [expandedCategory, setExpandedCategory] = useState('');
 
   /**
    * Only allow one category to be expanded at a time.
    */
   const handleExpand = (expanded: boolean, category: string) => {
-    const newValue = { ...expandedByCategory };
-    Object.keys(expandedByCategory).forEach((c) => {
-      if (expanded && c === category) {
-        newValue[c] = true;
-      } else {
-        newValue[c] = false;
-      }
-    });
-    setExpandedByCategory(newValue);
+    setExpandedCategory(expanded ? category : '');
   };
 
   if (open) {
@@ -448,7 +434,7 @@ const FilterMenu = ({
                 key={`${category.category}-${context}`}
                 className={styles['filter-category']}
                 elevation={0}
-                expanded={expandedByCategory[category.category]}
+                expanded={category.category === expandedCategory}
                 onChange={(e, expanded) =>
                   handleExpand(expanded, category.category)
                 }
