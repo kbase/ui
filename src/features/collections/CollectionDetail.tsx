@@ -295,10 +295,11 @@ const useFilterEntries = (collectionId: string) => {
         .map((category) => ({
           category: category,
           filters: Object.entries(filters ?? []).filter(
-            ([filterName, filter]) => filter.category === category
+            ([filterName, filter]) =>
+              columnMeta?.[filterName].category === category
           ),
         })),
-    [categories, filters]
+    [categories, filters, columnMeta]
   );
 
   // Use same filter order if ignoring categories for consistency
@@ -329,7 +330,8 @@ const useFilterEntries = (collectionId: string) => {
 };
 
 const FilterChips = ({ collectionId }: { collectionId: string }) => {
-  const { filterEntries, clearFilterState } = useFilterEntries(collectionId);
+  const { filterEntries, clearFilterState, context } =
+    useFilterEntries(collectionId);
   if (filterEntries.length === 0) return <></>;
   return (
     <Stack
@@ -343,7 +345,7 @@ const FilterChips = ({ collectionId }: { collectionId: string }) => {
         return (
           <FilterChip
             filter={filter}
-            key={`${column}-${filter.type}`}
+            key={`${column}-${context}-${filter.type}`}
             name={column}
             onDelete={() => clearFilterState(column)}
           />
@@ -425,7 +427,7 @@ const FilterMenu = ({
           {categorizedFilters.map((category) => {
             return (
               <Accordion
-                key={category.category}
+                key={`${category.category}-${context}`}
                 className={styles['filter-category']}
                 elevation={0}
                 expanded={expandedByCategory[category.category]}
@@ -455,7 +457,7 @@ const FilterMenu = ({
                         <Stack
                           className={styles['filter-container']}
                           spacing={1}
-                          key={`${column}_container`}
+                          key={`${column}-${context}_container`}
                         >
                           <div>
                             <label
