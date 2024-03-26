@@ -178,24 +178,26 @@ export const CollectionDetail = () => {
             <>
               <div className={styles['collection_toolbar']}>
                 <Stack direction="row" spacing={1}>
-                  <Input
-                    hidden={!showSearch}
-                    className={styles['search-box']}
-                    placeholder="Search genomes by classification"
-                  />
-                  <Button
-                    hidden={!showMatchButton}
-                    icon={<FontAwesomeIcon icon={faArrowRightArrowLeft} />}
-                    variant="text"
-                    onClick={() => {
-                      setModalView('match');
-                      modal?.show();
-                    }}
-                  >
-                    {match
-                      ? `Matching by ${MATCHER_LABELS.get(match.matcher_id)}`
-                      : `Match My Data`}
-                  </Button>
+                  {showSearch && (
+                    <Input
+                      className={styles['search-box']}
+                      placeholder="Search genomes by classification"
+                    />
+                  )}
+                  {showMatchButton && (
+                    <Button
+                      icon={<FontAwesomeIcon icon={faArrowRightArrowLeft} />}
+                      variant="text"
+                      onClick={() => {
+                        setModalView('match');
+                        modal?.show();
+                      }}
+                    >
+                      {match
+                        ? `Matching by ${MATCHER_LABELS.get(match.matcher_id)}`
+                        : `Match My Data`}
+                    </Button>
+                  )}
                 </Stack>
                 <Button
                   icon={<FontAwesomeIcon icon={faFileExport} />}
@@ -237,29 +239,30 @@ export const CollectionDetail = () => {
               />
             ) : currDataProduct ? (
               <>
-                <Stack
-                  className={styles['filter-controls']}
-                  direction="row"
-                  spacing={2}
-                  alignItems="center"
-                >
-                  <Button
-                    hidden={!showFilterButton}
-                    ref={filterMenuRef}
-                    icon={<FontAwesomeIcon icon={faSliders} />}
-                    onClick={handleToggleFilters}
+                {showFilterButton && (
+                  <Stack
+                    className={styles['filter-controls']}
+                    direction="row"
+                    spacing={2}
+                    alignItems="center"
                   >
-                    Filters
-                  </Button>
-                  <div className={styles['filter-chips-label']}>
-                    {filterEntries ? filterEntries.length : '0'} active{' '}
-                    {filterEntries && filterEntries.length !== 1
-                      ? 'filters'
-                      : 'filter'}
-                    {filterEntries && filterEntries.length > 0 ? ':' : ''}
-                  </div>
-                  <FilterChips collectionId={collection.id} />
-                </Stack>
+                    <Button
+                      ref={filterMenuRef}
+                      icon={<FontAwesomeIcon icon={faSliders} />}
+                      onClick={handleToggleFilters}
+                    >
+                      Filters
+                    </Button>
+                    <div className={styles['filter-chips-label']}>
+                      {filterEntries ? filterEntries.length : '0'} active{' '}
+                      {filterEntries && filterEntries.length !== 1
+                        ? 'filters'
+                        : 'filter'}
+                      {filterEntries && filterEntries.length > 0 ? ':' : ''}
+                    </div>
+                    <FilterChips collectionId={collection.id} />
+                  </Stack>
+                )}
                 <DataProduct
                   dataProduct={currDataProduct}
                   collection_id={collection.id}
