@@ -187,7 +187,7 @@ export const CollectionDetail = () => {
                   {showMatchButton && (
                     <Button
                       icon={<FontAwesomeIcon icon={faArrowRightArrowLeft} />}
-                      color="accent-warm"
+                      color="accent-warm-light"
                       onClick={() => {
                         setModalView('match');
                         modal?.show();
