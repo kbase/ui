@@ -17,11 +17,9 @@ import {
 } from '../../../common/components/Table';
 import { useAppDispatch } from '../../../common/hooks';
 import {
-  FilterContext,
   setLocalSelection,
   useCurrentSelection,
   useFilters,
-  useGenerateSelectionId,
   useMatchId,
   useSelectionId,
 } from '../collectionsSlice';
@@ -32,6 +30,7 @@ import { Grid, Paper, Stack, Tooltip, Typography } from '@mui/material';
 import { formatNumber } from '../../../common/utils/stringUtils';
 import { Link } from 'react-router-dom';
 import { filterContextMode, useFilterContexts } from '../Filters';
+import { useTableViewParams } from '../hooks';
 
 export const GenomeAttribs: FC<{
   collection_id: string;
@@ -209,7 +208,7 @@ export const GenomeAttribs: FC<{
               const upa = (cell.getValue() as string).replace(/_/g, '/');
               return (
                 <Link
-                  to={`https://ci-europa.kbase.us/legacy/dataview/${upa}`}
+                  to={`https://${process.env.REACT_APP_KBASE_DOMAIN}/legacy/dataview/${upa}`}
                   target="_blank"
                 >
                   {upa}
@@ -351,51 +350,8 @@ export const GenomeAttribs: FC<{
   );
 };
 
-interface TableView {
-  filtered: boolean;
-  selected: boolean;
-  matched: boolean;
-  match_mark?: boolean;
-  selection_mark?: boolean;
-}
-
-export const useTableViewParams = (
-  collection_id: string | undefined,
-  view: TableView,
-  context?: FilterContext
-) => {
-  const { filterParams } = useFilters(collection_id, context);
-  const matchId = useMatchId(collection_id);
-  const selectionId = useGenerateSelectionId(collection_id || '', {
-    skip: !collection_id,
-  });
-  return useMemo(
-    () => ({
-      collection_id: collection_id ?? '',
-      ...(view.filtered ? { ...filterParams } : {}),
-      ...(view.selected ? { selection_id: selectionId } : {}),
-      ...(view.matched ? { match_id: matchId } : {}),
-      match_mark: view.match_mark,
-      selection_mark: view.selection_mark,
-    }),
-    [
-      collection_id,
-      filterParams,
-      matchId,
-      selectionId,
-      view.filtered,
-      view.match_mark,
-      view.matched,
-      view.selected,
-      view.selection_mark,
-    ]
-  );
-};
-
 export const useGenomeAttribsCount = (
-  collection_id: string | undefined,
-  view: TableView,
-  context?: FilterContext
+  ...[collection_id, view, context]: Parameters<typeof useTableViewParams>
 ) => {
   const viewParams = useTableViewParams(collection_id, view, context);
   const params = useMemo(() => ({ ...viewParams, count: true }), [viewParams]);

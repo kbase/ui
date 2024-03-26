@@ -59,7 +59,7 @@ const pageConfig: Record<
     features: ('filter' | 'match' | 'search')[];
   }
 > = {
-  samples: { features: [] },
+  samples: { features: ['filter'] },
   biolog: { features: [] },
   microtrait: { features: [] },
   genome_attribs: {
