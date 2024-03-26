@@ -277,21 +277,6 @@ export const SampleAttribs: FC<{
                 Showing {formatNumber(firstRow)} - {formatNumber(lastRow)} of{' '}
                 {formatNumber(countData?.count || 0)} samples
               </span>
-              <span>
-                <CheckBox
-                  checked={matchMark}
-                  onChange={() => setMatchMark((v) => !v)}
-                />{' '}
-                Show Unmatched
-              </span>
-
-              <span>
-                <CheckBox
-                  checked={selectMark}
-                  onChange={() => setSelectMark((v) => !v)}
-                />{' '}
-                Show Unselected
-              </span>
             </Stack>
             <Pagination table={table} maxPage={10000 / pagination.pageSize} />
           </Stack>
