@@ -186,7 +186,7 @@ export const CollectionDetail = () => {
                   <Button
                     hidden={!showMatchButton}
                     icon={<FontAwesomeIcon icon={faArrowRightArrowLeft} />}
-                    variant="contained"
+                    variant="text"
                     onClick={() => {
                       setModalView('match');
                       modal?.show();
@@ -194,7 +194,7 @@ export const CollectionDetail = () => {
                   >
                     {match
                       ? `Matching by ${MATCHER_LABELS.get(match.matcher_id)}`
-                      : `Match my Data`}
+                      : `Match My Data`}
                   </Button>
                 </Stack>
                 <Button

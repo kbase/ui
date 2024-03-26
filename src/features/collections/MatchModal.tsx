@@ -420,7 +420,7 @@ const CreateMatch = ({ collectionId }: { collectionId: string }) => {
             )}
           </Stack>
           <Stack spacing={1}>
-            <label htmlFor={idNarrative}>Narrative Test</label>
+            <label htmlFor={idNarrative}>Narrative</label>
             <Select
               id={idNarrative}
               disabled={!matcherSelected}
