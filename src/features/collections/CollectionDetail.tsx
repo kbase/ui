@@ -11,7 +11,7 @@ import { Button, Input } from '../../common/components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faArrowRightArrowLeft,
-  faFilter,
+  faSliders,
   faAngleRight,
   faX,
   faCircleXmark,
@@ -130,6 +130,7 @@ export const CollectionDetail = () => {
 
   const { filterPanelOpen } = useFilters(collection?.id);
   const filterMenuRef = useRef<HTMLButtonElement>(null);
+  const { filterEntries } = useFilterEntries(collection?.id || '');
 
   const handleToggleFilters = () => {
     if (collection?.id) {
@@ -183,14 +184,6 @@ export const CollectionDetail = () => {
                     placeholder="Search genomes by classification"
                   />
                   <Button
-                    hidden={!showFilterButton}
-                    ref={filterMenuRef}
-                    icon={<FontAwesomeIcon icon={faFilter} />}
-                    onClick={handleToggleFilters}
-                  >
-                    Filters
-                  </Button>
-                  <Button
                     hidden={!showMatchButton}
                     icon={<FontAwesomeIcon icon={faArrowRightArrowLeft} />}
                     variant="contained"
@@ -218,8 +211,8 @@ export const CollectionDetail = () => {
                   })`}
                 </Button>
               </div>
-              <div>
-                <FilterChips collectionId={collection.id} />
+              <div className={styles['context-tabs']}>
+                <FilterContextTabs collectionId={collection.id} />
               </div>
             </>
           )}
@@ -231,12 +224,34 @@ export const CollectionDetail = () => {
             open={filterPanelOpen ?? false}
             onClose={() => {
               if (collection?.id) {
-                dispatch(setFilterPanelOpen(filterPanelOpen));
+                dispatch(setFilterPanelOpen(false));
               }
             }}
           />
           <div className={styles['data_product_detail']}>
-            <FilterContextTabs collectionId={collection.id} />
+            <Stack
+              className={styles['filter-controls']}
+              direction="row"
+              spacing={2}
+              alignItems="center"
+            >
+              <Button
+                hidden={!showFilterButton}
+                ref={filterMenuRef}
+                icon={<FontAwesomeIcon icon={faSliders} />}
+                onClick={handleToggleFilters}
+              >
+                Filters
+              </Button>
+              <div className={styles['filter-chips-label']}>
+                {filterEntries ? filterEntries.length : '0'} active{' '}
+                {filterEntries && filterEntries.length !== 1
+                  ? 'filters'
+                  : 'filter'}
+                {filterEntries && filterEntries.length > 0 ? ':' : ''}
+              </div>
+              <FilterChips collectionId={collection.id} />
+            </Stack>
             {showOverview ? (
               <CollectionOverview
                 collection_id={collection.id}
@@ -303,9 +318,13 @@ const useFilterEntries = (collectionId: string) => {
   );
 
   // Use same filter order if ignoring categories for consistency
+  // Only include filters who have a non-undefined value
   const filterEntries = categorizedFilters.reduce<[string, FilterState][]>(
     (filterEntires, category) => {
-      filterEntires.push(...category.filters);
+      const activeFilters = category.filters.filter(
+        (f) => f[1].value !== undefined
+      );
+      filterEntires.push(...activeFilters);
       return filterEntires;
     },
     []
@@ -333,13 +352,7 @@ const FilterChips = ({ collectionId }: { collectionId: string }) => {
   const { filterEntries, clearFilterState } = useFilterEntries(collectionId);
   if (filterEntries.length === 0) return <></>;
   return (
-    <Stack
-      direction={'row'}
-      gap={'4px'}
-      useFlexGap
-      flexWrap="wrap"
-      sx={{ paddingTop: '14px' }}
-    >
+    <Stack direction={'row'} gap={'4px'} useFlexGap flexWrap="wrap">
       {filterEntries.map(([column, filter]) => {
         return (
           <FilterChip

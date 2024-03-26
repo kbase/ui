@@ -87,6 +87,15 @@ export const CollectionOverview: FC<{
               color="text.secondary"
               gutterBottom
             >
+              Collection Name
+            </Typography>
+            <div>{collection.name}</div>
+            <br></br>
+            <Typography
+              sx={{ fontSize: 12 }}
+              color="text.secondary"
+              gutterBottom
+            >
               Updated On
             </Typography>
             <div>

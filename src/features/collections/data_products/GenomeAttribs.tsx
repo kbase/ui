@@ -277,7 +277,7 @@ export const GenomeAttribs: FC<{
     <Grid container spacing={1}>
       <Grid item md={6}>
         <Paper
-          variant="outlined"
+          elevation={0}
           sx={{
             height: '400px',
             minWidth: '350px',
@@ -301,7 +301,7 @@ export const GenomeAttribs: FC<{
       </Grid>
       <Grid item md={6}>
         <Paper
-          variant="outlined"
+          elevation={0}
           sx={{
             height: '400px',
             minWidth: '350px',
@@ -319,7 +319,7 @@ export const GenomeAttribs: FC<{
         </Paper>
       </Grid>
       <Grid item xs={12}>
-        <Paper variant="outlined">
+        <Paper elevation={0}>
           <Stack
             className={classes['table-toolbar']}
             direction="row"
