@@ -229,29 +229,6 @@ export const CollectionDetail = () => {
             }}
           />
           <div className={styles['data_product_detail']}>
-            <Stack
-              className={styles['filter-controls']}
-              direction="row"
-              spacing={2}
-              alignItems="center"
-            >
-              <Button
-                hidden={!showFilterButton}
-                ref={filterMenuRef}
-                icon={<FontAwesomeIcon icon={faSliders} />}
-                onClick={handleToggleFilters}
-              >
-                Filters
-              </Button>
-              <div className={styles['filter-chips-label']}>
-                {filterEntries ? filterEntries.length : '0'} active{' '}
-                {filterEntries && filterEntries.length !== 1
-                  ? 'filters'
-                  : 'filter'}
-                {filterEntries && filterEntries.length > 0 ? ':' : ''}
-              </div>
-              <FilterChips collectionId={collection.id} />
-            </Stack>
             {showOverview ? (
               <CollectionOverview
                 collection_id={collection.id}
@@ -259,10 +236,35 @@ export const CollectionDetail = () => {
                 modal={modal}
               />
             ) : currDataProduct ? (
-              <DataProduct
-                dataProduct={currDataProduct}
-                collection_id={collection.id}
-              />
+              <>
+                <Stack
+                  className={styles['filter-controls']}
+                  direction="row"
+                  spacing={2}
+                  alignItems="center"
+                >
+                  <Button
+                    hidden={!showFilterButton}
+                    ref={filterMenuRef}
+                    icon={<FontAwesomeIcon icon={faSliders} />}
+                    onClick={handleToggleFilters}
+                  >
+                    Filters
+                  </Button>
+                  <div className={styles['filter-chips-label']}>
+                    {filterEntries ? filterEntries.length : '0'} active{' '}
+                    {filterEntries && filterEntries.length !== 1
+                      ? 'filters'
+                      : 'filter'}
+                    {filterEntries && filterEntries.length > 0 ? ':' : ''}
+                  </div>
+                  <FilterChips collectionId={collection.id} />
+                </Stack>
+                <DataProduct
+                  dataProduct={currDataProduct}
+                  collection_id={collection.id}
+                />
+              </>
             ) : (
               <></>
             )}

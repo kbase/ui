@@ -279,7 +279,7 @@ export const GenomeAttribs: FC<{
         <Paper
           elevation={0}
           sx={{
-            height: '400px',
+            height: '350px',
             minWidth: '350px',
             padding: '1px',
             position: 'relative',
@@ -303,7 +303,7 @@ export const GenomeAttribs: FC<{
         <Paper
           elevation={0}
           sx={{
-            height: '400px',
+            height: '350px',
             minWidth: '350px',
             padding: '1px',
             position: 'relative',
