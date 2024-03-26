@@ -252,26 +252,31 @@ export const SampleAttribs: FC<{
             className={classes['table-toolbar']}
             direction="row"
             spacing={1}
+            justifyContent="space-between"
+            alignItems="center"
           >
-            <span>
-              Showing {formatNumber(firstRow)} - {formatNumber(lastRow)} of{' '}
-              {formatNumber(countData?.count || 0)} genomes
-            </span>
-            <span>
-              <CheckBox
-                checked={matchMark}
-                onChange={() => setMatchMark((v) => !v)}
-              />{' '}
-              Show Unmatched
-            </span>
+            <Stack direction="row" spacing={1}>
+              <span>
+                Showing {formatNumber(firstRow)} - {formatNumber(lastRow)} of{' '}
+                {formatNumber(countData?.count || 0)} genomes
+              </span>
+              <span>
+                <CheckBox
+                  checked={matchMark}
+                  onChange={() => setMatchMark((v) => !v)}
+                />{' '}
+                Show Unmatched
+              </span>
 
-            <span>
-              <CheckBox
-                checked={selectMark}
-                onChange={() => setSelectMark((v) => !v)}
-              />{' '}
-              Show Unselected
-            </span>
+              <span>
+                <CheckBox
+                  checked={selectMark}
+                  onChange={() => setSelectMark((v) => !v)}
+                />{' '}
+                Show Unselected
+              </span>
+            </Stack>
+            <Pagination table={table} maxPage={10000 / pagination.pageSize} />
           </Stack>
           <Table
             table={table}

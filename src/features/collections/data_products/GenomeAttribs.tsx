@@ -324,11 +324,14 @@ export const GenomeAttribs: FC<{
             className={classes['table-toolbar']}
             direction="row"
             spacing={1}
+            justifyContent="space-between"
+            alignItems="center"
           >
             <span>
               Showing {formatNumber(firstRow)} - {formatNumber(lastRow)} of{' '}
               {formatNumber(count || 0)} genomes
             </span>
+            <Pagination table={table} maxPage={10000 / pagination.pageSize} />
           </Stack>
           <Table
             table={table}

@@ -165,7 +165,7 @@ export const Pagination = <Datum,>({
   if (buttons[0] !== start) {
     buttons[0] = start;
     buttons[1] = (
-      <Button key="etc-start" color="base" disabled>
+      <Button key="etc-start" color="gray" disabled>
         {'...'}
       </Button>
     );
@@ -173,7 +173,7 @@ export const Pagination = <Datum,>({
   buttons.unshift(
     <Button
       className={classNamePagination}
-      color="base"
+      color="gray"
       disabled={!table.getCanPreviousPage()}
       key="prev"
       onClick={() => table.previousPage()}
@@ -189,7 +189,7 @@ export const Pagination = <Datum,>({
       <Button
         key="etc-end"
         className={classNamePagination}
-        color="base"
+        color="gray"
         disabled
       >
         {'...'}
@@ -199,7 +199,7 @@ export const Pagination = <Datum,>({
   buttons.push(
     <Button
       className={classNamePagination}
-      color="base"
+      color="gray"
       disabled={!table.getCanNextPage() || curr >= maxPage}
       key="next"
       onClick={() => table.nextPage()}
@@ -210,8 +210,10 @@ export const Pagination = <Datum,>({
   const buttonList = buttons.map((button, ix) =>
     typeof button === 'number' ? (
       <Button
-        className={classNamePagination}
-        color="base"
+        className={`${classNamePagination} ${
+          button === curr ? classes.selected : ''
+        }`}
+        color="gray"
         disabled={button === curr || button > maxPage}
         hidden={button > maxPage} // Hides the max page when we can't display it
         key={button}
