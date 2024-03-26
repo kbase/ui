@@ -11,7 +11,7 @@ import { Button, Input } from '../../common/components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faArrowRightArrowLeft,
-  faFilter,
+  faSliders,
   faAngleRight,
   faX,
   faCircleXmark,
@@ -130,6 +130,7 @@ export const CollectionDetail = () => {
 
   const { filterPanelOpen } = useFilters(collection?.id);
   const filterMenuRef = useRef<HTMLButtonElement>(null);
+  const { filterEntries } = useFilterEntries(collection?.id || '');
 
   const handleToggleFilters = () => {
     if (collection?.id) {
@@ -177,32 +178,26 @@ export const CollectionDetail = () => {
             <>
               <div className={styles['collection_toolbar']}>
                 <Stack direction="row" spacing={1}>
-                  <Input
-                    hidden={!showSearch}
-                    className={styles['search-box']}
-                    placeholder="Search genomes by classification"
-                  />
-                  <Button
-                    hidden={!showFilterButton}
-                    ref={filterMenuRef}
-                    icon={<FontAwesomeIcon icon={faFilter} />}
-                    onClick={handleToggleFilters}
-                  >
-                    Filters
-                  </Button>
-                  <Button
-                    hidden={!showMatchButton}
-                    icon={<FontAwesomeIcon icon={faArrowRightArrowLeft} />}
-                    variant="contained"
-                    onClick={() => {
-                      setModalView('match');
-                      modal?.show();
-                    }}
-                  >
-                    {match
-                      ? `Matching by ${MATCHER_LABELS.get(match.matcher_id)}`
-                      : `Match my Data`}
-                  </Button>
+                  {showSearch && (
+                    <Input
+                      className={styles['search-box']}
+                      placeholder="Search genomes by classification"
+                    />
+                  )}
+                  {showMatchButton && (
+                    <Button
+                      icon={<FontAwesomeIcon icon={faArrowRightArrowLeft} />}
+                      color="accent-warm-light"
+                      onClick={() => {
+                        setModalView('match');
+                        modal?.show();
+                      }}
+                    >
+                      {match
+                        ? `Matching by ${MATCHER_LABELS.get(match.matcher_id)}`
+                        : `Match My Data`}
+                    </Button>
+                  )}
                 </Stack>
                 <Button
                   icon={<FontAwesomeIcon icon={faFileExport} />}
@@ -218,8 +213,8 @@ export const CollectionDetail = () => {
                   })`}
                 </Button>
               </div>
-              <div>
-                <FilterChips collectionId={collection.id} />
+              <div className={styles['context-tabs']}>
+                <FilterContextTabs collectionId={collection.id} />
               </div>
             </>
           )}
@@ -231,12 +226,11 @@ export const CollectionDetail = () => {
             open={filterPanelOpen ?? false}
             onClose={() => {
               if (collection?.id) {
-                dispatch(setFilterPanelOpen(filterPanelOpen));
+                dispatch(setFilterPanelOpen(false));
               }
             }}
           />
           <div className={styles['data_product_detail']}>
-            <FilterContextTabs collectionId={collection.id} />
             {showOverview ? (
               <CollectionOverview
                 collection_id={collection.id}
@@ -244,10 +238,36 @@ export const CollectionDetail = () => {
                 modal={modal}
               />
             ) : currDataProduct ? (
-              <DataProduct
-                dataProduct={currDataProduct}
-                collection_id={collection.id}
-              />
+              <>
+                {showFilterButton && (
+                  <Stack
+                    className={styles['filter-controls']}
+                    direction="row"
+                    spacing={2}
+                    alignItems="center"
+                  >
+                    <Button
+                      ref={filterMenuRef}
+                      icon={<FontAwesomeIcon icon={faSliders} />}
+                      onClick={handleToggleFilters}
+                    >
+                      Filters
+                    </Button>
+                    <div className={styles['filter-chips-label']}>
+                      {filterEntries ? filterEntries.length : '0'} active{' '}
+                      {filterEntries && filterEntries.length !== 1
+                        ? 'filters'
+                        : 'filter'}
+                      {filterEntries && filterEntries.length > 0 ? ':' : ''}
+                    </div>
+                    <FilterChips collectionId={collection.id} />
+                  </Stack>
+                )}
+                <DataProduct
+                  dataProduct={currDataProduct}
+                  collection_id={collection.id}
+                />
+              </>
             ) : (
               <></>
             )}
@@ -303,9 +323,13 @@ const useFilterEntries = (collectionId: string) => {
   );
 
   // Use same filter order if ignoring categories for consistency
+  // Only include filters who have a non-undefined value
   const filterEntries = categorizedFilters.reduce<[string, FilterState][]>(
     (filterEntires, category) => {
-      filterEntires.push(...category.filters);
+      const activeFilters = category.filters.filter(
+        (f) => f[1].value !== undefined
+      );
+      filterEntires.push(...activeFilters);
       return filterEntires;
     },
     []
@@ -334,13 +358,7 @@ const FilterChips = ({ collectionId }: { collectionId: string }) => {
     useFilterEntries(collectionId);
   if (filterEntries.length === 0) return <></>;
   return (
-    <Stack
-      direction={'row'}
-      gap={'4px'}
-      useFlexGap
-      flexWrap="wrap"
-      sx={{ paddingTop: '14px' }}
-    >
+    <Stack direction={'row'} gap={'4px'} useFlexGap flexWrap="wrap">
       {filterEntries.map(([column, filter]) => {
         return (
           <FilterChip
@@ -375,29 +393,15 @@ const FilterMenu = ({
   } = useFilterEntries(collectionId);
 
   /**
-   * Store category expanded state in an object
+   * Store expanded category string, empty string for none expanded
    */
-  const [expandedByCategory, setExpandedByCategory] = useState(() => {
-    const expanded: { [key: string]: boolean } = {};
-    categorizedFilters.forEach((category) => {
-      expanded[category.category] = false;
-    });
-    return expanded;
-  });
+  const [expandedCategory, setExpandedCategory] = useState('');
 
   /**
    * Only allow one category to be expanded at a time.
    */
   const handleExpand = (expanded: boolean, category: string) => {
-    const newValue = { ...expandedByCategory };
-    Object.keys(expandedByCategory).forEach((c) => {
-      if (expanded && c === category) {
-        newValue[c] = true;
-      } else {
-        newValue[c] = false;
-      }
-    });
-    setExpandedByCategory(newValue);
+    setExpandedCategory(expanded ? category : '');
   };
 
   if (open) {
@@ -430,7 +434,7 @@ const FilterMenu = ({
                 key={`${category.category}-${context}`}
                 className={styles['filter-category']}
                 elevation={0}
-                expanded={expandedByCategory[category.category]}
+                expanded={category.category === expandedCategory}
                 onChange={(e, expanded) =>
                   handleExpand(expanded, category.category)
                 }

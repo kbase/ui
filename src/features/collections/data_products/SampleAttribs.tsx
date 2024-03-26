@@ -269,11 +269,16 @@ export const SampleAttribs: FC<{
             className={classes['table-toolbar']}
             direction="row"
             spacing={1}
+            justifyContent="space-between"
+            alignItems="center"
           >
-            <span>
-              Showing {formatNumber(firstRow)} - {formatNumber(lastRow)} of{' '}
-              {formatNumber(countData?.count || 0)} samples
-            </span>
+            <Stack direction="row" spacing={1}>
+              <span>
+                Showing {formatNumber(firstRow)} - {formatNumber(lastRow)} of{' '}
+                {formatNumber(countData?.count || 0)} samples
+              </span>
+            </Stack>
+            <Pagination table={table} maxPage={10000 / pagination.pageSize} />
           </Stack>
           <Table
             table={table}

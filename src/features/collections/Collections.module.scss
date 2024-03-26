@@ -85,12 +85,16 @@ $border: 1px solid use-color("base-lighter");
   background-color: use-color("white");
   border-bottom: 1px solid use-color("silver");
   min-width: 600px;
-  padding: 1rem;
+  padding: 1rem 1rem 0;
 }
 
 .detail_header h2 {
   margin-bottom: 0.5rem;
   margin-top: 0;
+}
+
+.context-tabs {
+  margin-top: 0.5rem;
 }
 
 .match-highlight {
@@ -105,6 +109,17 @@ $border: 1px solid use-color("base-lighter");
 
 .search-box {
   width: 400px;
+}
+
+.filter-controls {
+  background-color: use-color("white");
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+}
+
+.filter-chips-label {
+  color: use-color("base-dark");
 }
 
 .detail_content {

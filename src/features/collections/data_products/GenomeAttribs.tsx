@@ -276,9 +276,9 @@ export const GenomeAttribs: FC<{
     <Grid container spacing={1}>
       <Grid item md={6}>
         <Paper
-          variant="outlined"
+          elevation={0}
           sx={{
-            height: '400px',
+            height: '350px',
             minWidth: '350px',
             padding: '1px',
             position: 'relative',
@@ -300,9 +300,9 @@ export const GenomeAttribs: FC<{
       </Grid>
       <Grid item md={6}>
         <Paper
-          variant="outlined"
+          elevation={0}
           sx={{
-            height: '400px',
+            height: '350px',
             minWidth: '350px',
             padding: '1px',
             position: 'relative',
@@ -318,16 +318,19 @@ export const GenomeAttribs: FC<{
         </Paper>
       </Grid>
       <Grid item xs={12}>
-        <Paper variant="outlined">
+        <Paper elevation={0}>
           <Stack
             className={classes['table-toolbar']}
             direction="row"
             spacing={1}
+            justifyContent="space-between"
+            alignItems="center"
           >
             <span>
               Showing {formatNumber(firstRow)} - {formatNumber(lastRow)} of{' '}
               {formatNumber(count || 0)} genomes
             </span>
+            <Pagination table={table} maxPage={10000 / pagination.pageSize} />
           </Stack>
           <Table
             table={table}
