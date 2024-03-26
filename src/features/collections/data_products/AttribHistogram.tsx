@@ -5,7 +5,7 @@ import { parseError } from '../../../common/api/utils/parseError';
 import { Loader } from '../../../common/components/Loader';
 import { useFilters } from '../collectionsSlice';
 import { filterContextMode } from '../Filters';
-import { useTableViewParams } from './GenomeAttribs';
+import { useTableViewParams } from '../hooks';
 
 export const AttribHistogram = ({
   collection_id,
