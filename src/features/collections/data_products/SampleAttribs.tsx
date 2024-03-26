@@ -171,7 +171,7 @@ export const SampleAttribs: FC<{
     columns: useTableColumns({
       fields: data?.fields.map((field) => ({
         id: field.name,
-        displayName: columnMeta?.[field.name].display_name,
+        displayName: columnMeta?.[field.name]?.display_name,
         render:
           field.name === 'kbase_sample_id'
             ? (value) => {
