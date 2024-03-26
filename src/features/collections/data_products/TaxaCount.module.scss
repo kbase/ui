@@ -7,7 +7,7 @@ $gaps: 5px;
   display: flex;
   flex-flow: row nowrap;
   gap: $gaps;
-  padding: 0.5rem;
+  padding: 0 1rem 1rem;
   width: 100%;
 }
 
@@ -59,7 +59,7 @@ $gaps: 5px;
 
   &.matched {
     .bar {
-      background: use-color("secondary");
+      background: use-color("accent-warm");
     }
   }
 
