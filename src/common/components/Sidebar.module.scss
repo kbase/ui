@@ -44,16 +44,20 @@
 }
 
 .sidebar li.sidebar-item.selected > .sidebar-item-inner {
-  background-color: use-color("silver");
-  color: use-color("base-darker");
-  font-weight: 600;
+  background-color: use-color("mid-green-light");
+  color: use-color("black");
+  font-weight: 500;
+
+  &:hover {
+    background-color: use-color("mid-green-lighter");
+  }
 }
 
 .sidebar li.section-label {
   color: use-color("base");
   font-size: 0.85rem;
   font-weight: bold;
-  margin-top: 0.5rem;
+  margin-top: 1rem;
   text-transform: uppercase;
 }
 

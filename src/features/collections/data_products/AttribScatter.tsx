@@ -3,16 +3,17 @@ import Plot from 'react-plotly.js';
 import { getAttribScatter } from '../../../common/api/collectionsApi';
 import { Loader } from '../../../common/components/Loader';
 import { downsample as LTTB } from 'downsample-lttb-ts';
-import { useTableViewParams } from './GenomeAttribs';
 import { useFilters } from '../collectionsSlice';
 import { parseError } from '../../../common/api/utils/parseError';
+import { filterContextMode } from '../Filters';
+import { useTableViewParams } from '../hooks';
 
 export const AttribScatter = ({
   collection_id,
   xColumn,
   yColumn,
   downsample = 10000,
-  size = [600, 600],
+  size,
 }: {
   collection_id: string;
   xColumn: string;
@@ -20,12 +21,11 @@ export const AttribScatter = ({
   downsample?: number;
   size?: [width: number, height: number];
 }) => {
-  const { filterMatch, filterSelection, columnMeta } =
-    useFilters(collection_id);
+  const { context, columnMeta, filterPanelOpen } = useFilters(collection_id);
   const viewParams = useTableViewParams(collection_id, {
     filtered: true,
-    selected: Boolean(filterMatch),
-    matched: Boolean(filterSelection),
+    selected: filterContextMode(context) === 'selected',
+    matched: filterContextMode(context) === 'matched',
   });
   const { data, isLoading, error } = getAttribScatter.useQuery({
     ...viewParams,
@@ -117,6 +117,7 @@ export const AttribScatter = ({
   >({
     height: size?.[1],
     width: size?.[0],
+    margin: { t: 80 },
     title: title,
     xaxis: { title: { text: columnMeta?.[xColumn]?.display_name } },
     yaxis: { title: { text: columnMeta?.[yColumn]?.display_name } },
@@ -124,14 +125,23 @@ export const AttribScatter = ({
 
   //Reset title on plot update, but don't create a new layout object (this causes an infinite loop)
   useEffect(() => {
-    plotLayout.title = {
-      text: title,
-      yref: 'paper',
-    };
-    plotLayout.xaxis = { title: { text: columnMeta?.[xColumn]?.display_name } };
-    plotLayout.yaxis = { title: { text: columnMeta?.[yColumn]?.display_name } };
-    setPlotLayout(plotLayout);
-  }, [title, plotLayout, columnMeta, xColumn, yColumn]);
+    setPlotLayout((plotLayout) => {
+      const layout = { ...plotLayout };
+      layout.title = {
+        text: title,
+        yref: 'paper',
+      };
+      layout.xaxis = {
+        ...plotLayout.xaxis,
+        title: { text: columnMeta?.[xColumn]?.display_name },
+      };
+      layout.yaxis = {
+        ...plotLayout.yaxis,
+        title: { text: columnMeta?.[yColumn]?.display_name },
+      };
+      return layout;
+    });
+  }, [title, columnMeta, xColumn, yColumn]);
 
   const viewportChangeTimeout = useRef<number>();
 
@@ -167,14 +177,27 @@ export const AttribScatter = ({
     }, 50);
   };
 
+  // Force the chart to refresh when the filter panel opens or closes.
+  // This ensures that the sizing of the chart responds to the width changes.
+  useEffect(() => {
+    setPlotLayout((plotLayout) => ({ ...plotLayout }));
+  }, [filterPanelOpen]);
+
   if (plotData && !isLoading && !error) {
-    return <Plot data={plotData} layout={plotLayout} onUpdate={handleUpdate} />;
+    return (
+      <Plot
+        data={plotData}
+        layout={plotLayout}
+        onUpdate={handleUpdate}
+        useResizeHandler={true}
+        style={{ width: '100%', height: '100%' }}
+      />
+    );
   } else {
     return (
       <Loader
         loading={isLoading}
         error={error ? parseError(error).message : undefined}
-        size={[`${size[0]}px`, `${size[1]}px`]}
       />
     );
   }

@@ -7,9 +7,8 @@ import {
   SortingState,
   RowSelectionState,
 } from '@tanstack/react-table';
-import { FC, useMemo, useState } from 'react';
+import { FC, useEffect, useMemo, useState } from 'react';
 import { getGenomeAttribs } from '../../../common/api/collectionsApi';
-import { CheckBox } from '../../../common/components/CheckBox';
 import {
   Pagination,
   Table,
@@ -18,21 +17,20 @@ import {
 } from '../../../common/components/Table';
 import { useAppDispatch } from '../../../common/hooks';
 import {
-  setFilterMatch,
-  setFilterSelection,
   setLocalSelection,
   useCurrentSelection,
   useFilters,
-  useGenerateSelectionId,
   useMatchId,
   useSelectionId,
 } from '../collectionsSlice';
 import classes from './../Collections.module.scss';
 import { AttribHistogram } from './AttribHistogram';
 import { AttribScatter } from './AttribScatter';
-import { Paper, Stack, Tooltip, Typography } from '@mui/material';
+import { Grid, Paper, Stack, Tooltip, Typography } from '@mui/material';
 import { formatNumber } from '../../../common/utils/stringUtils';
 import { Link } from 'react-router-dom';
+import { filterContextMode, useFilterContexts } from '../Filters';
+import { useTableViewParams } from '../hooks';
 
 export const GenomeAttribs: FC<{
   collection_id: string;
@@ -44,8 +42,7 @@ export const GenomeAttribs: FC<{
   const matchId = useMatchId(collection_id);
   const selectionId = useSelectionId(collection_id);
   // get the shared filter state
-  const { filterMatch, filterSelection, columnMeta } =
-    useFilters(collection_id);
+  const { columnMeta, context } = useFilters(collection_id);
 
   const [sorting, setSorting] = useState<SortingState>([]);
   const requestSort = useMemo(() => {
@@ -85,30 +82,20 @@ export const GenomeAttribs: FC<{
     },
   ];
 
-  const view = useMemo(
-    () => ({
-      matched: Boolean(matchId && filterMatch),
-      selected: Boolean(selectionId && filterSelection),
-      filtered: true,
-    }),
-    [filterMatch, filterSelection, matchId, selectionId]
-  );
+  const view = {
+    matched: true,
+    selected: true,
+    filtered: true,
+    selection_mark: filterContextMode(context) !== 'selected',
+    match_mark: filterContextMode(context) !== 'matched',
+  };
+
   const viewParams = useTableViewParams(collection_id, view);
 
-  const markParams = useMemo(
-    () => ({
-      match_mark: Boolean(matchId && !filterMatch),
-      selection_mark: Boolean(selectionId && !filterSelection),
-      match_id: matchId ?? undefined,
-      sel_id: selectionId ?? undefined,
-    }),
-    [filterMatch, filterSelection, matchId, selectionId]
-  );
   // Requests
   const attribParams = useMemo(
     () => ({
       ...viewParams,
-      ...markParams,
       // sort params
       sort_on: requestSort.by,
       sort_desc: requestSort.desc,
@@ -118,7 +105,6 @@ export const GenomeAttribs: FC<{
     }),
     [
       viewParams,
-      markParams,
       requestSort.by,
       requestSort.desc,
       pagination.pageIndex,
@@ -126,9 +112,54 @@ export const GenomeAttribs: FC<{
     ]
   );
 
+  const selectionTabLoading =
+    context === 'genomes.selected' && selectionId === undefined;
+
   // Current Data
-  const { data, isFetching } = getGenomeAttribs.useQuery(attribParams);
-  const { count } = useGenomeAttribsCount(collection_id, view);
+  const { data, isFetching } = getGenomeAttribs.useQuery(attribParams, {
+    skip: selectionTabLoading,
+  });
+  const { count } = useGenomeAttribsCount(collection_id, view, context);
+  const { count: allCount } = useGenomeAttribsCount(
+    collection_id,
+    {
+      matched: false,
+      selected: false,
+      filtered: true,
+    },
+    'genomes.all'
+  );
+  const { count: matchedCount } = useGenomeAttribsCount(
+    collection_id,
+    {
+      matched: true,
+      selected: false,
+      filtered: true,
+    },
+    'genomes.matched'
+  );
+
+  // set filter context tabs
+  useFilterContexts(collection_id, [
+    { label: 'All', value: 'genomes.all', count: allCount },
+    {
+      label: 'Matched',
+      value: 'genomes.matched',
+      count: matchId ? matchedCount : undefined,
+      disabled: !matchId,
+    },
+    {
+      label: 'Selected',
+      value: 'genomes.selected',
+      count: currentSelection.length || undefined,
+      disabled: !currentSelection.length,
+    },
+  ]);
+
+  // Reset Pagination when context changes
+  useEffect(() => {
+    setPagination((pagination) => ({ ...pagination, pageIndex: 0 }));
+  }, [context]);
 
   // Prefetch requests
   const nextParams = useMemo(
@@ -174,10 +205,12 @@ export const GenomeAttribs: FC<{
       render:
         field.name === 'kbase_id'
           ? (cell) => {
+              // GTBD IDs are not (yet?) UPAs
+              if (collection_id === 'GTDB') return cell.getValue();
               const upa = (cell.getValue() as string).replace(/_/g, '/');
               return (
                 <Link
-                  to={`https://ci-europa.kbase.us/legacy/dataview/${upa}`}
+                  to={`https://${process.env.REACT_APP_KBASE_DOMAIN}/legacy/dataview/${upa}`}
                   target="_blank"
                 >
                   {upa}
@@ -193,7 +226,13 @@ export const GenomeAttribs: FC<{
                   arrow
                   enterDelay={800}
                 >
-                  <Typography sx={{ direction: 'rtl' }}>
+                  <Typography
+                    sx={{
+                      direction: 'rtl',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
                     {cell.getValue() as string}
                   </Typography>
                 </Tooltip>
@@ -236,54 +275,18 @@ export const GenomeAttribs: FC<{
   const { firstRow, lastRow } = usePageBounds(table);
 
   return (
-    <Stack spacing={1}>
-      <Paper variant="outlined">
-        <Stack className={classes['table-toolbar']} direction="row" spacing={1}>
-          <span>
-            Showing {formatNumber(firstRow)} - {formatNumber(lastRow)} of{' '}
-            {formatNumber(count || 0)} genomes
-          </span>
-          <span>
-            <CheckBox
-              checked={Boolean(filterMatch)}
-              onChange={(e) =>
-                dispatch(
-                  setFilterMatch([collection_id, e.currentTarget.checked])
-                )
-              }
-            />{' '}
-            Filter by Match
-          </span>
-          <span>
-            <CheckBox
-              checked={Boolean(filterSelection)}
-              onChange={(e) =>
-                dispatch(
-                  setFilterSelection([collection_id, e.currentTarget.checked])
-                )
-              }
-            />{' '}
-            Filter by Selection
-          </span>
-        </Stack>
-        <Table
-          table={table}
-          isLoading={isFetching}
-          rowClass={(row) => {
-            // match highlights
-            return matchIndex !== undefined &&
-              matchIndex !== -1 &&
-              row.original[matchIndex]
-              ? classes['match-highlight']
-              : '';
+    <Grid container spacing={1}>
+      <Grid item md={6}>
+        <Paper
+          elevation={0}
+          sx={{
+            height: '350px',
+            minWidth: '350px',
+            padding: '1px',
+            position: 'relative',
+            width: '100%',
           }}
-        />
-        <div className={classes['pagination-wrapper']}>
-          <Pagination table={table} maxPage={10000 / pagination.pageSize} />
-        </div>
-      </Paper>
-      <Stack direction={'row'} spacing={1}>
-        <Paper variant="outlined">
+        >
           <AttribScatter
             collection_id={collection_id}
             xColumn={
@@ -296,7 +299,18 @@ export const GenomeAttribs: FC<{
             }
           />
         </Paper>
-        <Paper variant="outlined">
+      </Grid>
+      <Grid item md={6}>
+        <Paper
+          elevation={0}
+          sx={{
+            height: '350px',
+            minWidth: '350px',
+            padding: '1px',
+            position: 'relative',
+            width: '100%',
+          }}
+        >
           <AttribHistogram
             collection_id={collection_id}
             column={
@@ -304,44 +318,47 @@ export const GenomeAttribs: FC<{
             }
           />
         </Paper>
-      </Stack>
-    </Stack>
-  );
-};
-
-export const useTableViewParams = (
-  collection_id: string | undefined,
-  view: { filtered: boolean; selected: boolean; matched: boolean }
-) => {
-  const { filterParams } = useFilters(collection_id);
-  const matchId = useMatchId(collection_id);
-  const selectionId = useGenerateSelectionId(collection_id || '', {
-    skip: !collection_id,
-  });
-  return useMemo(
-    () => ({
-      collection_id: collection_id ?? '',
-      ...(view.filtered ? { ...filterParams } : {}),
-      ...(view.selected ? { selection_id: selectionId } : {}),
-      ...(view.matched ? { match_id: matchId } : {}),
-    }),
-    [
-      collection_id,
-      filterParams,
-      matchId,
-      selectionId,
-      view.filtered,
-      view.matched,
-      view.selected,
-    ]
+      </Grid>
+      <Grid item xs={12}>
+        <Paper elevation={0}>
+          <Stack
+            className={classes['table-toolbar']}
+            direction="row"
+            spacing={1}
+            justifyContent="space-between"
+            alignItems="center"
+          >
+            <span>
+              Showing {formatNumber(firstRow)} - {formatNumber(lastRow)} of{' '}
+              {formatNumber(count || 0)} genomes
+            </span>
+            <Pagination table={table} maxPage={10000 / pagination.pageSize} />
+          </Stack>
+          <Table
+            table={table}
+            isLoading={isFetching || selectionTabLoading}
+            rowClass={(row) => {
+              // match highlights
+              return matchIndex !== undefined &&
+                matchIndex !== -1 &&
+                row.original[matchIndex]
+                ? classes['match-highlight']
+                : '';
+            }}
+          />
+          <div className={classes['pagination-wrapper']}>
+            <Pagination table={table} maxPage={10000 / pagination.pageSize} />
+          </div>
+        </Paper>
+      </Grid>
+    </Grid>
   );
 };
 
 export const useGenomeAttribsCount = (
-  collection_id: string | undefined,
-  view: { filtered: boolean; selected: boolean; matched: boolean }
+  ...[collection_id, view, context]: Parameters<typeof useTableViewParams>
 ) => {
-  const viewParams = useTableViewParams(collection_id, view);
+  const viewParams = useTableViewParams(collection_id, view, context);
   const params = useMemo(() => ({ ...viewParams, count: true }), [viewParams]);
 
   // Requests

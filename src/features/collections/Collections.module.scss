@@ -10,6 +10,7 @@ $border: 1px solid use-color("base-lighter");
 
 .collections-main .inner-container {
   margin-left: 0;
+  padding-left: 1rem;
 }
 
 .collections-list {
@@ -24,11 +25,34 @@ $border: 1px solid use-color("base-lighter");
   padding: 2rem 1rem 1rem;
 }
 
+.collection-card {
+  height: 100%;
+
+  /* stylelint-disable-next-line selector-class-pattern */
+  > :global(.MuiStack-root) {
+    border-radius: 4px;
+  }
+}
+
 .collection-card-title {
   color: use-color("primary");
   font-size: 1.15rem;
   font-weight: bold;
   margin: 0;
+}
+
+.clickable-overview-card {
+  border: 1px solid use-color("silver");
+  cursor: pointer;
+  
+  /* stylelint-disable-next-line selector-class-pattern */
+  &:global(.MuiPaper-root) {
+    transition: 0.25s;
+  }
+
+  &:hover {
+    background-color: use-color("light-gray");
+  }
 }
 
 .collection_wrapper {
@@ -48,7 +72,7 @@ $border: 1px solid use-color("base-lighter");
 
 .collection_detail,
 .data_product_detail {
-  background-color: use-color("white");
+  background-color: use-color("base-lightest");
   border: $border;
   flex: 1;
   min-width: 600px;
@@ -60,9 +84,8 @@ $border: 1px solid use-color("base-lighter");
 .detail_header {
   background-color: use-color("white");
   border-bottom: 1px solid use-color("silver");
-  height: 105px;
   min-width: 600px;
-  padding: 1rem;
+  padding: 1rem 1rem 0;
 }
 
 .detail_header h2 {
@@ -70,8 +93,12 @@ $border: 1px solid use-color("base-lighter");
   margin-top: 0;
 }
 
+.context-tabs {
+  margin-top: 0.5rem;
+}
+
 .match-highlight {
-  background-color: use-color("warning-lighter");
+  background-color: use-color("warning-lightest");
 }
 
 .collection_toolbar {
@@ -82,6 +109,17 @@ $border: 1px solid use-color("base-lighter");
 
 .search-box {
   width: 400px;
+}
+
+.filter-controls {
+  background-color: use-color("white");
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  padding: 0.5rem;
+}
+
+.filter-chips-label {
+  color: use-color("base-dark");
 }
 
 .detail_content {
@@ -133,6 +171,81 @@ $border: 1px solid use-color("base-lighter");
   width: 300px;
 }
 
+.filters-panel-header {
+  align-items: center;
+  box-shadow: 0 2px 5px -1px rgba(0, 0, 0, 0.2), 0 1px 1px 0 rgba(0, 0, 0, 0.14), 0 1px 3px 0 rgba(0, 0, 0, 0.12);
+  justify-content: space-between;
+  padding: 0.75rem;
+  position: relative;
+  z-index: 1;
+
+  > h3 {
+    color: use-color("base");
+    font-size: 0.85rem;
+    margin: 0;
+    text-transform: uppercase;
+  }
+}
+
+.filter-category {
+  border-bottom: 1px solid use-color("base-lighter");
+  transition-duration: 0.25s;
+
+  /* stylelint-disable-next-line selector-class-pattern */
+  &:global(.MuiAccordion-root):global(.MuiPaper-root) {
+    border-radius: 0;
+  }
+
+  /* stylelint-disable-next-line selector-class-pattern */
+  &:global(.MuiAccordion-root):global(.Mui-expanded) {
+    margin: 0;
+  }
+
+  /* stylelint-disable-next-line selector-class-pattern */
+  &:global(.MuiAccordion-root)::before {
+    display: none;
+  }
+
+  /* stylelint-disable-next-line selector-class-pattern */
+  :global(.MuiAccordionSummary-root) {
+    transition: 0.25s;
+  }
+
+  /* stylelint-disable-next-line selector-class-pattern */
+  :global(.MuiAccordionSummary-root):hover {
+    background-color: use-color("primary-lightest");
+  }
+}
+
+.filter-category-label {
+  color: use-color("base-dark");
+  font-weight: bold;
+  margin: 0;
+}
+
+.filter-container:not(:last-child) {
+  border-bottom: 1px dashed use-color("base-light");
+  padding-bottom: 1rem;
+}
+
+.filter-label {
+  transition: 0.25s;
+
+  svg {
+    margin-left: 0.5rem;
+  }
+
+  &.active {
+    color: use-color("primary");
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  &.active:hover {
+    opacity: 0.8;
+  }
+}
+
 .table-toolbar {
   padding: 1rem;
 }
@@ -156,4 +269,19 @@ $border: 1px solid use-color("base-lighter");
 
 .match-number-input {
   display: inline-block;
+}
+
+.range-filter {
+  /* stylelint-disable-next-line selector-class-pattern */
+  :global(.MuiInputBase-root) {
+    font-size: 0.85rem;
+  }
+}
+
+.slider-container {
+  align-items: center;
+
+  > * {
+    max-width: 215px;
+  }
 }

@@ -8,8 +8,8 @@ $border: 1px solid use-color("silver");
   font-size: 16px;
   height: 100%;
   overflow: clip;
-  padding-bottom: 0.5rem;
-  padding-top: 0.5rem;
+  padding-bottom: 1rem;
+  padding-top: 1rem;
   text-align: left;
   transition: 0.25s;
 
@@ -78,21 +78,21 @@ $border: 1px solid use-color("silver");
 }
 
 .header {
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
 }
 
 .content {
   flex-grow: 1;
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
 }
 
 .footer {
   border-top: 1px solid use-color("silver");
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
-  padding-top: 0.5rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-top: 1rem;
 }
 
 .card-list {

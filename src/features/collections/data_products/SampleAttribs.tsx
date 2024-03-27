@@ -12,7 +12,6 @@ import {
   getSampleAttribs,
   getSampleLocations,
 } from '../../../common/api/collectionsApi';
-import { CheckBox } from '../../../common/components/CheckBox';
 import { LeafletMap, useLeaflet } from '../../../common/components/Map';
 import {
   Pagination,
@@ -24,12 +23,14 @@ import { useAppDispatch } from '../../../common/hooks';
 import {
   setLocalSelection,
   useCurrentSelection,
-  useGenerateSelectionId,
-  useMatchId,
+  useFilters,
 } from '../collectionsSlice';
 import classes from './../Collections.module.scss';
 import { Grid, Paper, PaperProps, Stack } from '@mui/material';
 import { formatNumber } from '../../../common/utils/stringUtils';
+import { filterContextMode, useFilterContexts } from '../Filters';
+import { useTableViewParams } from '../hooks';
+import { Link } from 'react-router-dom';
 
 export const SampleAttribs: FC<{
   collection_id: string;
@@ -40,14 +41,8 @@ export const SampleAttribs: FC<{
   const dispatch = useAppDispatch();
 
   // State Management
-  const matchId = useMatchId(collection_id);
-  const [matchMark, setMatchMark] = useState(true);
-  const [selectMark, setSelectMark] = useState(true);
-  // we don't use the server marks to show the selected state,
-  // so no need to fetch the selection unless we are filtering the table
-  const selectionId = useGenerateSelectionId(collection_id, {
-    skip: selectMark,
-  });
+  const { context, columnMeta } = useFilters(collection_id);
+  useFilterContexts(collection_id, 'samples.all');
 
   const [sorting, setSorting] = useState<SortingState>([]);
   const requestSort = useMemo(() => {
@@ -62,31 +57,36 @@ export const SampleAttribs: FC<{
   });
   const currentSelection = useCurrentSelection(collection_id);
 
+  const view = {
+    filtered: true,
+    selected: true,
+    matched: true,
+    match_mark: filterContextMode(context) !== 'matched',
+    selection_mark: filterContextMode(context) !== 'selected',
+  };
+
+  const viewParams = useTableViewParams(collection_id, view);
+
   // Requests
   const attribParams = useMemo(
     () => ({
-      collection_id,
+      ...viewParams,
+      // sort params
       sort_on: requestSort.by,
       sort_desc: requestSort.desc,
+      // pagination params
       skip: pagination.pageIndex * pagination.pageSize,
       limit: pagination.pageSize,
-      ...(matchId ? { match_id: matchId, match_mark: matchMark } : {}),
-      ...(selectionId
-        ? { selection_id: selectionId, selection_mark: selectMark }
-        : {}),
     }),
     [
-      collection_id,
-      matchId,
-      matchMark,
-      selectionId,
-      selectMark,
-      pagination.pageIndex,
-      pagination.pageSize,
+      viewParams,
       requestSort.by,
       requestSort.desc,
+      pagination.pageIndex,
+      pagination.pageSize,
     ]
   );
+
   const countParams = useMemo(
     () => ({ ...attribParams, count: true }),
     [attribParams]
@@ -169,8 +169,25 @@ export const SampleAttribs: FC<{
     data: data?.table || [],
     getRowId: (row) => rowId(row),
     columns: useTableColumns({
-      fields: data?.fields.map((field) => ({ id: field.name })),
-      order: ['kbase_id', 'kbase_sample_id'],
+      fields: data?.fields.map((field) => ({
+        id: field.name,
+        displayName: columnMeta?.[field.name]?.display_name,
+        render:
+          field.name === 'kbase_sample_id'
+            ? (value) => {
+                const sampleId = (value.getValue() as string) || '';
+                return (
+                  <Link
+                    to={`https://${process.env.REACT_APP_KBASE_DOMAIN}/legacy/samples/view/${sampleId}`}
+                    target="_blank"
+                  >
+                    {sampleId.slice(0, 8)}...
+                  </Link>
+                );
+              }
+            : undefined,
+      })),
+      order: ['kbase_display_name', 'kbase_id', 'kbase_sample_id'],
       exclude: ['__match__', '__sel__'],
     }),
 
@@ -252,26 +269,16 @@ export const SampleAttribs: FC<{
             className={classes['table-toolbar']}
             direction="row"
             spacing={1}
+            justifyContent="space-between"
+            alignItems="center"
           >
-            <span>
-              Showing {formatNumber(firstRow)} - {formatNumber(lastRow)} of{' '}
-              {formatNumber(countData?.count || 0)} genomes
-            </span>
-            <span>
-              <CheckBox
-                checked={matchMark}
-                onChange={() => setMatchMark((v) => !v)}
-              />{' '}
-              Show Unmatched
-            </span>
-
-            <span>
-              <CheckBox
-                checked={selectMark}
-                onChange={() => setSelectMark((v) => !v)}
-              />{' '}
-              Show Unselected
-            </span>
+            <Stack direction="row" spacing={1}>
+              <span>
+                Showing {formatNumber(firstRow)} - {formatNumber(lastRow)} of{' '}
+                {formatNumber(countData?.count || 0)} samples
+              </span>
+            </Stack>
+            <Pagination table={table} maxPage={10000 / pagination.pageSize} />
           </Stack>
           <Table
             table={table}

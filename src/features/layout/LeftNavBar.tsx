@@ -9,7 +9,7 @@ import {
   faIdCard,
   faBullhorn,
   IconDefinition,
-  faBoxesStacked,
+  faLayerGroup,
 } from '@fortawesome/free-solid-svg-icons';
 import { FC } from 'react';
 import { Link, useLocation } from 'react-router-dom';
@@ -43,6 +43,13 @@ const LeftNavBar: FC = () => {
           icon={faBullhorn}
           badge={feeds?.unseen.global}
         />
+        <NavItem
+          path="/collections"
+          desc="Collections"
+          icon={faLayerGroup}
+          badge={'beta'}
+          badgeColor={'primary'}
+        />
         <DevNav />
       </ul>
     </nav>
@@ -51,6 +58,7 @@ const LeftNavBar: FC = () => {
 
 const devDomains = new Set(['', 'ci-europa.kbase.us']);
 
+/** Hidden navigation items for devs */
 const DevNav: FC = () => {
   const me = useAppSelector(authMe);
   useAuthMe();
@@ -62,13 +70,14 @@ const DevNav: FC = () => {
   if (!me || !dev) return <></>;
   return (
     <>
+      {/* Nothing here now, heres an example:
       <NavItem
         path="/collections"
         desc="Collections"
-        icon={faBoxesStacked}
+        icon={faLayerGroup}
         badge={'beta'}
         badgeColor={'primary'}
-      />
+      /> */}
     </>
   );
 };

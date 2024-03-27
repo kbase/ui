@@ -1,42 +1,48 @@
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import {
-  getCollection,
-  getGenomeAttribsMeta,
-  getMatch,
-} from '../../common/api/collectionsApi';
+import { getCollection, getMatch } from '../../common/api/collectionsApi';
 import { usePageTitle } from '../layout/layoutSlice';
 import styles from './Collections.module.scss';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { DataProduct } from './DataProduct';
 import { snakeCaseToHumanReadable } from '../../common/utils/stringUtils';
 import { MATCHER_LABELS, MatchModal } from './MatchModal';
-import { SelectionModal } from './SelectionModal';
 import { ExportModal } from './ExportModal';
 import { Button, Input } from '../../common/components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faArrowRightArrowLeft,
-  faCircleCheck,
-  faFilter,
+  faSliders,
+  faAngleRight,
+  faX,
+  faCircleXmark,
+  faFileExport,
 } from '@fortawesome/free-solid-svg-icons';
 import { useModalControls } from '../layout/Modal';
 import { Loader } from '../../common/components/Loader';
 import { CollectionSidebar, dataProductsMeta } from './CollectionSidebar';
 import {
   clearFilter,
-  clearFiltersAndColumnMeta,
-  setColumnMeta,
   FilterState,
   setFilter,
   useCurrentSelection,
   useFilters,
   useMatchId,
+  clearAllFilters,
+  setFilterPanelOpen,
 } from './collectionsSlice';
 import { useAppDispatch, useDebounce } from '../../common/hooks';
-import { Slider, MenuItem, TextField, Stack, Divider } from '@mui/material';
+import {
+  Slider,
+  TextField,
+  Stack,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+} from '@mui/material';
 import { useForm } from 'react-hook-form';
 import { CollectionOverview } from './CollectionOverview';
 import { FilterChip } from '../../common/components/FilterChip';
+import { FilterContextTabs } from './Filters';
 
 export const detailPath = ':id';
 export const detailDataProductPath = ':id/:data_product';
@@ -47,18 +53,26 @@ export type SetModalView = React.Dispatch<React.SetStateAction<ModalView>>;
 const filterInputDebounceRate = 600;
 const filterSliderDebounceRate = 100;
 
-const pageConfig: Record<string, ('filter' | 'match' | 'search')[]> = {
-  samples: [],
-  biolog: [],
-  microtrait: [],
-  genome_attribs: ['filter', 'match', 'search'],
-  taxa_count: ['filter', 'match'],
+const pageConfig: Record<
+  string,
+  {
+    features: ('filter' | 'match' | 'search')[];
+  }
+> = {
+  samples: { features: ['filter'] },
+  biolog: { features: [] },
+  microtrait: { features: [] },
+  genome_attribs: {
+    features: ['filter', 'match', 'search'],
+  },
+  taxa_count: { features: ['filter', 'match'] },
 };
 
 export const CollectionDetail = () => {
   const params = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useAppDispatch();
 
   const collectionQuery = getCollection.useQuery(params.id || '', {
     skip: params.id === undefined,
@@ -109,35 +123,68 @@ export const CollectionDetail = () => {
   const matchQuery = getMatch.useQuery(matchId || '', {
     skip: !matchId,
   });
-  const match = matchQuery.data;
+  const match = matchQuery.currentData;
 
   const modal = useModalControls();
   const [modalView, setModalView] = useState<ModalView>('match');
 
-  const [filterOpen, setFiltersOpen] = useState(false);
+  const { filterPanelOpen } = useFilters(collection?.id);
   const filterMenuRef = useRef<HTMLButtonElement>(null);
+  const { filterEntries } = useFilterEntries(collection?.id || '');
 
   const handleToggleFilters = () => {
-    setFiltersOpen(!filterOpen);
+    if (collection?.id) {
+      dispatch(setFilterPanelOpen(!filterPanelOpen));
+    }
   };
 
   useEffect(() => {
     // When the currDataProduct/showOverview changes, close the filter menu
-    return () => setFiltersOpen(false);
-  }, [currDataProduct, showOverview]);
+    return () => {
+      if (collection?.id) {
+        dispatch(setFilterPanelOpen(false));
+      }
+    };
+  }, [dispatch, currDataProduct, showOverview, collection?.id]);
 
   const showMatchButton = (
-    (params.data_product && pageConfig[params.data_product]) ||
+    (params.data_product && pageConfig[params.data_product].features) ||
     []
   ).includes('match');
   const showFilterButton = (
-    (params.data_product && pageConfig[params.data_product]) ||
+    (params.data_product && pageConfig[params.data_product].features) ||
     []
   ).includes('filter');
   const showSearch = (
-    (params.data_product && pageConfig[params.data_product]) ||
+    (params.data_product && pageConfig[params.data_product].features) ||
     []
   ).includes('search');
+
+  const { context, filters } = useFilters(collection?.id);
+  const handleSearchDebounced = useDebounce<
+    React.ChangeEventHandler<HTMLInputElement>
+  >((e) => {
+    const filter = filters?.['classification'];
+    if (
+      !collection ||
+      !filter ||
+      filter.type === 'int' ||
+      filter.type === 'float' ||
+      filter.type === 'date'
+    )
+      return;
+    if (e.target.value === filter.value) return;
+    const type = filter.type;
+    const value = e.target.value.length > 3 ? e.target.value : '';
+    dispatch(
+      setFilter([
+        collection.id,
+        context,
+        'classification',
+        { ...filter, type, value },
+      ])
+    );
+  });
 
   if (!collection) return <Loader type="spinner" />;
   return (
@@ -157,47 +204,44 @@ export const CollectionDetail = () => {
             <>
               <div className={styles['collection_toolbar']}>
                 <Stack direction="row" spacing={1}>
-                  <Input
-                    hidden={!showSearch}
-                    className={styles['search-box']}
-                    placeholder="Search genomes by classification"
-                  />
-                  <Button
-                    hidden={!showFilterButton}
-                    ref={filterMenuRef}
-                    icon={<FontAwesomeIcon icon={faFilter} />}
-                    onClick={handleToggleFilters}
-                  >
-                    Filters
-                  </Button>
-                  <Button
-                    hidden={!showMatchButton}
-                    icon={<FontAwesomeIcon icon={faArrowRightArrowLeft} />}
-                    variant="contained"
-                    onClick={() => {
-                      setModalView('match');
-                      modal?.show();
-                    }}
-                  >
-                    {match
-                      ? `Matching by ${MATCHER_LABELS.get(match.matcher_id)}`
-                      : `Match my Data`}
-                  </Button>
+                  {showSearch && (
+                    <Input
+                      className={styles['search-box']}
+                      placeholder="Search genomes by classification"
+                      onChange={handleSearchDebounced(200)}
+                    />
+                  )}
+                  {showMatchButton && (
+                    <Button
+                      icon={<FontAwesomeIcon icon={faArrowRightArrowLeft} />}
+                      color="accent-warm-light"
+                      onClick={() => {
+                        setModalView('match');
+                        modal?.show();
+                      }}
+                    >
+                      {match
+                        ? `Matching by ${MATCHER_LABELS.get(match.matcher_id)}`
+                        : `Match My Data`}
+                    </Button>
+                  )}
                 </Stack>
                 <Button
-                  icon={<FontAwesomeIcon icon={faCircleCheck} />}
+                  icon={<FontAwesomeIcon icon={faFileExport} />}
                   variant={selection.length > 0 ? 'contained' : 'outlined'}
                   textColor={selection.length > 0 ? 'white' : 'primary'}
                   onClick={() => {
-                    setModalView('select');
+                    setModalView('export');
                     modal?.show();
                   }}
                 >
-                  {`${selection.length} items in selection`}
+                  {`Export (${selection.length.toLocaleString()} selected ${
+                    selection.length === 1 ? 'item' : 'items'
+                  })`}
                 </Button>
               </div>
-              <div>
-                <FilterChips collectionId={collection.id} />
+              <div className={styles['context-tabs']}>
+                <FilterContextTabs collectionId={collection.id} />
               </div>
             </>
           )}
@@ -206,8 +250,12 @@ export const CollectionDetail = () => {
           <FilterMenu
             collectionId={collection.id}
             anchorEl={filterMenuRef.current}
-            open={filterOpen}
-            onClose={() => setFiltersOpen(false)}
+            open={filterPanelOpen ?? false}
+            onClose={() => {
+              if (collection?.id) {
+                dispatch(setFilterPanelOpen(false));
+              }
+            }}
           />
           <div className={styles['data_product_detail']}>
             {showOverview ? (
@@ -217,10 +265,36 @@ export const CollectionDetail = () => {
                 modal={modal}
               />
             ) : currDataProduct ? (
-              <DataProduct
-                dataProduct={currDataProduct}
-                collection_id={collection.id}
-              />
+              <>
+                {showFilterButton && (
+                  <Stack
+                    className={styles['filter-controls']}
+                    direction="row"
+                    spacing={2}
+                    alignItems="center"
+                  >
+                    <Button
+                      ref={filterMenuRef}
+                      icon={<FontAwesomeIcon icon={faSliders} />}
+                      onClick={handleToggleFilters}
+                    >
+                      Filters
+                    </Button>
+                    <div className={styles['filter-chips-label']}>
+                      {filterEntries ? filterEntries.length : '0'} active{' '}
+                      {filterEntries && filterEntries.length !== 1
+                        ? 'filters'
+                        : 'filter'}
+                      {filterEntries && filterEntries.length > 0 ? ':' : ''}
+                    </div>
+                    <FilterChips collectionId={collection.id} />
+                  </Stack>
+                )}
+                <DataProduct
+                  dataProduct={currDataProduct}
+                  collection_id={collection.id}
+                />
+              </>
             ) : (
               <></>
             )}
@@ -232,12 +306,6 @@ export const CollectionDetail = () => {
           key={[collection.id, matchId].join('|')}
           collectionId={collection.id}
         />
-      ) : modalView === 'select' ? (
-        <SelectionModal
-          key={collection.id}
-          collectionId={collection.id}
-          showExport={() => setModalView('export')}
-        />
       ) : modalView === 'export' ? (
         <ExportModal key={collection.id} collectionId={collection.id} />
       ) : (
@@ -248,35 +316,81 @@ export const CollectionDetail = () => {
 };
 
 const useFilterEntries = (collectionId: string) => {
-  const { context, filters } = useCollectionFilters(collectionId);
+  const { context, filters, columnMeta } = useFilters(collectionId);
   const dispatch = useAppDispatch();
 
-  const filterEntries = Object.entries(filters || {});
-  filterEntries.sort((a, b) => a[0].localeCompare(b[0]));
+  const categories = Array.from(
+    Object.values(columnMeta ?? {}).reduce((catSet, column) => {
+      if (column.category) catSet.add(column.category);
+      return catSet;
+    }, new Set<string>())
+  );
+
+  // Categorize filters and order categories
+  const categorizedFilters = useMemo(
+    () =>
+      categories
+        .sort((a, b) => {
+          if (a === 'Other') {
+            return 1;
+          } else if (b === 'Other') {
+            return -1;
+          } else {
+            return a.localeCompare(b);
+          }
+        })
+        .map((category) => ({
+          category: category,
+          filters: Object.entries(filters ?? []).filter(
+            ([filterName, filter]) =>
+              columnMeta?.[filterName].category === category
+          ),
+        })),
+    [categories, filters, columnMeta]
+  );
+
+  // Use same filter order if ignoring categories for consistency
+  // Only include filters who have a non-undefined value
+  const filterEntries = categorizedFilters.reduce<[string, FilterState][]>(
+    (filterEntires, category) => {
+      const activeFilters = category.filters.filter(
+        (f) => f[1].value !== undefined
+      );
+      filterEntires.push(...activeFilters);
+      return filterEntires;
+    },
+    []
+  );
 
   const clearFilterState = (column: string) => {
     dispatch(clearFilter([collectionId, context, column]));
   };
 
-  return { context, filters, filterEntries, clearFilterState };
+  const clearAllFiltersState = () => {
+    dispatch(clearAllFilters([collectionId, context]));
+  };
+
+  return {
+    context,
+    filters,
+    filterEntries,
+    clearFilterState,
+    clearAllFiltersState,
+    categorizedFilters,
+  };
 };
 
 const FilterChips = ({ collectionId }: { collectionId: string }) => {
-  const { filterEntries, clearFilterState } = useFilterEntries(collectionId);
+  const { filterEntries, clearFilterState, context } =
+    useFilterEntries(collectionId);
   if (filterEntries.length === 0) return <></>;
   return (
-    <Stack
-      direction={'row'}
-      gap={'4px'}
-      useFlexGap
-      flexWrap="wrap"
-      sx={{ paddingTop: '14px' }}
-    >
+    <Stack direction={'row'} gap={'4px'} useFlexGap flexWrap="wrap">
       {filterEntries.map(([column, filter]) => {
         return (
           <FilterChip
             filter={filter}
-            key={`${column}-${filter.type}`}
+            key={`${column}-${context}-${filter.type}`}
             name={column}
             onDelete={() => clearFilterState(column)}
           />
@@ -286,110 +400,135 @@ const FilterChips = ({ collectionId }: { collectionId: string }) => {
   );
 };
 
-const FilterMenu = (props: {
+const FilterMenu = ({
+  collectionId,
+  open,
+  onClose,
+  ...rest
+}: {
   collectionId: string;
   anchorEl: Element | null;
   open: boolean;
   onClose: () => void;
 }) => {
-  const { context, filterEntries, clearFilterState } = useFilterEntries(
-    props.collectionId
-  );
+  const { columnMeta } = useFilters(collectionId);
+  const {
+    context,
+    categorizedFilters,
+    clearFilterState,
+    clearAllFiltersState,
+  } = useFilterEntries(collectionId);
 
-  if (props.open) {
+  /**
+   * Store expanded category string, empty string for none expanded
+   */
+  const [expandedCategory, setExpandedCategory] = useState('');
+
+  /**
+   * Only allow one category to be expanded at a time.
+   */
+  const handleExpand = (expanded: boolean, category: string) => {
+    setExpandedCategory(expanded ? category : '');
+  };
+
+  if (open) {
     return (
       <div className={styles['filters_panel']}>
-        {filterEntries.flatMap(([column, filter]) => {
-          const hasVal = Boolean(filter.value);
-          const children = [
-            <Divider key={`${column}__label`} textAlign="left">
-              <FilterChip
-                name={column}
-                filter={filter}
-                color={hasVal ? 'primary' : 'default'}
-                showValue={false}
-                showWhenUnused={true}
-                onDelete={hasVal ? () => clearFilterState(column) : undefined}
-              />
-            </Divider>,
-            <MenuItem key={`${column}__label`}>
-              <FilterControls
-                column={column}
-                filter={filter}
-                context={context}
-                collectionId={props.collectionId}
-              />
-            </MenuItem>,
-          ];
-          return children;
-        })}
+        <Stack direction="row" className={styles['filters-panel-header']}>
+          <h3>Genome Filters</h3>
+          <Stack direction="row" spacing={1}>
+            <Button
+              size="small"
+              color="gray"
+              onClick={() => clearAllFiltersState()}
+            >
+              Reset
+            </Button>
+            <Button
+              role="button"
+              color="base"
+              variant="text"
+              onClick={() => onClose()}
+            >
+              <FontAwesomeIcon icon={faX} />
+            </Button>
+          </Stack>
+        </Stack>
+        <div>
+          {categorizedFilters.map((category) => {
+            return (
+              <Accordion
+                key={`${category.category}-${context}`}
+                className={styles['filter-category']}
+                elevation={0}
+                expanded={category.category === expandedCategory}
+                onChange={(e, expanded) =>
+                  handleExpand(expanded, category.category)
+                }
+              >
+                <AccordionSummary
+                  expandIcon={<FontAwesomeIcon icon={faAngleRight} />}
+                  aria-controls="panel1-content"
+                  id="panel1-header"
+                  sx={{
+                    '& .MuiAccordionSummary-expandIconWrapper.Mui-expanded': {
+                      transform: 'rotate(90deg)',
+                    },
+                  }}
+                >
+                  <h4 className={styles['filter-category-label']}>
+                    {category.category}
+                  </h4>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Stack spacing={3}>
+                    {category.filters.flatMap(([column, filter]) => {
+                      const hasVal = Boolean(filter.value);
+                      return (
+                        <Stack
+                          className={styles['filter-container']}
+                          spacing={1}
+                          key={`${column}-${context}_container`}
+                        >
+                          <div>
+                            <label
+                              className={`${styles['filter-label']} ${
+                                hasVal ? styles['active'] : ''
+                              }`}
+                              onClick={
+                                hasVal
+                                  ? () => clearFilterState(column)
+                                  : undefined
+                              }
+                            >
+                              {columnMeta
+                                ? columnMeta[column].display_name
+                                : snakeCaseToHumanReadable(column)}
+                              {hasVal && (
+                                <FontAwesomeIcon icon={faCircleXmark} />
+                              )}
+                            </label>
+                          </div>
+                          <FilterControls
+                            column={column}
+                            filter={filter}
+                            context={context}
+                            collectionId={collectionId}
+                          />
+                        </Stack>
+                      );
+                    })}
+                  </Stack>
+                </AccordionDetails>
+              </Accordion>
+            );
+          })}
+        </div>
       </div>
     );
   } else {
     return null;
   }
-};
-
-const useCollectionFilters = (collectionId: string | undefined) => {
-  const dispatch = useAppDispatch();
-  const { context, filters } = useFilters(collectionId);
-  const { data: filterData, isLoading } = getGenomeAttribsMeta.useQuery(
-    { collection_id: collectionId || '' },
-    { skip: !collectionId }
-  );
-  useEffect(() => {
-    if (collectionId && filterData) {
-      dispatch(clearFiltersAndColumnMeta([collectionId, context]));
-      filterData.columns.forEach((column) => {
-        const current = filters && filters[column.key];
-        dispatch(setColumnMeta([collectionId, context, column.key, column]));
-        if (
-          column.type === 'date' ||
-          column.type === 'float' ||
-          column.type === 'int'
-        ) {
-          let min = column.min_value;
-          let max = column.max_value;
-          if (column.type === 'date') {
-            min = new Date(min).getTime();
-            max = new Date(max).getTime();
-          }
-          dispatch(
-            setFilter([
-              collectionId,
-              context,
-              column.key,
-              {
-                type: column.type,
-                min_value: min,
-                max_value: max,
-                value:
-                  current?.type === column.type ? current.value : undefined,
-              },
-            ])
-          );
-        } else if (column.type === 'string') {
-          dispatch(
-            setFilter([
-              collectionId,
-              context,
-              column.key,
-              {
-                type: column.filter_strategy,
-                value:
-                  current?.type === column.filter_strategy
-                    ? current.value
-                    : undefined,
-              },
-            ])
-          );
-        }
-      });
-    }
-    // Exclude filters from deps to prevent circular dep
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterData, context, collectionId, dispatch]);
-  return { filters, context, isLoading };
 };
 
 interface FilterControlProps {
@@ -670,7 +809,7 @@ const RangeFilterControls = ({
   }, [filter.value, filterMax, filterMin, setValue]);
 
   return (
-    <Stack>
+    <Stack className={styles['range-filter']}>
       <Stack direction="row" spacing={2}>
         <TextField
           {...register('min', {
@@ -699,31 +838,33 @@ const RangeFilterControls = ({
           variant="outlined"
         />
       </Stack>
-      <Slider
-        size="small"
-        disableSwap
-        getAriaLabel={() => `filter range for column ${column}`}
-        value={sliderPosition}
-        min={filter.min_value}
-        max={filter.max_value}
-        step={
-          filter.type === 'int'
-            ? 1
-            : (filter.max_value - filter.min_value) / 100
-        }
-        marks={[filter.min_value, filter.max_value].map((v) => ({
-          value: v,
-          label: v,
-        }))}
-        onChange={(ev, newValue) => {
-          const range = newValue as [number, number];
-          setValue('min', range[0]);
-          setValue('max', range[1]);
-          setSliderPosition([range[0], range[1]]);
-          debounceSubmitSliders();
-        }}
-        valueLabelDisplay="auto"
-      />
+      <Stack className={styles['slider-container']}>
+        <Slider
+          size="small"
+          disableSwap
+          getAriaLabel={() => `filter range for column ${column}`}
+          value={sliderPosition}
+          min={filter.min_value}
+          max={filter.max_value}
+          step={
+            filter.type === 'int'
+              ? 1
+              : (filter.max_value - filter.min_value) / 100
+          }
+          marks={[filter.min_value, filter.max_value].map((v) => ({
+            value: v,
+            label: v,
+          }))}
+          onChange={(ev, newValue) => {
+            const range = newValue as [number, number];
+            setValue('min', range[0]);
+            setValue('max', range[1]);
+            setSliderPosition([range[0], range[1]]);
+            debounceSubmitSliders();
+          }}
+          valueLabelDisplay="auto"
+        />
+      </Stack>
     </Stack>
   );
 };
@@ -763,7 +904,8 @@ const TextFilterControls = ({
           ngram: 'N-gram Search',
         }[filter.type]
       }
-      variant="standard"
+      variant="outlined"
+      size="small"
     />
   );
 };

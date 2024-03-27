@@ -34,21 +34,26 @@ $header-height: 2em;
 }
 
 .pagination {
-  align-items: stretch;
-  display: flex;
-  flex-flow: row nowrap;
-  gap: 0.333em;
-  justify-content: flex-start;
-  max-width: 20em;
+  display: block;
+  text-align: right;
 
   * {
-    flex: 1 1 2.25em;
-    min-width: fit-content;
+    display: inline-block;
+    margin-left: 0.5rem;
   }
 
-  *:first-child,
-  *:last-child {
-    flex: 0 1 2.25em;
+  *:first-child {
+    margin-left: 0;
+  }
+
+  [disabled] {
+    color: #000;
+  }
+
+  .selected {
+    background-color: use-color("mid-green-light");
+    color: #000;
+    opacity: 1;
   }
 }
 
