@@ -4,10 +4,12 @@ import TimeoutMonitor, { TimeoutMonitorStatus } from './TimeoutMonitor';
 
 describe('TimeoutMonitor class', () => {
   let errorLogSpy: jest.SpyInstance;
+
   beforeEach(() => {
     jest.resetAllMocks();
     errorLogSpy = jest.spyOn(console, 'error');
   });
+
   test('operates normally with minimal inputs', async () => {
     let timedOutAfter: number | null = null;
     const onTimeout = (elapsed: number) => {
@@ -104,7 +106,7 @@ describe('TimeoutMonitor class', () => {
     ).rejects.toThrow();
   });
 
-  test('stopping an unstarted monitor does nothing', async () => {
+  test('stopping an un-started monitor does nothing', async () => {
     let timedOutAfter: number | null = null;
     const onTimeout = (elapsed: number) => {
       timedOutAfter = elapsed;
