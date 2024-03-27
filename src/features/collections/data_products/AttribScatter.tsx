@@ -132,9 +132,11 @@ export const AttribScatter = ({
         yref: 'paper',
       };
       layout.xaxis = {
+        ...plotLayout.xaxis,
         title: { text: columnMeta?.[xColumn]?.display_name },
       };
       layout.yaxis = {
+        ...plotLayout.yaxis,
         title: { text: columnMeta?.[yColumn]?.display_name },
       };
       return layout;
