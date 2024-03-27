@@ -16,7 +16,7 @@ describe('SendChannel', () => {
     expect(sendChannel).toBeTruthy();
   });
 
-  test('can send a message', () => {
+  test('can send a message', async () => {
     const channel = 'abc123';
     const targetOrigin = UI_ORIGIN;
     const sendChannel = new SendChannel({ window, channel, targetOrigin });
@@ -32,18 +32,20 @@ describe('SendChannel', () => {
 
     const message = sendChannel.send('foo', 'bar');
 
-    waitFor(() => {
-      expect(receivedMessage).toEqual({
-        name: 'foo',
-        envelop: { channel, id: message.envelope.id },
-        payload: 'bar',
-      });
+    const expectedMessage = {
+      name: 'foo',
+      envelope: { channel, id: message.envelope.id },
+      payload: 'bar',
+    };
+
+    await waitFor(() => {
+      expect(receivedMessage).toEqual(expectedMessage);
       expect(receivedMessage).toEqual(message);
       expect(monitorValue).toEqual('bar');
     });
   });
 
-  test('can change the channel', () => {
+  test('can change the channel', async () => {
     const initialChannel = 'abc123';
     const secondChannel = 'def456';
     const targetOrigin = UI_ORIGIN;
@@ -64,10 +66,10 @@ describe('SendChannel', () => {
 
     const message = sendChannel.send('foo', 'bar');
 
-    waitFor(() => {
+    await waitFor(() => {
       expect(receivedMessage).toEqual({
         name: 'foo',
-        envelop: { channel: initialChannel, id: message.envelope.id },
+        envelope: { channel: initialChannel, id: message.envelope.id },
         payload: 'bar',
       });
       expect(receivedMessage).toEqual(message);
@@ -76,13 +78,15 @@ describe('SendChannel', () => {
 
     sendChannel.setChannelId(secondChannel);
 
-    waitFor(() => {
+    const secondMessage = sendChannel.send('baz', 'fizz');
+
+    await waitFor(() => {
       expect(receivedMessage).toEqual({
-        name: 'foo',
-        envelop: { channel: secondChannel, id: message.envelope.id },
-        payload: 'bar',
+        name: 'baz',
+        envelope: { channel: secondChannel, id: secondMessage.envelope.id },
+        payload: 'fizz',
       });
-      expect(receivedMessage).toEqual(message);
+      expect(receivedMessage).toEqual(secondMessage);
       expect(monitorValue).toEqual('bar');
     });
   });
@@ -126,11 +130,6 @@ describe('SendChannel', () => {
 
     await waitFor(
       () => {
-        // expect(errorLogSpy).toHaveBeenCalledWith(
-        //   'Error in error handler',
-        //   'Oops, I did it again',
-        //   expect.any(Error)
-        // );
         expect(errorLogSpy).toHaveBeenCalledWith(
           'Error running spy',
           'Oops, I did it again',

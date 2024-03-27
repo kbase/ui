@@ -1047,7 +1047,7 @@ describe('ReceiveChannel', () => {
       targetOrigin
     );
     // window.postMessage(successMessage, targetOrigin);
-    waitFor(
+    await waitFor(
       () => {
         expect(testValue).toEqual(successMessage.payload);
       },
