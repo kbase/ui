@@ -205,6 +205,8 @@ export const GenomeAttribs: FC<{
       render:
         field.name === 'kbase_id'
           ? (cell) => {
+              // GTBD IDs are not (yet?) UPAs
+              if (collection_id === 'GTDB') return cell.getValue();
               const upa = (cell.getValue() as string).replace(/_/g, '/');
               return (
                 <Link
