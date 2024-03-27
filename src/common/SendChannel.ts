@@ -99,6 +99,10 @@ export default class SendChannel {
     this.spy = spy;
   }
 
+  setChannelId(channel: string) {
+    this.channel = channel;
+  }
+
   /**
    * Sends a message to the configured window.
    *

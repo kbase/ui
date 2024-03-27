@@ -1,4 +1,4 @@
-import { ChannelMessage } from './SendChannel';
+import { ChannelMessage, MessageEnvelope } from './SendChannel';
 
 /**
  * A listener callback is simply a functino which takes a single `payload`
@@ -7,7 +7,10 @@ import { ChannelMessage } from './SendChannel';
  * The `payload` argument is arbitrary, JSON-compatible data. It is advisable that it be
  * an object, in order to be somewhat self documenting through properties.
  */
-export type ListenerCallback = (payload: unknown) => void;
+export type ListenerCallback = (
+  payload: unknown,
+  envelope: MessageEnvelope
+) => void;
 
 /**
  * A listener callback to handle the case of an error occuring during executing of the
@@ -120,6 +123,10 @@ export default class ReceiveChannel {
     this.messageQueue = [];
   }
 
+  setChannelId(channel: string) {
+    this.channel = channel;
+  }
+
   /**
    * Receives all messages sent via postMessage to the associated window.
    *
@@ -171,10 +178,10 @@ export default class ReceiveChannel {
 
   processMesageQueue() {
     const messages = this.messageQueue;
+    this.messageQueue = [];
     for (const message of messages) {
       this.processMessage(message);
     }
-    this.messageQueue = [];
   }
 
   processMessage(message: ChannelMessage) {
@@ -201,7 +208,7 @@ export default class ReceiveChannel {
     const newListeners: Array<ChannelListener> = [];
     for (const listener of listeners) {
       try {
-        listener.callback(message.payload);
+        listener.callback(message.payload, message.envelope);
       } catch (ex) {
         try {
           listener.onError(

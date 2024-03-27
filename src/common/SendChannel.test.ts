@@ -8,6 +8,7 @@ describe('SendChannel', () => {
     jest.resetAllMocks();
     errorLogSpy = jest.spyOn(console, 'error');
   });
+
   test('can be created', () => {
     const channel = 'abc123';
     const targetOrigin = UI_ORIGIN;
@@ -15,7 +16,7 @@ describe('SendChannel', () => {
     expect(sendChannel).toBeTruthy();
   });
 
-  test('can send basic message', () => {
+  test('can send a message', () => {
     const channel = 'abc123';
     const targetOrigin = UI_ORIGIN;
     const sendChannel = new SendChannel({ window, channel, targetOrigin });
@@ -35,6 +36,50 @@ describe('SendChannel', () => {
       expect(receivedMessage).toEqual({
         name: 'foo',
         envelop: { channel, id: message.envelope.id },
+        payload: 'bar',
+      });
+      expect(receivedMessage).toEqual(message);
+      expect(monitorValue).toEqual('bar');
+    });
+  });
+
+  test('can change the channel', () => {
+    const initialChannel = 'abc123';
+    const secondChannel = 'def456';
+    const targetOrigin = UI_ORIGIN;
+    const sendChannel = new SendChannel({
+      window,
+      channel: initialChannel,
+      targetOrigin,
+    });
+    expect(sendChannel).toBeTruthy();
+
+    // We'll set up a listener on this window.
+    let receivedMessage: unknown = null;
+    let monitorValue: unknown = null;
+    window.addEventListener('message', (ev) => {
+      monitorValue = 'bar';
+      receivedMessage = ev.data;
+    });
+
+    const message = sendChannel.send('foo', 'bar');
+
+    waitFor(() => {
+      expect(receivedMessage).toEqual({
+        name: 'foo',
+        envelop: { channel: initialChannel, id: message.envelope.id },
+        payload: 'bar',
+      });
+      expect(receivedMessage).toEqual(message);
+      expect(monitorValue).toEqual('bar');
+    });
+
+    sendChannel.setChannelId(secondChannel);
+
+    waitFor(() => {
+      expect(receivedMessage).toEqual({
+        name: 'foo',
+        envelop: { channel: secondChannel, id: message.envelope.id },
         payload: 'bar',
       });
       expect(receivedMessage).toEqual(message);

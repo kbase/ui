@@ -66,6 +66,53 @@ describe('ReceiveChannel', () => {
     receiveChannel.stop();
   });
 
+  test('can change the channel', async () => {
+    const channelOne = 'abc123';
+    const channelTwo = 'def456';
+    const expectedOrigin = window.location.origin;
+    const receiveChannel = new ReceiveChannel({
+      window,
+      expectedOrigin,
+      channel: channelOne,
+    });
+
+    expect(receiveChannel).toBeTruthy();
+
+    const messageName = 'foo';
+
+    // We simply capture the payload for inspection further down.
+    let actualPayload: unknown = null;
+    receiveChannel.on(messageName, (payload: unknown) => {
+      actualPayload = payload;
+    });
+    receiveChannel.start();
+
+    const expectedPayloadOne = 'baz';
+    genericPostMessage(messageName, channelOne, expectedPayloadOne);
+
+    await waitFor(
+      () => {
+        expect(actualPayload).toEqual(expectedPayloadOne);
+      },
+      { timeout: WAIT_FOR_TIMEOUT }
+    );
+
+    receiveChannel.setChannelId(channelTwo);
+
+    const expectedPayloadTwo = 'fizz';
+
+    genericPostMessage(messageName, channelTwo, expectedPayloadTwo);
+
+    await waitFor(
+      () => {
+        expect(actualPayload).toEqual(expectedPayloadTwo);
+      },
+      { timeout: WAIT_FOR_TIMEOUT }
+    );
+
+    receiveChannel.stop();
+  });
+
   test('a warning is issued of the channel is stopped without starting first', async () => {
     const channel = 'abc123';
     const expectedOrigin = window.location.origin;
