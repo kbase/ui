@@ -2,7 +2,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { getCollection, getMatch } from '../../common/api/collectionsApi';
 import { usePageTitle } from '../layout/layoutSlice';
 import styles from './Collections.module.scss';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { DataProduct } from './DataProduct';
 import { snakeCaseToHumanReadable } from '../../common/utils/stringUtils';
 import { MATCHER_LABELS, MatchModal } from './MatchModal';
@@ -160,6 +160,32 @@ export const CollectionDetail = () => {
     []
   ).includes('search');
 
+  const { context, filters } = useFilters(collection?.id);
+  const handleSearchDebounced = useDebounce<
+    React.ChangeEventHandler<HTMLInputElement>
+  >((e) => {
+    const filter = filters?.['classification'];
+    if (
+      !collection ||
+      !filter ||
+      filter.type === 'int' ||
+      filter.type === 'float' ||
+      filter.type === 'date'
+    )
+      return;
+    if (e.target.value === filter.value) return;
+    const type = filter.type;
+    const value = e.target.value.length > 3 ? e.target.value : '';
+    dispatch(
+      setFilter([
+        collection.id,
+        context,
+        'classification',
+        { ...filter, type, value },
+      ])
+    );
+  });
+
   if (!collection) return <Loader type="spinner" />;
   return (
     <div className={styles['collection_wrapper']}>
@@ -182,6 +208,7 @@ export const CollectionDetail = () => {
                     <Input
                       className={styles['search-box']}
                       placeholder="Search genomes by classification"
+                      onChange={handleSearchDebounced(200)}
                     />
                   )}
                   {showMatchButton && (
