@@ -1,0 +1,26 @@
+version: '3.6'
+networks:
+  # For interoperation with kbase-ui and it's proxy.
+  # This form (with the name property) is required for automatic 
+  # network creation and joining.
+  kbase-dev:
+    name: 
+      kbase-dev
+services:
+  europa-ui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: kbase/europa-ui:server
+    container_name: europa-ui
+    hostname: europa-ui
+    dns: 8.8.8.8
+    ports:
+      - 3000:8080
+    networks:
+      # For interoperation with kbase-ui and it's proxy
+      - kbase-dev
+    environment:
+      - STATIC_ENVIRONMENT
+    
+ 
