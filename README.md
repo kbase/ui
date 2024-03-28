@@ -1,4 +1,4 @@
-# UI Refresh Test Repo
+# UI (Europa)
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app) (`npx create-react-app ui-refresh-test --template typescript`). It also includes the following:
 
