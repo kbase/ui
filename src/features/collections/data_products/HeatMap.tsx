@@ -22,8 +22,8 @@ export interface HeatMapCallback {
 }
 
 interface HeatMapData {
-  values_meta: (React.ReactElement | string | null)[][];
-  values_num: (number | null)[][];
+  labels: (React.ReactElement | string | null)[][];
+  values: (number | null)[][];
   headersColumn: string[];
   headersRow: string[];
 }
@@ -110,69 +110,90 @@ const getNumber = ({
 
 /* convert the tanstack table data into the format Plotly expects */
 const getPlotlyFromTanstack = ({
-  table,
   getCellLabel,
+  pageSize,
+  table,
 }: {
-  table: Table<HeatMapRow>;
   getCellLabel: HeatMapCallback['getCellLabel'];
+  pageSize: number;
+  table: Table<HeatMapRow>;
 }) => {
-  const rows = table.getSortedRowModel().rows;
+  const rows_raw = table.getSortedRowModel().rows;
+  const nrows_raw = rows_raw.length;
+  const nrows = Math.max(pageSize, nrows_raw);
   const cols = table.getAllFlatColumns().filter((col) => col.parent);
+  const ncols = cols.length;
   const headersColumn: string[] = cols.map((col, cix) => {
     const headerRaw = col.columnDef.header as string;
     return abbrHeader(headerRaw);
   });
-  const headersRow = rows.map((row, rix) => {
-    const headerRaw = row.id;
-    return abbrHeader(headerRaw);
-  });
-  const values_num = rows.map((row) =>
-    row.getAllCells().map((cell) => cell.getValue() as number)
-  );
-  const values_meta = rows.map((row, rix) => {
-    const cells = row.getAllCells();
-    const hmcs: HeatMapCell[] = cells.map((cell, cix) => {
-      const col_id = cell.column.id;
-      const { cell_id, val } = cell.row.original.cells.filter(
-        (cell_) => cell_.col_id === col_id
-      )[0];
-      return {
-        cell_id,
-        col_id,
-        val,
-      };
+  const condition = (ix: number, n: number) => n === 0 || n < pageSize - ix;
+  const offset = (ix: number) => pageSize - ix - 1;
+  const headersRow: HeatMapData['headersRow'] = [];
+  const values: HeatMapData['values'] = [];
+  const labels: HeatMapData['labels'] = [];
+  Array(pageSize)
+    .fill(0)
+    .forEach((zero, rix) => {
+      if (condition(rix, nrows_raw)) {
+        headersRow.push('');
+        labels.push(Array(ncols).fill(<></>));
+        values.push(Array(ncols).fill(0));
+        return;
+      }
+      /* Compute Header */
+      const row = rows_raw[offset(rix)];
+      const headerRaw = row.id;
+      const header = abbrHeader(headerRaw);
+      /* Compute Value */
+      const cells = row.getAllCells();
+      const value = cells.map((cell) => cell.getValue() as number);
+      /* Compute Cell Labels */
+      const hmcs: HeatMapCell[] = cells.map((cell, cix) => {
+        const col_id = cell.column.id;
+        const { cell_id, val } = cell.row.original.cells.filter(
+          (cell_) => cell_.col_id === col_id
+        )[0];
+        return {
+          cell_id,
+          col_id,
+          val,
+        };
+      });
+      const cellLabels: (React.ReactElement | string | null)[] = [];
+      cells.forEach((cell, cix) => {
+        const col_id = cell.column.id;
+        const { cell_id, val } = cell.row.original.cells.filter(
+          (cell_) => cell_.col_id === col_id
+        )[0];
+        const hmc: HeatMapCell = {
+          cell_id,
+          col_id,
+          val,
+        };
+        const hmr: HeatMapRow = {
+          match: false,
+          sel: false,
+          kbase_id: row.original.kbase_id,
+          kbase_display_name: row.id,
+          cells: hmcs,
+        };
+        const getCellLabelCallback = async () =>
+          await getCellLabel(hmc, hmr, cell.column);
+        const label = <CellLabel getCellLabelCallback={getCellLabelCallback} />;
+        cellLabels.push(label);
+      });
+      headersRow.push(header);
+      labels.push(cellLabels);
+      values.push(value);
     });
-    return cells.map((cell, cix) => {
-      const col_id = cell.column.id;
-      const { cell_id, val } = cell.row.original.cells.filter(
-        (cell_) => cell_.col_id === col_id
-      )[0];
-      const hmc: HeatMapCell = {
-        cell_id,
-        col_id,
-        val,
-      };
-      const hmr: HeatMapRow = {
-        match: false,
-        sel: false,
-        kbase_id: row.original.kbase_id,
-        kbase_display_name: row.id,
-        cells: hmcs,
-      };
-      const getCellLabelCallback = async () =>
-        await getCellLabel(hmc, hmr, cell.column);
-      return <CellLabel getCellLabelCallback={getCellLabelCallback} />;
-    });
-  });
-  const ncols = headersColumn.length;
-  const nrows = headersRow.length;
   const output = {
-    ncols,
-    nrows,
-    values_num,
-    values_meta,
     headersColumn,
     headersRow,
+    labels,
+    ncols,
+    nrows,
+    values,
   };
   return output;
 };
@@ -370,7 +391,7 @@ export const PlotlyWrapper = ({
     window.__kbase.resizeListenerRegistered = true;
   }
   /* derived values */
-  const { values_meta, values_num, headersColumn, headersRow } = data;
+  const { labels, values, headersColumn, headersRow } = data;
   const { ncols, nrows } = heatMapMetaData;
   const { plotlyWindow } = plotlyState;
   // This value is arbitrary, but should depend on innerWidth.
@@ -412,7 +433,7 @@ export const PlotlyWrapper = ({
             xgap: 1,
             y: yCoords,
             ygap: 1,
-            z: values_num,
+            z: values,
           },
         ]}
         debug={true}
@@ -452,7 +473,7 @@ export const PlotlyWrapper = ({
           const props = {
             clientX: evt.event.clientX + 10,
             clientY: evt.event.clientY + 10,
-            meta: values_meta[rix][cix],
+            meta: labels[rix][cix],
           };
           setTooltipRole(TooltipRole.inspector);
           setTooltipInspectorProps(props);
@@ -469,7 +490,7 @@ export const PlotlyWrapper = ({
             tooltipCursorDataSetterRef.current({
               clientX: cX,
               clientY: cY,
-              meta: values_meta[rix][cix],
+              meta: labels[rix][cix],
             });
           }
         }}
@@ -488,16 +509,19 @@ export const PlotlyWrapper = ({
 
 /* <HeatMap /> component */
 export const HeatMap = ({
-  table,
   getCellLabel,
+  table,
+  pageSize = 50,
 }: {
-  table: Table<HeatMapRow>;
   getCellLabel: HeatMapCallback['getCellLabel'];
+  table: Table<HeatMapRow>;
+  pageSize?: number;
 }) => {
   /* Convert data from tanstack table format to Plotly format. */
-  const { ncols, nrows, values_meta, values_num, headersColumn, headersRow } =
+  const { ncols, nrows, labels, values, headersColumn, headersRow } =
     getPlotlyFromTanstack({
       getCellLabel,
+      pageSize,
       table,
     });
   /* hooks */
@@ -519,10 +543,10 @@ export const HeatMap = ({
   const tooltipCursorDataSetterRef = useRef<TooltipDataSetter | null>(null);
   /* derived values */
   const data: HeatMapData = {
-    values_meta,
-    values_num,
     headersColumn,
     headersRow,
+    labels,
+    values,
   };
   const heatMapMetaData = { ncols, nrows };
   const plotlyState = {
