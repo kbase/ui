@@ -19,18 +19,38 @@ export const UI_ORIGIN = 'http://localhost';
  * @param origin The origin for the recipient window; optional, defaulting to current
  * window origin.
  */
-export function genericPostMessage(
+export function sendWindowMessage(
+  fromWindow: Window,
+  toWindow: Window,
   name: string,
   channel: string,
   payload: unknown,
-  origin?: string
+  options?: SendMessageOptions
 ) {
   const data = { name, envelope: { channel }, payload };
-  const targetOrigin = origin || window.location.origin;
-  // Cannot use the following, due to jsDOM:
-  window.dispatchEvent(
-    new MessageEvent('message', { source: window, origin: targetOrigin, data })
+  // Must use the following, due to jsDOM:
+  toWindow.dispatchEvent(
+    new MessageEvent('message', {
+      source: fromWindow,
+      origin: (options && options.targetOrigin) || fromWindow.origin,
+      data,
+    })
   );
+}
+
+export interface SendMessageOptions {
+  targetOrigin?: string;
+}
+
+export function makeWindowMessageSender(fromWindow: Window, toWindow: Window) {
+  return (
+    name: string,
+    channel: string,
+    payload: unknown,
+    options?: SendMessageOptions
+  ) => {
+    sendWindowMessage(fromWindow, toWindow, name, channel, payload, options);
+  };
 }
 
 /**

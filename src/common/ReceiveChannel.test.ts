@@ -1,5 +1,5 @@
 import { waitFor } from '@testing-library/react';
-import { genericPostMessage, genericRawPostMessage } from '../testUtils';
+import { genericRawPostMessage, makeWindowMessageSender } from '../testUtils';
 import ReceiveChannel from './ReceiveChannel';
 import { ChannelMessage } from './SendChannel';
 
@@ -34,6 +34,7 @@ describe('ReceiveChannel', () => {
    * Just tests that a very simple message, just a string, will be received.
    */
   test('can receive a simple message', async () => {
+    // Set up a ReceiveChannel for the current window.
     const channel = 'abc123';
     const expectedOrigin = window.location.origin;
     const receiveChannel = new ReceiveChannel({
@@ -54,7 +55,8 @@ describe('ReceiveChannel', () => {
     receiveChannel.start();
 
     const expectedPayload = 'baz';
-    genericPostMessage(messageName, channel, expectedPayload);
+    const sendMessage = makeWindowMessageSender(window, window);
+    sendMessage(messageName, channel, expectedPayload);
 
     await waitFor(
       () => {
@@ -88,7 +90,9 @@ describe('ReceiveChannel', () => {
     receiveChannel.start();
 
     const expectedPayloadOne = 'baz';
-    genericPostMessage(messageName, channelOne, expectedPayloadOne);
+    const sendMessage = makeWindowMessageSender(window, window);
+
+    sendMessage(messageName, channelOne, expectedPayloadOne);
 
     await waitFor(
       () => {
@@ -101,7 +105,7 @@ describe('ReceiveChannel', () => {
 
     const expectedPayloadTwo = 'fizz';
 
-    genericPostMessage(messageName, channelTwo, expectedPayloadTwo);
+    sendMessage(messageName, channelTwo, expectedPayloadTwo);
 
     await waitFor(
       () => {
@@ -125,7 +129,7 @@ describe('ReceiveChannel', () => {
     await waitFor(
       () => {
         expect(warnLogSpy).toHaveBeenCalledWith(
-          '"stop" method called without then channel having been started'
+          '"stop" method called without the channel having been started'
         );
       },
       { timeout: WAIT_FOR_TIMEOUT }
@@ -146,7 +150,8 @@ describe('ReceiveChannel', () => {
 
     receiveChannel.start();
 
-    genericPostMessage(messageName, channel, expectedPayload);
+    const sendMessage = makeWindowMessageSender(window, window);
+    sendMessage(messageName, channel, expectedPayload);
 
     await waitFor(
       () => {
@@ -201,8 +206,8 @@ describe('ReceiveChannel', () => {
     // let actualPayload: unknown = null;
 
     receiveChannel.start();
-
-    genericPostMessage('foo', channel, 'bar');
+    const sendMessage = makeWindowMessageSender(window, window);
+    sendMessage('foo', channel, 'bar');
 
     await waitFor(
       () => {
@@ -213,7 +218,7 @@ describe('ReceiveChannel', () => {
       { timeout: WAIT_FOR_TIMEOUT }
     );
 
-    genericPostMessage('foo', channel, 'baz');
+    sendMessage('foo', channel, 'baz');
 
     await waitFor(
       () => {
@@ -263,6 +268,8 @@ describe('ReceiveChannel', () => {
 
     receiveChannel.start();
 
+    const sendMessage = makeWindowMessageSender(window, window);
+
     const payloads = ['bar', 'baz', 'fuzz', 'buzz'];
 
     const expectedResults = new Array<string>(
@@ -275,7 +282,7 @@ describe('ReceiveChannel', () => {
     });
 
     for (const payload of payloads) {
-      genericPostMessage('foo', channel, payload);
+      sendMessage('foo', channel, payload);
     }
 
     await waitFor(
@@ -328,8 +335,10 @@ describe('ReceiveChannel', () => {
 
     receiveChannel.start();
 
+    const sendMessage = makeWindowMessageSender(window, window);
+
     for (const { messageName, payload } of testData) {
-      genericPostMessage(messageName, channel, payload);
+      sendMessage(messageName, channel, payload);
     }
 
     await waitFor(
@@ -368,7 +377,9 @@ describe('ReceiveChannel', () => {
     });
     receiveChannel.start();
 
-    genericPostMessage(messageName, channel, expectedPayload);
+    const sendMessage = makeWindowMessageSender(window, window);
+
+    sendMessage(messageName, channel, expectedPayload);
 
     await waitFor(
       () => {
@@ -404,8 +415,8 @@ describe('ReceiveChannel', () => {
       actualPayload = payload;
     });
     receiveChannel.start();
-
-    genericPostMessage(messageName, channel, expectedPayload);
+    const sendMessage = makeWindowMessageSender(window, window);
+    sendMessage(messageName, channel, expectedPayload);
 
     await waitFor(
       () => {
@@ -445,8 +456,8 @@ describe('ReceiveChannel', () => {
       actualPayload = payload;
     });
     receiveChannel.start();
-
-    genericPostMessage(messageName, channel, expectedPayload);
+    const sendMessage = makeWindowMessageSender(window, window);
+    sendMessage(messageName, channel, expectedPayload);
 
     await waitFor(
       () => {
@@ -492,10 +503,10 @@ describe('ReceiveChannel', () => {
       }
     );
     receiveChannel.start();
-
+    const sendMessage = makeWindowMessageSender(window, window);
     // Send a message, but the payload doesn't matter since we are just triggering an
     // error in the handler.
-    genericPostMessage(messageName, channel, 'anything, does not matter');
+    sendMessage(messageName, channel, 'anything, does not matter');
 
     await waitFor(
       () => {
@@ -528,10 +539,11 @@ describe('ReceiveChannel', () => {
       }
     );
     receiveChannel.start();
+    const sendMessage = makeWindowMessageSender(window, window);
 
     // Send a message, but the payload doesn't matter since we are just triggering an
     // error in the handler.
-    genericPostMessage(messageName, channel, 'anything, does not matter');
+    sendMessage(messageName, channel, 'anything, does not matter');
 
     await waitFor(
       () => {
@@ -566,10 +578,10 @@ describe('ReceiveChannel', () => {
       }
     );
     receiveChannel.start();
-
+    const sendMessage = makeWindowMessageSender(window, window);
     // Send a message, but the payload doesn't matter since we are just triggering an
     // error in the handler.
-    genericPostMessage(messageName, channel, 'anything, does not matter');
+    sendMessage(messageName, channel, 'anything, does not matter');
 
     await waitFor(
       () => {
@@ -609,10 +621,10 @@ describe('ReceiveChannel', () => {
       }
     );
     receiveChannel.start();
-
+    const sendMessage = makeWindowMessageSender(window, window);
     // Send a message, but the payload doesn't matter since we are just triggering an
     // error in the handler.
-    genericPostMessage(messageName, channel, 'anything, does not matter');
+    sendMessage(messageName, channel, 'anything, does not matter');
 
     await waitFor(
       () => {
@@ -648,10 +660,10 @@ describe('ReceiveChannel', () => {
       }
     );
     receiveChannel.start();
-
+    const sendMessage = makeWindowMessageSender(window, window);
     // Send a message, but the payload doesn't matter since we are just triggering an
     // error in the handler.
-    genericPostMessage(messageName, channel, 'anything, does not matter');
+    sendMessage(messageName, channel, 'anything, does not matter');
 
     await waitFor(
       () => {
@@ -689,10 +701,10 @@ describe('ReceiveChannel', () => {
       }
     );
     receiveChannel.start();
-
+    const sendMessage = makeWindowMessageSender(window, window);
     // Send a message, but the payload doesn't matter since we are just triggering an
     // error in the handler.
-    genericPostMessage(messageName, channel, 'anything, does not matter');
+    sendMessage(messageName, channel, 'anything, does not matter');
 
     await waitFor(
       () => {
@@ -731,10 +743,10 @@ describe('ReceiveChannel', () => {
       }
     );
     receiveChannel.start();
-
+    const sendMessage = makeWindowMessageSender(window, window);
     // Send a message, but the payload doesn't matter since we are just triggering an
     // error in the handler.
-    genericPostMessage(messageName, channel, 'anything, does not matter');
+    sendMessage(messageName, channel, 'anything, does not matter');
 
     await waitFor(
       () => {
@@ -784,10 +796,10 @@ describe('ReceiveChannel', () => {
     }
 
     receiveChannel.start();
-
+    const sendMessage = makeWindowMessageSender(window, window);
     // Here we construct a message object in expected shape for a receive channel.
     for (const testValue of testValues) {
-      genericPostMessage(testValue.name, channel, testValue.expectedPayload);
+      sendMessage(testValue.name, channel, testValue.expectedPayload);
     }
 
     for await (const testValue of testValues) {
@@ -825,10 +837,10 @@ describe('ReceiveChannel', () => {
       }
     );
     receiveChannel.start();
-
+    const sendMessage = makeWindowMessageSender(window, window);
     // Send a message, but the payload doesn't matter since we are just triggering an
     // error in the handler.
-    genericPostMessage(messageName, channel, 'anything, does not matter');
+    sendMessage(messageName, channel, 'anything, does not matter');
 
     await waitFor(
       () => {
@@ -862,11 +874,11 @@ describe('ReceiveChannel', () => {
       }
     );
     receiveChannel.start();
-
+    const sendMessage = makeWindowMessageSender(window, window);
     // Here we construct a message object in expected shape for a receive channel.
     // Send a message, but the payload doesn't matter since we are just triggering an
     // error in the handler.
-    genericPostMessage(messageName, channel, 'anything, does not matter');
+    sendMessage(messageName, channel, 'anything, does not matter');
 
     await waitFor(
       () => {
@@ -903,10 +915,10 @@ describe('ReceiveChannel', () => {
       }
     );
     receiveChannel.start();
-
+    const sendMessage = makeWindowMessageSender(window, window);
     // Send a message, but the payload doesn't matter since we are just triggering an
     // error in the handler.
-    genericPostMessage(messageName, channel, 'anything, does not matter');
+    sendMessage(messageName, channel, 'anything, does not matter');
 
     await waitFor(
       () => {
@@ -938,9 +950,9 @@ describe('ReceiveChannel', () => {
       actualValue = payload;
     });
     receiveChannel.start();
-
+    const sendMessage = makeWindowMessageSender(window, window);
     // Here we construct a message object in expected shape for a receive channel.
-    genericPostMessage(messageName, channel, expectedValue);
+    sendMessage(messageName, channel, expectedValue);
 
     // And it should be received.
     await waitFor(
@@ -952,7 +964,7 @@ describe('ReceiveChannel', () => {
 
     // If we send a second time, the message will never be received
     actualValue = null;
-    genericPostMessage(messageName, channel, expectedValue);
+    sendMessage(messageName, channel, expectedValue);
 
     await expect(
       waitFor(
@@ -1015,7 +1027,7 @@ describe('ReceiveChannel', () => {
     });
 
     receiveChannel.start();
-
+    const sendMessage = makeWindowMessageSender(window, window);
     // Here we construct a message object in expected shape for a receive channel.
     for (const { message } of testValues) {
       // We are using whole messages here, so we use raw postMessage.
@@ -1040,12 +1052,7 @@ describe('ReceiveChannel', () => {
       payload: 'bar',
     };
 
-    genericPostMessage(
-      successMessage.name,
-      channel,
-      successMessage.payload,
-      targetOrigin
-    );
+    sendMessage(successMessage.name, channel, successMessage.payload);
     // window.postMessage(successMessage, targetOrigin);
     await waitFor(
       () => {
@@ -1056,12 +1063,9 @@ describe('ReceiveChannel', () => {
 
     // With mismatching origin, should also not handle it
     testValue = null;
-    genericPostMessage(
-      successMessage.name,
-      channel,
-      successMessage.payload,
-      'http://example.com'
-    );
+    sendMessage(successMessage.name, channel, successMessage.payload, {
+      targetOrigin: 'http://example.com',
+    });
 
     await expect(
       waitFor(

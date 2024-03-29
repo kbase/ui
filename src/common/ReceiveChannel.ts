@@ -330,7 +330,7 @@ export default class ReceiveChannel {
     } else {
       // eslint-disable-next-line no-console
       console.warn(
-        '"stop" method called without then channel having been started'
+        '"stop" method called without the channel having been started'
       );
     }
   }
