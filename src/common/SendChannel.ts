@@ -1,14 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
 
-/**
- * Generates a random or pseudo-random string identifier.
- *
- * @returns {string}
- */
-function uniqueId() {
-  return uuidv4();
-}
-
 export interface MessageEnvelope {
   /** The id of the channel for which this message is intended. */
   channel: string;
@@ -112,7 +103,7 @@ export default class SendChannel {
   send(name: string, payload: MessagePayload): ChannelMessage {
     const envelope: MessageEnvelope = {
       channel: this.channel,
-      id: uniqueId(),
+      id: uuidv4(),
     };
     const message = new ChannelMessage({ name, payload, envelope });
     this.window.postMessage(message.toJSON(), this.targetOrigin);
