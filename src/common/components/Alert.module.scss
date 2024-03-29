@@ -24,7 +24,7 @@
 %title {
   border-radius: match-nearest-parent match-nearest-parent 0 0;
   box-sizing: border-box;
-  color: #fff;
+  color: use-color("white");
   font-weight: bold;
   padding: 1rem;
 }
