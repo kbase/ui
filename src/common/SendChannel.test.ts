@@ -1,6 +1,6 @@
 import { waitFor } from '@testing-library/react';
-import { UI_ORIGIN, WAIT_FOR_TIMEOUT } from '../testUtils';
 import SendChannel, { ChannelMessage } from './SendChannel';
+import { UI_ORIGIN, WAIT_FOR_TIMEOUT } from './testUtils';
 
 describe('SendChannel', () => {
   let errorLogSpy: jest.SpyInstance;

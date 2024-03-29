@@ -1,7 +1,7 @@
 import { waitFor } from '@testing-library/react';
-import { genericRawPostMessage, makeWindowMessageSender } from '../testUtils';
 import ReceiveChannel from './ReceiveChannel';
 import { ChannelMessage } from './SendChannel';
+import { genericRawPostMessage, makeWindowMessageSender } from './testUtils';
 
 const WAIT_FOR_TIMEOUT = 1000;
 

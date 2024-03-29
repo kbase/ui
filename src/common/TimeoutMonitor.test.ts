@@ -1,5 +1,5 @@
 import { waitFor } from '@testing-library/react';
-import { WAIT_FOR_TIMEOUT } from '../testUtils';
+import { WAIT_FOR_TIMEOUT } from './testUtils';
 import TimeoutMonitor, { TimeoutMonitorStatus } from './TimeoutMonitor';
 
 describe('TimeoutMonitor class', () => {
