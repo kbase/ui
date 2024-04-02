@@ -65,7 +65,7 @@ const pageConfig: Record<
   genome_attribs: {
     features: ['filter', 'match', 'search'],
   },
-  taxa_count: { features: ['filter', 'match'] },
+  taxa_count: { features: ['match'] },
 };
 
 export const CollectionDetail = () => {
