@@ -1,4 +1,12 @@
-import { FC, Fragment, useMemo, useState } from 'react';
+import {
+  FC,
+  Fragment,
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useState,
+} from 'react';
 import {
   getTaxaCountRank,
   listTaxaCountRanks,
@@ -29,9 +37,44 @@ export const TaxaCount: FC<{
     setRank(opts?.[opts.length - 1]);
     return opts;
   }, [ranksQuery.data]);
+  const rankSelId = useId();
 
   const matchId = useMatchId(collection_id);
   const selectionId = useSelectionId(collection_id);
+
+  // Sort Order
+  const sortOptions: SelectOption[] = useMemo(() => {
+    return [
+      { value: 'standard', label: 'Total Count' },
+      { value: 'matched', label: 'Matched Count' },
+      { value: 'selected', label: 'Selected Count' },
+    ];
+  }, []);
+
+  const autoSelectOrder = useCallback(
+    (matchId?: string, selectionId?: string) => {
+      if (Boolean(matchId) === Boolean(selectionId)) {
+        // Both or neither
+        return sortOptions[0];
+      } else if (matchId) {
+        return sortOptions[1];
+      } else if (selectionId) {
+        return sortOptions[2];
+      }
+      return sortOptions[0];
+    },
+    [sortOptions]
+  );
+
+  const [sortOrder, setSortOrder] = useState<SelectOption>(
+    autoSelectOrder(matchId, selectionId)
+  );
+  const sortOrderId = useId();
+
+  // Auto select the most relevant sort order
+  useEffect(() => {
+    setSortOrder(autoSelectOrder(matchId, selectionId));
+  }, [matchId, selectionId, autoSelectOrder]);
 
   useFilterContexts(collection_id, 'none');
 
@@ -45,8 +88,17 @@ export const TaxaCount: FC<{
       rank: String(rank?.value),
       match_id: displayMatch ? matchId : undefined,
       selection_id: displaySel ? selectionId : undefined,
+      sort_priority: sortOrder.value.toString(),
     }),
-    [collection_id, rank?.value, displayMatch, matchId, displaySel, selectionId]
+    [
+      collection_id,
+      rank?.value,
+      displayMatch,
+      matchId,
+      displaySel,
+      selectionId,
+      sortOrder.value,
+    ]
   );
 
   const countsQuery = getTaxaCountRank.useQuery(countsParams, {
@@ -67,14 +119,28 @@ export const TaxaCount: FC<{
   return (
     <Paper variant="outlined" {...paperProps}>
       <Stack spacing={1}>
-        <div className={classes['chart-toolbar']}>
+        <Stack
+          className={classes['chart-toolbar']}
+          direction="row"
+          alignItems="center"
+          gap={'5px'}
+        >
+          <label htmlFor={rankSelId}>View Rank</label>
           <Select
+            id={rankSelId}
             value={rank}
             loading={ranksQuery.isFetching}
             options={rankOptions}
             onChange={(opt) => setRank(opt[0])}
           />
-        </div>
+          <label htmlFor={sortOrderId}>Order By</label>
+          <Select
+            id={sortOrderId}
+            value={sortOrder}
+            options={sortOptions}
+            onChange={(opt) => setSortOrder(opt[0])}
+          />
+        </Stack>
         {countsQuery.isFetching ? (
           <Loader />
         ) : (
