@@ -371,6 +371,7 @@ interface CollectionsParams {
     load_ver_override?: Collection['ver_tag'];
     match_id?: Match['match_id'];
     selection_id?: Selection['selection_id'];
+    sort_priority?: string;
   };
   getGenomeAttribs: {
     collection_id: Collection['id'];
@@ -683,11 +684,12 @@ export const collectionsApi = baseApi.injectEndpoints({
         load_ver_override,
         match_id,
         selection_id,
+        sort_priority,
       }) =>
         collectionsService({
           method: 'GET',
           url: encode`/collections/${collection_id}/data_products/taxa_count/counts/${rank}/`,
-          params: { load_ver_override, match_id, selection_id },
+          params: { load_ver_override, match_id, selection_id, sort_priority },
           headers: {
             authorization: `Bearer ${store.getState().auth.token}`,
           },
