@@ -21,6 +21,8 @@ import {
 } from '../../../common/components/Table';
 import { useAppDispatch, useBackoffPolling } from '../../../common/hooks';
 import {
+  clearAllFilters,
+  setFilter,
   setLocalSelection,
   useCurrentSelection,
   useFilters,
@@ -248,9 +250,39 @@ export const SampleAttribs: FC<{
                   </Link>
                 );
               }
+            : field.name === 'genome_count'
+            ? (value) => {
+                const count = (value.getValue() as string) || '';
+                return (
+                  <Link
+                    to={`/collections/${collection_id}/genome_attribs/`}
+                    onClick={() => {
+                      dispatch(clearAllFilters([collection_id, 'genomes.all']));
+                      dispatch(
+                        setFilter([
+                          collection_id,
+                          'genomes.all',
+                          'kbase_sample_id',
+                          {
+                            type: 'identity',
+                            value: value.row.getValue('kbase_sample_id'),
+                          },
+                        ])
+                      );
+                    }}
+                  >
+                    {count}
+                  </Link>
+                );
+              }
             : undefined,
       })),
-      order: ['kbase_display_name', 'kbase_id', 'kbase_sample_id'],
+      order: [
+        'kbase_display_name',
+        'kbase_id',
+        'kbase_sample_id',
+        'genome_count',
+      ],
       exclude: ['__match__', '__sel__'],
     }),
 
