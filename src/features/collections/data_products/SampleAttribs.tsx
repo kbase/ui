@@ -26,7 +26,7 @@ import {
   useFilters,
 } from '../collectionsSlice';
 import classes from './../Collections.module.scss';
-import { Grid, Paper, PaperProps, Stack } from '@mui/material';
+import { Alert, Grid, Paper, PaperProps, Stack } from '@mui/material';
 import { formatNumber } from '../../../common/utils/stringUtils';
 import { filterContextMode, useFilterContexts } from '../Filters';
 import { useTableViewParams } from '../hooks';
@@ -42,7 +42,6 @@ export const SampleAttribs: FC<{
 
   // State Management
   const { context, columnMeta } = useFilters(collection_id);
-  useFilterContexts(collection_id, 'samples.all');
 
   const [sorting, setSorting] = useState<SortingState>([]);
   const requestSort = useMemo(() => {
@@ -94,6 +93,42 @@ export const SampleAttribs: FC<{
   // Current Data
   const { data, isFetching } = getSampleAttribs.useQuery(attribParams);
   const { data: countData } = getSampleAttribs.useQuery(countParams);
+  const { data: allCount } = getSampleAttribs.useQuery({
+    count: true,
+    ...useTableViewParams(collection_id, {
+      ...view,
+      match_mark: true,
+      selection_mark: true,
+    }),
+  });
+  const { data: matchCount } = getSampleAttribs.useQuery({
+    count: true,
+    ...useTableViewParams(collection_id, {
+      ...view,
+      match_mark: false,
+      selection_mark: true,
+    }),
+  });
+
+  useFilterContexts(collection_id, [
+    {
+      label: 'All',
+      value: 'samples.all',
+      count: allCount?.count,
+    },
+    {
+      label: 'Matched',
+      value: 'samples.matched',
+      count: matchCount?.count || undefined,
+      disabled: !matchCount?.count,
+    },
+    {
+      label: 'Selected',
+      value: 'samples.selected',
+      disabled: !currentSelection.length,
+      count: currentSelection.length || undefined,
+    },
+  ]);
 
   // Prefetch requests
   const nextParams = useMemo(
@@ -278,6 +313,26 @@ export const SampleAttribs: FC<{
                 {formatNumber(countData?.count || 0)} samples
               </span>
             </Stack>
+            {context !== 'samples.all' ? (
+              <Alert
+                icon={false}
+                variant="standard"
+                severity="warning"
+                sx={{
+                  flexShrink: 1,
+                  flexGrow: 1,
+                  flexBasis: 0,
+                }}
+              >
+                Samples associated with{' '}
+                <strong>
+                  {context === 'samples.selected' ? 'selected' : 'matched'}{' '}
+                </strong>
+                genomes
+              </Alert>
+            ) : (
+              <></>
+            )}
             <Pagination table={table} maxPage={10000 / pagination.pageSize} />
           </Stack>
           <Table
