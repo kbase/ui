@@ -86,6 +86,7 @@ export interface ContextTabsState {
   value: FilterContext;
   count?: number;
   disabled?: boolean;
+  loading?: boolean;
 }
 
 interface CollectionsState {

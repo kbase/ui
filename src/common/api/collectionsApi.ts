@@ -310,6 +310,8 @@ interface CollectionsResults {
     table: unknown[][];
     data?: null;
     count?: number;
+    selection_state: ProcessState;
+    match_state: ProcessState;
   };
   getSampleAttribsMeta: {
     count: number;

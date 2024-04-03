@@ -9,6 +9,7 @@ import {
   getSampleAttribsMeta,
 } from '../../common/api/collectionsApi';
 import { parseError } from '../../common/api/utils/parseError';
+import { Loader } from '../../common/components';
 import { useAppDispatch, useAppSelector } from '../../common/hooks';
 import {
   clearFiltersAndColumnMeta,
@@ -54,8 +55,13 @@ export const FilterContextTabs = ({
             label={
               <Stack direction="row" alignItems={'center'} gap={1}>
                 {tab.label}
-                {tab.count !== undefined ? (
-                  <Chip size="small" label={tab.count.toLocaleString()} />
+                {tab.count !== undefined || tab.loading ? (
+                  <Chip
+                    size="small"
+                    label={
+                      tab.loading ? <Loader /> : tab.count?.toLocaleString()
+                    }
+                  />
                 ) : (
                   <></>
                 )}

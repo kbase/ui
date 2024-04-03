@@ -19,7 +19,7 @@ import {
   usePageBounds,
   useTableColumns,
 } from '../../../common/components/Table';
-import { useAppDispatch } from '../../../common/hooks';
+import { useAppDispatch, useBackoffPolling } from '../../../common/hooks';
 import {
   setLocalSelection,
   useCurrentSelection,
@@ -118,7 +118,18 @@ export const SampleAttribs: FC<{
     }),
     [allCountParams]
   );
-  const { data: selectCount } = getSampleAttribs.useQuery(selectCountParams);
+  const selectData = getSampleAttribs.useQuery(selectCountParams);
+
+  useBackoffPolling(
+    selectData,
+    (result) => {
+      return (
+        !result.data?.selection_state ||
+        result.data?.selection_state === 'processing'
+      );
+    },
+    { skipPoll: !selectData.data?.selection_state }
+  );
 
   useFilterContexts(collection_id, [
     {
@@ -135,8 +146,15 @@ export const SampleAttribs: FC<{
     {
       label: 'Selected',
       value: 'samples.selected',
-      count: viewParams.selection_id ? selectCount?.count : undefined,
-      disabled: !viewParams.selection_id,
+      loading:
+        selectData.isLoading ||
+        (!selectData.isUninitialized &&
+          selectData.data?.selection_state !== 'complete'),
+      count:
+        selectData.data?.selection_state === 'complete'
+          ? selectData?.data?.count
+          : undefined,
+      disabled: !viewParams.selection_id || !selectData.data?.selection_state,
     },
   ]);
 
