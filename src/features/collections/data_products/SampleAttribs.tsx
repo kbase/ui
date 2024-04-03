@@ -111,6 +111,14 @@ export const SampleAttribs: FC<{
     [allCountParams]
   );
   const { data: matchCount } = getSampleAttribs.useQuery(matchCountParams);
+  const selectCountParams = useMemo(
+    () => ({
+      ...allCountParams,
+      selection_mark: false,
+    }),
+    [allCountParams]
+  );
+  const { data: selectCount } = getSampleAttribs.useQuery(selectCountParams);
 
   useFilterContexts(collection_id, [
     {
@@ -127,8 +135,8 @@ export const SampleAttribs: FC<{
     {
       label: 'Selected',
       value: 'samples.selected',
-      disabled: !currentSelection.length,
-      count: currentSelection.length || undefined,
+      count: viewParams.selection_id ? selectCount?.count : undefined,
+      disabled: !viewParams.selection_id,
     },
   ]);
 
