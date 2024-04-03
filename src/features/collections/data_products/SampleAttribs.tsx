@@ -93,22 +93,24 @@ export const SampleAttribs: FC<{
   // Current Data
   const { data, isFetching } = getSampleAttribs.useQuery(attribParams);
   const { data: countData } = getSampleAttribs.useQuery(countParams);
-  const { data: allCount } = getSampleAttribs.useQuery({
-    count: true,
-    ...useTableViewParams(collection_id, {
-      ...view,
+  const allCountParams = useMemo(
+    () => ({
+      ...viewParams,
+      count: true,
       match_mark: true,
       selection_mark: true,
     }),
-  });
-  const { data: matchCount } = getSampleAttribs.useQuery({
-    count: true,
-    ...useTableViewParams(collection_id, {
-      ...view,
+    [viewParams]
+  );
+  const { data: allCount } = getSampleAttribs.useQuery(allCountParams);
+  const matchCountParams = useMemo(
+    () => ({
+      ...allCountParams,
       match_mark: false,
-      selection_mark: true,
     }),
-  });
+    [allCountParams]
+  );
+  const { data: matchCount } = getSampleAttribs.useQuery(matchCountParams);
 
   useFilterContexts(collection_id, [
     {
@@ -119,8 +121,8 @@ export const SampleAttribs: FC<{
     {
       label: 'Matched',
       value: 'samples.matched',
-      count: matchCount?.count || undefined,
-      disabled: !matchCount?.count,
+      count: viewParams.match_id ? matchCount?.count : undefined,
+      disabled: !viewParams.match_id,
     },
     {
       label: 'Selected',
