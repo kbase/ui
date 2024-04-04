@@ -25,7 +25,7 @@ import { Dropdown } from '../../common/components';
 import { useAppDispatch, useAppSelector } from '../../common/hooks';
 import { authUsername, setAuth } from '../auth/authSlice';
 import classes from './TopBar.module.scss';
-import { Link } from 'react-router-dom';
+import { Button } from '@mui/material';
 import { getUserProfile } from '../../common/api/userProfileApi';
 import { revokeToken } from '../../common/api/authService';
 import { toast } from 'react-hot-toast';
@@ -56,12 +56,22 @@ export default function TopBar() {
   );
 }
 
-const LoginPrompt: FC = () => (
-  <Link role="button" to={'/legacy/login'} className={classes.login_prompt}>
-    <FAIcon icon={faSignIn} />
-    <span>Sign In</span>
-  </Link>
-);
+const LoginPrompt: FC = () => {
+  const disabled = useAppSelector((state) => state.layout.loginControlDisabled);
+  return (
+    <Button
+      role="link"
+      variant="text"
+      href={'/legacy/login'}
+      disabled={disabled}
+      aria-disabled={disabled}
+      className={classes.login_prompt}
+    >
+      <FAIcon icon={faSignIn} />
+      <span>Sign In</span>
+    </Button>
+  );
+};
 
 const UserMenu: FC = () => {
   const username = useAppSelector(authUsername);

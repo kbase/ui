@@ -17,11 +17,13 @@ interface PageState {
   environment: typeof environments[number];
   pageTitle: string;
   modalDialogId?: string;
+  loginControlDisabled: boolean;
 }
 
 export const initialState: PageState = {
   pageTitle: document.title || 'KBase',
   environment: 'unknown',
+  loginControlDisabled: false,
 };
 
 export const pageSlice = createSlice({
@@ -45,6 +47,9 @@ export const pageSlice = createSlice({
     setPageTitle: (state, action: PayloadAction<string>) => {
       state.pageTitle = action.payload;
     },
+    setLoginControlDisabled: (state, action: PayloadAction<boolean>) => {
+      state.loginControlDisabled = action.payload;
+    },
   },
 });
 
@@ -66,5 +71,9 @@ export const usePageTitle = (title: string) => {
 };
 export default pageSlice.reducer;
 
-export const { setEnvironment, setModalDialogId, setPageTitle } =
-  pageSlice.actions;
+export const {
+  setEnvironment,
+  setModalDialogId,
+  setPageTitle,
+  setLoginControlDisabled,
+} = pageSlice.actions;
