@@ -2,7 +2,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { getCollection, getMatch } from '../../common/api/collectionsApi';
 import { usePageTitle } from '../layout/layoutSlice';
 import styles from './Collections.module.scss';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DataProduct } from './DataProduct';
 import {
   countDecimals,
@@ -608,6 +608,7 @@ const DateRangeFilterControls = ({
   } = useForm({
     defaultValues: { min: defMin, max: defMax },
     reValidateMode: 'onChange',
+    shouldFocusError: false,
   });
   const values = getValues();
   const { error: minError } = getFieldState('min', formState);
@@ -643,6 +644,18 @@ const DateRangeFilterControls = ({
     }
   });
 
+  const validateMin = useCallback(
+    (value: string, max: string) =>
+      parseDate(value) <= parseDate(max) && !Number.isNaN(parseDate(value)),
+    []
+  );
+
+  const validateMax = useCallback(
+    (value: string, min: string) =>
+      parseDate(value) >= parseDate(min) && !Number.isNaN(parseDate(value)),
+    []
+  );
+
   const submit = handleSubmit(() => {
     setFilterRange(0)();
   });
@@ -656,9 +669,13 @@ const DateRangeFilterControls = ({
   });
 
   useEffect(() => {
-    //Set slider position from values
-    setSliderPosition([values.min, values.max]);
-  }, [values.min, values.max]);
+    //Set slider position from values, if valid
+    if (
+      validateMin(values.min, values.max) &&
+      validateMax(values.max, values.min)
+    )
+      setSliderPosition([values.min, values.max]);
+  }, [values.min, values.max, validateMin, validateMax]);
 
   const [filterMin, filterMax] = [filter.min_value, filter.max_value];
   useEffect(() => {
@@ -676,7 +693,7 @@ const DateRangeFilterControls = ({
         <TextField
           {...register('min', {
             valueAsDate: true,
-            validate: (value) => parseDate(value) < parseDate(values.max),
+            validate: (value) => validateMin(value, values.max),
             onBlur: submit,
             onChange: debounceSubmit,
           })}
@@ -687,7 +704,7 @@ const DateRangeFilterControls = ({
         <TextField
           {...register('max', {
             valueAsDate: true,
-            validate: (value) => parseDate(value) > parseDate(values.min),
+            validate: (value) => validateMax(value, values.min),
             onBlur: submit,
             onChange: debounceSubmit,
           })}
@@ -749,6 +766,7 @@ const RangeFilterControls = ({
   } = useForm({
     defaultValues: { min: defMin, max: defMax },
     reValidateMode: 'onChange',
+    shouldFocusError: false,
   });
   const values = getValues();
   const { error: minError } = getFieldState('min', formState);
@@ -784,6 +802,22 @@ const RangeFilterControls = ({
     }
   });
 
+  const validateMin = useCallback(
+    (value: number, max: number) =>
+      value <= max &&
+      (filter.type === 'float' || Number.isInteger(value)) &&
+      !Number.isNaN(value),
+    [filter.type]
+  );
+
+  const validateMax = useCallback(
+    (value: number, min: number) =>
+      value >= min &&
+      (filter.type === 'float' || Number.isInteger(value)) &&
+      !Number.isNaN(value),
+    [filter.type]
+  );
+
   const submit = handleSubmit(() => {
     setFilterRange(0)();
   });
@@ -797,9 +831,13 @@ const RangeFilterControls = ({
   });
 
   useEffect(() => {
-    //Set slider position from values
-    setSliderPosition([values.min, values.max]);
-  }, [values.min, values.max]);
+    //Set slider position from values, if valid
+    if (
+      validateMin(values.min, values.max) &&
+      validateMax(values.max, values.min)
+    )
+      setSliderPosition([values.min, values.max]);
+  }, [values.min, values.max, validateMin, validateMax]);
 
   const [filterMin, filterMax] = [filter.min_value, filter.max_value];
   useEffect(() => {
@@ -824,9 +862,7 @@ const RangeFilterControls = ({
         <TextField
           {...register('min', {
             valueAsNumber: true,
-            validate: (value) =>
-              value < values.max &&
-              (filter.type === 'float' || Number.isInteger(value)),
+            validate: (value) => validateMin(value, values.max),
             onChange: debounceSubmit,
             onBlur: submit,
           })}
@@ -837,9 +873,7 @@ const RangeFilterControls = ({
         <TextField
           {...register('max', {
             valueAsNumber: true,
-            validate: (value) =>
-              value > values.min &&
-              (filter.type === 'float' || Number.isInteger(value)),
+            validate: (value) => validateMax(value, values.min),
             onChange: debounceSubmit,
             onBlur: submit,
           })}
