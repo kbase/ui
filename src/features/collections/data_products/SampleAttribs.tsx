@@ -28,11 +28,10 @@ import {
   useFilters,
 } from '../collectionsSlice';
 import classes from './../Collections.module.scss';
-import { Alert, Grid, Paper, PaperProps, Stack } from '@mui/material';
+import { Alert, Grid, Paper, PaperProps, Stack, Link } from '@mui/material';
 import { formatNumber } from '../../../common/utils/stringUtils';
 import { filterContextMode, useFilterContexts } from '../Filters';
 import { useTableViewParams } from '../hooks';
-import { Link } from 'react-router-dom';
 
 export const SampleAttribs: FC<{
   collection_id: string;
@@ -243,7 +242,7 @@ export const SampleAttribs: FC<{
                 const sampleId = (value.getValue() as string) || '';
                 return (
                   <Link
-                    to={`https://${process.env.REACT_APP_KBASE_DOMAIN}/legacy/samples/view/${sampleId}`}
+                    href={`https://${process.env.REACT_APP_KBASE_DOMAIN}/legacy/samples/view/${sampleId}`}
                     target="_blank"
                   >
                     {sampleId.slice(0, 8)}...
@@ -255,7 +254,8 @@ export const SampleAttribs: FC<{
                 const count = (value.getValue() as string) || '';
                 return (
                   <Link
-                    to={`/collections/${collection_id}/genome_attribs/`}
+                    href={`/collections/${collection_id}/genome_attribs/`}
+                    variant={'inherit'}
                     onClick={() => {
                       dispatch(clearAllFilters([collection_id, 'genomes.all']));
                       dispatch(
