@@ -8,7 +8,7 @@ const collectionsService = httpService({
   url: 'services/collections',
 });
 
-type ProcessState = 'processing' | 'failed' | 'complete';
+export type ProcessState = 'processing' | 'failed' | 'complete';
 type UPA = string;
 // Collections-specific item ID strings (not an UPA or Data Object)
 type KBaseId = string;
