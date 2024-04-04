@@ -121,14 +121,15 @@ export const SampleAttribs: FC<{
   );
   const selectData = getSampleAttribs.useQuery(selectCountParams);
 
+  const selectionPending = Boolean(
+    !selectData.isUninitialized &&
+      selectData.data?.selection_state &&
+      selectData.data?.selection_state === 'processing'
+  );
+
   useBackoffPolling(
     selectData,
-    (result) => {
-      return (
-        !result.data?.selection_state ||
-        result.data?.selection_state === 'processing'
-      );
-    },
+    (result) => selectionPending || !result.data?.selection_state,
     { skipPoll: !selectData.data?.selection_state }
   );
 
@@ -147,10 +148,7 @@ export const SampleAttribs: FC<{
     {
       label: 'Selected',
       value: 'samples.selected',
-      loading:
-        selectData.isLoading ||
-        (!selectData.isUninitialized &&
-          selectData.data?.selection_state !== 'complete'),
+      loading: selectData.isLoading || selectionPending,
       count:
         selectData.data?.selection_state === 'complete'
           ? selectData?.data?.count
