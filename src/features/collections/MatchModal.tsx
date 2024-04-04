@@ -10,7 +10,7 @@ import { listObjects } from '../../common/api/workspaceApi';
 import { getNarratives } from '../../common/api/searchApi';
 import { parseError } from '../../common/api/utils/parseError';
 import { useUpdateAppParams } from '../params/hooks';
-import { useAppDispatch, useBackoffPolling } from '../../common/hooks';
+import { useAppDispatch, useProcessStatePolling } from '../../common/hooks';
 import {
   setLocalSelection,
   useCurrentSelection,
@@ -54,14 +54,8 @@ const ViewMatch = ({ collectionId }: { collectionId: string }) => {
   const matchQuery = getMatch.useQuery(matchId || '', {
     skip: !matchId,
   });
-  useBackoffPolling(
-    matchQuery,
-    (result) =>
-      !(
-        Boolean(result.error) ||
-        (Boolean(result.data?.state) && result.data?.state !== 'processing')
-      )
-  );
+  useProcessStatePolling(matchQuery, ['state'], { skipPoll: !matchId });
+
   const match = matchQuery.data;
   const matchStategy =
     match?.state === 'complete'

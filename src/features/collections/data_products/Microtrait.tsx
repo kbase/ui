@@ -15,7 +15,7 @@ import {
 import { parseError } from '../../../common/api/utils/parseError';
 import { DataViewLink } from '../../../common/components';
 import { Pagination, usePageBounds } from '../../../common/components/Table';
-import { useAppDispatch, useBackoffPolling } from '../../../common/hooks';
+import { useAppDispatch, useProcessStatePolling } from '../../../common/hooks';
 import { formatNumber } from '../../../common/utils/stringUtils';
 import classes from '../Collections.module.scss';
 import { useMatchId, useGenerateSelectionId } from '../collectionsSlice';
@@ -151,15 +151,9 @@ const useMicrotrait = (collection_id: string | undefined) => {
     skip: !collection_id,
   });
   const microtrait = microtraitQuery.data;
-  useBackoffPolling(
-    microtraitQuery,
-    (result) => {
-      if (matchId && result?.data?.match_state === 'processing') return true;
-      if (selId && result?.data?.selection_state === 'processing') return true;
-      return false;
-    },
-    { skipPoll: !collection_id || !(matchId || selId) }
-  );
+  useProcessStatePolling(microtraitQuery, ['match_state', 'selection_state'], {
+    skipPoll: !collection_id || !(matchId || selId),
+  });
 
   //cache last row of each page, we should implement better backend pagination this is silly
   useEffect(() => {

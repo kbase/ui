@@ -19,7 +19,7 @@ import {
   usePageBounds,
   useTableColumns,
 } from '../../../common/components/Table';
-import { useAppDispatch, useBackoffPolling } from '../../../common/hooks';
+import { useAppDispatch, useProcessStatePolling } from '../../../common/hooks';
 import {
   clearAllFilters,
   setFilter,
@@ -127,11 +127,7 @@ export const SampleAttribs: FC<{
       selectData.data?.selection_state === 'processing'
   );
 
-  useBackoffPolling(
-    selectData,
-    (result) => selectionPending || !result.data?.selection_state,
-    { skipPoll: !selectData.data?.selection_state }
-  );
+  useProcessStatePolling(selectData, ['selection_state']);
 
   useFilterContexts(collection_id, [
     {

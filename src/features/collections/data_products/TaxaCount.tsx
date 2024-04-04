@@ -13,7 +13,7 @@ import {
 } from '../../../common/api/collectionsApi';
 import { Loader } from '../../../common/components/Loader';
 import { Select, SelectOption } from '../../../common/components/Select';
-import { useBackoffPolling } from '../../../common/hooks';
+import { useProcessStatePolling } from '../../../common/hooks';
 import { snakeCaseToHumanReadable } from '../../../common/utils/stringUtils';
 import { useMatchId, useSelectionId } from '../collectionsSlice';
 import classes from './TaxaCount.module.scss';
@@ -105,12 +105,7 @@ export const TaxaCount: FC<{
     skip: !rank,
   });
 
-  useBackoffPolling(countsQuery, (result) => {
-    if (matchId && result?.data?.match_state === 'processing') return true;
-    if (selectionId && result?.data?.selection_state === 'processing')
-      return true;
-    return false;
-  });
+  useProcessStatePolling(countsQuery, ['match_state', 'selection_state']);
 
   const taxa = countsQuery.data?.data || [];
 
