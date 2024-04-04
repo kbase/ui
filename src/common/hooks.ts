@@ -65,25 +65,37 @@ export const useBackoffPolling = <
 
 export const useProcessStatePolling = <
   StateKey extends string,
-  ResultShape extends { [processStateKey in StateKey]: ProcessState },
+  Result extends { [processStateKey in StateKey]: ProcessState },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  R extends UseQueryHookResult<QueryDefinition<unknown, any, any, ResultShape>>
+  R extends UseQueryHookResult<QueryDefinition<unknown, any, any, Result>>
 >(
-  processStateKey: StateKey,
   result: R,
+  processStateKeys: StateKey[],
   options?: { baseInterval?: number; rate?: number; skipPoll?: boolean }
 ) => {
-  useBackoffPolling<R>(result, (result) => {
-    if (result.error || !result.data?.[processStateKey]) return false;
-    if (result.data[processStateKey] === 'complete') return false;
-    if (result.data[processStateKey] === 'failed') {
-      toast('ProcessState Polling Failed, see console for more info');
-      // eslint-disable-next-line no-console
-      console.error('ProcessState Polling Failed', { result });
-      return false;
-    }
-    return true;
-  });
+  useBackoffPolling<R>(
+    result,
+    (result) => {
+      for (let i = 0; i < processStateKeys.length; i++) {
+        const processStateKey = processStateKeys[i];
+        if (result.error || !result.data?.[processStateKey]) return false;
+        if (result.data[processStateKey] === 'processing') {
+          continue;
+        } else if (result.data[processStateKey] === 'complete') {
+          return false;
+        } else if (result.data[processStateKey] === 'failed') {
+          toast('ProcessState Polling Failed, see console for more info');
+          // eslint-disable-next-line no-console
+          console.error('ProcessState Polling Failed', { result });
+          return false;
+        } else {
+          return false;
+        }
+      }
+      return true;
+    },
+    options
+  );
 };
 
 export const ignoredParameterWarning = (ignored: string[]) =>
