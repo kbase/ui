@@ -1,0 +1,15 @@
+@import "../../common/colors";
+
+.main {
+  align-items: center;
+  background-color: use-color("white");
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  left: 0;
+  padding-top: 10%;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
