@@ -10,7 +10,7 @@ import { parseError } from '../../common/api/utils/parseError';
 import {
   useAppDispatch,
   useAppSelector,
-  useBackoffPolling,
+  useProcessStatePolling,
 } from '../../common/hooks';
 import { useAppParam } from '../params/hooks';
 
@@ -348,11 +348,14 @@ export const useGenerateSelectionId = (
     skip: !_pendingId || !!_verifiedId,
   });
 
-  useBackoffPolling(validateSelection, (result) => {
-    if (result.error) toast(parseError(result.error).message);
-    if (result.data?.state === 'processing') return true;
-    return false;
+  useProcessStatePolling(validateSelection, ['state'], {
+    skipPoll: !_pendingId || !!_verifiedId,
   });
+
+  useEffect(() => {
+    if (validateSelection.error)
+      toast(parseError(validateSelection.error).message);
+  }, [validateSelection.error]);
 
   useEffect(() => {
     if (validateSelection.data?.state === 'complete') {

@@ -15,7 +15,7 @@ import {
 import { parseError } from '../../../common/api/utils/parseError';
 import { DataViewLink } from '../../../common/components';
 import { Pagination, usePageBounds } from '../../../common/components/Table';
-import { useAppDispatch, useBackoffPolling } from '../../../common/hooks';
+import { useAppDispatch, useProcessStatePolling } from '../../../common/hooks';
 import { formatNumber } from '../../../common/utils/stringUtils';
 import { useAppParam } from '../../params/hooks';
 import classes from '../Collections.module.scss';
@@ -148,15 +148,9 @@ const useBiolog = (collection_id: string | undefined) => {
     skip: !collection_id,
   });
   const biolog = biologQuery.data;
-  useBackoffPolling(
-    biologQuery,
-    (result) => {
-      if (matchId && result?.data?.match_state === 'processing') return true;
-      if (selId && result?.data?.selection_state === 'processing') return true;
-      return false;
-    },
-    { skipPoll: !collection_id || !(matchId || selId) }
-  );
+  useProcessStatePolling(biologQuery, ['match_state', 'selection_state'], {
+    skipPoll: !collection_id || !(matchId || selId),
+  });
 
   //cache last row of each page, we should implement better backend pagination this is silly
   useEffect(() => {
