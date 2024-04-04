@@ -164,6 +164,10 @@ export const CollectionDetail = () => {
   ).includes('search');
 
   const { context, filters } = useFilters(collection?.id);
+  const [searchText, setSearchText] = useState('');
+  const searchTextRef = useRef(searchText);
+  searchTextRef.current = searchText;
+
   const handleSearchDebounced = useDebounce<
     React.ChangeEventHandler<HTMLInputElement>
   >((e) => {
@@ -189,6 +193,14 @@ export const CollectionDetail = () => {
     );
   });
 
+  const searchFilterValue = filters?.['classification'].value;
+
+  useEffect(() => {
+    if (typeof searchFilterValue !== 'string') return;
+    if (searchTextRef.current !== searchFilterValue)
+      setSearchText(searchFilterValue);
+  }, [searchFilterValue]);
+
   if (!collection) return <Loader type="spinner" />;
   return (
     <div className={styles['collection_wrapper']}>
@@ -209,9 +221,13 @@ export const CollectionDetail = () => {
                 <Stack direction="row" spacing={1}>
                   {showSearch && (
                     <Input
+                      value={searchText}
                       className={styles['search-box']}
                       placeholder="Search genomes by classification"
-                      onChange={handleSearchDebounced(200)}
+                      onChange={(e) => {
+                        setSearchText(e.currentTarget.value);
+                        handleSearchDebounced(200)(e);
+                      }}
                     />
                   )}
                   {showMatchButton && (
@@ -927,6 +943,13 @@ const TextFilterControls = ({
   const debounceSubmit = useDebounce((value: string) => {
     dispatch(setFilter([collectionId, context, column, { ...filter, value }]));
   });
+
+  const textRef = useRef(text);
+  textRef.current = text;
+  useEffect(() => {
+    // If filter value changes elsewhere, set text here
+    if (filter.value && filter.value !== textRef.current) setText(filter.value);
+  }, [filter.value]);
 
   return (
     <TextField
