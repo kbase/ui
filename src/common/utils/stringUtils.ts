@@ -69,3 +69,11 @@ export function uriEncodeTemplateTag(
 export function formatNumber(num: number) {
   return num.toLocaleString();
 }
+
+/**
+ * Count the number of decimals in a given float or int
+ */
+export function countDecimals(num: number) {
+  if (num % 1 !== 0) return num.toString().split('.')[1].length;
+  return 0;
+}
