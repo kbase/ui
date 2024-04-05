@@ -1,4 +1,3 @@
-import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
 import {
   faBars,
   faEnvelope,
@@ -17,20 +16,31 @@ import {
   faUser,
   faWrench,
 } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
 import { FC, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { Link } from 'react-router-dom';
+import { LOGIN_ROUTE } from '../../app/Routes';
+import { getUserProfile } from '../../common/api/userProfileApi';
 import logo from '../../common/assets/logo/46_square.png';
 import { Dropdown } from '../../common/components';
-import { useAppDispatch, useAppSelector } from '../../common/hooks';
-import { authUsername, setAuth } from '../auth/authSlice';
+import { useAppSelector } from '../../common/hooks';
+import { authUsername } from '../auth/authSlice';
+import { useLogout } from '../auth/hooks';
+import { NextRequestObject } from '../legacy/mesageValidation';
 import classes from './TopBar.module.scss';
-import { Link } from 'react-router-dom';
-import { getUserProfile } from '../../common/api/userProfileApi';
-import { revokeToken } from '../../common/api/authService';
-import { toast } from 'react-hot-toast';
-import { noOp } from '../common';
-import { resetStateAction } from '../../app/store';
+
+/**
+ * A set of url pathname regular expressions which, when matching the current url
+ * pathname, cause the "next request" parameter to be omitted from login.
+ */
+const NEXT_REQUEST_BLACKLIST: Array<RegExp> = [
+  /^\/legacy\/signedout/,
+  /^\/legacy\/auth2\/signedout/,
+  /^\/legacy\/login/,
+  /^\/fallback/,
+];
 
 export default function TopBar() {
   const username = useAppSelector(authUsername);
@@ -47,7 +57,7 @@ export default function TopBar() {
         <PageTitle />
       </div>
       <div className={classes.topbar_item}>
-        <Enviroment />
+        <Environment />
       </div>
       <div className={classes.topbar_item}>
         {username ? <UserMenu /> : <LoginPrompt />}
@@ -56,12 +66,45 @@ export default function TopBar() {
   );
 }
 
-const LoginPrompt: FC = () => (
-  <Link role="button" to={'/legacy/login'} className={classes.login_prompt}>
-    <FAIcon icon={faSignIn} />
-    <span>Sign In</span>
-  </Link>
-);
+const LoginPrompt: FC = () => {
+  // We form a "next request", essentially a redirect back to the current location after
+  // sign in, except for a few bespoke pages, the login page and the signedout page.
+  const nextRequest: NextRequestObject | undefined = (() => {
+    const pathname = window.location.pathname;
+    if (
+      NEXT_REQUEST_BLACKLIST.some((blacklistedPath) => {
+        return blacklistedPath.test(pathname);
+      })
+    ) {
+      return;
+    }
+    return {
+      path: {
+        path: pathname,
+        type: 'europaui',
+      },
+    };
+  })();
+
+  const url = new URL(window.location.origin);
+  if (nextRequest) {
+    url.searchParams.set('nextrequest', JSON.stringify(nextRequest));
+  }
+  url.pathname = LOGIN_ROUTE;
+
+  // Sign in should be disabled on the sign-in page! The sign-in page may have a search
+  // param suffix, so we split it off.
+  return (
+    <Link
+      role="button"
+      to={{ pathname: url.pathname, search: url.searchParams.toString() }}
+      className={classes.login_prompt}
+    >
+      <FAIcon icon={faSignIn} />
+      <span>Sign In</span>
+    </Link>
+  );
+};
 
 const UserMenu: FC = () => {
   const username = useAppSelector(authUsername);
@@ -142,30 +185,6 @@ const UserMenu: FC = () => {
   );
 };
 
-const useLogout = () => {
-  const tokenId = useAppSelector(({ auth }) => auth.tokenInfo?.id);
-  const dispatch = useAppDispatch();
-  const [revoke] = revokeToken.useMutation();
-  const navigate = useNavigate();
-
-  if (!tokenId) return noOp;
-
-  return () => {
-    revoke(tokenId)
-      .unwrap()
-      .then(() => {
-        dispatch(resetStateAction());
-        // setAuth(null) follow the state reset to initialize the page as un-Authed
-        dispatch(setAuth(null));
-        toast('You have been signed out');
-        navigate('/legacy/auth2/signedout');
-      })
-      .catch(() => {
-        toast('Error, could not log out.');
-      });
-  };
-};
-
 const HamburgerMenu: FC = () => {
   const navigate = useNavigate();
   return (
@@ -202,6 +221,11 @@ const HamburgerMenu: FC = () => {
                 value: '/legacy/about/services',
                 icon: <FAIcon icon={faServer} />,
                 label: 'KBase Services Status',
+              },
+              {
+                value: '/legacy/orcidlink',
+                icon: <FAIcon icon={faServer} />,
+                label: 'KBase ORCID Link',
               },
             ],
           },
@@ -280,7 +304,7 @@ const PageTitle: FC = () => {
   );
 };
 
-const Enviroment: FC = () => {
+const Environment: FC = () => {
   const env = useAppSelector((state) => state.layout.environment);
   if (env === 'production') return null;
   const icon = {

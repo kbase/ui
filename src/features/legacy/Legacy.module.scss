@@ -1,0 +1,10 @@
+@import "../../common/colors";
+
+.main {
+  display: flex;
+  flex-flow: column nowrap;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+  width: 100%;
+}

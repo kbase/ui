@@ -98,6 +98,9 @@ export const authApi = baseApi.injectEndpoints({
     revokeToken: builder.mutation<boolean, string>({
       query: (tokenId) =>
         authService({
+          headers: {
+            Accept: 'application/json',
+          },
           url: encode`/tokens/revoke/${tokenId}`,
           method: 'DELETE',
         }),

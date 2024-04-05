@@ -6,8 +6,7 @@ import {
   useLocation,
 } from 'react-router-dom';
 
-import Legacy, { LEGACY_BASE_ROUTE } from '../features/legacy/Legacy';
-import { Fallback } from '../features/legacy/IFrameFallback';
+import Legacy from '../features/legacy/Legacy';
 import Navigator, {
   navigatorPath,
   navigatorPathWithCategory,
@@ -25,8 +24,10 @@ import {
   useFilteredParams,
   usePageTracking,
 } from '../common/hooks';
+import { LEGACY_BASE_ROUTE } from '../features/legacy/constants';
+import FallbackNotFound from '../common/components/FallbackNotFound';
 
-export const LOGIN_ROUTE = '/legacy/login';
+export const LOGIN_ROUTE = `${LEGACY_BASE_ROUTE()}/login`;
 export const ROOT_REDIRECT_ROUTE = '/narratives';
 
 const Routes: FC = () => {
@@ -34,7 +35,18 @@ const Routes: FC = () => {
   usePageTracking();
   return (
     <RRRoutes>
-      <Route path={`${LEGACY_BASE_ROUTE}/*`} element={<Legacy />} />
+      {/* The legacy route without any path element goes to the default location (probably the 
+          Narratives Navigator) 
+          Note that this replaces the previous behavior, in which the kbase-ui would receive
+          an empty path, and issue a navigation to /fallback, which would in turn redirect
+          to /narratives. However, this technique is more direct. */}
+      <Route
+        path={`${LEGACY_BASE_ROUTE()}`}
+        element={<Navigate to={ROOT_REDIRECT_ROUTE} replace />}
+      />
+      {/* Otherwise, legacy routes go to the Legacy component. See the catch-alls at the end for 
+          handling of kbase-ui hash routes. */}
+      <Route path={`${LEGACY_BASE_ROUTE()}/*`} element={<Legacy />} />
       <Route
         path="/profile/:usernameRequested/narratives"
         element={<Authed element={<ProfileWrapper />} />}
@@ -77,22 +89,29 @@ const Routes: FC = () => {
         <Route path="*" element={<PageNotFound />} />
       </Route>
 
-      {/* IFrame Fallback Routes */}
+      {/* IFrame Fallback Routes 
+        When kbase-ui is called with a hashpath which is not handled, 
+        it navigates to 
+          `/fallback/{hashpath}?{params}`
+        where `{hashpath}` is the original hash path provided to kbase-ui in the iframe
+        and   `{params}` is the original params provided as well.
+
+        This can be a way to handle:
+        - simple errant urls
+        - extant paths in kbase-ui which have been replaced with the equivalent functionality 
+          in Europa
+      */}
       <Route path="/fallback">
+        {/* The fallback issued with no path is equivalent to calling kbase-ui
+            with no navigation; this simply cannot happen any longer.
+            TODO: try removing the narratives route
+         */}
         <Route
           path="narratives"
-          element={<Fallback redirect={() => '/narratives'} />}
+          element={<Navigate to="/narratives" replace />}
         />
-        <Route
-          path="narrative/:wsId"
-          element={
-            <Fallback
-              reload
-              redirect={(params) => `/narrative/${params.wsId}`}
-            />
-          }
-        />
-        <Route path="*" element={<Fallback redirect={() => null} />} />
+
+        <Route path="*" element={<FallbackNotFound />} />
       </Route>
 
       <Route path="/" element={<HashRouteRedirect />} />
@@ -120,7 +139,10 @@ export const HashRouteRedirect = () => {
   const location = useLocation();
   if (location.hash)
     return (
-      <Navigate to={`${LEGACY_BASE_ROUTE}/${location.hash.slice(1)}`} replace />
+      <Navigate
+        to={`${LEGACY_BASE_ROUTE()}/${location.hash.slice(1)}`}
+        replace
+      />
     );
   return <Navigate to={ROOT_REDIRECT_ROUTE} replace />;
 };
