@@ -76,7 +76,9 @@ export interface NextRequest {
  *
  */
 
-export type EuropaConnectPayload = {};
+export type EuropaConnectPayload = {
+  channelId: string;
+};
 /**
  * Payload for the `europa.authenticated` message
  */

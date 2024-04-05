@@ -1,4 +1,5 @@
 import { createSearchParams, NavigateFunction } from 'react-router-dom';
+import { v4 as uuidv4 } from 'uuid';
 import { OnLoggedInParams } from './IFrameWrapper';
 import {
   assertKBaseUIConnectPayload,
@@ -289,9 +290,16 @@ export default class EuropaConnection {
   }
 
   handleConnectMessage({ channel }: KBaseUIConnectPayload) {
-    this.receiveChannel.setChannelId(channel);
+    // We need to send to the partner channel with the channel id it has specified.
     this.sendChannel.setChannelId(channel);
-    this.sendChannel.send<EuropaConnectPayload>('europa.connect', {});
+
+    // And we need to let the other channel send to us on our channel id.
+    const receiveChannelId = uuidv4();
+    this.receiveChannel.setChannelId(receiveChannelId);
+
+    this.sendChannel.send<EuropaConnectPayload>('europa.connect', {
+      channelId: receiveChannelId,
+    });
   }
 
   async connect(): Promise<void> {
@@ -304,7 +312,7 @@ export default class EuropaConnection {
       });
 
       this.receiveChannel.once('kbase-ui.connected', () => {
-        // Set up all messages we will respond to.
+        // Set up all messages we will respond to while the connection is active.
         this.connectionStatus = ConnectionStatus.CONNECTED;
 
         this.receiveChannel.on('kbase-ui.navigated', (payload: unknown) => {
