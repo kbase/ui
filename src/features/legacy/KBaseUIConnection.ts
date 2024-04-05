@@ -109,7 +109,7 @@ export default class EuropaConnection {
     // };
     this.connectionStatus = ConnectionStatus.NONE;
 
-    let spy = this.params.spyOnChannels
+    const receiveSpy = this.params.spyOnChannels
       ? (() => {
           return (message: ChannelMessage) => {
             channelSpy('RECV', message);
@@ -121,10 +121,10 @@ export default class EuropaConnection {
       window,
       expectedOrigin: this.params.kbaseUIOrigin,
       channel: this.channelId,
-      spy,
+      spy: receiveSpy,
     });
 
-    spy = this.params.spyOnChannels
+    const sendSpy = this.params.spyOnChannels
       ? (() => {
           return (message: ChannelMessage) => {
             channelSpy('SEND', message);
@@ -136,7 +136,7 @@ export default class EuropaConnection {
       window: this.params.kbaseUIWindow,
       targetOrigin: this.params.kbaseUIOrigin,
       channel: this.channelId,
-      spy,
+      spy: sendSpy,
     });
   }
 
