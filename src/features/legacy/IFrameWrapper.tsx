@@ -439,7 +439,7 @@ export default function IFrameWrapper({
         // happening outside of this session - e.g. logging in in a different window.
         kbaseUIConnection.authenticated({ token });
       }
-    } else if (token === null && previousToken !== null) {
+    } else if (token === null) {
       // Handle transition from authenticated to unauthenticated.
       kbaseUIConnection.deauthenticated({});
     }
