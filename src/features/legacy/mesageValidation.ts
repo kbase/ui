@@ -279,6 +279,7 @@ const KBASE_UI_REDIRECT_PAYLOAD_SCHEMA: SomeJSONSchema = {
   additionalProperties: false,
   properties: {
     url: { type: 'string' },
+    newWindow: { type: 'boolean' },
   },
 };
 export function assertKBaseUIRedirectPayload(
