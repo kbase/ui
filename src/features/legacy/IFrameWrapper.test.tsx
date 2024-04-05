@@ -254,6 +254,8 @@ describe('IFrameWrapper Module', () => {
 
       const { contentWindow } = renderWrappedIFrameWrapper(iframeProps);
 
+      let TEST_EUROPA_RECEIVE_CHANNEL = 'foo';
+      const TEST_KBASE_UI_RECEIVE_CHANNEL = 'kbase-ui-receive-channel';
       const sendMessage = makeWindowMessageSender(contentWindow, window);
 
       // Here we simulate kbase-ui message handling, which is carried out on the
@@ -273,19 +275,36 @@ describe('IFrameWrapper Module', () => {
 
       // Standard connect dance...
       contentWindow.addEventListener('message', (messageEvent) => {
+        if ('envelope' in messageEvent.data) {
+          if ('channel' in messageEvent.data.envelope) {
+            if (
+              messageEvent.data.envelope.channel !==
+              TEST_KBASE_UI_RECEIVE_CHANNEL
+            ) {
+              return;
+            }
+          }
+        }
         // We want to listen for all 'europa' messages here.
         // Simulate reaction to the 'start' message, by sending 'started'.
         if ('name' in messageEvent.data) {
           // Handle messages to simulate kbase-ui
           switch (messageEvent.data.name) {
             case 'europa.connect': {
+              // Europa's connect contains the channel id it is now listening on.
+              TEST_EUROPA_RECEIVE_CHANNEL = messageEvent.data.payload.channelId;
+
               // This is the normal message after connect is received.
               act(() => {
-                sendMessage('kbase-ui.connected', 'bar', {});
+                sendMessage(
+                  'kbase-ui.connected',
+                  TEST_EUROPA_RECEIVE_CHANNEL,
+                  {}
+                );
               });
               // Then some time later, we are simulating a set-title event
               act(() => {
-                sendMessage('kbase-ui.set-title', 'bar', {
+                sendMessage('kbase-ui.set-title', TEST_EUROPA_RECEIVE_CHANNEL, {
                   title: EXPECTED_TITLE,
                 });
               });
@@ -299,7 +318,7 @@ describe('IFrameWrapper Module', () => {
       // loaded, and the Europa compatibility layer is ready to receive messages.
       act(() => {
         sendMessage('kbase-ui.connect', iframeProps.channelId, {
-          channel: 'bar',
+          channel: TEST_KBASE_UI_RECEIVE_CHANNEL,
         });
       });
 
@@ -332,25 +351,43 @@ describe('IFrameWrapper Module', () => {
 
       const { contentWindow } = renderWrappedIFrameWrapper(iframeProps);
 
-      const TEST_CHANNEL_ID = 'test_channel';
+      let TEST_EUROPA_RECEIVE_CHANNEL = 'foo';
+      const TEST_KBASE_UI_RECEIVE_CHANNEL = 'kbase-ui-receive-channel';
       const sendMessage = makeWindowMessageSender(contentWindow, window);
 
       // Here we simulate kbase-ui message handling.
       // Standard connect dance...
       contentWindow.addEventListener('message', (messageEvent) => {
+        if ('envelope' in messageEvent.data) {
+          if ('channel' in messageEvent.data.envelope) {
+            if (
+              messageEvent.data.envelope.channel !==
+              TEST_KBASE_UI_RECEIVE_CHANNEL
+            ) {
+              return;
+            }
+          }
+        }
+
         // We want to listen for all 'europa' messages here.
         // Simulate reaction to the 'start' message, by sending 'started'.
         if ('name' in messageEvent.data) {
           // Handle messages to simulate kbase-ui
           switch (messageEvent.data.name) {
             case 'europa.connect': {
+              // Europa's connect contains the channel id it is now listening on.
+              TEST_EUROPA_RECEIVE_CHANNEL = messageEvent.data.payload.channelId;
               // This is the normal message after connect is received.
               act(() => {
-                sendMessage('kbase-ui.connected', TEST_CHANNEL_ID, {});
+                sendMessage(
+                  'kbase-ui.connected',
+                  TEST_EUROPA_RECEIVE_CHANNEL,
+                  {}
+                );
               });
               // Then some time later, we are simulating a set-title event
               act(() => {
-                sendMessage('kbase-ui.set-title', TEST_CHANNEL_ID, {
+                sendMessage('kbase-ui.set-title', TEST_EUROPA_RECEIVE_CHANNEL, {
                   title: EXPECTED_TITLE,
                 });
               });
@@ -364,7 +401,7 @@ describe('IFrameWrapper Module', () => {
       // loaded, and the Europa compatibility layer is ready to receive messages.
       act(() => {
         sendMessage('kbase-ui.connect', iframeProps.channelId, {
-          channel: TEST_CHANNEL_ID,
+          channel: TEST_KBASE_UI_RECEIVE_CHANNEL,
         });
       });
 
@@ -382,19 +419,19 @@ describe('IFrameWrapper Module', () => {
           expect(infoLogSpy).toHaveBeenNthCalledWith(
             2,
             '[KBaseUIConnection][spy][SEND]',
-            TEST_CHANNEL_ID,
+            TEST_KBASE_UI_RECEIVE_CHANNEL,
             'europa.connect'
           );
           expect(infoLogSpy).toHaveBeenNthCalledWith(
             3,
             '[KBaseUIConnection][spy][RECV]',
-            TEST_CHANNEL_ID,
+            TEST_EUROPA_RECEIVE_CHANNEL,
             'kbase-ui.connected'
           );
           expect(infoLogSpy).toHaveBeenNthCalledWith(
             4,
             '[KBaseUIConnection][spy][RECV]',
-            TEST_CHANNEL_ID,
+            TEST_EUROPA_RECEIVE_CHANNEL,
             'kbase-ui.set-title'
           );
         },
@@ -416,25 +453,43 @@ describe('IFrameWrapper Module', () => {
 
       const { contentWindow } = renderWrappedIFrameWrapper(iframeProps);
 
-      const TEST_CHANNEL_ID = 'test_channel';
+      let TEST_EUROPA_RECEIVE_CHANNEL = 'foo';
+      const TEST_KBASE_UI_RECEIVE_CHANNEL = 'kbase-ui-receive-channel';
       const sendMessage = makeWindowMessageSender(contentWindow, window);
 
       // Here we simulate kbase-ui message handling.
       // Standard connect dance...
       contentWindow.addEventListener('message', (messageEvent) => {
+        if ('envelope' in messageEvent.data) {
+          if ('channel' in messageEvent.data.envelope) {
+            if (
+              messageEvent.data.envelope.channel !==
+              TEST_KBASE_UI_RECEIVE_CHANNEL
+            ) {
+              return;
+            }
+          }
+        }
         // We want to listen for all 'europa' messages here.
         // Simulate reaction to the 'start' message, by sending 'started'.
         if ('name' in messageEvent.data) {
           // Handle messages to simulate kbase-ui
           switch (messageEvent.data.name) {
             case 'europa.connect': {
+              // Europa's connect contains the channel id it is now listening on.
+              TEST_EUROPA_RECEIVE_CHANNEL = messageEvent.data.payload.channelId;
+
               // This is the normal message after connect is received.
               act(() => {
-                sendMessage('kbase-ui.connected', TEST_CHANNEL_ID, {});
+                sendMessage(
+                  'kbase-ui.connected',
+                  TEST_EUROPA_RECEIVE_CHANNEL,
+                  {}
+                );
               });
               // Then some time later, we are simulating a logout event.
               act(() => {
-                sendMessage('kbase-ui.logout', TEST_CHANNEL_ID, {});
+                sendMessage('kbase-ui.logout', TEST_EUROPA_RECEIVE_CHANNEL, {});
               });
               break;
             }
@@ -446,7 +501,7 @@ describe('IFrameWrapper Module', () => {
       // loaded, and the Europa compatibility layer is ready to receive messages.
       act(() => {
         sendMessage('kbase-ui.connect', iframeProps.channelId, {
-          channel: TEST_CHANNEL_ID,
+          channel: TEST_KBASE_UI_RECEIVE_CHANNEL,
         });
       });
 
@@ -817,7 +872,8 @@ describe('IFrameWrapper Module', () => {
 
       const contentWindow = iframe.contentWindow;
 
-      const TEST_CHANNEL_ID = 'test_channel';
+      let TEST_EUROPA_RECEIVE_CHANNEL = 'foo';
+      const TEST_KBASE_UI_RECEIVE_CHANNEL = 'kbase-ui-receive-channel';
       const sendMessage = makeWindowMessageSender(contentWindow, window);
 
       // After receiving the 'ready' message, Europa's legacy layer will have set up
@@ -828,6 +884,17 @@ describe('IFrameWrapper Module', () => {
       // Here we simulate kbase-ui message handling.
       const messagesReceivedFromEuropa: Array<unknown> = [];
       contentWindow.addEventListener('message', (messageEvent) => {
+        if ('envelope' in messageEvent.data) {
+          if ('channel' in messageEvent.data.envelope) {
+            if (
+              messageEvent.data.envelope.channel !==
+              TEST_KBASE_UI_RECEIVE_CHANNEL
+            ) {
+              return;
+            }
+          }
+        }
+
         // We want to listen for all 'europa' messages here.
         // Simulate reaction to the 'start' message, by sending 'started'.
         if ('name' in messageEvent.data) {
@@ -839,13 +906,19 @@ describe('IFrameWrapper Module', () => {
           // Handle messages to simulate kbase-ui
           switch (messageEvent.data.name) {
             case 'europa.connect': {
+              // Europa's connect contains the channel id it is now listening on.
+              TEST_EUROPA_RECEIVE_CHANNEL = messageEvent.data.payload.channelId;
               // This is the normal message after connect is received.
               act(() => {
-                sendMessage('kbase-ui.connected', TEST_CHANNEL_ID, {});
+                sendMessage(
+                  'kbase-ui.connected',
+                  TEST_EUROPA_RECEIVE_CHANNEL,
+                  {}
+                );
               });
               // Then some time later, we are simulating a navigation event
               act(() => {
-                sendMessage('kbase-ui.navigated', TEST_CHANNEL_ID, {
+                sendMessage('kbase-ui.navigated', TEST_EUROPA_RECEIVE_CHANNEL, {
                   path: 'bar',
                   params: {},
                 });
@@ -860,7 +933,7 @@ describe('IFrameWrapper Module', () => {
       // loaded, and the Europa compatibility layer is ready to receive messages.
       act(() => {
         sendMessage('kbase-ui.connect', iframeProps.channelId, {
-          channel: TEST_CHANNEL_ID,
+          channel: TEST_KBASE_UI_RECEIVE_CHANNEL,
         });
       });
 
@@ -896,7 +969,8 @@ describe('IFrameWrapper Module', () => {
       }
 
       const contentWindow = iframe.contentWindow;
-      const TEST_CHANNEL_ID = 'test_channel';
+      let TEST_EUROPA_RECEIVE_CHANNEL = 'foo';
+      const TEST_KBASE_UI_RECEIVE_CHANNEL = 'kbase-ui-receive-channel';
       const sendMessage = makeWindowMessageSender(contentWindow, window);
 
       // After receiving the 'ready' message, Europa's legacy layer will have set up
@@ -908,6 +982,17 @@ describe('IFrameWrapper Module', () => {
       let europaAuthentication: string | null = null;
       const messagesReceivedFromEuropa: Array<unknown> = [];
       contentWindow.addEventListener('message', (messageEvent) => {
+        if ('envelope' in messageEvent.data) {
+          if ('channel' in messageEvent.data.envelope) {
+            if (
+              messageEvent.data.envelope.channel !==
+              TEST_KBASE_UI_RECEIVE_CHANNEL
+            ) {
+              return;
+            }
+          }
+        }
+
         // We want to listen for all 'europa' messages here.
         // Simulate reaction to the 'start' message, by sending 'started'.
         if ('name' in messageEvent.data) {
@@ -919,9 +1004,15 @@ describe('IFrameWrapper Module', () => {
           // Handle messages to simulate kbase-ui
           switch (messageEvent.data.name) {
             case 'europa.connect': {
+              TEST_EUROPA_RECEIVE_CHANNEL = messageEvent.data.payload.channelId;
+
               // This is the normal message after connect is received.
               act(() => {
-                sendMessage('kbase-ui.connected', TEST_CHANNEL_ID, {});
+                sendMessage(
+                  'kbase-ui.connected',
+                  TEST_EUROPA_RECEIVE_CHANNEL,
+                  {}
+                );
 
                 rerender(<WrappedIFrameWrapper {...iframeProps} token="FOO" />);
               });
@@ -939,7 +1030,7 @@ describe('IFrameWrapper Module', () => {
       // loaded, and the Europa compatibility layer is ready to receive messages.
       act(() => {
         sendMessage('kbase-ui.connect', iframeProps.channelId, {
-          channel: TEST_CHANNEL_ID,
+          channel: TEST_KBASE_UI_RECEIVE_CHANNEL,
         });
       });
 
@@ -977,7 +1068,8 @@ describe('IFrameWrapper Module', () => {
 
       const contentWindow = iframe.contentWindow;
 
-      const TEST_CHANNEL_ID = 'test_channel';
+      let TEST_EUROPA_RECEIVE_CHANNEL = 'foo';
+      const TEST_KBASE_UI_RECEIVE_CHANNEL = 'kbase-ui-receive-channel';
       const sendMessage = makeWindowMessageSender(contentWindow, window);
 
       // After receiving the 'ready' message, Europa's legacy layer will have set up
@@ -989,6 +1081,17 @@ describe('IFrameWrapper Module', () => {
       let deauthticatedCalled = false;
       const messagesReceivedFromEuropa: Array<unknown> = [];
       contentWindow.addEventListener('message', (messageEvent) => {
+        if ('envelope' in messageEvent.data) {
+          if ('channel' in messageEvent.data.envelope) {
+            if (
+              messageEvent.data.envelope.channel !==
+              TEST_KBASE_UI_RECEIVE_CHANNEL
+            ) {
+              return;
+            }
+          }
+        }
+
         // We want to listen for all 'europa' messages here.
         // Simulate reaction to the 'start' message, by sending 'started'.
         if ('name' in messageEvent.data) {
@@ -1000,10 +1103,16 @@ describe('IFrameWrapper Module', () => {
           // Handle messages to simulate kbase-ui
           switch (messageEvent.data.name) {
             case 'europa.connect': {
+              // Europa's connect contains the channel id it is now listening on.
+              TEST_EUROPA_RECEIVE_CHANNEL = messageEvent.data.payload.channelId;
+
               // This is the normal message after connect is received.
               act(() => {
-                sendMessage('kbase-ui.connected', TEST_CHANNEL_ID, {});
-
+                sendMessage(
+                  'kbase-ui.connected',
+                  TEST_EUROPA_RECEIVE_CHANNEL,
+                  {}
+                );
                 rerender(
                   <WrappedIFrameWrapper {...iframeProps} token={null} />
                 );
@@ -1021,7 +1130,7 @@ describe('IFrameWrapper Module', () => {
       // loaded, and the Europa compatibility layer is ready to receive messages.
       act(() => {
         sendMessage('kbase-ui.connect', iframeProps.channelId, {
-          channel: TEST_CHANNEL_ID,
+          channel: TEST_KBASE_UI_RECEIVE_CHANNEL,
         });
       });
 

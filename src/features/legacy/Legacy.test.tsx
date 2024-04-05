@@ -69,29 +69,45 @@ describe('Legacy Component', () => {
     const titleSpy = jest.spyOn(layoutSliceModule, 'usePageTitle');
 
     const EXPECTED_TITLE = 'Some Title of Unknown Content';
-    const TEST_CHANNEL_ID = 'test_channel';
     const LEGACY_ORIGIN = 'http://legacy.localhost';
 
     jest.spyOn(utils, 'legacyBaseURL').mockReturnValue(new URL(LEGACY_ORIGIN));
 
     const { contentWindow } = setupLegacyRouting();
 
+    let TEST_EUROPA_RECEIVE_CHANNEL = 'foo';
+    const TEST_KBASE_UI_RECEIVE_CHANNEL = 'kbase-ui-receive-channel';
     const sendMessage = makeWindowMessageSender(contentWindow, window);
 
     contentWindow.addEventListener('message', (messageEvent) => {
+      if ('envelope' in messageEvent.data) {
+        if ('channel' in messageEvent.data.envelope) {
+          if (
+            messageEvent.data.envelope.channel !== TEST_KBASE_UI_RECEIVE_CHANNEL
+          ) {
+            return;
+          }
+        }
+      }
       // We want to listen for all 'europa' messages here.
       // Simulate reaction to the 'start' message, by sending 'started'.
       if ('name' in messageEvent.data) {
         // Handle messages to simulate kbase-ui
         switch (messageEvent.data.name) {
           case 'europa.connect': {
+            // Europa's connect contains the channel id it is now listening on.
+            TEST_EUROPA_RECEIVE_CHANNEL = messageEvent.data.payload.channelId;
             // This is the normal message after connect is received.
             act(() => {
-              sendMessage('kbase-ui.connected', TEST_CHANNEL_ID, {});
+              sendMessage(
+                'kbase-ui.connected',
+                TEST_EUROPA_RECEIVE_CHANNEL,
+                {}
+              );
             });
             // Then some time later, we are simulating a set-title event
             act(() => {
-              sendMessage('kbase-ui.set-title', TEST_CHANNEL_ID, {
+              sendMessage('kbase-ui.set-title', TEST_EUROPA_RECEIVE_CHANNEL, {
                 title: EXPECTED_TITLE,
               });
             });
@@ -105,7 +121,7 @@ describe('Legacy Component', () => {
     // loaded, and the Europa compatibility layer is ready to receive messages.
     act(() => {
       sendMessage('kbase-ui.connect', DEFAULT_CHANNEL_ID, {
-        channel: TEST_CHANNEL_ID,
+        channel: TEST_KBASE_UI_RECEIVE_CHANNEL,
       });
     });
 
@@ -151,8 +167,9 @@ describe('Legacy Component', () => {
 
     const { contentWindow } = setupLegacyRouting();
 
+    let TEST_EUROPA_RECEIVE_CHANNEL = 'foo';
+    const TEST_KBASE_UI_RECEIVE_CHANNEL = 'kbase-ui-receive-channel';
     const sendMessage = makeWindowMessageSender(contentWindow, window);
-    const TEST_CHANNEL_ID = 'test_channel';
 
     const loggedInPayload: KBaseUILoggedinPayload = {
       token: TEST_TOKEN,
@@ -160,21 +177,37 @@ describe('Legacy Component', () => {
     };
 
     contentWindow.addEventListener('message', (messageEvent) => {
+      if ('envelope' in messageEvent.data) {
+        if ('channel' in messageEvent.data.envelope) {
+          if (
+            messageEvent.data.envelope.channel !== TEST_KBASE_UI_RECEIVE_CHANNEL
+          ) {
+            return;
+          }
+        }
+      }
+
       // We want to listen for all 'europa' messages here.
       // Simulate reaction to the 'start' message, by sending 'started'.
       if ('name' in messageEvent.data) {
         // Handle messages to simulate kbase-ui
         switch (messageEvent.data.name) {
           case 'europa.connect': {
+            // Europa's connect contains the channel id it is now listening on.
+            TEST_EUROPA_RECEIVE_CHANNEL = messageEvent.data.payload.channelId;
             // This is the normal message after connect is received.
             act(() => {
-              sendMessage('kbase-ui.connected', TEST_CHANNEL_ID, {});
+              sendMessage(
+                'kbase-ui.connected',
+                TEST_EUROPA_RECEIVE_CHANNEL,
+                {}
+              );
             });
             // Then some time later, we are simulating a set-title event
             act(() => {
               sendMessage(
                 'kbase-ui.loggedin',
-                TEST_CHANNEL_ID,
+                TEST_EUROPA_RECEIVE_CHANNEL,
                 loggedInPayload
               );
             });
@@ -188,7 +221,7 @@ describe('Legacy Component', () => {
     // loaded, and the Europa compatibility layer is ready to receive messages.
     act(() => {
       sendMessage('kbase-ui.connect', DEFAULT_CHANNEL_ID, {
-        channel: TEST_CHANNEL_ID,
+        channel: TEST_KBASE_UI_RECEIVE_CHANNEL,
       });
     });
 
@@ -224,23 +257,40 @@ describe('Legacy Component', () => {
 
     const { contentWindow } = setupLegacyRouting();
 
+    let TEST_EUROPA_RECEIVE_CHANNEL = 'foo';
+    const TEST_KBASE_UI_RECEIVE_CHANNEL = 'kbase-ui-receive-channel';
     const sendMessage = makeWindowMessageSender(contentWindow, window);
-    const TEST_CHANNEL_ID = 'test_channel';
 
     contentWindow.addEventListener('message', (messageEvent) => {
+      if ('envelope' in messageEvent.data) {
+        if ('channel' in messageEvent.data.envelope) {
+          if (
+            messageEvent.data.envelope.channel !== TEST_KBASE_UI_RECEIVE_CHANNEL
+          ) {
+            return;
+          }
+        }
+      }
+
       // We want to listen for all 'europa' messages here.
       // Simulate reaction to the 'start' message, by sending 'started'.
       if ('name' in messageEvent.data) {
         // Handle messages to simulate kbase-ui
         switch (messageEvent.data.name) {
           case 'europa.connect': {
+            // Europa's connect contains the channel id it is now listening on.
+            TEST_EUROPA_RECEIVE_CHANNEL = messageEvent.data.payload.channelId;
             // This is the normal message after connect is received.
             act(() => {
-              sendMessage('kbase-ui.connected', TEST_CHANNEL_ID, {});
+              sendMessage(
+                'kbase-ui.connected',
+                TEST_EUROPA_RECEIVE_CHANNEL,
+                {}
+              );
             });
             // Then some time later, we are simulating a set-title event
             act(() => {
-              sendMessage('kbase-ui.logout', TEST_CHANNEL_ID, {});
+              sendMessage('kbase-ui.logout', TEST_EUROPA_RECEIVE_CHANNEL, {});
             });
             break;
           }
@@ -252,7 +302,7 @@ describe('Legacy Component', () => {
     // loaded, and the Europa compatibility layer is ready to receive messages.
     act(() => {
       sendMessage('kbase-ui.connect', DEFAULT_CHANNEL_ID, {
-        channel: TEST_CHANNEL_ID,
+        channel: TEST_KBASE_UI_RECEIVE_CHANNEL,
       });
     });
 
