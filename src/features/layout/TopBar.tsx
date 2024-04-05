@@ -28,7 +28,7 @@ import { Dropdown } from '../../common/components';
 import { useAppSelector } from '../../common/hooks';
 import { authUsername } from '../auth/authSlice';
 import { useLogout } from '../auth/hooks';
-import { NextRequestObject } from '../legacy/mesageValidation';
+import { NextRequestObject } from '../legacy/messageValidation';
 import classes from './TopBar.module.scss';
 
 /**

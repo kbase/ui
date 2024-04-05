@@ -5,7 +5,7 @@ import {
   assertKBaseUINavigatedPayload,
   assertKBaseUIRedirectPayload,
   assertKBaseUISetTitlePayload,
-} from './mesageValidation';
+} from './messageValidation';
 
 describe('messageValidation', () => {
   describe('assertKBaseUISetTitlePayload', () => {

@@ -7,7 +7,7 @@ import * as hooksModule from '../auth/hooks';
 import * as layoutSliceModule from '../layout/layoutSlice';
 import Legacy from './Legacy';
 import { LEGACY_BASE_ROUTE } from './constants';
-import { KBaseUILoggedinPayload } from './mesageValidation';
+import { KBaseUILoggedinPayload } from './messageValidation';
 import * as utils from './utils';
 
 // Here we mock the module function "createChannelId", which typically creates a uuid,

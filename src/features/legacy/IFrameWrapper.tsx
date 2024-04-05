@@ -10,7 +10,7 @@ import {
 } from './constants';
 import classes from './IFrameWrapper.module.scss';
 import KBaseUIConnection from './KBaseUIConnection';
-import { KBaseUIRedirectPayload } from './mesageValidation';
+import { KBaseUIRedirectPayload } from './messageValidation';
 import TimeoutMonitor, { TimeoutMonitorStatus } from './TimeoutMonitor';
 import { areParamsEqual, parseLegacyURL } from './utils';
 

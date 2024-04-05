@@ -17,7 +17,7 @@ import {
   KBaseUIRedirectPayload,
   NextRequest,
   NextRequestObject,
-} from './mesageValidation';
+} from './messageValidation';
 import ReceiveChannel from './ReceiveChannel';
 import SendChannel, { ChannelMessage } from './SendChannel';
 import { createLegacyPath } from './utils';

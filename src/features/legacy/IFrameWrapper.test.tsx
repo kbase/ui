@@ -15,7 +15,7 @@ import {
 } from '../../common/testUtils';
 import IFrameWrapper, { IFrameWrapperProps } from './IFrameWrapper';
 import { LEGACY_BASE_ROUTE } from './constants';
-import { KBaseUILoggedinPayload } from './mesageValidation';
+import { KBaseUILoggedinPayload } from './messageValidation';
 import * as utils from './utils';
 
 /**
