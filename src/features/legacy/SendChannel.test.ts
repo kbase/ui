@@ -26,8 +26,15 @@ describe('SendChannel class', () => {
     let receivedMessage: unknown = null;
     let monitorValue: unknown = null;
     window.addEventListener('message', (ev) => {
-      monitorValue = 'bar';
-      receivedMessage = ev.data;
+      if (!ev.origin) {
+        // eslint-disable-next-line no-console
+        console.debug('Sorry, jsDOM does not supply the origin - ignoring');
+      }
+
+      if (!ev.origin || ev.origin === 'http://legacy.localhost') {
+        monitorValue = 'bar';
+        receivedMessage = ev.data;
+      }
     });
 
     const message = sendChannel.send('foo', 'bar');
@@ -60,8 +67,15 @@ describe('SendChannel class', () => {
     let receivedMessage: unknown = null;
     let monitorValue: unknown = null;
     window.addEventListener('message', (ev) => {
-      monitorValue = 'bar';
-      receivedMessage = ev.data;
+      if (!ev.origin) {
+        // eslint-disable-next-line no-console
+        console.debug('Sorry, jsDOM does not supply the origin - ignoring');
+      }
+
+      if (!ev.origin || ev.origin === 'http://legacy.localhost') {
+        monitorValue = 'bar';
+        receivedMessage = ev.data;
+      }
     });
 
     const message = sendChannel.send('foo', 'bar');
