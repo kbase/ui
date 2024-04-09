@@ -114,15 +114,15 @@ export const Table = <Datum,>({
             {table.getRowModel().rows.length < 1 ? <tr /> : <></>}
           </tbody>
           {shouldRenderFooter ? <TableFooter table={table} /> : <></>}
+          <Loader
+            loading={isLoading}
+            render={
+              <div className={classes['loader']} data-testid="table-loader">
+                <FAIcon icon={faSpinner} spin size={'2x'} />
+              </div>
+            }
+          />
         </table>
-        <Loader
-          loading={isLoading}
-          render={
-            <div className={classes['loader']} data-testid="table-loader">
-              <FAIcon icon={faSpinner} spin size={'2x'} />
-            </div>
-          }
-        />
       </div>
     </div>
   );
