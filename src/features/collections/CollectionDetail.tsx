@@ -4,7 +4,10 @@ import { usePageTitle } from '../layout/layoutSlice';
 import styles from './Collections.module.scss';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { DataProduct } from './DataProduct';
-import { snakeCaseToHumanReadable } from '../../common/utils/stringUtils';
+import {
+  countDecimals,
+  snakeCaseToHumanReadable,
+} from '../../common/utils/stringUtils';
 import { MATCHER_LABELS, MatchModal } from './MatchModal';
 import { ExportModal } from './ExportModal';
 import { Button, Input } from '../../common/components';
@@ -808,6 +811,13 @@ const RangeFilterControls = ({
     }
   }, [filter.value, filterMax, filterMin, setValue]);
 
+  // Find the greatest number of decimal places used between the
+  // filter's max and min and use 10^-numDecimals as the step
+  const getStep = (min: number, max: number) => {
+    const numDecimals = Math.max(countDecimals(min), countDecimals(max));
+    return parseFloat(Math.pow(10, -1 * numDecimals).toFixed(numDecimals));
+  };
+
   return (
     <Stack className={styles['range-filter']}>
       <Stack direction="row" spacing={2}>
@@ -849,7 +859,7 @@ const RangeFilterControls = ({
           step={
             filter.type === 'int'
               ? 1
-              : (filter.max_value - filter.min_value) / 100
+              : getStep(filter.max_value, filter.min_value)
           }
           marks={[filter.min_value, filter.max_value].map((v) => ({
             value: v,
