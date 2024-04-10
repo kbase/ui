@@ -18,12 +18,12 @@ import {
   NextRequest,
   NextRequestObject,
 } from './messageValidation';
-import PeriodicTask from './PeriodicTask';
 import ReceiveChannel from './ReceiveChannel';
 import SendChannel, { ChannelMessage } from './SendChannel';
 import { createLegacyPath } from './utils';
 
-const LOST_CONTACT_TIMEOUT = 1000;
+// connection monitor (ping/pong) disabled.
+// const LOST_CONTACT_TIMEOUT = 1000;
 
 // Connection Status
 
@@ -59,8 +59,10 @@ export interface ConnectionStateConnected extends ConnectionStateBase {
   status: ConnectionStatus.CONNECTED;
   receiveChannel: ReceiveChannel;
   sendChannel: SendChannel;
-  periodicTask: PeriodicTask;
-  lastContact: number;
+  // connection monitor (ping/pong) disabled.
+  // periodicTask: PeriodicTask;
+  // lastContact: number;
+  // hasLostContact: boolean;
 }
 
 export interface ConnectionStateError extends ConnectionStateBase {
@@ -342,38 +344,51 @@ export default class EuropaConnection {
         this.handleLoggedin(payload, params.navigate, params.onLoggedIn);
       });
 
-      receiveChannel.on('kbase-ui.pong', () => {
-        if (this.connectionState.status !== ConnectionStatus.CONNECTED) {
-          return;
-        }
-        this.connectionState.lastContact = Date.now();
-      });
+      // connection monitor (ping/pong) disabled.
+      // receiveChannel.on('kbase-ui.pong', () => {
+      //   if (this.connectionState.status !== ConnectionStatus.CONNECTED) {
+      //     return;
+      //   }
+      //   this.connectionState.lastContact = Date.now();
+      // });
 
       this.connectionState = {
         status: ConnectionStatus.CONNECTED,
         receiveChannel: receiveChannel,
         sendChannel: sendChannel,
-        lastContact: Date.now(),
-        // will be added in start.
-        periodicTask: new PeriodicTask({
-          interval: 100,
-          task: async (stop) => {
-            if (this.connectionState.status !== ConnectionStatus.CONNECTED) {
-              return;
-            }
-            const now = Date.now();
-            const elapsed = now - this.connectionState.lastContact;
-            if (elapsed > LOST_CONTACT_TIMEOUT) {
-              // eslint-disable-next-line no-console
-              console.error('LOST CONTACT WITH KBASE-UI');
-              stop();
-              params.onLostConnection('Lost contact with kbase-ui');
-              return;
-            }
-            this.connectionState.sendChannel.send('europa.ping', {});
-            return;
-          },
-        }).start(),
+        // connection monitor (ping/pong) disabled.
+        // hasLostContact: false,
+        // lastContact: Date.now(),
+        // // will be added in start.
+        // periodicTask: new PeriodicTask({
+        //   interval: 100,
+        //   task: async (stop) => {
+        //     if (this.connectionState.status !== ConnectionStatus.CONNECTED) {
+        //       return;
+        //     }
+        //     const { lastContact, hasLostContact } = this.connectionState;
+        //     const now = Date.now();
+        //     const elapsed = now - lastContact;
+        //     console.log('TASK', hasLostContact, elapsed, lastContact);
+        //     if (!hasLostContact) {
+        //       if (elapsed >= LOST_CONTACT_TIMEOUT) {
+        //         // eslint-disable-next-line no-console
+        //         console.error('LOST CONTACT WITH KBASE-UI');
+        //         // stop();
+        //         // params.onLostConnection('Lost contact with kbase-ui');
+        //         this.connectionState.hasLostContact = true;
+        //       }
+        //     } else {
+        //       if (elapsed < LOST_CONTACT_TIMEOUT) {
+        //         // eslint-disable-next-line no-console
+        //         console.info('Connection to KBASE-UI restored');
+        //         this.connectionState.hasLostContact = false;
+        //       }
+        //     }
+        //     this.connectionState.sendChannel.send('europa.ping', {});
+        //     return;
+        //   },
+        // }).start(),
       };
 
       resolve();
@@ -388,9 +403,11 @@ export default class EuropaConnection {
     ) {
       this.connectionState.receiveChannel.stop();
     }
-    if (this.connectionState.status === ConnectionStatus.CONNECTED) {
-      this.connectionState.periodicTask.stop();
-    }
+
+    // connection monitor (ping/pong) disabled.
+    // if (this.connectionState.status === ConnectionStatus.CONNECTED) {
+    //   this.connectionState.periodicTask.stop();
+    // }
   }
 
   /**
