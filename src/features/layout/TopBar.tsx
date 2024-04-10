@@ -176,7 +176,11 @@ const UserMenu: FC = () => {
           }
         }}
       >
-        <div className={classes.login_menu_button}>
+        <div
+          className={classes.login_menu_button}
+          role="button"
+          id="user-button"
+        >
           <UserAvatar />
           <FAIcon icon={faSortDown} />
         </div>
@@ -298,7 +302,7 @@ const UserAvatar = () => {
 const PageTitle: FC = () => {
   const title = useAppSelector((state) => state.layout.pageTitle);
   return (
-    <div className={classes.page_title}>
+    <div className={classes.page_title} role="heading" aria-level={1}>
       <span>{title || ''}</span>
     </div>
   );
