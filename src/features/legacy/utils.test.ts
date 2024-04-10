@@ -1,7 +1,7 @@
 import { setProcessEnv } from '../../common/testUtils';
-import { CROSS_DOMAIN_CHANNEL_ID } from './constants';
+
 import * as utils from './utils';
-const { createChannelId, createLegacyPath, parseLegacyPath } = utils;
+const { createLegacyPath, parseLegacyPath } = utils;
 
 describe('Legacy utils', () => {
   describe('legacyBaseURL function', () => {
@@ -120,22 +120,6 @@ describe('Legacy utils', () => {
       expect(() => {
         utils.parseLegacyURL(url);
       }).toThrowError('Not a legacy path: /foo');
-    });
-  });
-
-  describe('createChannelId', () => {
-    test('creates a valid uuid v4', () => {
-      // It should be a UUID if we are not on a subdomain.
-      // TODO: better way of setting process.env...
-      process.env.REACT_APP_KBASE_LEGACY_DOMAIN =
-        process.env.REACT_APP_KBASE_DOMAIN;
-      expect(createChannelId()).toMatch(
-        /[a-f\d]{8}-[a-f\d]{4}-[a-f\d]{4}-[a-f\d]{4}-[a-f\d]{12}/
-      );
-
-      // Otherwise, it will be the cross domain, fixed id:
-      process.env.REACT_APP_KBASE_LEGACY_DOMAIN = `foo.${process.env.REACT_APP_KBASE_DOMAIN}`;
-      expect(createChannelId()).toMatch(CROSS_DOMAIN_CHANNEL_ID());
     });
   });
 

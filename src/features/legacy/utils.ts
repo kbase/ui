@@ -2,7 +2,7 @@
  * Miscellaneous support files for the legacy (kbase-ui) integration.
  */
 import { v4 as uuidv4 } from 'uuid';
-import { CROSS_DOMAIN_CHANNEL_ID, LEGACY_BASE_ROUTE } from './constants';
+import { LEGACY_BASE_ROUTE } from './constants';
 
 /**
  * A regex to match and extract path components from a "legacy" url pathname, as
@@ -114,23 +114,6 @@ export function isSubdomain(): boolean {
     process.env.REACT_APP_KBASE_DOMAIN
   );
 }
-
-/**
- * Creates a channel id for usage in the send and receive channels.
- *
- * If kbase-ui is running on a subdomain, the channel id cannot be readily
- * transmitted to kbase-ui, so we use a fixed channel id. Note that kbase-ui
- * must also use the same fixed channel id.
- *
- * @returns {string}
- */
-export const createChannelId = () => {
-  if (isSubdomain()) {
-    return CROSS_DOMAIN_CHANNEL_ID();
-  } else {
-    return uuidv4();
-  }
-};
 
 /**
  * Given a path and perhaps a set of parameters, create a path suitable for addressing

@@ -15,12 +15,23 @@ export const MONITORING_INTERVAL = () => {
 };
 
 /**
+ * How long to wait until we warn the user that loading is taking longer than expected,
+ * and show them more detail (e.g. countdown timer).
+ *
+ * @returns Connection timeout delay in milliseconds
+ */
+export const CONNECTION_TIMEOUT_DELAY = () => {
+  return 5000;
+};
+
+/**
  * How long to wait for kbase-ui to issue the `kbase-ui.ready` message from
  * approximately when the iframe (and url invocation of kbase-ui) occurs.
  *
  * After the timeout duration, an error message will be issued, and the request for
  * kbase-ui canceled.
  *
+ * @returns Connection timeout in milliseconds
  */
 export const CONNECTION_TIMEOUT = () => {
   return 60000;
@@ -28,8 +39,4 @@ export const CONNECTION_TIMEOUT = () => {
 
 export const CONNECTION_MONITORING_INTERVAL = () => {
   return 100;
-};
-
-export const CROSS_DOMAIN_CHANNEL_ID = () => {
-  return 'europa_kbaseui_channel';
 };

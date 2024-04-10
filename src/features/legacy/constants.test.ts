@@ -1,7 +1,6 @@
 import {
   CONNECTION_MONITORING_INTERVAL,
   CONNECTION_TIMEOUT,
-  CROSS_DOMAIN_CHANNEL_ID,
   LEGACY_BASE_ROUTE,
   MONITORING_INTERVAL,
 } from './constants';
@@ -21,9 +20,5 @@ describe('Legacy constants', () => {
 
   test('CONNECTION_MONITORING_INTERVAL is the correct value', () => {
     expect(CONNECTION_MONITORING_INTERVAL()).toBe(100);
-  });
-
-  test('CROSS_DOMAIN_CHANNEL_ID is the correct value', () => {
-    expect(CROSS_DOMAIN_CHANNEL_ID()).toBe('europa_kbaseui_channel');
   });
 });

@@ -1,13 +1,15 @@
 import { faExclamation, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Alert, AlertTitle, Grow, LinearProgress } from '@mui/material';
+import { Alert, AlertTitle, Box, Grow, Typography } from '@mui/material';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import LoadingOverlay from '../../common/components/OverlayContainer';
 import {
   CONNECTION_MONITORING_INTERVAL,
   CONNECTION_TIMEOUT,
+  CONNECTION_TIMEOUT_DELAY,
 } from './constants';
+import CountdownClock from './CountdownClock';
 import classes from './IFrameWrapper.module.scss';
 import KBaseUIConnection from './KBaseUIConnection';
 import { KBaseUIRedirectPayload } from './messageValidation';
@@ -212,7 +214,7 @@ export default function IFrameWrapper({
   ]);
 
   /**
-   * This effect is dedicated to connecting to kbase-ui.
+   * This effect is dedicated to CONNECTING to kbase-ui.
    *
    * The connection code should only be run once, so we use a gatekeeper ref for that
    * purpose. However, the effect is run may times during the CONNECTING phase, as it
@@ -291,6 +293,13 @@ export default function IFrameWrapper({
     }
   }, [state]);
 
+  /**
+   * Dedicated to the INITIALIZING state.
+   *
+   * This state is just temporary, and exists to start the connection and perform the
+   * initial navigation and authentication.
+   *
+   */
   useEffect(() => {
     if (state.status !== IFrameWrapperStatus.INITIALIZING) {
       return;
@@ -347,7 +356,13 @@ export default function IFrameWrapper({
   }, [state, setTitle]);
 
   /**
-   * This effect dedicated to setting the title precisely once per change in state.
+   * This effect dedicated to the CONNECTED state and changes to the location - navigation.
+   *
+   * It provides most of the runtime  monitoring the current location for changes in the url
+   * which would cause a navigation in kbase-ui.
+   *
+   * If such a change is detected, the "navigate" connection method is called, which
+   * sends a "europa.navigate" message to kbase-ui.
    */
 
   const parseLegacyPathFromURL = useCallback(
@@ -365,16 +380,8 @@ export default function IFrameWrapper({
 
   const url = new URL(window.location.origin);
   const initialLegacyPath = parseLegacyPathFromURL(url);
-
   const previousLegacyPathRef = useRef<LegacyPath>(initialLegacyPath);
 
-  /**
-   * This effect dedicated to monitoring the current location for changes in the url
-   * which would cause a navigation in kbase-ui.
-   *
-   * If such a change is detected, the "navigate" connection method is called, which
-   * sends a "europa.navigate" message to kbase-ui.
-   */
   useEffect(() => {
     if (state.status !== IFrameWrapperStatus.CONNECTED) {
       return;
@@ -395,7 +402,9 @@ export default function IFrameWrapper({
   }, [location, state, parseLegacyPathFromURL]);
 
   /**
-   * This effect monitors auth state for changes and sends the appropriate message to kbase-ui
+   * This effect dedicated to CONNECTED state and token change.
+   *
+   * It monitors auth state for changes and sends the appropriate message to kbase-ui.
    */
   const previousTokenRef = useRef(token);
   useEffect(() => {
@@ -419,7 +428,11 @@ export default function IFrameWrapper({
   }, [token, state, previousTokenRef]);
 
   /**
-   * This effect disconnects from kbase-ui when dismounting.
+   * This effect is dedicated to the CONNECTED state and exists in order to properly
+   * arrange the connection cleanup upon dismount.
+   *
+   * It works becomes the state is only updated once upon entering CONNECTED state, and
+   * thus the cleanup only runs once.
    */
   useEffect(() => {
     if (state.status !== IFrameWrapperStatus.CONNECTED) {
@@ -485,19 +498,47 @@ export default function IFrameWrapper({
                 Connecting...
               </div>
               <div>
-                <Grow in={state.elapsed > 1000} unmountOnExit>
+                <Grow
+                  in={state.elapsed > CONNECTION_TIMEOUT_DELAY()}
+                  unmountOnExit
+                >
                   <div>
-                    <div>
+                    {/* <div>
                       {Intl.NumberFormat('en-US', {
                         style: 'percent',
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
                       }).format(state.elapsed / state.limit)}
-                    </div>
-                    <LinearProgress
+                    </div> */}
+                    {/* <LinearProgress
                       variant="determinate"
                       value={(100 * state.elapsed) / state.limit}
-                    />
+                    /> */}
+                    <Box mt={2}>
+                      <CountdownClock
+                        elapsed={CONNECTION_TIMEOUT_DELAY()}
+                        duration={state.limit}
+                      />
+                    </Box>
+                    {/* <hr /> */}
+                    <Typography style={{ fontStyle: 'italic' }} mt={2}>
+                      This is taking longer than expected.
+                    </Typography>
+                    <Typography style={{ fontStyle: 'italic' }} mt={2}>
+                      We'll continue waiting for load to complete for{' '}
+                      {Intl.NumberFormat('en-US', {}).format(
+                        state.limit / 1000
+                      )}{' '}
+                      seconds.
+                    </Typography>
+                    <Typography style={{ fontStyle: 'italic' }} mt={2}>
+                      You may try to reload the browser any time, in case it is
+                      due to a temporary outage or slowdown.
+                    </Typography>
+                    <Typography
+                      style={{ fontWeight: 'bold', textAlign: 'center' }}
+                      mt={2}
+                    ></Typography>
                   </div>
                 </Grow>
               </div>
@@ -511,7 +552,7 @@ export default function IFrameWrapper({
                 You may try reloading the browser to see if the problem has been
                 resolved.
               </p>
-              <pre>{state.message}</pre>
+              <code>{state.message}</code>
             </span>
           );
       }
@@ -558,7 +599,7 @@ export default function IFrameWrapper({
             bottom: '0',
           }}
         >
-          <Alert style={{ margin: '1rem' }} severity={severity} icon={icon}>
+          <Alert sx={{ m: 4, width: '40rem' }} severity={severity} icon={icon}>
             <AlertTitle>{title}</AlertTitle>
             {loadingMessage}
           </Alert>

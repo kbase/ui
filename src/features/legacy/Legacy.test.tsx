@@ -27,12 +27,7 @@ jest.mock('./Legacy', () => {
   };
 });
 
-// TODO: make the default channel id configurable, so we can overide in testing.
-const DEFAULT_CHANNEL_ID = 'europa_kbaseui_channel';
-
 function setupLegacyRouting() {
-  jest.spyOn(utils, 'createChannelId').mockReturnValue(DEFAULT_CHANNEL_ID);
-
   // TODO: ensure that we can test with a subdomain AND a path.
   const { container } = render(
     <Provider store={createTestStore()}>
