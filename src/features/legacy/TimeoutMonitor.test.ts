@@ -1,6 +1,9 @@
 import { waitFor } from '@testing-library/react';
 import { WAIT_FOR_TIMEOUT } from '../../common/testUtils';
-import TimeoutMonitor, { TimeoutMonitorStatus } from './TimeoutMonitor';
+import TimeoutMonitor, {
+  TimeoutMonitorStateRunning,
+  TimeoutMonitorStatus,
+} from './TimeoutMonitor';
 
 describe('TimeoutMonitor class', () => {
   let errorLogSpy: jest.SpyInstance;
@@ -37,8 +40,9 @@ describe('TimeoutMonitor class', () => {
       timedOutAfter = elapsed;
     };
 
+    // Track all the calls to onInterval so we can inspect after the timeout elapses.
     const intervals: Array<number> = [];
-    const onInterval = (elapsed: number) => {
+    const onInterval = ({ elapsed }: TimeoutMonitorStateRunning) => {
       intervals.push(elapsed);
     };
 
@@ -57,6 +61,8 @@ describe('TimeoutMonitor class', () => {
     await waitFor(
       () => {
         expect(timedOutAfter).toBeGreaterThan(timeout);
+        // There are really no guarantees about how many iterations are run, due to the
+        // passage of time between each loop.
         expect(intervals.length).toBeGreaterThan(4);
         expect(intervals.length).toBeLessThan(7);
       },
@@ -64,14 +70,14 @@ describe('TimeoutMonitor class', () => {
     );
   });
 
-  test('stopping the monitor ceases all interval callbacks and the ultimate timeout callback', async () => {
+  test('stopping the monitor immediately ceases all interval callbacks and the ultimate timeout callback', async () => {
     let timedOutAfter: number | null = null;
     const onTimeout = (elapsed: number) => {
       timedOutAfter = elapsed;
     };
 
     const intervals: Array<number> = [];
-    const onInterval = (elapsed: number) => {
+    const onInterval = ({ elapsed }: TimeoutMonitorStateRunning) => {
       intervals.push(elapsed);
     };
 
@@ -85,10 +91,58 @@ describe('TimeoutMonitor class', () => {
       interval,
     });
 
-    // If we want to ensure that the monitor is started before we stop it, we need to
-    // wait until it starts! The async aspect of starting is that the initial
-    // `onInterval` is called.
-    await monitor.start();
+    // If we start and then stop immediately, only one onInterval should be called. When
+    // the monitor starts, it runs an initial onInterval, and enters the timeout-driven loop.
+    monitor.start();
+    monitor.stop();
+
+    await expect(
+      waitFor(
+        () => {
+          // Should never be non-null.
+          expect(timedOutAfter).not.toBeNull();
+          // Should only get 1 interval recorded.
+          expect(intervals.length).toBe(1);
+        },
+        { timeout: WAIT_FOR_TIMEOUT }
+      )
+    ).rejects.toThrow();
+  });
+
+  test('stopping the monitor after a brief period ceases all future interval callbacks and the ultimate timeout callback', async () => {
+    let timedOutAfter: number | null = null;
+    const onTimeout = (elapsed: number) => {
+      timedOutAfter = elapsed;
+    };
+
+    const intervals: Array<number> = [];
+    const onInterval = ({ elapsed }: TimeoutMonitorStateRunning) => {
+      intervals.push(elapsed);
+    };
+
+    const timeout = 250;
+    const interval = 50;
+    const pause = 75;
+
+    const monitor = new TimeoutMonitor({
+      onTimeout,
+      onInterval,
+      timeout,
+      interval,
+    });
+
+    // If we start and then stop immediately, only one onInterval should be called. When
+    // the monitor starts, it runs an initial onInterval, and enters the timeout-driven loop.
+    monitor.start();
+
+    // This pause should give us enough time for one turn of the loop, and probably no more.
+    // DOM timers are not precise, though, so we can't count on the total number of iterations.
+    await new Promise((resolve) => {
+      window.setTimeout(() => {
+        resolve(null);
+      }, pause);
+    });
+
     monitor.stop();
 
     await expect(
@@ -111,7 +165,7 @@ describe('TimeoutMonitor class', () => {
     };
 
     const intervals: Array<number> = [];
-    const onInterval = (elapsed: number) => {
+    const onInterval = ({ elapsed }: TimeoutMonitorStateRunning) => {
       intervals.push(elapsed);
     };
 
@@ -228,7 +282,7 @@ describe('TimeoutMonitor class', () => {
 
     const testCases = [
       {
-        onInterval: (_: number) => {
+        onInterval: (_state: TimeoutMonitorStateRunning) => {
           throw new Error(errorMessage);
         },
         expected: {
@@ -237,7 +291,7 @@ describe('TimeoutMonitor class', () => {
         },
       },
       {
-        onInterval: (_: number) => {
+        onInterval: (_state: TimeoutMonitorStateRunning) => {
           throw errorMessage;
         },
         expected: {

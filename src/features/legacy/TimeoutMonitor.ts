@@ -21,13 +21,21 @@
  * A side benefit is that it can support progressive notification, proactively alerting
  * the user if loading kbase-ui is taking a long time.
  *
- * Internally utilizes an series of interval timers, calling the interval callback at
- * the expiration of each interval, and ultimately calling the timeout
+ * Internal design is a "timer loop", in which a loop function is called to perform the
+ * task (ensure the timeout period has not elapsed, and call the onInterval callback if
+ * provided), and then start a timeout timer which will call the loop after the interval period.
+ *
+ * This design ensures that the supplied interval amount of time passes between each
+ * iteration of the loop. Compared to an interval timer, this ensures that a long
+ * running onInterval callback does not cause the intervals to overlap.
+ *
+ * Anyway, it prioritizes ensuring the requested interval over the precise timing of
+ * intervals in the timeout period.
  */
 
 export const DEFAULT_INTERVAL = 100;
 
-export type IntervalCallback = (elapsed: number) => void;
+export type IntervalCallback = (state: TimeoutMonitorStateRunning) => void;
 export type TimeoutCallback = (elapsed: number) => void;
 
 export enum TimeoutMonitorStatus {
@@ -56,14 +64,12 @@ export interface TimeoutMonitorStateRunning extends TimeoutMonitorStateBase {
   status: TimeoutMonitorStatus.RUNNING;
   started: number;
   elapsed: number;
-  timer: number;
 }
 
 export interface TimeoutMonitorStateTimedout extends TimeoutMonitorStateBase {
   status: TimeoutMonitorStatus.TIMEDOUT;
   started: number;
   elapsed: number;
-  timer: number;
 }
 
 export interface TimeoutMonitorStateStopped extends TimeoutMonitorStateBase {
@@ -115,13 +121,24 @@ export default class TimeoutMonitor {
     if (this.state.status !== TimeoutMonitorStatus.NONE) {
       return;
     }
+
     this.state = {
       status: TimeoutMonitorStatus.STARTING,
       started: Date.now(),
       elapsed: 0,
     };
 
-    return this.monitoringLoop();
+    return this.enterLoop();
+  }
+
+  runOnInterval(state: TimeoutMonitorStateRunning) {
+    try {
+      this.onInterval && this.onInterval(state);
+    } catch (ex) {
+      const message = ex instanceof Error ? ex.message : 'Unknown error';
+      // eslint-disable-next-line no-console
+      console.error('Error running interval callback', message, ex);
+    }
   }
 
   /**
@@ -129,67 +146,63 @@ export default class TimeoutMonitor {
    * than setInterval, because onInterval will consume some time, and we never
    * want the onInterval calls to overlap.
    */
-  private monitoringLoop() {
-    // Run initial interval callback.
-    try {
-      this.onInterval && this.onInterval(0);
-    } catch (ex) {
-      const message = ex instanceof Error ? ex.message : 'Unknown error';
-      // eslint-disable-next-line no-console
-      console.error('Error running interval callback', message, ex);
-    }
-
+  private enterLoop() {
     const loop = () => {
-      return window.setTimeout(() => {
-        if (this.state.status !== TimeoutMonitorStatus.RUNNING) {
-          return null;
+      // May be canceled, in which case we just terminate the loop.
+      if (this.state.status !== TimeoutMonitorStatus.RUNNING) {
+        return;
+      }
+      const elapsed = Date.now() - this.state.started;
+
+      // Handle case of timing out.
+      if (this.state.elapsed > this.timeout) {
+        try {
+          this.onTimeout(this.state.elapsed);
+        } catch (ex) {
+          const message = ex instanceof Error ? ex.message : 'Unknown error';
+          // eslint-disable-next-line no-console
+          console.error('Error running timeout callback', message, ex);
         }
-        const now = Date.now();
-        this.state.elapsed = now - this.state.started;
-        if (this.state.elapsed > this.timeout) {
-          window.clearTimeout(this.state.timer);
-          try {
-            this.onTimeout(this.state.elapsed);
-          } catch (ex) {
-            const message = ex instanceof Error ? ex.message : 'Unknown error';
-            // eslint-disable-next-line no-console
-            console.error('Error running timeout callback', message, ex);
-          }
-          this.state = {
-            ...this.state,
-            status: TimeoutMonitorStatus.TIMEDOUT,
-          };
-        } else {
-          try {
-            this.onInterval && this.onInterval(this.state.elapsed);
-          } catch (ex) {
-            const message = ex instanceof Error ? ex.message : 'Unknown error';
-            // eslint-disable-next-line no-console
-            console.error('Error running interval callback', message, ex);
-          }
-          this.state.timer = loop();
-        }
+        this.state = {
+          ...this.state,
+          elapsed,
+          status: TimeoutMonitorStatus.TIMEDOUT,
+        };
+        return;
+      }
+
+      // Otherwise, track progress, maybe run the onInterval callback, and loop.
+      this.state = {
+        ...this.state,
+        elapsed,
+      };
+
+      this.runOnInterval(this.state);
+
+      window.setTimeout(() => {
+        loop();
       }, this.interval);
     };
 
-    const timer = loop();
     this.state = {
       status: TimeoutMonitorStatus.RUNNING,
       started: Date.now(),
       elapsed: 0,
-      timer,
     };
+
+    loop();
   }
 
   /**
-   * Stops the any running timers, and sets the internal state to STOPPED.
+   * Sets the internal state to STOPPED, which will cause the timeout loop to do nothing
+   * but exit on it's next iteration.
    */
   stop() {
     if (this.state.status === TimeoutMonitorStatus.RUNNING) {
-      window.clearTimeout(this.state.timer);
       this.state = {
-        ...this.state,
         status: TimeoutMonitorStatus.STOPPED,
+        started: this.state.started,
+        elapsed: this.state.elapsed,
       };
     }
   }
