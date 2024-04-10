@@ -1,8 +1,10 @@
 // Some commonly used test values
 export const WAIT_FOR_TIMEOUT = 1000;
 export const WAIT_FOR_INTERVAL = 100;
-export const CHANNEL_ID = 'europa_kbaseui_channel';
+// export const CHANNEL_ID = 'europa_kbaseui_channel';
 export const UI_ORIGIN = 'http://localhost';
+export const SEND_CHANNEL_ID = 'TEST_SEND_CHANNEL';
+export const RECEIVE_CHANNEL_ID = 'TEST_RECEIVE_CHANNEL';
 
 /**
  * Send a window message in the format supported by SendMessage and ReceiveMessage.

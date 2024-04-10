@@ -1,7 +1,6 @@
 /**
  * Miscellaneous support files for the legacy (kbase-ui) integration.
  */
-
 import { v4 as uuidv4 } from 'uuid';
 import { CROSS_DOMAIN_CHANNEL_ID, LEGACY_BASE_ROUTE } from './constants';
 
@@ -211,4 +210,12 @@ export function areParamsEqual(
   }
 
   return true;
+}
+
+export function generateReceiveChannelId() {
+  return uuidv4();
+}
+
+export function generateSendChannelId() {
+  return uuidv4();
 }

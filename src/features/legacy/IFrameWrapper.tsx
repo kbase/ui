@@ -11,7 +11,7 @@ import {
 import classes from './IFrameWrapper.module.scss';
 import KBaseUIConnection from './KBaseUIConnection';
 import { KBaseUIRedirectPayload } from './messageValidation';
-import TimeoutMonitor, { TimeoutMonitorStatus } from './TimeoutMonitor';
+import TimeoutMonitor, { TimeoutMonitorStateRunning } from './TimeoutMonitor';
 import { areParamsEqual, parseLegacyURL } from './utils';
 
 export interface OnLoggedInParams {
@@ -26,7 +26,8 @@ export interface OnLoggedInParams {
 export interface IFrameWrapperProps {
   /** The unique channel id for the send and receive channels. It could be generated
    * here as a uuid, but it provs useful, in testing at least, to be able to supply it*/
-  channelId: string;
+  sendChannelId: string;
+  receiveChannelId: string;
 
   /** The url to kbase-ui. It should be in the form expected by kbase-ui
    * TODO: document the required form!
@@ -53,15 +54,33 @@ export interface IFrameWrapperProps {
 }
 
 /**
- * Captures all recognized stats of the iframe wrapper component
+ * Captures all recognized states of the iframe wrapper component
+ *
  * NONE - initial state
  * CONNECTING - actively engaged in creating a connection to kbase-ui
- * CONNECTED - connection to kbase-ui established
+ * INITIALIZING - actively initializing kbase-ui through the connection
+ * CONNECTED - connection to kbase-ui established and initialized; normal operating state.
  * ERROR - some error occurred while connecting
+ *
+ * The resulting interface "IFrameWrapperState" uses the "diamond" definition pattern
+ * I've found very useful for discriminated-union enabled structures.
+ *
+ * The "status" property is the discriminiator, and in this case represents the identity
+ * of the "state".
+ *
+ * Then we define an interface for each state. Define properties for information
+ * associated with that state.
+ *
+ * Then, ultimately, we create a single type out of the union of all the "state"
+ * interfaces. Because we have defined a state interface for each "status" enum value.
+ * Thus, when we, say, perform some rendering operation as a function of the state, we
+ * can use a switch..case to close over all possible states.
  */
 export enum IFrameWrapperStatus {
   NONE = 'NONE',
+  CONNECT = 'CONNECT',
   CONNECTING = 'CONNECTING',
+  INITIALIZING = 'INITIALIZING',
   CONNECTED = 'CONNECTED',
   ERROR = 'ERROR',
 }
@@ -76,12 +95,19 @@ export interface IFrameWrapperStateNone extends IFrameWrapperStatBase {
 
 export interface IFrameWrapperStateConnecting extends IFrameWrapperStatBase {
   status: IFrameWrapperStatus.CONNECTING;
+  connection: KBaseUIConnection;
   limit: number;
   elapsed: number;
 }
 
+export interface IFrameWrapperStateInitializing extends IFrameWrapperStatBase {
+  status: IFrameWrapperStatus.INITIALIZING;
+  connection: KBaseUIConnection;
+}
+
 export interface IFrameWrapperStateConnected extends IFrameWrapperStatBase {
   status: IFrameWrapperStatus.CONNECTED;
+  connection: KBaseUIConnection;
 }
 
 export interface IFrameWrapperStateError extends IFrameWrapperStatBase {
@@ -92,6 +118,7 @@ export interface IFrameWrapperStateError extends IFrameWrapperStatBase {
 export type IFrameWrapperState =
   | IFrameWrapperStateNone
   | IFrameWrapperStateConnecting
+  | IFrameWrapperStateInitializing
   | IFrameWrapperStateConnected
   | IFrameWrapperStateError;
 
@@ -101,7 +128,8 @@ export interface LegacyPath {
 }
 
 export default function IFrameWrapper({
-  channelId,
+  sendChannelId,
+  receiveChannelId,
   legacyURL,
   legacyPath,
   token,
@@ -118,12 +146,7 @@ export default function IFrameWrapper({
 
   const legacyContentRef = useRef<HTMLIFrameElement>(null);
 
-  const [kbaseUIConnection, setKBaseUIConnection] =
-    useState<KBaseUIConnection | null>(null);
-
   const navigate = useNavigate();
-
-  const previousLegacyPathRef = useRef<LegacyPath | null>(null);
 
   const location = useLocation();
 
@@ -137,114 +160,165 @@ export default function IFrameWrapper({
     window.open(url, '_self');
   }
 
+  function onLostConnection(message: string) {
+    setState({
+      status: IFrameWrapperStatus.ERROR,
+      message: message,
+    });
+  }
+
   const syncedState = useRef<IFrameWrapperState>(state);
   syncedState.current = state;
 
   /**
-   * In this effect, the connection is established.
+   * This effect is dedicated to creating the initial connection.
+   *
+   * It transitions from NONE, the initial state, to CONNECTING.
+   *
+   * Its jobs is to create the connection, and pass it to the CONNECTING state.
    */
   useEffect(() => {
+    if (state.status !== IFrameWrapperStatus.NONE) {
+      return;
+    }
+
     // Should never occur, but required for type narrowing, so let us honor it for what
     // it is.
     if (!legacyContentRef.current || !legacyContentRef.current.contentWindow) {
       return;
     }
 
-    // Ensures this effect is only run once.
-    if (initialized.current) {
-      return;
-    }
-    initialized.current = true;
-
     const connection = new KBaseUIConnection({
       kbaseUIWindow: legacyContentRef.current.contentWindow,
       kbaseUIOrigin: legacyURL.origin,
       spyOnChannels,
-      navigate,
-      setTitle,
-      onLoggedIn,
-      onLogOut,
-      onRedirect,
+      sendChannelId,
+      receiveChannelId,
     });
 
-    const doConnect = async () => {
-      try {
-        setState({
-          status: IFrameWrapperStatus.CONNECTING,
-          limit: CONNECTION_TIMEOUT(),
-          elapsed: 0,
-        });
+    setState({
+      status: IFrameWrapperStatus.CONNECTING,
+      connection,
+      limit: CONNECTION_TIMEOUT(),
+      elapsed: 0,
+    });
+  }, [
+    state,
+    legacyURL,
+    spyOnChannels,
+    setState,
+    sendChannelId,
+    receiveChannelId,
+  ]);
 
-        const monitor = new TimeoutMonitor({
+  /**
+   * This effect is dedicated to connecting to kbase-ui.
+   *
+   * The connection code should only be run once, so we use a gatekeeper ref for that
+   * purpose. However, the effect is run may times during the CONNECTING phase, as it
+   * continually updates the CONNECTING state to reflect the timeout monitor's countdown
+   * torards timing out.
+   */
+
+  // Used as a gatekeeper so that we only execute the connection process the first time
+  // we enter CONNECTING state.
+  const connectingRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    if (state.status !== IFrameWrapperStatus.CONNECTING) {
+      return;
+    }
+
+    const doConnect = async () => {
+      const connection = state.connection;
+      connectingRef.current = true;
+
+      let monitor: TimeoutMonitor | null = null;
+      try {
+        // We use a countdown timer, which will set the state to error if
+        // it is allowed to complete.
+        monitor = new TimeoutMonitor({
           timeout: CONNECTION_TIMEOUT(),
           interval: CONNECTION_MONITORING_INTERVAL(),
           onTimeout: (elapsed: number) => {
-            connection.cancel();
+            // connection.current && connection.current.disconnect();
+            connection.disconnect();
             setState({
               status: IFrameWrapperStatus.ERROR,
               message: `Connection to kbase-ui timed out after ${elapsed}ms`,
             });
           },
-          onInterval: (elapsed: number) => {
+          onInterval: (state: TimeoutMonitorStateRunning) => {
             setState({
               status: IFrameWrapperStatus.CONNECTING,
+              connection,
               limit: CONNECTION_TIMEOUT(),
-              elapsed: (() => {
-                if (monitor.state.status === TimeoutMonitorStatus.RUNNING) {
-                  return Date.now() - monitor.state.started;
-                } else {
-                  return 0;
-                }
-              })(),
+              elapsed: state.elapsed,
             });
           },
         });
         monitor.start();
 
-        await connection.connect();
+        // await connectionRef.current.connect();
+        await connection.connect(CONNECTION_TIMEOUT());
 
+        // So we stop the clock as soon as we are connected.
         monitor.stop();
 
-        // Post-connection tasks.
-
-        connection.authnavigate({
-          token: token || null,
-          navigation: legacyPath,
-        });
-
-        setState({ status: IFrameWrapperStatus.CONNECTED });
+        setState({ status: IFrameWrapperStatus.INITIALIZING, connection });
       } catch (ex) {
         setState({
           status: IFrameWrapperStatus.ERROR,
           message: ex instanceof Error ? ex.message : 'Unknown Error',
         });
+      } finally {
+        // Just to make sure, doesn't hurt.
+        if (monitor) {
+          monitor.stop();
+        }
       }
     };
 
     // We only set the connection in component state once it is fully complete.
     // NB we need to use old-style promise chaining for useEffect.
-    doConnect()
-      .then(() => {
-        setKBaseUIConnection(connection);
-      })
-      .catch((ex) => {
+    if (!connectingRef.current) {
+      doConnect().catch((ex) => {
         setState({
           status: IFrameWrapperStatus.ERROR,
           message: ex instanceof Error ? ex.message : 'Unknown Error',
         });
       });
+    }
+  }, [state]);
 
-    return connection.disconnect();
+  useEffect(() => {
+    if (state.status !== IFrameWrapperStatus.INITIALIZING) {
+      return;
+    }
+
+    const connection = state.connection;
+
+    connection.start({
+      navigate,
+      setTitle,
+      onLoggedIn,
+      onLogOut,
+      onRedirect,
+      onLostConnection,
+    });
+
+    connection.authnavigate({
+      token: token || null,
+      navigation: legacyPath,
+    });
+
+    setState({ status: IFrameWrapperStatus.CONNECTED, connection });
   }, [
     // dynamic
-    // kbaseUIConnection,
+    state,
     legacyPath,
     token,
-    syncedState,
     // static
-    legacyURL,
-    spyOnChannels,
-    setKBaseUIConnection,
     navigate,
     setTitle,
     onLoggedIn,
@@ -252,8 +326,11 @@ export default function IFrameWrapper({
     setState,
   ]);
 
-  // const [titleProxy, setTitleProxy] = useState<string>('');
-
+  /**
+   * Just sets the title, based on the current state of loading kbase-ui.
+   *
+   * After kbase-ui is loaded, it will take over setting the app title.
+   */
   useEffect(() => {
     const title = (() => {
       switch (state.status) {
@@ -269,6 +346,98 @@ export default function IFrameWrapper({
     }
   }, [state, setTitle]);
 
+  /**
+   * This effect dedicated to setting the title precisely once per change in state.
+   */
+
+  function parseLegacyPathFromURL(url: URL) {
+    // const url = new URL(window.location.origin);
+    url.pathname = location.pathname;
+    new URLSearchParams(location.search).forEach((value, key) => {
+      url.searchParams.set(key, value);
+    });
+
+    return parseLegacyURL(url);
+  }
+
+  const url = new URL(window.location.origin);
+  const initialLegacyPath = parseLegacyPathFromURL(url);
+
+  const previousLegacyPathRef = useRef<LegacyPath>(initialLegacyPath);
+
+  /**
+   * This effect dedicated to monitoring the current location for changes in the url
+   * which would cause a navigation in kbase-ui.
+   *
+   * If such a change is detected, the "navigate" connection method is called, which
+   * sends a "europa.navigate" message to kbase-ui.
+   */
+  useEffect(() => {
+    if (state.status !== IFrameWrapperStatus.CONNECTED) {
+      return;
+    }
+    // Generate the legacy path from the current window location.
+    const url = new URL(window.location.origin);
+    const { path, params } = parseLegacyPathFromURL(url);
+
+    // Handle transition from one location to another (i.e. navigation)
+    if (
+      previousLegacyPathRef.current === null ||
+      previousLegacyPathRef.current.path !== path ||
+      !areParamsEqual(previousLegacyPathRef.current.params, params)
+    ) {
+      previousLegacyPathRef.current = { path, params };
+      state.connection.navigate(path, params);
+    }
+  }, [location, state, parseLegacyPathFromURL]);
+
+  /**
+   * This effect monitors auth state for changes and sends the appropriate message to kbase-ui
+   */
+  const previousTokenRef = useRef(token);
+  useEffect(() => {
+    if (state.status !== IFrameWrapperStatus.CONNECTED) {
+      return;
+    }
+    const previousToken = previousTokenRef.current;
+    previousTokenRef.current = token;
+
+    // Handle transition from unauthenticated to authenticated.
+    if (previousToken === null) {
+      if (token !== null) {
+        // Note no next request, as this is from the side effect of authentication
+        // happening outside of this session - e.g. logging in in a different window.
+        state.connection.authenticated({ token });
+      }
+    } else if (token === null) {
+      // Handle transition from authenticated to unauthenticated.
+      state.connection.deauthenticated({});
+    }
+  }, [token, state, previousTokenRef]);
+
+  /**
+   * This effect disconnects from kbase-ui when dismounting.
+   */
+  useEffect(() => {
+    if (state.status !== IFrameWrapperStatus.CONNECTED) {
+      return;
+    }
+
+    return () => {
+      state.connection.disconnect();
+    };
+  }, [state]);
+
+  /**
+   * Renders a "loading overlay" - an absolutely positioned element stretching across
+   * it's container, and obscuring what is happening "underneath". The purppose is to
+   * provide a loading indicator, even as kbase-ui is loading underneath.
+   *
+   * It is enabled during "NONE" or "CONNECTING" state, and disabled upon "ERROR" or "CONNECTED".
+   *
+   * @param state
+   * @returns
+   */
   function renderLoadingOverlay(state: IFrameWrapperState) {
     if (state.status === IFrameWrapperStatus.CONNECTED) {
       return;
@@ -393,58 +562,6 @@ export default function IFrameWrapper({
     return <LoadingOverlay>{renderLoading()}</LoadingOverlay>;
   }
 
-  const initialized = useRef<boolean>(false);
-
-  // Monitor for changes in the url.
-  useEffect(() => {
-    if (!kbaseUIConnection) {
-      return;
-    }
-    // Generate the legacy path from the current window location.
-    const url = new URL(window.location.origin);
-    url.pathname = location.pathname;
-    new URLSearchParams(location.search).forEach((value, key) => {
-      url.searchParams.set(key, value);
-    });
-
-    const { path, params } = parseLegacyURL(url);
-
-    // Handle transition from one location to another (i.e. navigation)
-    if (
-      previousLegacyPathRef.current === null ||
-      previousLegacyPathRef.current.path !== path ||
-      !areParamsEqual(previousLegacyPathRef.current.params, params)
-    ) {
-      previousLegacyPathRef.current = { path, params };
-
-      kbaseUIConnection.navigate(path, params);
-    }
-  }, [kbaseUIConnection, location]);
-
-  /**
-   * This effect monitors auth state for changes and sends the appropriate message to kbase-ui
-   */
-  const previousTokenRef = useRef(token);
-  useEffect(() => {
-    if (!kbaseUIConnection) {
-      return;
-    }
-    const previousToken = previousTokenRef.current;
-    previousTokenRef.current = token;
-
-    // Handle transition from unauthenticated to authenticated.
-    if (previousToken === null) {
-      if (token !== null) {
-        // Note no next request, as this is from the side effect of authentication
-        // happening outside of this session - e.g. logging in in a different window.
-        kbaseUIConnection.authenticated({ token });
-      }
-    } else if (token === null) {
-      // Handle transition from authenticated to unauthenticated.
-      kbaseUIConnection.deauthenticated({});
-    }
-  }, [token, previousTokenRef, kbaseUIConnection]);
-
   return (
     <div data-testid="legacy-iframe-wrapper" className={classes.main}>
       {renderLoadingOverlay(state)}
@@ -454,7 +571,7 @@ export default function IFrameWrapper({
         // We want the src to always match the content of the iframe, so as not to
         // cause the iframe to reload inappropriately
         src={legacyURL.toString()}
-        data-channel-id={channelId}
+        // data-channel-id={channelId}
         ref={legacyContentRef}
         allow="clipboard-read; clipboard-write"
         title="kbase-ui Wrapper"

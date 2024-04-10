@@ -6,12 +6,17 @@
  */
 import { useCallback, useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { usePageTitle } from '../layout/layoutSlice';
-import { useAuthenticateFromToken, useLogout } from '../auth/hooks';
 import { useAppSelector } from '../../common/hooks';
-import { createChannelId, legacyBaseURL, parseLegacyURL } from './utils';
+import { useAuthenticateFromToken, useLogout } from '../auth/hooks';
+import { usePageTitle } from '../layout/layoutSlice';
 import IFrameWrapper, { OnLoggedInParams } from './IFrameWrapper';
 import classes from './Legacy.module.scss';
+import {
+  generateReceiveChannelId,
+  generateSendChannelId,
+  legacyBaseURL,
+  parseLegacyURL,
+} from './utils';
 
 /**
  * The Legacy Component
@@ -35,7 +40,10 @@ export default function Legacy() {
   }
 
   // Create a stateful channel id so that we can interact with the useEffect below.
-  const [channelId, setChannelId] = useState<string | null>(null);
+  const [channelIds, setChannelIds] = useState<{
+    sendChannelId: string;
+    receiveChannelId: string;
+  } | null>(null);
 
   // Legacy URL is set below, just once, when the component is loaded.
   // The legacy url does not change as the europa url does. Rather, we use a stable url
@@ -43,11 +51,16 @@ export default function Legacy() {
   // through messages.
   const [legacyURL, setLegacyURL] = useState<URL | null>(null);
   useEffect(() => {
+    const receiveChannelId = generateReceiveChannelId();
+    const sendChannelId = generateSendChannelId();
+
     const url = new URL(legacyBaseURL());
+    url.searchParams.set('sendChannelId', sendChannelId);
+    url.searchParams.set('receiveChannelId', receiveChannelId);
     // The legacy URL is always just a base url now; all nav is through window messages.
     setLegacyURL(url);
-    setChannelId(createChannelId());
-  }, [setLegacyURL, setChannelId]);
+    setChannelIds({ sendChannelId, receiveChannelId });
+  }, [setLegacyURL, setChannelIds]);
 
   // We depend upon the current react-router location
   const location = useLocation();
@@ -94,9 +107,11 @@ export default function Legacy() {
   // Return early on the first render, before critical values are calculated. Note that we don't
   // display anything initially. Don't worry, we use an overlay cover with a loading
   // message, so the user will not see (much of a) blank view.
-  if (channelId === null || legacyURL === null) {
+  if (channelIds === null || legacyURL === null) {
     return null;
   }
+
+  const { sendChannelId, receiveChannelId } = channelIds;
 
   return (
     <div className={classes.main}>
@@ -105,8 +120,9 @@ export default function Legacy() {
         legacyPath={legacyPath}
         token={token || null}
         // static
-        key={channelId}
-        channelId={channelId}
+        // key={channelId}
+        sendChannelId={sendChannelId}
+        receiveChannelId={receiveChannelId}
         legacyURL={legacyURL}
         spyOnChannels={false}
         setTitle={setTitle}

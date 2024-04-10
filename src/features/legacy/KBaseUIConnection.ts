@@ -12,22 +12,25 @@ import {
   EuropaConnectPayload,
   EuropaDeauthenticatedPayload,
   EuropaNavigatePayload,
-  KBaseUIConnectPayload,
   KBaseUILoggedinPayload,
   KBaseUINavigatedPayload,
   KBaseUIRedirectPayload,
   NextRequest,
   NextRequestObject,
 } from './messageValidation';
+import PeriodicTask from './PeriodicTask';
 import ReceiveChannel from './ReceiveChannel';
 import SendChannel, { ChannelMessage } from './SendChannel';
 import { createLegacyPath } from './utils';
+
+const LOST_CONTACT_TIMEOUT = 1000;
 
 // Connection Status
 
 export enum ConnectionStatus {
   NONE = 'NONE',
   CONNECTING = 'CONNECTING',
+  AWAITING_START = 'AWAITING_START',
   CONNECTED = 'CONNECTED',
   ERROR = 'ERROR',
 }
@@ -46,10 +49,18 @@ export interface ConnectionStateConnecting extends ConnectionStateBase {
   sendChannel: SendChannel;
 }
 
+export interface ConnectionStateAwaitingStart extends ConnectionStateBase {
+  status: ConnectionStatus.AWAITING_START;
+  receiveChannel: ReceiveChannel;
+  sendChannel: SendChannel;
+}
+
 export interface ConnectionStateConnected extends ConnectionStateBase {
   status: ConnectionStatus.CONNECTED;
   receiveChannel: ReceiveChannel;
   sendChannel: SendChannel;
+  periodicTask: PeriodicTask;
+  lastContact: number;
 }
 
 export interface ConnectionStateError extends ConnectionStateBase {
@@ -60,22 +71,25 @@ export interface ConnectionStateError extends ConnectionStateBase {
 export type ConnectionState =
   | ConnectionStateNone
   | ConnectionStateConnecting
+  | ConnectionStateAwaitingStart
   | ConnectionStateConnected
   | ConnectionStateError;
 
 export interface KBaseUIConnectionConstructorParams {
-  //   europaWindow: Window;
-  //   europaOrigin: string;
-  //   initialChannelId: string;
-  //   config: Config;
+  sendChannelId: string;
+  receiveChannelId: string;
   kbaseUIOrigin: string;
   kbaseUIWindow: Window;
   spyOnChannels?: boolean;
+}
+
+export interface StartParams {
   navigate: NavigateFunction;
   setTitle: (title: string) => void;
   onLoggedIn: (payload: OnLoggedInParams) => void;
   onLogOut: () => void;
   onRedirect: (paylod: KBaseUIRedirectPayload) => void;
+  onLostConnection: (message: string) => void;
 }
 
 export function channelSpy(direction: string, message: ChannelMessage) {
@@ -94,102 +108,18 @@ export interface ConnectParams {
 }
 
 export default class EuropaConnection {
-  //   connectionState: ConnectionState;
-  connectionStatus: ConnectionStatus;
-  channelId: string;
+  connectionState: ConnectionState;
   params: KBaseUIConnectionConstructorParams;
-  receiveChannel: ReceiveChannel;
-  sendChannel: SendChannel;
+  id: string = uuidv4();
   constructor(params: KBaseUIConnectionConstructorParams) {
     this.params = params;
-    // this.channelId = uuidv4();
-    this.channelId = 'europa_kbaseui_channel';
-
-    // this.connectionState = {
-    //   status: ConnectionStatus.NONE,
-    // };
-    this.connectionStatus = ConnectionStatus.NONE;
-
-    const receiveSpy = this.params.spyOnChannels
-      ? (() => {
-          return (message: ChannelMessage) => {
-            channelSpy('RECV', message);
-          };
-        })()
-      : undefined;
-
-    this.receiveChannel = new ReceiveChannel({
-      window,
-      expectedOrigin: this.params.kbaseUIOrigin,
-      channel: this.channelId,
-      spy: receiveSpy,
-    });
-
-    const sendSpy = this.params.spyOnChannels
-      ? (() => {
-          return (message: ChannelMessage) => {
-            channelSpy('SEND', message);
-          };
-        })()
-      : undefined;
-
-    this.sendChannel = new SendChannel({
-      window: this.params.kbaseUIWindow,
-      targetOrigin: this.params.kbaseUIOrigin,
-      channel: this.channelId,
-      spy: sendSpy,
-    });
+    this.connectionState = {
+      status: ConnectionStatus.NONE,
+    };
   }
-
-  /**
-   * We need the origin of Europa in order to send it messages.
-   * The origin will always be either the
-   *
-   * @returns
-   */
-  //   sendMessageOrigin(): string {
-  //     // ignore the "insecure" for now.
-  //     // return this.insecureParent || this.europaTargetOrigin;
-  //     const url = new URL(window.location.href);
-  //     url.hostname = window.location.hostname.split('.').slice(-3).join('.');
-
-  //     // return window.location.origin.replace('legacy.', '');
-  //     return url.origin;
-  //   }
-
-  /**
-   * We need the origin of Europa in order to send it messages.
-   * The origin will always be either the
-   *
-   * @returns
-   */
-  //   kbaseUIOrigin(): string {
-  //     // ignore the "insecure" for now.
-  //     // return this.insecureParent || this.europaTargetOrigin;
-  //     const url = new URL(window.location.href);
-  //     url.hostname = window.location.hostname.split('.').slice(-3).join('.');
-
-  //     // return window.location.origin.replace('legacy.', '');
-  //     return url.origin;
-  //   }
 
   europaWindow(): Window {
     return window.parent;
-  }
-
-  getChannelId(): string {
-    const isSubdomain = window.location.host.split('.').length === 4;
-    if (isSubdomain) {
-      // TODO: should be a constant
-      return 'europa_kbaseui_channel';
-    } else {
-      const channelIdFromElement =
-        window.frameElement?.getAttribute('data-channel-id');
-      if (!channelIdFromElement) {
-        throw new Error("The 'data-channel-id' attribute is missing");
-      }
-      return channelIdFromElement;
-    }
   }
 
   /**
@@ -207,11 +137,10 @@ export default class EuropaConnection {
    * @param path The path within kbase-ui, i.e. the hash path
    * @param params The params within kbase-ui
    */
-  handleNavigationMessage({
-    path,
-    params,
-    type,
-  }: KBaseUINavigatedPayload): void {
+  handleNavigationMessage(
+    { path, params, type }: KBaseUINavigatedPayload,
+    navigate: NavigateFunction
+  ): void {
     // normalize path
     const pathname = `/${path
       .split('/')
@@ -220,14 +149,14 @@ export default class EuropaConnection {
 
     switch (type) {
       case 'europaui':
-        this.params.navigate(
+        navigate(
           { pathname, search: createSearchParams(params).toString() },
           { replace: true }
         );
         break;
       case 'kbaseui':
       default:
-        this.params.navigate(
+        navigate(
           {
             pathname: createLegacyPath(path),
             search: createSearchParams(params).toString(),
@@ -237,7 +166,15 @@ export default class EuropaConnection {
     }
   }
 
-  handleLoggedin({ token, expires, nextRequest }: KBaseUILoggedinPayload) {
+  handleLoggedin(
+    { token, expires, nextRequest }: KBaseUILoggedinPayload,
+    navigate: NavigateFunction,
+    onLoggedIn: (payload: OnLoggedInParams) => void
+  ) {
+    if (this.connectionState.status !== ConnectionStatus.CONNECTED) {
+      return;
+    }
+
     const next: NextRequestObject = (() => {
       if (nextRequest) {
         return nextRequest;
@@ -268,7 +205,10 @@ export default class EuropaConnection {
       if (next.path.type === 'kbaseui') {
         // If we are staying in kbase-ui, we want to tell it to authenticate itself and
         // then navigate somewhere
-        this.sendChannel.send<EuropaAuthenticatedPayload>(
+        if (this.connectionState.status !== ConnectionStatus.CONNECTED) {
+          return;
+        }
+        this.connectionState.sendChannel.send<EuropaAuthenticatedPayload>(
           'europa.authenticated',
           {
             token,
@@ -279,82 +219,178 @@ export default class EuropaConnection {
           }
         );
       } else {
-        this.params.navigate(next.path.path);
+        navigate(next.path.path);
       }
     };
 
     // This essentially sets up a chain of actions:
     // - validate the auth by talking to the auth service (async, obviously)
     // - set the auth state in the store appropriately
-    this.params.onLoggedIn({ token, expires, onAuthResolved });
+    onLoggedIn({ token, expires, onAuthResolved });
   }
 
-  handleConnectMessage({ channel }: KBaseUIConnectPayload) {
-    // We need to send to the partner channel with the channel id it has specified.
-    this.sendChannel.setChannelId(channel);
+  async connect(timeout: number): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const start = Date.now();
+      const timer = window.setTimeout(() => {
+        const elapsed = Date.now() - start;
+        reject(
+          new Error(
+            `Timed out connection to kbase-ui after ${elapsed}ms, with a timeout of ${timeout}ms`
+          )
+        );
+      }, timeout);
 
-    // And we need to let the other channel send to us on our channel id.
-    const receiveChannelId = uuidv4();
-    this.receiveChannel.setChannelId(receiveChannelId);
+      const receiveSpy = this.params.spyOnChannels
+        ? (() => {
+            return (message: ChannelMessage) => {
+              channelSpy('RECV', message);
+            };
+          })()
+        : undefined;
 
-    this.sendChannel.send<EuropaConnectPayload>('europa.connect', {
-      channelId: receiveChannelId,
-    });
-  }
+      const receiveChannel = new ReceiveChannel({
+        window,
+        expectedOrigin: this.params.kbaseUIOrigin,
+        channel: this.params.receiveChannelId,
+        spy: receiveSpy,
+      });
 
-  async connect(): Promise<void> {
-    return new Promise((resolve) => {
-      this.receiveChannel.once('kbase-ui.connect', (payload: unknown) => {
+      const sendSpy = this.params.spyOnChannels
+        ? (() => {
+            return (message: ChannelMessage) => {
+              channelSpy('SEND', message);
+            };
+          })()
+        : undefined;
+
+      const sendChannel = new SendChannel({
+        window: this.params.kbaseUIWindow,
+        targetOrigin: this.params.kbaseUIOrigin,
+        channel: this.params.sendChannelId,
+        spy: sendSpy,
+      });
+
+      this.connectionState = {
+        status: ConnectionStatus.CONNECTING,
+        receiveChannel,
+        sendChannel,
+      };
+
+      receiveChannel.once('kbase-ui.connect', (payload: unknown) => {
         // We've received the connect request from kbase-ui, so let's tell kbase-ui in
         // response that we are here too.
         assertKBaseUIConnectPayload(payload);
-        this.handleConnectMessage(payload);
+
+        // We need to send to the partner channel with the channel id it has specified.
+        // sendChannel.setChannelId(payload.channel);
+
+        // And we need to let the other channel send to us on our channel id.
+        // const receiveChannelId = uuidv4();
+        // receiveChannel.setChannelId(receiveChannelId);
+
+        sendChannel.send<EuropaConnectPayload>('europa.connect', {
+          channelId: this.params.receiveChannelId,
+        });
       });
 
-      this.receiveChannel.once('kbase-ui.connected', () => {
+      receiveChannel.once('kbase-ui.connected', () => {
         // Set up all messages we will respond to while the connection is active.
-        this.connectionStatus = ConnectionStatus.CONNECTED;
-
-        this.receiveChannel.on('kbase-ui.navigated', (payload: unknown) => {
-          assertKBaseUINavigatedPayload(payload);
-          this.handleNavigationMessage(payload);
-        });
-
-        this.receiveChannel.on('kbase-ui.set-title', (payload: unknown) => {
-          assertKBaseUISetTitlePayload(payload);
-          this.params.setTitle(payload.title);
-        });
-
-        this.receiveChannel.on('kbase-ui.logout', () => {
-          this.params.onLogOut();
-        });
-
-        this.receiveChannel.on('kbase-ui.redirect', (payload: unknown) => {
-          assertKBaseUIRedirectPayload(payload);
-          this.params.onRedirect(payload);
-        });
-
-        this.receiveChannel.on('kbase-ui.loggedin', (payload: unknown) => {
-          assertKBaseUILoggedinPayload(payload);
-          this.handleLoggedin(payload);
-        });
-
-        // TODO: logged out
-
+        this.connectionState = {
+          status: ConnectionStatus.AWAITING_START,
+          receiveChannel: receiveChannel,
+          sendChannel: sendChannel,
+        };
+        window.clearTimeout(timer);
         resolve();
       });
 
-      this.receiveChannel.start();
+      receiveChannel.start();
     });
   }
 
-  cancel() {
-    this.receiveChannel.stop();
+  async start(params: StartParams): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (this.connectionState.status !== ConnectionStatus.AWAITING_START) {
+        reject(new Error('Not AWAITING_START - cannot start'));
+        return;
+      }
+
+      const { receiveChannel, sendChannel } = this.connectionState;
+
+      receiveChannel.on('kbase-ui.navigated', (payload: unknown) => {
+        assertKBaseUINavigatedPayload(payload);
+        this.handleNavigationMessage(payload, params.navigate);
+      });
+
+      receiveChannel.on('kbase-ui.set-title', (payload: unknown) => {
+        assertKBaseUISetTitlePayload(payload);
+        params.setTitle(payload.title);
+      });
+
+      receiveChannel.on('kbase-ui.logout', () => {
+        params.onLogOut();
+      });
+
+      receiveChannel.on('kbase-ui.redirect', (payload: unknown) => {
+        assertKBaseUIRedirectPayload(payload);
+        params.onRedirect(payload);
+      });
+
+      receiveChannel.on('kbase-ui.loggedin', (payload: unknown) => {
+        assertKBaseUILoggedinPayload(payload);
+        this.handleLoggedin(payload, params.navigate, params.onLoggedIn);
+      });
+
+      receiveChannel.on('kbase-ui.pong', () => {
+        if (this.connectionState.status !== ConnectionStatus.CONNECTED) {
+          return;
+        }
+        this.connectionState.lastContact = Date.now();
+      });
+
+      this.connectionState = {
+        status: ConnectionStatus.CONNECTED,
+        receiveChannel: receiveChannel,
+        sendChannel: sendChannel,
+        lastContact: Date.now(),
+        // will be added in start.
+        periodicTask: new PeriodicTask({
+          interval: 100,
+          task: async (stop) => {
+            if (this.connectionState.status !== ConnectionStatus.CONNECTED) {
+              return;
+            }
+            const now = Date.now();
+            const elapsed = now - this.connectionState.lastContact;
+            if (elapsed > LOST_CONTACT_TIMEOUT) {
+              // eslint-disable-next-line no-console
+              console.error('LOST CONTACT WITH KBASE-UI');
+              stop();
+              params.onLostConnection('Lost contact with kbase-ui');
+              return;
+            }
+            this.connectionState.sendChannel.send('europa.ping', {});
+            return;
+          },
+        }).start(),
+      };
+
+      resolve();
+    });
   }
 
   disconnect() {
-    // this.sendChannel.send('kbase-ui.disconnect', {});
-    // this.receiveChannel.stop();
+    if (
+      this.connectionState.status === ConnectionStatus.CONNECTING ||
+      this.connectionState.status === ConnectionStatus.AWAITING_START ||
+      this.connectionState.status === ConnectionStatus.CONNECTED
+    ) {
+      this.connectionState.receiveChannel.stop();
+    }
+    if (this.connectionState.status === ConnectionStatus.CONNECTED) {
+      this.connectionState.periodicTask.stop();
+    }
   }
 
   /**
@@ -364,10 +400,16 @@ export default class EuropaConnection {
    * @param params
    */
   navigate(path: string, params?: Record<string, string>) {
-    this.sendChannel.send<EuropaNavigatePayload>('europa.navigate', {
-      path,
-      params,
-    });
+    if (this.connectionState.status !== ConnectionStatus.CONNECTED) {
+      return;
+    }
+    this.connectionState.sendChannel.send<EuropaNavigatePayload>(
+      'europa.navigate',
+      {
+        path,
+        params,
+      }
+    );
   }
 
   /**
@@ -387,10 +429,16 @@ export default class EuropaConnection {
     token: string | null;
     navigation: NextRequest;
   }) {
-    this.sendChannel.send<EuropaAuthnavigatePayload>('europa.authnavigate', {
-      token,
-      navigation,
-    });
+    if (this.connectionState.status !== ConnectionStatus.CONNECTED) {
+      return;
+    }
+    this.connectionState.sendChannel.send<EuropaAuthnavigatePayload>(
+      'europa.authnavigate',
+      {
+        token,
+        navigation,
+      }
+    );
   }
 
   /**
@@ -408,10 +456,16 @@ export default class EuropaConnection {
     token: string;
     navigation?: NextRequest;
   }) {
-    this.sendChannel.send<EuropaAuthenticatedPayload>('europa.authenticated', {
-      token,
-      navigation,
-    });
+    if (this.connectionState.status !== ConnectionStatus.CONNECTED) {
+      return;
+    }
+    this.connectionState.sendChannel.send<EuropaAuthenticatedPayload>(
+      'europa.authenticated',
+      {
+        token,
+        navigation,
+      }
+    );
   }
 
   /**
@@ -423,7 +477,10 @@ export default class EuropaConnection {
    * @param param0
    */
   deauthenticated({ navigation }: { navigation?: NextRequest }) {
-    this.sendChannel.send<EuropaDeauthenticatedPayload>(
+    if (this.connectionState.status !== ConnectionStatus.CONNECTED) {
+      return;
+    }
+    this.connectionState.sendChannel.send<EuropaDeauthenticatedPayload>(
       'europa.deauthenticated',
       { navigation }
     );

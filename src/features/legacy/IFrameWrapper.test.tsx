@@ -7,11 +7,12 @@ import {
   createMemoryRouter,
 } from 'react-router-dom';
 import {
-  CHANNEL_ID,
   UI_ORIGIN,
   WAIT_FOR_INTERVAL,
   WAIT_FOR_TIMEOUT,
   makeWindowMessageSender,
+  RECEIVE_CHANNEL_ID,
+  SEND_CHANNEL_ID,
 } from '../../common/testUtils';
 import IFrameWrapper, { IFrameWrapperProps } from './IFrameWrapper';
 import { LEGACY_BASE_ROUTE } from './constants';
@@ -162,7 +163,7 @@ function createIFrameProps(
   };
 
   // Create the props and the component.
-  const channel = CHANNEL_ID;
+  // const channel = CHANNEL_ID;
   // TODO: stand up a service here!
   const legacyURL = new URL('http://legacy.localhost');
 
@@ -192,7 +193,8 @@ function createIFrameProps(
         };
 
   const iframeProps: IFrameWrapperProps = {
-    channelId: channel,
+    receiveChannelId: RECEIVE_CHANNEL_ID,
+    sendChannelId: SEND_CHANNEL_ID,
     legacyURL,
     token,
     legacyPath,
@@ -250,12 +252,12 @@ describe('IFrameWrapper Module', () => {
       };
 
       // Override the iframe props `setTitle` prop.
-      const iframeProps = createIFrameProps({ setTitle });
+      const iframeProps = createIFrameProps({ setTitle, spyOnChannels: true });
 
       const { contentWindow } = renderWrappedIFrameWrapper(iframeProps);
 
-      let TEST_EUROPA_RECEIVE_CHANNEL = 'foo';
-      const TEST_KBASE_UI_RECEIVE_CHANNEL = 'kbase-ui-receive-channel';
+      // let TEST_EUROPA_RECEIVE_CHANNEL = 'foo';
+      // const TEST_KBASE_UI_RECEIVE_CHANNEL = 'kbase-ui-receive-channel';
       const sendMessage = makeWindowMessageSender(contentWindow, window);
 
       // Here we simulate kbase-ui message handling, which is carried out on the
@@ -277,10 +279,7 @@ describe('IFrameWrapper Module', () => {
       contentWindow.addEventListener('message', (messageEvent) => {
         if ('envelope' in messageEvent.data) {
           if ('channel' in messageEvent.data.envelope) {
-            if (
-              messageEvent.data.envelope.channel !==
-              TEST_KBASE_UI_RECEIVE_CHANNEL
-            ) {
+            if (messageEvent.data.envelope.channel !== SEND_CHANNEL_ID) {
               return;
             }
           }
@@ -291,25 +290,29 @@ describe('IFrameWrapper Module', () => {
           // Handle messages to simulate kbase-ui
           switch (messageEvent.data.name) {
             case 'europa.connect': {
-              // Europa's connect contains the channel id it is now listening on.
-              TEST_EUROPA_RECEIVE_CHANNEL = messageEvent.data.payload.channelId;
-
               // This is the normal message after connect is received.
               act(() => {
-                sendMessage(
-                  'kbase-ui.connected',
-                  TEST_EUROPA_RECEIVE_CHANNEL,
-                  {}
-                );
+                sendMessage('kbase-ui.connected', RECEIVE_CHANNEL_ID, {});
               });
+
+              // Then some time later, we are simulating a set-title event
+              // act(() => {
+              //   sendMessage('kbase-ui.set-title', RECEIVE_CHANNEL_ID, {
+              //     title: EXPECTED_TITLE,
+              //   });
+              // });
+              // })();
+              break;
+            }
+            case 'europa.authnavigate':
               // Then some time later, we are simulating a set-title event
               act(() => {
-                sendMessage('kbase-ui.set-title', TEST_EUROPA_RECEIVE_CHANNEL, {
+                sendMessage('kbase-ui.set-title', RECEIVE_CHANNEL_ID, {
                   title: EXPECTED_TITLE,
                 });
               });
+
               break;
-            }
           }
         }
       });
@@ -317,8 +320,8 @@ describe('IFrameWrapper Module', () => {
       // Simulates the initial 'kbase-ui.connect' message sent by kbase-ui when the app has
       // loaded, and the Europa compatibility layer is ready to receive messages.
       act(() => {
-        sendMessage('kbase-ui.connect', iframeProps.channelId, {
-          channel: TEST_KBASE_UI_RECEIVE_CHANNEL,
+        sendMessage('kbase-ui.connect', RECEIVE_CHANNEL_ID, {
+          channel: SEND_CHANNEL_ID,
         });
       });
 
@@ -332,11 +335,11 @@ describe('IFrameWrapper Module', () => {
       );
     });
 
-    //   /**
-    //    * The basic logic of the above test is replicated, but we install a spy on the send
-    //    * and receive channels, and then inspect the console.info log to ensure that the
-    //    * log entries for sending and receiving have been made.
-    //    */
+    /**
+     * The basic logic of the above test is replicated, but we install a spy on the send
+     * and receive channels, and then inspect the console.info log to ensure that the
+     * log entries for sending and receiving have been made.
+     */
     test('can receive "kbase-ui.set-title" with a sneaky spy', async () => {
       jest.spyOn(utils, 'legacyBaseURL').mockReturnValue(new URL(UI_ORIGIN));
 
@@ -351,8 +354,6 @@ describe('IFrameWrapper Module', () => {
 
       const { contentWindow } = renderWrappedIFrameWrapper(iframeProps);
 
-      let TEST_EUROPA_RECEIVE_CHANNEL = 'foo';
-      const TEST_KBASE_UI_RECEIVE_CHANNEL = 'kbase-ui-receive-channel';
       const sendMessage = makeWindowMessageSender(contentWindow, window);
 
       // Here we simulate kbase-ui message handling.
@@ -360,10 +361,7 @@ describe('IFrameWrapper Module', () => {
       contentWindow.addEventListener('message', (messageEvent) => {
         if ('envelope' in messageEvent.data) {
           if ('channel' in messageEvent.data.envelope) {
-            if (
-              messageEvent.data.envelope.channel !==
-              TEST_KBASE_UI_RECEIVE_CHANNEL
-            ) {
+            if (messageEvent.data.envelope.channel !== SEND_CHANNEL_ID) {
               return;
             }
           }
@@ -375,24 +373,22 @@ describe('IFrameWrapper Module', () => {
           // Handle messages to simulate kbase-ui
           switch (messageEvent.data.name) {
             case 'europa.connect': {
-              // Europa's connect contains the channel id it is now listening on.
-              TEST_EUROPA_RECEIVE_CHANNEL = messageEvent.data.payload.channelId;
               // This is the normal message after connect is received.
               act(() => {
-                sendMessage(
-                  'kbase-ui.connected',
-                  TEST_EUROPA_RECEIVE_CHANNEL,
-                  {}
-                );
-              });
-              // Then some time later, we are simulating a set-title event
-              act(() => {
-                sendMessage('kbase-ui.set-title', TEST_EUROPA_RECEIVE_CHANNEL, {
-                  title: EXPECTED_TITLE,
-                });
+                sendMessage('kbase-ui.connected', RECEIVE_CHANNEL_ID, {});
               });
               break;
             }
+
+            case 'europa.authnavigate':
+              // Then some time later, we are simulating a set-title event
+              act(() => {
+                sendMessage('kbase-ui.set-title', RECEIVE_CHANNEL_ID, {
+                  title: EXPECTED_TITLE,
+                });
+              });
+
+              break;
           }
         }
       });
@@ -400,8 +396,8 @@ describe('IFrameWrapper Module', () => {
       // Simulates the initial 'kbase-ui.connect' message sent by kbase-ui when the app has
       // loaded, and the Europa compatibility layer is ready to receive messages.
       act(() => {
-        sendMessage('kbase-ui.connect', iframeProps.channelId, {
-          channel: TEST_KBASE_UI_RECEIVE_CHANNEL,
+        sendMessage('kbase-ui.connect', RECEIVE_CHANNEL_ID, {
+          channel: SEND_CHANNEL_ID,
         });
       });
 
@@ -413,25 +409,31 @@ describe('IFrameWrapper Module', () => {
           expect(infoLogSpy).toHaveBeenNthCalledWith(
             1,
             '[KBaseUIConnection][spy][RECV]',
-            CHANNEL_ID,
+            RECEIVE_CHANNEL_ID,
             'kbase-ui.connect'
           );
           expect(infoLogSpy).toHaveBeenNthCalledWith(
             2,
             '[KBaseUIConnection][spy][SEND]',
-            TEST_KBASE_UI_RECEIVE_CHANNEL,
+            SEND_CHANNEL_ID,
             'europa.connect'
           );
           expect(infoLogSpy).toHaveBeenNthCalledWith(
             3,
             '[KBaseUIConnection][spy][RECV]',
-            TEST_EUROPA_RECEIVE_CHANNEL,
+            RECEIVE_CHANNEL_ID,
             'kbase-ui.connected'
           );
           expect(infoLogSpy).toHaveBeenNthCalledWith(
             4,
+            '[KBaseUIConnection][spy][SEND]',
+            SEND_CHANNEL_ID,
+            'europa.authnavigate'
+          );
+          expect(infoLogSpy).toHaveBeenNthCalledWith(
+            5,
             '[KBaseUIConnection][spy][RECV]',
-            TEST_EUROPA_RECEIVE_CHANNEL,
+            RECEIVE_CHANNEL_ID,
             'kbase-ui.set-title'
           );
         },
@@ -453,8 +455,6 @@ describe('IFrameWrapper Module', () => {
 
       const { contentWindow } = renderWrappedIFrameWrapper(iframeProps);
 
-      let TEST_EUROPA_RECEIVE_CHANNEL = 'foo';
-      const TEST_KBASE_UI_RECEIVE_CHANNEL = 'kbase-ui-receive-channel';
       const sendMessage = makeWindowMessageSender(contentWindow, window);
 
       // Here we simulate kbase-ui message handling.
@@ -462,10 +462,7 @@ describe('IFrameWrapper Module', () => {
       contentWindow.addEventListener('message', (messageEvent) => {
         if ('envelope' in messageEvent.data) {
           if ('channel' in messageEvent.data.envelope) {
-            if (
-              messageEvent.data.envelope.channel !==
-              TEST_KBASE_UI_RECEIVE_CHANNEL
-            ) {
+            if (messageEvent.data.envelope.channel !== SEND_CHANNEL_ID) {
               return;
             }
           }
@@ -476,23 +473,22 @@ describe('IFrameWrapper Module', () => {
           // Handle messages to simulate kbase-ui
           switch (messageEvent.data.name) {
             case 'europa.connect': {
-              // Europa's connect contains the channel id it is now listening on.
-              TEST_EUROPA_RECEIVE_CHANNEL = messageEvent.data.payload.channelId;
-
               // This is the normal message after connect is received.
               act(() => {
-                sendMessage(
-                  'kbase-ui.connected',
-                  TEST_EUROPA_RECEIVE_CHANNEL,
-                  {}
-                );
+                sendMessage('kbase-ui.connected', RECEIVE_CHANNEL_ID, {});
               });
               // Then some time later, we are simulating a logout event.
-              act(() => {
-                sendMessage('kbase-ui.logout', TEST_EUROPA_RECEIVE_CHANNEL, {});
-              });
               break;
             }
+            case 'europa.authnavigate':
+              // Then some time later, we are simulating a set-title event
+              act(() => {
+                act(() => {
+                  sendMessage('kbase-ui.logout', RECEIVE_CHANNEL_ID, {});
+                });
+              });
+
+              break;
           }
         }
       });
@@ -500,8 +496,8 @@ describe('IFrameWrapper Module', () => {
       // Simulates the initial 'kbase-ui.connect' message sent by kbase-ui when the app has
       // loaded, and the Europa compatibility layer is ready to receive messages.
       act(() => {
-        sendMessage('kbase-ui.connect', iframeProps.channelId, {
-          channel: TEST_KBASE_UI_RECEIVE_CHANNEL,
+        sendMessage('kbase-ui.connect', RECEIVE_CHANNEL_ID, {
+          channel: SEND_CHANNEL_ID,
         });
       });
 
@@ -872,8 +868,8 @@ describe('IFrameWrapper Module', () => {
 
       const contentWindow = iframe.contentWindow;
 
-      let TEST_EUROPA_RECEIVE_CHANNEL = 'foo';
-      const TEST_KBASE_UI_RECEIVE_CHANNEL = 'kbase-ui-receive-channel';
+      // let TEST_EUROPA_RECEIVE_CHANNEL = 'foo';
+      // const TEST_KBASE_UI_RECEIVE_CHANNEL = 'kbase-ui-receive-channel';
       const sendMessage = makeWindowMessageSender(contentWindow, window);
 
       // After receiving the 'ready' message, Europa's legacy layer will have set up
@@ -886,10 +882,7 @@ describe('IFrameWrapper Module', () => {
       contentWindow.addEventListener('message', (messageEvent) => {
         if ('envelope' in messageEvent.data) {
           if ('channel' in messageEvent.data.envelope) {
-            if (
-              messageEvent.data.envelope.channel !==
-              TEST_KBASE_UI_RECEIVE_CHANNEL
-            ) {
+            if (messageEvent.data.envelope.channel !== SEND_CHANNEL_ID) {
               return;
             }
           }
@@ -907,24 +900,28 @@ describe('IFrameWrapper Module', () => {
           switch (messageEvent.data.name) {
             case 'europa.connect': {
               // Europa's connect contains the channel id it is now listening on.
-              TEST_EUROPA_RECEIVE_CHANNEL = messageEvent.data.payload.channelId;
+              // TEST_EUROPA_RECEIVE_CHANNEL = messageEvent.data.payload.channelId;
               // This is the normal message after connect is received.
               act(() => {
-                sendMessage(
-                  'kbase-ui.connected',
-                  TEST_EUROPA_RECEIVE_CHANNEL,
-                  {}
-                );
+                sendMessage('kbase-ui.connected', RECEIVE_CHANNEL_ID, {});
               });
               // Then some time later, we are simulating a navigation event
-              act(() => {
-                sendMessage('kbase-ui.navigated', TEST_EUROPA_RECEIVE_CHANNEL, {
-                  path: 'bar',
-                  params: {},
-                });
-              });
+
               break;
             }
+
+            case 'europa.authnavigate':
+              // Then some time later, we are simulating a set-title event
+              act(() => {
+                act(() => {
+                  sendMessage('kbase-ui.navigated', RECEIVE_CHANNEL_ID, {
+                    path: 'bar',
+                    params: {},
+                  });
+                });
+              });
+
+              break;
           }
         }
       });
@@ -932,8 +929,8 @@ describe('IFrameWrapper Module', () => {
       // Simulates the initial 'kbase-ui.connect' message sent by kbase-ui when the app has
       // loaded, and the Europa compatibility layer is ready to receive messages.
       act(() => {
-        sendMessage('kbase-ui.connect', iframeProps.channelId, {
-          channel: TEST_KBASE_UI_RECEIVE_CHANNEL,
+        sendMessage('kbase-ui.connect', RECEIVE_CHANNEL_ID, {
+          channel: SEND_CHANNEL_ID,
         });
       });
 
@@ -969,8 +966,8 @@ describe('IFrameWrapper Module', () => {
       }
 
       const contentWindow = iframe.contentWindow;
-      let TEST_EUROPA_RECEIVE_CHANNEL = 'foo';
-      const TEST_KBASE_UI_RECEIVE_CHANNEL = 'kbase-ui-receive-channel';
+      // let TEST_EUROPA_RECEIVE_CHANNEL = 'foo';
+      // const TEST_KBASE_UI_RECEIVE_CHANNEL = 'kbase-ui-receive-channel';
       const sendMessage = makeWindowMessageSender(contentWindow, window);
 
       // After receiving the 'ready' message, Europa's legacy layer will have set up
@@ -984,10 +981,7 @@ describe('IFrameWrapper Module', () => {
       contentWindow.addEventListener('message', (messageEvent) => {
         if ('envelope' in messageEvent.data) {
           if ('channel' in messageEvent.data.envelope) {
-            if (
-              messageEvent.data.envelope.channel !==
-              TEST_KBASE_UI_RECEIVE_CHANNEL
-            ) {
+            if (messageEvent.data.envelope.channel !== SEND_CHANNEL_ID) {
               return;
             }
           }
@@ -1004,15 +998,11 @@ describe('IFrameWrapper Module', () => {
           // Handle messages to simulate kbase-ui
           switch (messageEvent.data.name) {
             case 'europa.connect': {
-              TEST_EUROPA_RECEIVE_CHANNEL = messageEvent.data.payload.channelId;
+              // TEST_EUROPA_RECEIVE_CHANNEL = messageEvent.data.payload.channelId;
 
               // This is the normal message after connect is received.
               act(() => {
-                sendMessage(
-                  'kbase-ui.connected',
-                  TEST_EUROPA_RECEIVE_CHANNEL,
-                  {}
-                );
+                sendMessage('kbase-ui.connected', RECEIVE_CHANNEL_ID, {});
 
                 rerender(<WrappedIFrameWrapper {...iframeProps} token="FOO" />);
               });
@@ -1029,8 +1019,8 @@ describe('IFrameWrapper Module', () => {
       // Simulates the initial 'kbase-ui.connect' message sent by kbase-ui when the app has
       // loaded, and the Europa compatibility layer is ready to receive messages.
       act(() => {
-        sendMessage('kbase-ui.connect', iframeProps.channelId, {
-          channel: TEST_KBASE_UI_RECEIVE_CHANNEL,
+        sendMessage('kbase-ui.connect', RECEIVE_CHANNEL_ID, {
+          channel: SEND_CHANNEL_ID,
         });
       });
 
@@ -1068,8 +1058,8 @@ describe('IFrameWrapper Module', () => {
 
       const contentWindow = iframe.contentWindow;
 
-      let TEST_EUROPA_RECEIVE_CHANNEL = 'foo';
-      const TEST_KBASE_UI_RECEIVE_CHANNEL = 'kbase-ui-receive-channel';
+      // let TEST_EUROPA_RECEIVE_CHANNEL = 'foo';
+      // const TEST_KBASE_UI_RECEIVE_CHANNEL = 'kbase-ui-receive-channel';
       const sendMessage = makeWindowMessageSender(contentWindow, window);
 
       // After receiving the 'ready' message, Europa's legacy layer will have set up
@@ -1083,10 +1073,7 @@ describe('IFrameWrapper Module', () => {
       contentWindow.addEventListener('message', (messageEvent) => {
         if ('envelope' in messageEvent.data) {
           if ('channel' in messageEvent.data.envelope) {
-            if (
-              messageEvent.data.envelope.channel !==
-              TEST_KBASE_UI_RECEIVE_CHANNEL
-            ) {
+            if (messageEvent.data.envelope.channel !== SEND_CHANNEL_ID) {
               return;
             }
           }
@@ -1104,15 +1091,11 @@ describe('IFrameWrapper Module', () => {
           switch (messageEvent.data.name) {
             case 'europa.connect': {
               // Europa's connect contains the channel id it is now listening on.
-              TEST_EUROPA_RECEIVE_CHANNEL = messageEvent.data.payload.channelId;
+              // TEST_EUROPA_RECEIVE_CHANNEL = messageEvent.data.payload.channelId;
 
               // This is the normal message after connect is received.
               act(() => {
-                sendMessage(
-                  'kbase-ui.connected',
-                  TEST_EUROPA_RECEIVE_CHANNEL,
-                  {}
-                );
+                sendMessage('kbase-ui.connected', RECEIVE_CHANNEL_ID, {});
                 rerender(
                   <WrappedIFrameWrapper {...iframeProps} token={null} />
                 );
@@ -1129,8 +1112,8 @@ describe('IFrameWrapper Module', () => {
       // Simulates the initial 'kbase-ui.connect' message sent by kbase-ui when the app has
       // loaded, and the Europa compatibility layer is ready to receive messages.
       act(() => {
-        sendMessage('kbase-ui.connect', iframeProps.channelId, {
-          channel: TEST_KBASE_UI_RECEIVE_CHANNEL,
+        sendMessage('kbase-ui.connect', RECEIVE_CHANNEL_ID, {
+          channel: SEND_CHANNEL_ID,
         });
       });
 
