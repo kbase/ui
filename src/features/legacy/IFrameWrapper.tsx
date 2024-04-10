@@ -1,7 +1,7 @@
 import { faExclamation, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Alert, AlertTitle, Grow, LinearProgress } from '@mui/material';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import LoadingOverlay from '../../common/components/OverlayContainer';
 import {
@@ -350,15 +350,18 @@ export default function IFrameWrapper({
    * This effect dedicated to setting the title precisely once per change in state.
    */
 
-  function parseLegacyPathFromURL(url: URL) {
-    // const url = new URL(window.location.origin);
-    url.pathname = location.pathname;
-    new URLSearchParams(location.search).forEach((value, key) => {
-      url.searchParams.set(key, value);
-    });
+  const parseLegacyPathFromURL = useCallback(
+    (url: URL) => {
+      // const url = new URL(window.location.origin);
+      url.pathname = location.pathname;
+      new URLSearchParams(location.search).forEach((value, key) => {
+        url.searchParams.set(key, value);
+      });
 
-    return parseLegacyURL(url);
-  }
+      return parseLegacyURL(url);
+    },
+    [location]
+  );
 
   const url = new URL(window.location.origin);
   const initialLegacyPath = parseLegacyPathFromURL(url);
@@ -504,6 +507,10 @@ export default function IFrameWrapper({
           return (
             <span>
               <p>An error ocurred connecting to kbase-ui.</p>
+              <p>
+                You may try reloading the browser to see if the problem has been
+                resolved.
+              </p>
               <pre>{state.message}</pre>
             </span>
           );
