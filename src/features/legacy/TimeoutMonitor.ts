@@ -86,7 +86,7 @@ export type TimeoutMonitorState =
 interface MonitorParams {
   onInterval?: IntervalCallback;
   onTimeout: TimeoutCallback;
-  interval?: number;
+  interval: number;
   timeout: number;
 }
 
@@ -141,22 +141,23 @@ export default class TimeoutMonitor {
       if (this.state.status !== TimeoutMonitorStatus.RUNNING) {
         return;
       }
-      const elapsed = Date.now() - this.state.started;
 
-      // Handle case of timing out.
-      if (this.state.elapsed > this.params.timeout) {
-        try {
-          this.params.onTimeout(this.state.elapsed);
-        } catch (ex) {
-          const message = ex instanceof Error ? ex.message : 'Unknown error';
-          // eslint-disable-next-line no-console
-          console.error('Error running timeout callback', message, ex);
-        }
+      const elapsed = Date.now() - this.state.started;
+      const isTimedOut = elapsed > this.params.timeout;
+
+      if (isTimedOut) {
         this.state = {
           ...this.state,
           elapsed,
           status: TimeoutMonitorStatus.TIMEDOUT,
         };
+        try {
+          this.params.onTimeout(elapsed);
+        } catch (ex) {
+          const message = ex instanceof Error ? ex.message : 'Unknown error';
+          // eslint-disable-next-line no-console
+          console.error('Error running timeout callback', message, ex);
+        }
         return;
       }
 
@@ -166,7 +167,7 @@ export default class TimeoutMonitor {
         elapsed,
       };
 
-      this.runOnInterval(this.state);
+      this.runOnInterval({ ...this.state });
 
       window.setTimeout(() => {
         loop();

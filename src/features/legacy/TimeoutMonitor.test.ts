@@ -97,10 +97,21 @@ describe('TimeoutMonitor class', () => {
     await waitFor(
       () => {
         expect(timedOutAfter).toBeGreaterThan(timeout);
-        // There are really no guarantees about how many iterations are run, due to the
-        // passage of time between each loop.
-        expect(intervals.length).toBeGreaterThan(4);
-        expect(intervals.length).toBeLessThan(7);
+        // There are really no guarantees about how many iterations are run
+        // other than the first one, due to the passage of time between each
+        // loop and the inaccuracy of JS timers.
+        //
+        // There is an initial call run before the timer loop, then then one
+        // call every "interval".
+        //
+        // The interval, however, is not guaranteed. I've seen a 50ms timeout
+        // take over 200ms.
+        //
+        // So in the test data above, we might think that would be 1 + 5 or 6
+        // intervals.
+        //
+        // However, we can only be sure that at least one ocurred.
+        expect(intervals.length).toBeGreaterThanOrEqual(1);
       },
       { timeout: WAIT_FOR_TIMEOUT }
     );
