@@ -416,6 +416,13 @@ export const PlotlyWrapper = ({
     .fill(0)
     .map((z, ix) => ix);
   const otherProps = { ...tooltipProps, visible: tooltipRole };
+  /* Since our coordinates are integers, the difference in the minimum and
+     maximum value is an integer. For the functions below this value is called
+     range. The numbers are magic and probably only look good on my screen, this
+     is meant as more of an example of how changing the plotly configuration on
+     each render will look. This approach may be useful for doing our own
+     sampling or aggregating the underlying data based on the plotly window.
+  */
   const tickfontSizeCol = (range: number) => {
     if (170 < range) return 5;
     if (160 < range && range <= 170) return 6;
