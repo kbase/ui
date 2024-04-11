@@ -503,21 +503,11 @@ export default function IFrameWrapper({
                   unmountOnExit
                 >
                   <div>
-                    {/* <div>
-                      {Intl.NumberFormat('en-US', {
-                        style: 'percent',
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      }).format(state.elapsed / state.limit)}
-                    </div> */}
-                    {/* <LinearProgress
-                      variant="determinate"
-                      value={(100 * state.elapsed) / state.limit}
-                    /> */}
                     <Box mt={2}>
                       <CountdownClock
                         elapsed={CONNECTION_TIMEOUT_DELAY()}
                         duration={state.limit}
+                        interval={100}
                       />
                     </Box>
                     {/* <hr /> */}
@@ -525,11 +515,11 @@ export default function IFrameWrapper({
                       This is taking longer than expected.
                     </Typography>
                     <Typography style={{ fontStyle: 'italic' }} mt={2}>
-                      We'll continue waiting for load to complete for{' '}
+                      We'll continue waiting{' '}
                       {Intl.NumberFormat('en-US', {}).format(
                         state.limit / 1000
                       )}{' '}
-                      seconds.
+                      seconds for load to complete.
                     </Typography>
                     <Typography style={{ fontStyle: 'italic' }} mt={2}>
                       You may try to reload the browser any time, in case it is
