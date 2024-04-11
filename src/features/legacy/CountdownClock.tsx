@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react';
 
 export interface CountdownClockProps {
   duration: number;
+  interval: number;
   elapsed?: number;
 }
 
@@ -21,15 +22,34 @@ const CountdownClock = (props: CountdownClockProps) => {
 
   // Just keeps the clock ticking.
   useEffect(() => {
-    window.setInterval(() => {
-      setCurrentTime(Date.now());
-    }, 100);
-  }, [setCurrentTime]);
+    const timer = window.setInterval(() => {
+      const now = Date.now();
+      const elapsed = now - startTime;
+      if (elapsed > props.duration) {
+        window.clearInterval(timer);
+      }
+      setCurrentTime(now);
+    }, props.interval);
+
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, [startTime, props.interval, props.duration, setCurrentTime]);
 
   const totalDurationInSeconds = props.duration / 1000;
 
   const elapsedInSeconds =
     Math.round((currentTime - startTime) / 1000) + (props.elapsed || 0) / 1000;
+
+  const elapsed = currentTime - startTime;
+  const isDone = elapsed >= props.duration;
+
+  const message = (() => {
+    if (isDone) {
+      return `DONE - ${totalDurationInSeconds} seconds have elapsed`;
+    }
+    return `${elapsedInSeconds} of ${totalDurationInSeconds} seconds remaining`;
+  })();
 
   return (
     <Box>
@@ -37,9 +57,7 @@ const CountdownClock = (props: CountdownClockProps) => {
         variant="determinate"
         value={(100 * elapsedInSeconds) / totalDurationInSeconds}
       />
-      <Typography style={{ textAlign: 'center' }}>
-        {elapsedInSeconds} of {totalDurationInSeconds} seconds
-      </Typography>
+      <Typography style={{ textAlign: 'center' }}>{message}</Typography>
     </Box>
   );
 };
