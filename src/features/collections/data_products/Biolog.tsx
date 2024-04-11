@@ -19,7 +19,7 @@ import { useAppDispatch, useBackoffPolling } from '../../../common/hooks';
 import { formatNumber } from '../../../common/utils/stringUtils';
 import { useAppParam } from '../../params/hooks';
 import classes from '../Collections.module.scss';
-import { /* useMatchId, */ useGenerateSelectionId } from '../collectionsSlice';
+import { useGenerateSelectionId } from '../collectionsSlice';
 import { HeatMap, HeatMapCallback, MAX_HEATMAP_PAGE } from './HeatMap';
 
 export const Biolog: FC<{
