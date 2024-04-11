@@ -120,19 +120,20 @@ const getPlotlyFromTanstack = ({
 }) => {
   const rows_raw = table.getSortedRowModel().rows;
   const nrows_raw = rows_raw.length;
-  const nrows = Math.max(pageSize, nrows_raw);
+  const pageSizeMin = 10;
+  const nrows = Math.min(pageSize, Math.max(pageSizeMin, nrows_raw));
   const cols = table.getAllFlatColumns().filter((col) => col.parent);
   const ncols = cols.length;
   const headersColumn: string[] = cols.map((col, cix) => {
     const headerRaw = col.columnDef.header as string;
     return abbrHeader(headerRaw);
   });
-  const condition = (ix: number, n: number) => n === 0 || n < pageSize - ix;
-  const offset = (ix: number) => pageSize - ix - 1;
+  const condition = (ix: number, n: number) => n === 0 || n < nrows - ix;
+  const offset = (ix: number) => nrows - ix - 1;
   const headersRow: HeatMapData['headersRow'] = [];
   const values: HeatMapData['values'] = [];
   const labels: HeatMapData['labels'] = [];
-  Array(pageSize)
+  Array(nrows)
     .fill(0)
     .forEach((zero, rix) => {
       if (condition(rix, nrows_raw)) {
@@ -415,6 +416,23 @@ export const PlotlyWrapper = ({
     .fill(0)
     .map((z, ix) => ix);
   const otherProps = { ...tooltipProps, visible: tooltipRole };
+  const tickfontSizeCol = (range: number) => {
+    if (170 < range) return 5;
+    if (160 < range && range <= 170) return 6;
+    if (130 < range && range <= 160) return 7;
+    if (110 < range && range <= 130) return 8;
+    if (100 < range && range <= 110) return 9;
+    if (80 < range && range <= 100) return 10;
+    if (70 < range && range <= 80) return 11;
+    return 12;
+  };
+  const tickfontSizeRow = (range: number) => {
+    if (50 < range) return 8;
+    if (44 < range && range <= 50) return 9;
+    if (38 < range && range <= 44) return 10;
+    if (30 < range && range <= 38) return 11;
+    return 12;
+  };
   /* PlotlyWrapper component */
   return (
     <div className={classes.layout}>
@@ -448,6 +466,9 @@ export const PlotlyWrapper = ({
               maxallowed: ncols,
               range: [plotlyWindow.xMin, plotlyWindow.xMax],
               side: 'top',
+              tickfont: {
+                size: tickfontSizeCol(plotlyWindow.xMax - plotlyWindow.xMin),
+              },
               tickmode: 'array',
               ticktext: headersColumn,
               tickvals: xCoords,
@@ -457,6 +478,9 @@ export const PlotlyWrapper = ({
               minallowed: 0,
               maxallowed: nrows,
               range: [plotlyWindow.yMin, plotlyWindow.yMax],
+              tickfont: {
+                size: tickfontSizeRow(plotlyWindow.yMax - plotlyWindow.yMin),
+              },
               tickmode: 'array',
               ticktext: headersRow,
               tickvals: yCoords,

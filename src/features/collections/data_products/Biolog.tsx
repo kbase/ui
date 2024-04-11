@@ -19,7 +19,7 @@ import { useAppDispatch, useBackoffPolling } from '../../../common/hooks';
 import { formatNumber } from '../../../common/utils/stringUtils';
 import { useAppParam } from '../../params/hooks';
 import classes from '../Collections.module.scss';
-import { useGenerateSelectionId } from '../collectionsSlice';
+import { /* useMatchId, */ useGenerateSelectionId } from '../collectionsSlice';
 import { HeatMap, HeatMapCallback, MAX_HEATMAP_PAGE } from './HeatMap';
 
 export const Biolog: FC<{
@@ -88,7 +88,7 @@ export const Biolog: FC<{
         Showing {formatNumber(firstRow)} - {formatNumber(lastRow)} of{' '}
         {formatNumber(count?.count || 0)} genomes
       </div>
-      <HeatMap table={table} getCellLabel={getCellLabel} />
+      <HeatMap getCellLabel={getCellLabel} pageSize={56} table={table} />
       <div className={classes['pagination-wrapper']}>
         <Pagination table={table} maxPage={MAX_HEATMAP_PAGE} />
       </div>
@@ -105,7 +105,7 @@ const useBiolog = (collection_id: string | undefined) => {
   const [selMark, setSelMark] = useState<boolean>(true);
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
-    pageSize: 85,
+    pageSize: 56,
   });
 
   const pageLastIdCache: Record<string, string> = useMemo(
