@@ -33,8 +33,6 @@
  * intervals in the timeout period.
  */
 
-export const DEFAULT_INTERVAL = 100;
-
 export type IntervalCallback = (state: TimeoutMonitorStateRunning) => void;
 export type TimeoutCallback = (elapsed: number) => void;
 
@@ -93,20 +91,11 @@ interface MonitorParams {
 }
 
 export default class TimeoutMonitor {
-  onInterval?: IntervalCallback;
-  onTimeout: TimeoutCallback;
-  timeout: number;
-  interval?: number;
   state: TimeoutMonitorState;
+  params: MonitorParams;
 
-  constructor({ onInterval, onTimeout, interval, timeout }: MonitorParams) {
-    this.onInterval = onInterval;
-    this.onTimeout = onTimeout;
-
-    this.interval =
-      typeof interval === 'undefined' ? DEFAULT_INTERVAL : interval;
-    this.timeout = timeout;
-
+  constructor(params: MonitorParams) {
+    this.params = params;
     this.state = {
       status: TimeoutMonitorStatus.NONE,
     };
@@ -133,7 +122,7 @@ export default class TimeoutMonitor {
 
   runOnInterval(state: TimeoutMonitorStateRunning) {
     try {
-      this.onInterval && this.onInterval(state);
+      this.params.onInterval && this.params.onInterval(state);
     } catch (ex) {
       const message = ex instanceof Error ? ex.message : 'Unknown error';
       // eslint-disable-next-line no-console
@@ -155,9 +144,9 @@ export default class TimeoutMonitor {
       const elapsed = Date.now() - this.state.started;
 
       // Handle case of timing out.
-      if (this.state.elapsed > this.timeout) {
+      if (this.state.elapsed > this.params.timeout) {
         try {
-          this.onTimeout(this.state.elapsed);
+          this.params.onTimeout(this.state.elapsed);
         } catch (ex) {
           const message = ex instanceof Error ? ex.message : 'Unknown error';
           // eslint-disable-next-line no-console
@@ -181,7 +170,7 @@ export default class TimeoutMonitor {
 
       window.setTimeout(() => {
         loop();
-      }, this.interval);
+      }, this.params.interval);
     };
 
     this.state = {

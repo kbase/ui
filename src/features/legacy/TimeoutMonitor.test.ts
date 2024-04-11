@@ -70,6 +70,42 @@ describe('TimeoutMonitor class', () => {
     );
   });
 
+  test('correctly calls interval callback with default interval', async () => {
+    let timedOutAfter: number | null = null;
+    const onTimeout = (elapsed: number) => {
+      timedOutAfter = elapsed;
+    };
+
+    // Track all the calls to onInterval so we can inspect after the timeout elapses.
+    const intervals: Array<number> = [];
+    const onInterval = ({ elapsed }: TimeoutMonitorStateRunning) => {
+      intervals.push(elapsed);
+    };
+
+    const timeout = 250;
+    const interval = 50;
+
+    const monitor = new TimeoutMonitor({
+      onTimeout,
+      onInterval,
+      timeout,
+      interval,
+    });
+
+    monitor.start();
+
+    await waitFor(
+      () => {
+        expect(timedOutAfter).toBeGreaterThan(timeout);
+        // There are really no guarantees about how many iterations are run, due to the
+        // passage of time between each loop.
+        expect(intervals.length).toBeGreaterThan(4);
+        expect(intervals.length).toBeLessThan(7);
+      },
+      { timeout: WAIT_FOR_TIMEOUT }
+    );
+  });
+
   test('stopping the monitor immediately ceases all interval callbacks and the ultimate timeout callback', async () => {
     let timedOutAfter: number | null = null;
     const onTimeout = (elapsed: number) => {
