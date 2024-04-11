@@ -103,19 +103,6 @@ export function legacyBaseURL(): URL {
 }
 
 /**
- * Determine if kbase-ui is running on a subdomain, based on whether the legacy domain
- * matches the kbase deploy environment domain.
- *
- * @returns {boolean}
- */
-export function isSubdomain(): boolean {
-  return (
-    process.env.REACT_APP_KBASE_LEGACY_DOMAIN !==
-    process.env.REACT_APP_KBASE_DOMAIN
-  );
-}
-
-/**
  * Given a path and perhaps a set of parameters, create a path suitable for addressing
  * an endpoint within kbase-ui.
  *
