@@ -102,7 +102,7 @@ export interface ConnectParams {
   params?: Record<string, string>;
 }
 
-export default class EuropaConnection {
+export default class KBaseUIConnection {
   connectionState: ConnectionState;
   params: KBaseUIConnectionConstructorParams;
   id: string = uuidv4();
