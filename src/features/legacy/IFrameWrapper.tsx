@@ -316,10 +316,7 @@ export default function IFrameWrapper({
       onLostConnection,
     });
 
-    connection.authnavigate({
-      token: token || null,
-      navigation: legacyPath,
-    });
+    connection.authnavigate(token || null, legacyPath);
 
     setState({ status: IFrameWrapperStatus.CONNECTED, connection });
   }, [
@@ -419,11 +416,11 @@ export default function IFrameWrapper({
       if (token !== null) {
         // Note no next request, as this is from the side effect of authentication
         // happening outside of this session - e.g. logging in in a different window.
-        state.connection.authenticated({ token });
+        state.connection.authenticated(token);
       }
     } else if (token === null) {
       // Handle transition from authenticated to unauthenticated.
-      state.connection.deauthenticated({});
+      state.connection.deauthenticated();
     }
   }, [token, state, previousTokenRef]);
 

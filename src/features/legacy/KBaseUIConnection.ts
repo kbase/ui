@@ -113,10 +113,6 @@ export default class KBaseUIConnection {
     };
   }
 
-  europaWindow(): Window {
-    return window.parent;
-  }
-
   /**
    * Update Europa and the browser with a navigation that has occurred within kbase-ui.
    *
@@ -187,22 +183,25 @@ export default class KBaseUIConnection {
       };
     })();
 
-    // A callback called after authentication has been resolved.
-    // This is the only way I could find to have an action run after the whole auth
-    // setting dance. This callback function is passed through the "onLoggedIn" prop,
-    // which in turn
-    //
-    // Besides being more efficient for the EX (no wait required), the callback
-    // technique is more precise, as it is only called when auth succeeds.
-
-    // TODO: use the token from onAuthResolved.
+    /**
+     *  A callback called after authentication has been resolved. This is one
+     *  way I could find to have an action run after the whole auth setting
+     *  dance. I'm sure there is a better way, but for now this works. This
+     *  callback function is passed through the "onLoggedIn" prop, which is
+     *  eventually passed as "onAuthResolved" to the "navigate" function retured
+     *  by "useAuthenticateFromToken". onAuthResolved is called after the token
+     *  is validated and auth info set in the app state. At this point, it
+     *  should be safe to perform any actions that require authentication, such
+     *  as navigating to an endpoint.
+     */
     const onAuthResolved = () => {
       if (next.path.type === 'kbaseui') {
-        // If we are staying in kbase-ui, we want to tell it to authenticate itself and
-        // then navigate somewhere
+        // Just for type narrowing.
         if (this.connectionState.status !== ConnectionStatus.CONNECTED) {
           return;
         }
+        // If we are staying in kbase-ui, we want to tell it to authenticate itself and
+        // then navigate somewhere
         this.connectionState.sendChannel.send<EuropaAuthenticatedPayload>(
           'europa.authenticated',
           {
@@ -358,10 +357,11 @@ export default class KBaseUIConnection {
   }
 
   /**
-   * Sends a
+   * Sends a "europa.navigate" message to kbase-ui, instructing it to navigate to some location.
    *
-   * @param path
-   * @param params
+   * @param path The kbase-ui navigation path; equivalent to the hash path in the url
+   * @param params [optional] Parameters for the kbase-ui navigation; equivalent
+   * to url search params.
    */
   navigate(path: string, params?: Record<string, string>) {
     if (this.connectionState.status !== ConnectionStatus.CONNECTED) {
@@ -384,15 +384,10 @@ export default class KBaseUIConnection {
    * might suffice, is that upon the initial connection there is always a navigation,
    * whereas pure auth events may not have a navigation.
    *
-   * @param param0
+   * @param token KBase Login Token, if present (null if unauthenticated)
+   * @param navigation A "next request" navigation instruction
    */
-  authnavigate({
-    token,
-    navigation,
-  }: {
-    token: string | null;
-    navigation: NextRequest;
-  }) {
+  authnavigate(token: string | null, navigation: NextRequest) {
     if (this.connectionState.status !== ConnectionStatus.CONNECTED) {
       return;
     }
@@ -406,20 +401,15 @@ export default class KBaseUIConnection {
   }
 
   /**
-   * Sends authentication instructions to kbase-ui.
+   * Sends "europa.authentication" message to kbase-ui.
    *
    * Normally sent after a login event in this or another window, although technically
    * it may be triggered by any change in the auth token from absent to a valid token.
    *
-   * @param param0
+   * @param token A KBase Login Token which has been validated by Europa
+   * @param navigation [optional] A navigation to perform after auth state is set
    */
-  authenticated({
-    token,
-    navigation,
-  }: {
-    token: string;
-    navigation?: NextRequest;
-  }) {
+  authenticated(token: string, navigation?: NextRequest) {
     if (this.connectionState.status !== ConnectionStatus.CONNECTED) {
       return;
     }
@@ -433,14 +423,15 @@ export default class KBaseUIConnection {
   }
 
   /**
-   * Sends "de-authentication" instructions to kbase-ui.
+   * Sends "eruopa.deauthentication" message to kbase-ui.
    *
    * A somewhat strange word, "de-authenticating" means to remove the authentication
    * from a session which is currently authenticated.
    *
-   * @param param0
+   * @param navigation [optional] A navigation to preform after authentication, if set,
+   * is unset.
    */
-  deauthenticated({ navigation }: { navigation?: NextRequest }) {
+  deauthenticated(navigation?: NextRequest) {
     if (this.connectionState.status !== ConnectionStatus.CONNECTED) {
       return;
     }
