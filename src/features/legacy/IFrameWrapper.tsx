@@ -606,7 +606,6 @@ export default function IFrameWrapper({
         // We want the src to always match the content of the iframe, so as not to
         // cause the iframe to reload inappropriately
         src={legacyURL.toString()}
-        // data-channel-id={channelId}
         ref={legacyContentRef}
         allow="clipboard-read; clipboard-write"
         title="kbase-ui Wrapper"
