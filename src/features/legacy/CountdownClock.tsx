@@ -48,7 +48,7 @@ const CountdownClock = (props: CountdownClockProps) => {
     if (isDone) {
       return `DONE - ${totalDurationInSeconds} seconds have elapsed`;
     }
-    return `${elapsedInSeconds} of ${totalDurationInSeconds} seconds remaining`;
+    return `${totalDurationInSeconds - elapsedInSeconds} seconds remaining`;
   })();
 
   return (
