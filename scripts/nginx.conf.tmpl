@@ -1,9 +1,18 @@
 server {
-    listen 0.0.0.0:8080;
+  listen 0.0.0.0:8080;
 
-    location / {
-        root   /deploy/__ENVIRONMENT__;
-        index  index.html;
-        try_files $uri $uri/ /index.html =404;
-    }
+  root /deploy/__ENVIRONMENT__;
+   
+  # First try a physical file.
+  # If not found, go to fallback.
+  location ~ / {
+    try_files $uri $uri/ @fallback;
+  }
+
+  # Fallback location is the web app itself.
+  location @fallback {
+    # We don't want the browser to cache the 
+    add_header Cache-Control "no-store";
+    try_files /index.html =404;
+  }
 }
