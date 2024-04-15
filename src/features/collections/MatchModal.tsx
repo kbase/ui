@@ -10,14 +10,14 @@ import { listObjects } from '../../common/api/workspaceApi';
 import { getNarratives } from '../../common/api/searchApi';
 import { parseError } from '../../common/api/utils/parseError';
 import { useUpdateAppParams } from '../params/hooks';
-import { useAppDispatch, useProcessStatePolling } from '../../common/hooks';
+import { useAppDispatch } from '../../common/hooks';
 import {
   setLocalSelection,
   useCurrentSelection,
   useMatchId,
 } from './collectionsSlice';
 import { store } from '../../app/store';
-import { useParamsForNarrativeDropdown } from './hooks';
+import { useParamsForNarrativeDropdown, useProcessStatePolling } from './hooks';
 import { MatcherUserParams } from './MatcherUserParams';
 import Ajv from 'ajv';
 import { Modal, useModalControls } from '../layout/Modal';

@@ -15,11 +15,12 @@ import {
 import { parseError } from '../../../common/api/utils/parseError';
 import { DataViewLink } from '../../../common/components';
 import { Pagination, usePageBounds } from '../../../common/components/Table';
-import { useAppDispatch, useProcessStatePolling } from '../../../common/hooks';
+import { useAppDispatch } from '../../../common/hooks';
 import { formatNumber } from '../../../common/utils/stringUtils';
 import { useAppParam } from '../../params/hooks';
 import classes from '../Collections.module.scss';
 import { useGenerateSelectionId } from '../collectionsSlice';
+import { useProcessStatePolling } from '../hooks';
 import { HeatMap, HeatMapCallback, MAX_HEATMAP_PAGE } from './HeatMap';
 
 export const Biolog: FC<{

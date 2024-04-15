@@ -13,12 +13,12 @@ import {
 } from '../../../common/api/collectionsApi';
 import { Loader } from '../../../common/components/Loader';
 import { Select, SelectOption } from '../../../common/components/Select';
-import { useProcessStatePolling } from '../../../common/hooks';
 import { snakeCaseToHumanReadable } from '../../../common/utils/stringUtils';
 import { useMatchId, useSelectionId } from '../collectionsSlice';
 import classes from './TaxaCount.module.scss';
 import { Paper, PaperProps, Stack } from '@mui/material';
 import { useFilterContexts } from '../Filters';
+import { useProcessStatePolling } from '../hooks';
 
 export const TaxaCount: FC<{
   collection_id: string;
