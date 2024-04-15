@@ -20,6 +20,7 @@ import { formatNumber } from '../../../common/utils/stringUtils';
 import { useAppParam } from '../../params/hooks';
 import classes from '../Collections.module.scss';
 import { useGenerateSelectionId } from '../collectionsSlice';
+import { useFilterContexts } from '../Filters';
 import { useProcessStatePolling } from '../hooks';
 import { HeatMap, HeatMapCallback, MAX_HEATMAP_PAGE } from './HeatMap';
 
@@ -121,25 +122,30 @@ const useBiolog = (collection_id: string | undefined) => {
     () => ({
       collection_id: collection_id ?? '',
       limit: pagination.pageSize,
+      match_mark: false,
+      selection_mark: false,
       ...(pagination.pageIndex !== 0
         ? { start_after: pageLastIdCache[pagination.pageIndex - 1] }
         : {}),
-      ...(matchId ? { match_id: matchId, match_mark: matchMark } : {}),
-      ...(selId ? { selection_id: selId, selection_mark: selMark } : {}),
+      ...(matchId ? { match_id: matchId } : {}),
+      ...(selId ? { selection_id: selId } : {}),
     }),
     [
       collection_id,
       matchId,
-      matchMark,
       pageLastIdCache,
       pagination.pageIndex,
       pagination.pageSize,
       selId,
-      selMark,
     ]
   );
-  const countParams = useMemo(
-    () => ({ ...heatMapParams, count: true }),
+  const allCountParams = useMemo(
+    () => ({
+      ...heatMapParams,
+      count: true,
+      match_mark: true,
+      selection_mark: true,
+    }),
     [heatMapParams]
   );
   const metaParams = useMemo(
@@ -158,10 +164,10 @@ const useBiolog = (collection_id: string | undefined) => {
   //cache last row of each page, we should implement better backend pagination this is silly
   useEffect(() => {
     if (!biologQuery.isFetching && biologQuery.data) {
-      pageLastIdCache[pagination.pageIndex] =
-        biologQuery.data.data[
-          biologQuery.data.data.length - 1
-        ].kbase_display_name;
+      const name =
+        biologQuery.data.data[biologQuery.data.data.length - 1]
+          ?.kbase_display_name;
+      if (name) pageLastIdCache[pagination.pageIndex] = name;
     }
   }, [
     biologQuery.data,
@@ -170,13 +176,47 @@ const useBiolog = (collection_id: string | undefined) => {
     pageLastIdCache,
   ]);
 
-  const { data: count, ...countQuery } = getBiolog.useQuery(countParams, {
-    skip: !collection_id,
-  });
-
   const { data: meta, ...metaQuery } = getBiologMeta.useQuery(metaParams, {
     skip: !collection_id,
   });
+
+  const { data: count, ...countQuery } = getBiolog.useQuery(allCountParams, {
+    skip: !collection_id,
+  });
+
+  const matchCount = getBiolog.useQuery(
+    { ...allCountParams, match_mark: false },
+    {
+      skip: !collection_id,
+    }
+  );
+
+  const selCount = getBiolog.useQuery(
+    { ...allCountParams, selection_mark: false },
+    {
+      skip: !collection_id,
+    }
+  );
+
+  useFilterContexts(collection_id || '', [
+    {
+      label: 'All',
+      value: 'biolog.all',
+      count: count?.count,
+    },
+    {
+      label: 'Matched',
+      value: 'biolog.matched',
+      count: heatMapParams.match_id ? matchCount?.data?.count : undefined,
+      disabled: !heatMapParams.match_id || matchCount?.data?.count === 0,
+    },
+    {
+      label: 'Selected',
+      value: 'biolog.selected',
+      count: heatMapParams.selection_id ? selCount?.data?.count : undefined,
+      disabled: !heatMapParams.selection_id || selCount?.data?.count === 0,
+    },
+  ]);
 
   type RowDatum = NonNullable<typeof biolog>['data'][number];
 
