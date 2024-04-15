@@ -7,12 +7,9 @@ import {
   getSelection,
 } from '../../common/api/collectionsApi';
 import { parseError } from '../../common/api/utils/parseError';
-import {
-  useAppDispatch,
-  useAppSelector,
-  useProcessStatePolling,
-} from '../../common/hooks';
+import { useAppDispatch, useAppSelector } from '../../common/hooks';
 import { useAppParam } from '../params/hooks';
+import { useProcessStatePolling } from './hooks';
 
 interface SelectionState {
   current: string[];

@@ -19,7 +19,7 @@ import {
   usePageBounds,
   useTableColumns,
 } from '../../../common/components/Table';
-import { useAppDispatch, useProcessStatePolling } from '../../../common/hooks';
+import { useAppDispatch } from '../../../common/hooks';
 import {
   clearAllFilters,
   setFilter,
@@ -31,7 +31,7 @@ import classes from './../Collections.module.scss';
 import { Alert, Grid, Paper, PaperProps, Stack, Link } from '@mui/material';
 import { formatNumber } from '../../../common/utils/stringUtils';
 import { filterContextMode, useFilterContexts } from '../Filters';
-import { useTableViewParams } from '../hooks';
+import { useProcessStatePolling, useTableViewParams } from '../hooks';
 
 export const SampleAttribs: FC<{
   collection_id: string;
