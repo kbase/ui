@@ -92,7 +92,8 @@ export const SampleAttribs: FC<{
     [attribParams]
   );
   // Current Data
-  const { data, isFetching } = getSampleAttribs.useQuery(attribParams);
+  const result = getSampleAttribs.useQuery(attribParams);
+  const { data, isFetching } = result;
   const { data: countData } = getSampleAttribs.useQuery(countParams);
   const allCountParams = useMemo(
     () => ({
@@ -127,6 +128,18 @@ export const SampleAttribs: FC<{
       selectData.data?.selection_state === 'processing'
   );
 
+  // Polling needed for main result, as it is not a primary dataproduct like genomes
+  const pollFor: ('match_state' | 'selection_state')[] = [
+    'match_state',
+    'selection_state',
+  ];
+  if (!attribParams.match_id) pollFor.splice(pollFor.indexOf('match_state'), 1);
+  if (!attribParams.selection_id)
+    pollFor.splice(pollFor.indexOf('selection_state'), 1);
+  useProcessStatePolling(result, pollFor, {
+    skipPoll: !(attribParams.match_id || attribParams.selection_id),
+  });
+  // Also poll for the selection state
   useProcessStatePolling(selectData, ['selection_state']);
 
   useFilterContexts(collection_id, [
