@@ -20,7 +20,7 @@ test('FeedTabs renders', async () => {
   const { container } = render(
     <Provider store={createTestStore()}>
       <Router>
-        <FeedTabs {...testProps}/>
+        <FeedTabs {...testProps} />
       </Router>
     </Provider>
   );
