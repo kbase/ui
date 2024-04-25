@@ -193,7 +193,7 @@ export const CollectionDetail = () => {
     );
   });
 
-  const searchFilterValue = filters?.['classification'].value;
+  const searchFilterValue = filters?.['classification']?.value;
 
   useEffect(() => {
     if (typeof searchFilterValue !== 'string') return;
