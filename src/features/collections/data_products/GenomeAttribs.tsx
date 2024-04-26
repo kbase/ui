@@ -316,6 +316,7 @@ export const GenomeAttribs: FC<{
           <AttribHistogram
             collection_id={collection_id}
             column={
+              // GTDB has different column names (#3)
               collection_id === 'GTDB' ? 'checkm_completeness' : 'Completeness'
             }
           />
