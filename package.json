@@ -128,7 +128,7 @@
       "lint": {},
       "lint-list-item-indent": "mixed",
       "lint-maximum-line-length": 80,
-      "lint-no-missing-blank-lines": true,
+      "lint-no-missing-blank-lines": false,
       "lint-no-undefined-references": {
         "allow": [
           "^1"
