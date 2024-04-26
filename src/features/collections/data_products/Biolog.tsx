@@ -164,6 +164,11 @@ const useBiolog = (collection_id: string | undefined) => {
     skipPoll: !collection_id || !(matchId || selId),
   });
 
+  // Reload on context change
+  useEffect(() => {
+    biologQuery.refetch();
+  }, [biologQuery, context]);
+
   //cache last row of each page, we should implement better backend pagination this is silly
   useEffect(() => {
     if (!biologQuery.isFetching && biologQuery.data) {

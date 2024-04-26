@@ -18,7 +18,12 @@ import { Pagination, usePageBounds } from '../../../common/components/Table';
 import { useAppDispatch } from '../../../common/hooks';
 import { formatNumber } from '../../../common/utils/stringUtils';
 import classes from '../Collections.module.scss';
-import { useMatchId, useGenerateSelectionId } from '../collectionsSlice';
+import {
+  useMatchId,
+  useGenerateSelectionId,
+  useFilterContextState,
+} from '../collectionsSlice';
+import { useFilterContexts } from '../Filters';
 import { useProcessStatePolling } from '../hooks';
 import { HeatMap, HeatMapCallback, MAX_HEATMAP_PAGE } from './HeatMap';
 
@@ -104,8 +109,8 @@ const useMicrotrait = (collection_id: string | undefined) => {
   const selId = useGenerateSelectionId(collection_id || '', {
     skip: !collection_id,
   });
-  const [matchMark, setMatchMark] = useState<boolean>(true);
-  const [selMark, setSelMark] = useState<boolean>(true);
+  const context = useFilterContextState(collection_id);
+
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 50,
@@ -114,32 +119,38 @@ const useMicrotrait = (collection_id: string | undefined) => {
   const pageLastIdCache: Record<string, string> = useMemo(
     () => ({}),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [collection_id, selMark, matchMark, pagination.pageSize]
+    [collection_id, context, pagination.pageSize]
   );
 
   const heatMapParams = useMemo(
     () => ({
       collection_id: collection_id ?? '',
       limit: pagination.pageSize,
+      match_mark: !context.endsWith('.matched'),
+      selection_mark: !context.endsWith('.selected'),
       ...(pagination.pageIndex !== 0
         ? { start_after: pageLastIdCache[pagination.pageIndex - 1] }
         : {}),
-      ...(matchId ? { match_id: matchId, match_mark: matchMark } : {}),
-      ...(selId ? { selection_id: selId, selection_mark: selMark } : {}),
+      ...(matchId ? { match_id: matchId } : {}),
+      ...(selId ? { selection_id: selId } : {}),
     }),
     [
       collection_id,
       matchId,
-      matchMark,
       pageLastIdCache,
       pagination.pageIndex,
       pagination.pageSize,
       selId,
-      selMark,
+      context,
     ]
   );
-  const countParams = useMemo(
-    () => ({ ...heatMapParams, count: true }),
+  const allCountParams = useMemo(
+    () => ({
+      ...heatMapParams,
+      count: true,
+      match_mark: true,
+      selection_mark: true,
+    }),
     [heatMapParams]
   );
   const metaParams = useMemo(
@@ -156,13 +167,18 @@ const useMicrotrait = (collection_id: string | undefined) => {
     skipPoll: !collection_id || !(matchId || selId),
   });
 
+  // Reload on context change
+  useEffect(() => {
+    microtraitQuery.refetch();
+  }, [microtraitQuery, context]);
+
   //cache last row of each page, we should implement better backend pagination this is silly
   useEffect(() => {
     if (!microtraitQuery.isFetching && microtraitQuery.data) {
-      pageLastIdCache[pagination.pageIndex] =
-        microtraitQuery.data.data[
-          microtraitQuery.data.data.length - 1
-        ].kbase_display_name;
+      const name =
+        microtraitQuery.data.data[microtraitQuery.data.data.length - 1]
+          ?.kbase_display_name;
+      if (name) pageLastIdCache[pagination.pageIndex] = name;
     }
   }, [
     microtraitQuery.data,
@@ -171,13 +187,76 @@ const useMicrotrait = (collection_id: string | undefined) => {
     pageLastIdCache,
   ]);
 
-  const { data: count, ...countQuery } = getMicroTrait.useQuery(countParams, {
-    skip: !collection_id,
-  });
-
   const { data: meta, ...metaQuery } = getMicroTraitMeta.useQuery(metaParams, {
     skip: !collection_id,
   });
+
+  const { data: count, ...countQuery } = getMicroTrait.useQuery(
+    allCountParams,
+    {
+      skip: !collection_id,
+    }
+  );
+
+  const [matchCountParams, selCountParams] = useMemo(
+    () => [
+      {
+        ...allCountParams,
+        match_mark: false,
+      },
+      {
+        ...allCountParams,
+        selection_mark: false,
+      },
+    ],
+    [allCountParams]
+  );
+
+  const matchCount = getMicroTrait.useQuery(matchCountParams, {
+    skip: !collection_id || !matchId,
+  });
+
+  const { match_state } = useProcessStatePolling(matchCount, ['match_state'], {
+    skipPoll: !collection_id || !matchId,
+  });
+
+  const selCount = getMicroTrait.useQuery(selCountParams, {
+    skip: !collection_id || !selId,
+  });
+
+  const { selection_state } = useProcessStatePolling(
+    selCount,
+    ['selection_state'],
+    {
+      skipPoll: !collection_id || !selId,
+    }
+  );
+
+  useFilterContexts(collection_id || '', [
+    {
+      label: 'All',
+      value: 'microtrait.all',
+      count: count?.count,
+    },
+    {
+      label: 'Matched',
+      value: 'microtrait.matched',
+      count: heatMapParams.match_id ? matchCount?.data?.count : undefined,
+      disabled: !heatMapParams.match_id || matchCount?.data?.count === 0,
+      loading:
+        (heatMapParams.match_id && !match_state) ||
+        match_state === 'processing',
+    },
+    {
+      label: 'Selected',
+      value: 'microtrait.selected',
+      count: heatMapParams.selection_id ? selCount?.data?.count : undefined,
+      disabled: !heatMapParams.selection_id || selCount?.data?.count === 0,
+      loading:
+        (heatMapParams.selection_id && !selection_state) ||
+        selection_state === 'processing',
+    },
+  ]);
 
   type RowDatum = NonNullable<typeof microtrait>['data'][number];
 
@@ -260,8 +339,6 @@ const useMicrotrait = (collection_id: string | undefined) => {
   });
 
   return {
-    setMatchMark,
-    setSelMark,
     setPagination,
     microtrait,
     microtraitQuery,
