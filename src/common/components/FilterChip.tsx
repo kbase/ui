@@ -30,6 +30,8 @@ export const FilterChip = ({
         })
         .map((val) => val.toLocaleString());
       filterString = `${minString} to ${maxString}`;
+    } else if (filter.type === 'bool') {
+      filterString = filter.value.range[1] === 1 ? 'true' : 'false';
     } else {
       const val = filter.value;
       if (typeof val === 'string') {
