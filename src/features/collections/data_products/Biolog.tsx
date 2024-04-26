@@ -165,7 +165,8 @@ const useBiolog = (collection_id: string | undefined) => {
   // Reload on context change
   useEffect(() => {
     biologQuery.refetch();
-  }, [biologQuery, context]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [context]);
 
   //cache last row of each page, we should implement better backend pagination this is silly
   useEffect(() => {
