@@ -104,7 +104,7 @@ export const useProcessStatePolling = <
   result: R,
   processStateKeys: StateKey[],
   options?: { baseInterval?: number; rate?: number; skipPoll?: boolean }
-) => {
+): Partial<{ [processStateKey in StateKey]: ProcessState }> => {
   useBackoffPolling<R>(
     result,
     (result) => {
@@ -128,4 +128,9 @@ export const useProcessStatePolling = <
     },
     options
   );
+  const results: Partial<{ [processStateKey in StateKey]: ProcessState }> = {};
+  processStateKeys.forEach((key) => {
+    results[key] = result.data?.[key];
+  });
+  return results;
 };
