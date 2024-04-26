@@ -17,3 +17,4 @@ these include:
 - [// GTDB IDs are not (yet?) UPAs](https://github.com/kbase/ui/blob/abc33d5d357def6b3696aa2420cb500f17ea8d9f/src/features/collections/data_products/GenomeAttribs.tsx#L209)
 - [// GTDB has different column names (#1)](https://github.com/kbase/ui/blob/abc33d5d357def6b3696aa2420cb500f17ea8d9f/src/features/collections/data_products/GenomeAttribs.tsx#L294)
 - [// GTDB has different column names (#2)](https://github.com/kbase/ui/blob/abc33d5d357def6b3696aa2420cb500f17ea8d9f/src/features/collections/data_products/GenomeAttribs.tsx#L298-L300)
+- [// GTDB has different column names (#3)](https://github.com/kbase/ui/blob/c3494d03bc1b6da9d43bcaf8aee66962c73b241a/src/features/collections/data_products/GenomeAttribs.tsx#L320)
