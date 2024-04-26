@@ -205,7 +205,7 @@ export const GenomeAttribs: FC<{
       render:
         field.name === 'kbase_id'
           ? (cell) => {
-              // GTBD IDs are not (yet?) UPAs
+              // GTDB IDs are not (yet?) UPAs
               if (collection_id === 'GTDB') return cell.getValue();
               const upa = (cell.getValue() as string).replace(/_/g, '/');
               return (
@@ -290,9 +290,11 @@ export const GenomeAttribs: FC<{
           <AttribScatter
             collection_id={collection_id}
             xColumn={
+              // GTDB has different column names (#1)
               collection_id === 'GTDB' ? 'checkm_completeness' : 'Completeness'
             }
             yColumn={
+              // GTDB has different column names (#2)
               collection_id === 'GTDB'
                 ? 'checkm_contamination'
                 : 'Contamination'
