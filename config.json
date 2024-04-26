@@ -3,45 +3,52 @@
     "appdev": {
       "domain": "appdev.kbase.us",
       "legacy": "legacy.appdev.kbase.us",
+      "legacy_base_path": "",
       "public_url": "/"
     },
-
     "ci": {
       "domain": "ci.kbase.us",
       "legacy": "legacy.ci.kbase.us",
+      "legacy_base_path": "",
       "public_url": "/"
     },
-
     "ci-europa": {
       "domain": "ci-europa.kbase.us",
       "legacy": "legacy.ci-europa.kbase.us",
+      "legacy_base_path": "",
       "public_url": "/"
     },
-
     "narrative-dev": {
       "domain": "narrative-dev.kbase.us",
       "legacy": "legacy.narrative-dev.kbase.us",
+      "legacy_base_path": "",
       "public_url": "/"
     },
-
     "narrative2": {
       "domain": "narrative2.kbase.us",
       "legacy": "legacy.narrative2.kbase.us",
+      "legacy_base_path": "",
       "public_url": "/",
-      "backup_cookie": { "name": "kbase_session_backup", "domain": ".kbase.us" }
+      "backup_cookie": {
+        "name": "kbase_session_backup",
+        "domain": ".kbase.us"
+      }
     },
-
     "next": {
       "domain": "next.kbase.us",
       "legacy": "legacy.next.kbase.us",
+      "legacy_base_path": "",
       "public_url": "/"
     },
-
     "production": {
       "domain": "narrative.kbase.us",
       "legacy": "legacy.narrative.kbase.us",
+      "legacy_base_path": "",
       "public_url": "/",
-      "backup_cookie": { "name": "kbase_session_backup", "domain": ".kbase.us" }
+      "backup_cookie": {
+        "name": "kbase_session_backup",
+        "domain": ".kbase.us"
+      }
     }
   }
 }

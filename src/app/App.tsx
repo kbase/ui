@@ -7,7 +7,6 @@ import { FC, useEffect } from 'react';
 import { isInsideIframe } from '../common';
 import { useAppDispatch, useAppSelector } from '../common/hooks';
 import { authInitialized, authUsername } from '../features/auth/authSlice';
-import { useTokenCookie } from '../features/auth/hooks';
 import LeftNavBar from '../features/layout/LeftNavBar';
 import TopBar from '../features/layout/TopBar';
 import ErrorPage from '../features/layout/ErrorPage';
@@ -17,12 +16,24 @@ import { ModalDialog } from '../features/layout/Modal';
 import { useLoggedInProfileUser } from '../features/profile/profileSlice';
 import Routes from './Routes';
 import classes from './App.module.scss';
+import {
+  useInitializeAuthStateFromCookie,
+  useSyncAuthStateFromCookie,
+  useSyncCookieFromAuthState,
+} from '../features/auth/hooks';
 
 const useInitApp = () => {
   const dispatch = useAppDispatch();
 
-  // Pulls token from cookie, syncs cookie to auth state
-  useTokenCookie(
+  // Only used to bootstrap auth from the auth cookie, if any, present in the browser.
+  useInitializeAuthStateFromCookie('kbase_session');
+
+  // Updates app auth state from cookie changes after app startup.
+  useSyncAuthStateFromCookie('kbase_session');
+
+  // Ensures the primary auth cookie is set correctly according to app auth state. If a
+  // backup cookie is configured, ensures that it mirrors the primary auth cookie.
+  useSyncCookieFromAuthState(
     'kbase_session',
     process.env.REACT_APP_KBASE_BACKUP_COOKIE_NAME,
     process.env.REACT_APP_KBASE_BACKUP_COOKIE_DOMAIN

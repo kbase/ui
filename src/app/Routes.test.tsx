@@ -2,12 +2,12 @@ import { render } from '@testing-library/react';
 import { Provider } from 'react-redux';
 
 import {
-  Route,
   Routes as RRRoutes,
+  Route,
   MemoryRouter as Router,
 } from 'react-router-dom';
 import { TokenInfo } from '../features/auth/authSlice';
-import { LEGACY_BASE_ROUTE } from '../features/legacy/Legacy';
+import { LEGACY_BASE_ROUTE } from '../features/legacy/constants';
 import {
   Authed,
   HashRouteRedirect,
@@ -76,7 +76,10 @@ describe('Routing Utils', () => {
       <Router initialEntries={['/']}>
         <RRRoutes>
           <Route path={ROOT_REDIRECT_ROUTE} element={<NarrativePageMock />} />
-          <Route path={`${LEGACY_BASE_ROUTE}/*`} element={<LegacyPageMock />} />
+          <Route
+            path={`${LEGACY_BASE_ROUTE()}/*`}
+            element={<LegacyPageMock />}
+          />
           <Route path={'/'} element={<HashRouteRedirect />} />
         </RRRoutes>
       </Router>
@@ -92,7 +95,10 @@ describe('Routing Utils', () => {
       <Router initialEntries={['/#some-fragment/like/this']}>
         <RRRoutes>
           <Route path={ROOT_REDIRECT_ROUTE} element={<NarrativePageMock />} />
-          <Route path={`${LEGACY_BASE_ROUTE}/*`} element={<LegacyPageMock />} />
+          <Route
+            path={`${LEGACY_BASE_ROUTE()}/*`}
+            element={<LegacyPageMock />}
+          />
           <Route path={'/'} element={<HashRouteRedirect />} />
         </RRRoutes>
       </Router>
