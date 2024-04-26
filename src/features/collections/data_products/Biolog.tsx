@@ -74,6 +74,8 @@ export const Biolog: FC<{
           Col: {column.columnDef.header}
           <br />
           Val: {`${cell.val}`}
+          <br />
+          Media: {`${cell.meta?.growth_media}`}
           <>
             {data.values.map(({ id, val }) => (
               <div key={id}>{`- ${id}:${val}`}</div>
