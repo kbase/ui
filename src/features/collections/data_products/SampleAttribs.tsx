@@ -284,6 +284,7 @@ export const SampleAttribs: FC<{
               }
             : undefined,
       })),
+      // HARDCODED the field order parameter and the hidden fields parameter hardcode overrides for which columns will appear and in what order
       order: [
         'kbase_display_name',
         'kbase_id',
