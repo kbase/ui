@@ -171,6 +171,7 @@ export const CollectionDetail = () => {
   const handleSearchDebounced = useDebounce<
     React.ChangeEventHandler<HTMLInputElement>
   >((e) => {
+    // HARDCODED Here we are using the `classification` filter as our default search filter
     const filter = filters?.['classification'];
     if (
       !collection ||

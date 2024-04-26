@@ -217,7 +217,8 @@ export const GenomeAttribs: FC<{
                 </Link>
               );
             }
-          : field.name === 'classification'
+          : // HARDCODED Special rendering for the `classification` column
+          field.name === 'classification'
           ? (cell) => {
               return (
                 <Tooltip
@@ -240,6 +241,7 @@ export const GenomeAttribs: FC<{
             }
           : undefined,
     })),
+    // HARDCODED the field order parameter and the hidden fields parameter hardcode overrides for which columns will appear and in what order
     order: ['kbase_display_name', 'kbase_id', 'genome_size'],
     exclude: ['__match__', '__sel__'],
   });
@@ -287,6 +289,7 @@ export const GenomeAttribs: FC<{
             width: '100%',
           }}
         >
+          {/* HARDCODED Plots are currently hardcoded for certain columns in the existing collections schema */}
           <AttribScatter
             collection_id={collection_id}
             xColumn={
@@ -313,6 +316,7 @@ export const GenomeAttribs: FC<{
             width: '100%',
           }}
         >
+          {/* HARDCODED Plots are currently hardcoded for certain columns in the existing collections schema */}
           <AttribHistogram
             collection_id={collection_id}
             column={
