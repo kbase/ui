@@ -159,6 +159,7 @@ const getPlotlyFromTanstack = ({
           cell_id,
           col_id,
           val,
+          meta: row.original.meta,
         };
       });
       const cellLabels: (React.ReactElement | string | null)[] = [];
@@ -171,6 +172,7 @@ const getPlotlyFromTanstack = ({
           cell_id,
           col_id,
           val,
+          meta: row.original.meta,
         };
         const hmr: HeatMapRow = {
           match: false,

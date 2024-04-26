@@ -97,6 +97,7 @@ export interface HeatMapCell {
   cell_id: string;
   col_id: HeatMapColumn['col_id'];
   val: number | boolean;
+  meta?: Record<string, string>;
 }
 
 export interface HeatMapRow {
