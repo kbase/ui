@@ -7,7 +7,7 @@ import {
 } from '@reduxjs/toolkit/query/react';
 import { RootState } from '../../../app/store';
 import { serviceWizardApi } from '../serviceWizardApi';
-import { KBaseBaseQueryError, isJsonRpcError } from './common';
+import { isJsonRpcError, KBaseBaseQueryError } from './common';
 
 export interface DynamicService {
   name: string;
@@ -16,15 +16,32 @@ export interface DynamicService {
 
 export interface StaticService {
   url: string;
+  version?: '1.1' | '2.0';
 }
 
 export interface JsonRpcQueryArgs {
   apiType: 'JsonRpc';
   service: StaticService | DynamicService;
   method: string;
-  params: unknown;
+  params?: unknown;
   fetchArgs?: FetchArgs;
 }
+
+export interface JSONRPC11Body {
+  version: string;
+  id: string;
+  method: string;
+  params?: unknown;
+}
+
+export interface JSONRPC20Body {
+  jsonrpc: string;
+  id: string;
+  method: string;
+  params?: unknown;
+}
+
+export type JSONRPCBody = JSONRPC11Body | JSONRPC20Body;
 
 export interface HttpQueryArgs extends FetchArgs {
   apiType: 'Http';
@@ -172,6 +189,27 @@ export const kbaseBaseQuery: (
       // Generate JsonRpc request id
       const reqId = Math.random().toString();
 
+      const body = ((): JSONRPCBody => {
+        switch (kbQueryArgs.service.version || '1.1') {
+          case '1.1':
+            return {
+              version: '1.1',
+              id: reqId,
+              method: kbQueryArgs.method,
+            };
+          case '2.0':
+            return {
+              jsonrpc: '2.0',
+              id: reqId,
+              method: kbQueryArgs.method,
+            };
+        }
+      })();
+
+      if (kbQueryArgs.params) {
+        body.params = kbQueryArgs.params;
+      }
+
       // generate request body
       const fetchArgs = {
         url: new URL(
@@ -179,12 +217,7 @@ export const kbaseBaseQuery: (
           fetchBaseQueryArgs.baseUrl
         ).toString(),
         method: 'POST',
-        body: {
-          version: '1.1', // TODO: conditionally implement JsonRpc 2.0
-          id: reqId,
-          method: kbQueryArgs.method,
-          params: kbQueryArgs.params,
-        },
+        body,
         ...kbQueryArgs.fetchArgs, // Allow overriding JsonRpc defaults
       };
 
