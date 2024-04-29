@@ -10,6 +10,7 @@ import {
   faBullhorn,
   IconDefinition,
   faLayerGroup,
+  faLink,
 } from '@fortawesome/free-solid-svg-icons';
 import { FC } from 'react';
 import { Link, useLocation } from 'react-router-dom';
@@ -37,6 +38,7 @@ const LeftNavBar: FC = () => {
         <NavItem path="/legacy/search" desc="Search" icon={faSearch} />
         <NavItem path="/legacy/jobbrowser" desc="Jobs" icon={faSuitcase} />
         <NavItem path="/legacy/account" desc="Account" icon={faIdCard} />
+        <NavItem path="/orcidlink" desc="ORCID Link" icon={faLink} />
         <NavItem
           path="/legacy/feeds"
           desc="Feeds"
