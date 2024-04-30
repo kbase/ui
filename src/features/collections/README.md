@@ -29,9 +29,11 @@ include:
 - [using the `classification` filter as our default search filter](https://github.com/kbase/ui/blob/3c89e2651710c92fed916d13cb98a5e47cd7c5e1/src/features/collections/CollectionDetail.tsx#L174-L194)
 - the field order parameter and the hidden fields parameter hardcode overrides
   for which columns will appear and in what order
+
   - [genomeAttribs](https://github.com/kbase/ui/blob/3c89e2651710c92fed916d13cb98a5e47cd7c5e1/src/features/collections/data_products/GenomeAttribs.tsx#L244-L246)
   - [sampleAttribs](https://github.com/kbase/ui/blob/3c89e2651710c92fed916d13cb98a5e47cd7c5e1/src/features/collections/data_products/SampleAttribs.tsx#L287-L294)
 - Plots are currently hardcoded for certain columns in the existing collections
   schema
+
   - [histogram](https://github.com/kbase/ui/blob/3c89e2651710c92fed916d13cb98a5e47cd7c5e1/src/features/collections/data_products/GenomeAttribs.tsx#L319-L325)
   - [scatter](https://github.com/kbase/ui/blob/3c89e2651710c92fed916d13cb98a5e47cd7c5e1/src/features/collections/data_products/GenomeAttribs.tsx#L292-L304)
