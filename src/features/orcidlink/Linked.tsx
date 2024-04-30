@@ -5,7 +5,7 @@ import { useAppSelector } from '../../common/hooks';
 import { authUsername } from '../auth/authSlice';
 import ErrorMessage from './ErrorMessage';
 import styles from './orcidlink.module.scss';
-import { GetOwnerLinkResult, orcidlinkAPI } from './orcidlinkAPI';
+import { orcidlinkAPI, OwnerLinkResult } from './orcidlinkAPI';
 
 export default function Linked() {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -24,7 +24,7 @@ export default function Linked() {
     );
   }
 
-  function renderLink(data: GetOwnerLinkResult) {
+  function renderLink(data: OwnerLinkResult) {
     return (
       <div>
         <p>Congratulations! You do indeed have an ORCID Link</p>
@@ -58,7 +58,7 @@ export default function Linked() {
     isFetching,
     isSuccess,
     isUninitialized,
-  } = orcidlinkAPI.useGetOwnerLinkQuery({ username });
+  } = orcidlinkAPI.useOrcidlinkOwnerLinkQuery({ username });
 
   if (isUninitialized) {
     return renderLoading('Uninitialized...', 'Loading your ORCID Link...');

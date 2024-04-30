@@ -1,31 +1,7 @@
 import { baseApi } from '../../common/api';
 import { jsonRpcService } from '../../common/api/utils/serviceHelpers';
 
-// Status method
-// Note no params
-export interface StatusResult {
-  status: string;
-  current_time: number;
-  start_time: number;
-}
-
-export interface InfoResult {
-  'service-description': {
-    name: string;
-    title: string;
-    version: string;
-  };
-}
-
-export interface IsLinkedParams {
-  username: string;
-}
-
-export type IsLinkedResult = boolean;
-
-export interface GetOwnerLinkParams {
-  username: string;
-}
+// orcidlink system types
 
 export interface ORCIDAuthPublic {
   expires_in: number;
@@ -42,7 +18,36 @@ export interface LinkRecordPublic {
   orcid_auth: ORCIDAuthPublic;
 }
 
-export type GetOwnerLinkResult = LinkRecordPublic;
+// Method types
+
+export interface StatusResult {
+  status: string;
+  current_time: number;
+  start_time: number;
+}
+
+export interface InfoResult {
+  'service-description': {
+    name: string;
+    title: string;
+    version: string;
+  };
+}
+
+// is-linked
+
+export interface IsLinkedParams {
+  username: string;
+}
+
+export type IsLinkedResult = boolean;
+
+// owner-link
+export interface OwnerLinkParams {
+  username: string;
+}
+
+export type OwnerLinkResult = LinkRecordPublic;
 
 // It is mostly a JSONRPC 2.0 service, although the oauth flow is rest-ish.
 const orcidlinkService = jsonRpcService({
@@ -50,21 +55,21 @@ const orcidlinkService = jsonRpcService({
   version: '2.0',
 });
 
+/**
+ * orcidlink service api
+ */
 export const orcidlinkAPI = baseApi
   .enhanceEndpoints({ addTagTypes: ['ORCIDLink'] })
   .injectEndpoints({
-    // because many apis have "status", some have "info", and there may be
-    // other random clashes.
-    overrideExisting: true,
     endpoints: ({ query }) => ({
-      status: query<StatusResult, {}>({
+      orcidlinkStatus: query<StatusResult, {}>({
         query: () => {
           return orcidlinkService({
             method: 'status',
           });
         },
       }),
-      isLinked: query<IsLinkedResult, IsLinkedParams>({
+      orcidlinkIsLinked: query<IsLinkedResult, IsLinkedParams>({
         query: ({ username }) => {
           return orcidlinkService({
             method: 'is-linked',
@@ -74,7 +79,7 @@ export const orcidlinkAPI = baseApi
           });
         },
       }),
-      getOwnerLink: query<GetOwnerLinkResult, GetOwnerLinkParams>({
+      orcidlinkOwnerLink: query<OwnerLinkResult, OwnerLinkParams>({
         query: ({ username }) => {
           return orcidlinkService({
             method: 'owner-link',

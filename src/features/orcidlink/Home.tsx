@@ -41,7 +41,7 @@ export default function Home() {
     isFetching,
     isSuccess,
     isUninitialized,
-  } = orcidlinkAPI.useIsLinkedQuery({ username });
+  } = orcidlinkAPI.useOrcidlinkIsLinkedQuery({ username });
 
   if (isUninitialized) {
     return renderLoading('Uninitialized...', 'Loading the ORCID Link App...');
