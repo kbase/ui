@@ -31,7 +31,7 @@ export default function Home() {
     return <ErrorMessage error={error} />;
   }
 
-  usePageTitle('ORCID Link');
+  usePageTitle('KBase ORCID Link');
 
   const {
     data: isLInked,
