@@ -1,5 +1,5 @@
-import { baseApi } from '../../common/api';
-import { jsonRpcService } from '../../common/api/utils/serviceHelpers';
+import { baseApi } from '.';
+import { jsonRpcService } from './utils/serviceHelpers';
 
 // orcidlink system types
 

@@ -1,11 +1,11 @@
 import { Alert, AlertTitle, CircularProgress } from '@mui/material';
 import { SerializedError } from '@reduxjs/toolkit';
+import { orcidlinkAPI, OwnerLinkResult } from '../../common/api/orcidlinkAPI';
 import { KBaseBaseQueryError } from '../../common/api/utils/common';
 import { useAppSelector } from '../../common/hooks';
 import { authUsername } from '../auth/authSlice';
 import ErrorMessage from './ErrorMessage';
 import styles from './orcidlink.module.scss';
-import { orcidlinkAPI, OwnerLinkResult } from './orcidlinkAPI';
 
 export default function Linked() {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

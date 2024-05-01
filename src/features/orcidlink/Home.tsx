@@ -1,5 +1,6 @@
 import { Alert, AlertTitle, CircularProgress } from '@mui/material';
 import { SerializedError } from '@reduxjs/toolkit';
+import { orcidlinkAPI } from '../../common/api/orcidlinkAPI';
 import { KBaseBaseQueryError } from '../../common/api/utils/common';
 import { useAppSelector } from '../../common/hooks';
 import { authUsername } from '../auth/authSlice';
@@ -7,7 +8,6 @@ import { usePageTitle } from '../layout/layoutSlice';
 import ErrorMessage from './ErrorMessage';
 import Linked from './Linked';
 import styles from './orcidlink.module.scss';
-import { orcidlinkAPI } from './orcidlinkAPI';
 import Unlinked from './Unlinked';
 
 export default function Home() {
