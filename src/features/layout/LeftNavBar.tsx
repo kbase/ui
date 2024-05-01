@@ -1,24 +1,23 @@
 /* LeftNavBar */
-import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
 import {
-  faCompass,
-  faUsers,
   faBook,
+  faBullhorn,
+  faCompass,
+  faIdCard,
+  faLayerGroup,
   faSearch,
   faSuitcase,
-  faIdCard,
-  faBullhorn,
+  faUsers,
   IconDefinition,
-  faLayerGroup,
-  faLink,
 } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
 import { FC } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { getFeedsUnseenCount } from '../../common/api/feedsService';
 import { useAppSelector } from '../../common/hooks';
 import { authMe, authToken } from '../auth/authSlice';
 import { useAuthMe } from '../auth/hooks';
 import classes from './LeftNavBar.module.scss';
-import { getFeedsUnseenCount } from '../../common/api/feedsService';
 
 const LeftNavBar: FC = () => {
   const token = useAppSelector(authToken);
@@ -38,7 +37,6 @@ const LeftNavBar: FC = () => {
         <NavItem path="/legacy/search" desc="Search" icon={faSearch} />
         <NavItem path="/legacy/jobbrowser" desc="Jobs" icon={faSuitcase} />
         <NavItem path="/legacy/account" desc="Account" icon={faIdCard} />
-        <NavItem path="/orcidlink" desc="ORCID Link" icon={faLink} />
         <NavItem
           path="/legacy/feeds"
           desc="Feeds"
