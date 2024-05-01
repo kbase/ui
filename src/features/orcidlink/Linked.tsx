@@ -71,6 +71,9 @@ export default function Linked() {
   } else if (isSuccess) {
     return renderLink(data);
   } else {
-    return <div>???</div>;
+    return renderError({
+      status: 'CUSTOM_ERROR',
+      error: 'Unknown State',
+    });
   }
 }

@@ -65,6 +65,9 @@ export default function Home() {
       </div>
     );
   } else {
-    return <div>???</div>;
+    return renderError({
+      status: 'CUSTOM_ERROR',
+      error: 'Unknown State',
+    });
   }
 }
