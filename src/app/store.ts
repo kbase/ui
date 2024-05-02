@@ -5,6 +5,7 @@ import collections from '../features/collections/collectionsSlice';
 import icons from '../features/icons/iconSlice';
 import layout from '../features/layout/layoutSlice';
 import navigator from '../features/navigator/navigatorSlice';
+import orcidlink from '../features/orcidlink/orcidlinkSlice';
 import params from '../features/params/paramsSlice';
 import profile from '../features/profile/profileSlice';
 
@@ -16,6 +17,7 @@ const everyReducer = combineReducers({
   navigator,
   params,
   profile,
+  orcidlink,
   [baseApi.reducerPath]: baseApi.reducer,
 });
 

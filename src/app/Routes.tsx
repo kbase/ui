@@ -25,6 +25,7 @@ import {
   useFilteredParams,
   usePageTracking,
 } from '../common/hooks';
+import ORCIDLinkFeature from '../features/orcidlink';
 
 export const LOGIN_ROUTE = '/legacy/login';
 export const ROOT_REDIRECT_ROUTE = '/narratives';
@@ -75,6 +76,11 @@ const Routes: FC = () => {
           element={<Authed element={<CollectionDetail />} />}
         />
         <Route path="*" element={<PageNotFound />} />
+      </Route>
+
+      {/* orcidlink */}
+      <Route path="/orcidlink">
+        <Route index element={<Authed element={<ORCIDLinkFeature />} />} />
       </Route>
 
       {/* IFrame Fallback Routes */}

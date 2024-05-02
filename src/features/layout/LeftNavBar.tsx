@@ -1,23 +1,23 @@
 /* LeftNavBar */
-import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
 import {
-  faCompass,
-  faUsers,
   faBook,
+  faBullhorn,
+  faCompass,
+  faIdCard,
+  faLayerGroup,
   faSearch,
   faSuitcase,
-  faIdCard,
-  faBullhorn,
+  faUsers,
   IconDefinition,
-  faLayerGroup,
 } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
 import { FC } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { getFeedsUnseenCount } from '../../common/api/feedsService';
 import { useAppSelector } from '../../common/hooks';
 import { authMe, authToken } from '../auth/authSlice';
 import { useAuthMe } from '../auth/hooks';
 import classes from './LeftNavBar.module.scss';
-import { getFeedsUnseenCount } from '../../common/api/feedsService';
 
 const LeftNavBar: FC = () => {
   const token = useAppSelector(authToken);

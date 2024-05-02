@@ -1,4 +1,3 @@
-import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
 import {
   faBars,
   faEnvelope,
@@ -17,20 +16,21 @@ import {
   faUser,
   faWrench,
 } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
 import { FC, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { toast } from 'react-hot-toast';
+import { Link } from 'react-router-dom';
+import { resetStateAction } from '../../app/store';
+import { revokeToken } from '../../common/api/authService';
+import { getUserProfile } from '../../common/api/userProfileApi';
 import logo from '../../common/assets/logo/46_square.png';
 import { Dropdown } from '../../common/components';
 import { useAppDispatch, useAppSelector } from '../../common/hooks';
 import { authUsername, setAuth } from '../auth/authSlice';
-import classes from './TopBar.module.scss';
-import { Link } from 'react-router-dom';
-import { getUserProfile } from '../../common/api/userProfileApi';
-import { revokeToken } from '../../common/api/authService';
-import { toast } from 'react-hot-toast';
 import { noOp } from '../common';
-import { resetStateAction } from '../../app/store';
+import classes from './TopBar.module.scss';
 
 export default function TopBar() {
   const username = useAppSelector(authUsername);
