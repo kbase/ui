@@ -1,5 +1,5 @@
 /* auth/hooks */
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { authFromToken, getMe } from '../../common/api/authService';
 import { useCookie } from '../../common/cookie';
 import { useAppDispatch, useAppSelector } from '../../common/hooks';
@@ -33,80 +33,88 @@ export const useTokenCookie = (
 ) => {
   const dispatch = useAppDispatch();
 
+  // Pull current token, expiration, and init info from auth state
+  const currentToken = useAppSelector(authToken);
+  const currentExpires = useAppSelector(({ auth }) => auth.tokenInfo?.expires);
+  const initialized = useAppSelector(authInitialized); // true after setAuth is called.
+
   // Pull token from main cookie. If it exists, and differs from state, try it for auth.
+  const cookieOptions = {
+    ...(process.env.NODE_ENV === 'development'
+      ? {}
+      : { domain: `.${process.env.REACT_APP_KBASE_DOMAIN}` }),
+    path: '/',
+    secure: true,
+  };
   const [cookieToken, setCookieToken, clearCookieToken] = useCookie(
     cookieName,
-    process.env.NODE_ENV === 'development'
-      ? {}
-      : { domain: `.${process.env.REACT_APP_KBASE_DOMAIN}` }
+    cookieOptions
   );
-
-  const { isSuccess, isFetching, isUninitialized } =
-    useTryAuthFromToken(cookieToken);
 
   // Controls for backupCookie
   const [backupCookieToken, setBackupCookieToken, clearBackupCookieToken] =
-    useCookie(backupCookieName, { domain: backupCookieDomain });
+    useCookie(backupCookieName, {
+      ...cookieOptions,
+      domain: backupCookieDomain,
+    });
 
-  // Pull token, expiration, and init info from auth state
-  const token = useAppSelector(authToken);
-  const expires = useAppSelector(({ auth }) => auth.tokenInfo?.expires);
-  const appAuthInitialized = useAppSelector(authInitialized);
+  // On cookie token change, validate. If valid, set auth.
+  const { isError, isFetching } = useTryAuthFromToken(
+    cookieToken || backupCookieToken
+  );
 
-  // Initializes auth for states where useTryAuthFromToken does not set auth
+  // Initializes auth when useTryAuthFromToken fails or doesn't run.
   useEffect(() => {
-    // If the cookieToken is present but it failed checks and wont be overwritten by a token in state, clear
-    if (
-      cookieToken &&
-      !isUninitialized &&
-      !isFetching &&
-      !isSuccess &&
-      !token
+    if (initialized) {
+      return;
+    } else if (!(cookieToken || backupCookieToken)) {
+      // If there is no cookieToken, init auth as null
+      dispatch(setAuth(null));
+    } else if (
+      !isFetching && // The request finished
+      isError && // it failed
+      !currentToken // and we don't have a token in state
     ) {
+      // init auth as null.
       dispatch(setAuth(null));
+      // Clear the bad cookie
       clearCookieToken();
-      // clear backup token too, if it exists
+      // Clear backup token too, if it exists
       if (backupCookieName) clearBackupCookieToken();
-    }
-    if (isFetching || appAuthInitialized) return;
-    if (!cookieToken) {
-      dispatch(setAuth(null));
-    } else if (!isSuccess) {
-      dispatch(setAuth(null));
     }
   }, [
     isFetching,
-    appAuthInitialized,
+    initialized,
     cookieToken,
     dispatch,
-    isSuccess,
-    isUninitialized,
     clearCookieToken,
     backupCookieName,
     clearBackupCookieToken,
-    token,
+    currentToken,
+    isError,
+    backupCookieToken,
   ]);
 
   // Set the cookie according to the initialized auth state
   useEffect(() => {
-    if (!appAuthInitialized) return;
-    if (token && expires) {
-      setCookieToken(token, {
-        expires: new Date(expires),
+    if (!initialized) return;
+    if (currentToken && currentExpires) {
+      setCookieToken(currentToken, {
+        expires: new Date(currentExpires),
       });
-    } else if (token && !expires) {
+    } else if (currentToken && !currentExpires) {
       // eslint-disable-next-line no-console
       console.error('Could not set token cookie, missing expire time');
-    } else if (!token) {
+    } else if (!currentToken) {
       // Auth initialized but theres no valid token? Clear the cookie!
       clearCookieToken();
       // clear backup token too, if it exists
       if (backupCookieName) clearBackupCookieToken();
     }
   }, [
-    appAuthInitialized,
-    token,
-    expires,
+    initialized,
+    currentToken,
+    currentExpires,
     setCookieToken,
     clearCookieToken,
     clearBackupCookieToken,
@@ -117,16 +125,16 @@ export const useTokenCookie = (
   useEffect(() => {
     if (
       Boolean(backupCookieName) &&
-      appAuthInitialized &&
-      token &&
-      backupCookieToken !== token
+      initialized &&
+      currentToken &&
+      backupCookieToken !== currentToken
     ) {
-      if (!expires) {
+      if (!currentExpires) {
         // eslint-disable-next-line no-console
         console.error('Could not set backup token cookie, missing expire time');
       } else {
-        setBackupCookieToken(token, {
-          expires: new Date(expires),
+        setBackupCookieToken(currentToken, {
+          expires: new Date(currentExpires),
         });
       }
     }
@@ -134,24 +142,29 @@ export const useTokenCookie = (
     backupCookieDomain,
     backupCookieName,
     backupCookieToken,
-    expires,
-    appAuthInitialized,
+    currentExpires,
+    initialized,
     setBackupCookieToken,
-    token,
+    currentToken,
   ]);
 };
 
 export const useTryAuthFromToken = (token?: string) => {
   const dispatch = useAppDispatch();
-  const currentToken = useAppSelector(authToken);
   const normToken = normalizeToken(token, '');
 
   const tokenQuery = authFromToken.useQuery(normToken, {
     skip: !normToken,
   });
 
+  // Make ref for currentToken as we want to exclude it from effect deps
+  const currentToken = useAppSelector(authToken);
+  const currentTokenRef = useRef(currentToken);
+  currentTokenRef.current = currentToken;
+
+  // Set auth state when token is valid
   useEffect(() => {
-    if (tokenQuery.isSuccess && normToken !== currentToken) {
+    if (tokenQuery.isSuccess && normToken !== currentTokenRef.current) {
       dispatch(
         setAuth({
           token: normToken,
@@ -160,13 +173,7 @@ export const useTryAuthFromToken = (token?: string) => {
         })
       );
     }
-  }, [
-    currentToken,
-    dispatch,
-    normToken,
-    tokenQuery.data,
-    tokenQuery.isSuccess,
-  ]);
+  }, [normToken, tokenQuery.data, tokenQuery.isSuccess, dispatch]);
 
   return tokenQuery;
 };

@@ -14,7 +14,7 @@ describe('authSlice', () => {
     testStore = createTestStore({});
   });
 
-  test('useTryAuthFromToken sets auth token and username', async () => {
+  test('useTryAuthFromToken sets auth token and username when successful', async () => {
     const mock = jest.spyOn(authFromToken, 'useQuery');
     mock.mockImplementation(() => {
       return {
@@ -35,11 +35,12 @@ describe('authSlice', () => {
       // token gets normalized to uppercase
       expect(testStore.getState().auth.token).toBe('SOME TOKEN');
       expect(testStore.getState().auth.username).toBe('someUser');
+      expect(testStore.getState().auth.initialized).toBe(true);
     });
     mock.mockClear();
   });
 
-  test('useTryAuthFromToken fails quietly with invalid token', async () => {
+  test('useTryAuthFromToken fails quietly with invalid token, does not initialize state', async () => {
     const mock = jest.spyOn(authFromToken, 'useQuery');
     mock.mockImplementation(() => {
       return {
@@ -59,6 +60,7 @@ describe('authSlice', () => {
     await waitFor(() => {
       expect(testStore.getState().auth.token).toBe(undefined);
       expect(testStore.getState().auth.username).toBe(undefined);
+      expect(testStore.getState().auth.initialized).toBe(false);
     });
     mock.mockClear();
   });
@@ -79,6 +81,7 @@ describe('authSlice', () => {
     await waitFor(() => {
       expect(testStore.getState().auth.token).toBe(undefined);
       expect(testStore.getState().auth.username).toBe(undefined);
+      expect(testStore.getState().auth.initialized).toBe(true);
     });
     fetchMock.disableMocks();
   });
@@ -99,6 +102,7 @@ describe('authSlice', () => {
     await waitFor(() => {
       expect(testStore.getState().auth.token).toBe('foo');
       expect(testStore.getState().auth.username).toBe('someUser');
+      expect(testStore.getState().auth.initialized).toBe(true);
     });
     fetchMock.disableMocks();
   });
