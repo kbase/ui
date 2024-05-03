@@ -68,23 +68,41 @@ export const Biolog: FC<{
     } else {
       return (
         <>
-          Type: {column.columnDef.meta?.type}
-          <hr />
-          Row: (
-          <DataViewLink identifier={row.kbase_id}>
-            {row.kbase_id}
-          </DataViewLink>) {row.kbase_display_name}
-          <br />
-          Col: {column.columnDef.header}
-          <br />
-          Val: {`${cell.val}`}
-          <br />
-          Media: {`${cell.meta?.growth_media}`}
-          <>
+          <table>
+            <tr>
+              <th>KBase ID</th>
+              <td>
+                <DataViewLink identifier={row.kbase_id}>
+                  {row.kbase_id}
+                </DataViewLink>
+                ) {row.kbase_display_name}
+              </td>
+            </tr>
+            <tr>
+              <th>Treatment</th>
+              <td>{`${column.columnDef.header}`}</td>
+            </tr>
+            <tr>
+              <td colSpan={2}>
+                <hr />
+              </td>
+            </tr>
+            <tr>
+              <th>Type</th>
+              <td>{column.columnDef.meta?.type}</td>
+            </tr>
+            <tr>
+              <th>Value</th>
+              <td> {`${cell.val}`}</td>
+            </tr>
+            <tr>
+              <th>Media</th>
+              <td>{cell.meta?.growth_media}</td>
+            </tr>
             {data.values.map(({ id, val }) => (
               <div key={id}>{`- ${id}:${val}`}</div>
             ))}
-          </>
+          </table>
         </>
       );
     }
