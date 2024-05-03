@@ -1,16 +1,15 @@
 import { Alert, AlertTitle, CircularProgress } from '@mui/material';
 import { SerializedError } from '@reduxjs/toolkit';
-import { orcidlinkAPI } from '../../common/api/orcidlinkAPI';
-import { KBaseBaseQueryError } from '../../common/api/utils/common';
-import { useAppSelector } from '../../common/hooks';
-import { authUsername } from '../auth/authSlice';
-import { usePageTitle } from '../layout/layoutSlice';
-import ErrorMessage from './ErrorMessage';
-import Linked from './Linked';
-import styles from './orcidlink.module.scss';
-import Unlinked from './Unlinked';
+import { orcidlinkAPI } from '../../../common/api/orcidlinkAPI';
+import { KBaseBaseQueryError } from '../../../common/api/utils/common';
+import { useAppSelector } from '../../../common/hooks';
+import { authUsername } from '../../auth/authSlice';
+import { usePageTitle } from '../../layout/layoutSlice';
+import ErrorMessage from '../ErrorMessage';
+import styles from '../orcidlink.module.scss';
+import Home from './Home';
 
-export default function Home() {
+export default function HomeController() {
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const username = useAppSelector(authUsername)!;
 
@@ -34,40 +33,26 @@ export default function Home() {
   usePageTitle('KBase ORCID Link');
 
   const {
-    data: isLInked,
+    data: isLinked,
     error,
     isLoading,
     isError,
     isFetching,
     isSuccess,
-    isUninitialized,
   } = orcidlinkAPI.useOrcidlinkIsLinkedQuery({ username });
 
-  if (isUninitialized) {
-    return renderLoading('Uninitialized...', 'Loading the ORCID Link App...');
-  } else if (isLoading) {
+  if (isLoading) {
     return renderLoading('Loading...', 'Loading the ORCID Link App...');
   } else if (isFetching) {
     return renderLoading('Fetching...', 'Loading the ORCID Link App...');
   } else if (isError) {
     return renderError(error);
   } else if (isSuccess) {
-    if (isLInked) {
-      return (
-        <div className={styles.box}>
-          <Linked />
-        </div>
-      );
-    }
-    return (
-      <div className={styles.box}>
-        <Unlinked />
-      </div>
-    );
-  } else {
-    return renderError({
-      status: 'CUSTOM_ERROR',
-      error: 'Unknown State',
-    });
+    return <Home isLinked={isLinked} />;
   }
+
+  // Because TS cannot have any way of knowing that the state filtering above
+  // catches all cases.
+  // TODO: how can we test this case without mocking a broken RTK query api?
+  return null;
 }

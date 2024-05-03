@@ -22,11 +22,17 @@ type JsonRpcError = {
   };
 };
 
+// https://github.com/reduxjs/redux-toolkit/blob/7cd8142f096855eb7cd03fb54c149ebfdc7dd084/packages/toolkit/src/query/fetchBaseQuery.ts#L48
 export type KBaseBaseQueryError =
   | FetchBaseQueryError
   | {
       status: 'JSONRPC_ERROR';
       data: JsonRpcError;
+    }
+  | {
+      status: 'CUSTOM_ERROR';
+      error: 'JsonRpcProtocolError';
+      data: string;
     };
 
 export const isJsonRpcError = (obj: unknown): obj is JsonRpcError => {

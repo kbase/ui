@@ -14,13 +14,16 @@ export default function ErrorMessage({ error }: ErrorMessageProps) {
         case 'JSONRPC_ERROR':
           return error.data.error.message;
         case 'FETCH_ERROR':
-          return 'Fetch Error';
+          return error.error;
         case 'CUSTOM_ERROR':
           return error.error;
         case 'PARSING_ERROR':
           return error.error;
         case 'TIMEOUT_ERROR':
           return error.error;
+      }
+      if ('status' in error && typeof error.status === 'number') {
+        return `HTTP Status Code: ${error.status}`;
       }
     } else {
       return error.message || 'Unknown Error';
