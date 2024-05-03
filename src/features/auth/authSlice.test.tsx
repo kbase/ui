@@ -14,97 +14,104 @@ describe('authSlice', () => {
     testStore = createTestStore({});
   });
 
-  test('useTryAuthFromToken sets auth token and username when successful', async () => {
-    const mock = jest.spyOn(authFromToken, 'useQuery');
-    mock.mockImplementation(() => {
-      return {
-        isSuccess: true,
-        data: { user: 'someUser' },
-      } as unknown as ReturnType<typeof authFromToken['useQuery']>; // Assert mocked response type
-    });
+  describe('useTryAuthFromToken', () => {
+    let authMock = jest.spyOn(authFromToken, 'useQuery');
+    let token: string | undefined;
     const Component = () => {
-      useTryAuthFromToken('some token');
+      useTryAuthFromToken(token);
       return <></>;
     };
-    render(
-      <Provider store={testStore}>
-        <Component />
-      </Provider>
-    );
-    await waitFor(() => {
-      // token gets normalized to uppercase
-      expect(testStore.getState().auth.token).toBe('SOME TOKEN');
-      expect(testStore.getState().auth.username).toBe('someUser');
-      expect(testStore.getState().auth.initialized).toBe(true);
+
+    beforeEach(() => {
+      authMock = jest.spyOn(authFromToken, 'useQuery');
+      token = undefined;
     });
-    mock.mockClear();
+
+    afterEach(() => {
+      authMock.mockClear();
+    });
+
+    test('sets auth token and username when successful', async () => {
+      token = 'some token';
+      authMock.mockImplementation(() => {
+        return {
+          isSuccess: true,
+          data: { user: 'someUser' },
+        } as unknown as ReturnType<typeof authFromToken['useQuery']>; // Assert mocked response type
+      });
+
+      render(
+        <Provider store={testStore}>
+          <Component />
+        </Provider>
+      );
+
+      await waitFor(() => {
+        // token gets normalized to uppercase
+        expect(testStore.getState().auth.token).toBe('SOME TOKEN');
+        expect(testStore.getState().auth.username).toBe('someUser');
+        expect(testStore.getState().auth.initialized).toBe(true);
+      });
+    });
+
+    test('fails quietly with invalid token, does not initialize state', async () => {
+      token = 'some token';
+      authMock.mockImplementation(() => {
+        return {
+          isSuccess: false,
+          isError: true,
+        } as unknown as ReturnType<typeof authFromToken['useQuery']>; // Assert mocked response type
+      });
+      render(
+        <Provider store={testStore}>
+          <Component />
+        </Provider>
+      );
+      await waitFor(() => {
+        expect(testStore.getState().auth.token).toBe(undefined);
+        expect(testStore.getState().auth.username).toBe(undefined);
+        expect(testStore.getState().auth.initialized).toBe(false);
+      });
+    });
   });
 
-  test('useTryAuthFromToken fails quietly with invalid token, does not initialize state', async () => {
-    const mock = jest.spyOn(authFromToken, 'useQuery');
-    mock.mockImplementation(() => {
-      return {
-        isSuccess: false,
-        isError: true,
-      } as unknown as ReturnType<typeof authFromToken['useQuery']>; // Assert mocked response type
+  describe('revokeToken', () => {
+    beforeEach(() => {
+      testStore = createTestStore({
+        auth: {
+          username: 'someUser',
+          token: 'foo',
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          tokenInfo: { id: 'existing-tokenid' } as TokenInfo,
+          initialized: true,
+        },
+      });
+      fetchMock.enableMocks();
     });
-    const Component = () => {
-      useTryAuthFromToken('some token');
-      return <></>;
-    };
-    render(
-      <Provider store={testStore}>
-        <Component />
-      </Provider>
-    );
-    await waitFor(() => {
-      expect(testStore.getState().auth.token).toBe(undefined);
-      expect(testStore.getState().auth.username).toBe(undefined);
-      expect(testStore.getState().auth.initialized).toBe(false);
-    });
-    mock.mockClear();
-  });
 
-  test('Auth token gets removed from state if revoked', async () => {
-    const testStore = createTestStore({
-      auth: {
-        username: 'someUser',
-        token: 'foo',
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        tokenInfo: { id: 'existing-tokenid' } as TokenInfo,
-        initialized: true,
-      },
+    afterEach(() => {
+      fetchMock.disableMocks();
     });
-    fetchMock.enableMocks();
-    fetchMock.mockOnce(''); // force the next call to succeed
-    await testStore.dispatch(revokeToken.initiate('existing-tokenid'));
-    await waitFor(() => {
-      expect(testStore.getState().auth.token).toBe(undefined);
-      expect(testStore.getState().auth.username).toBe(undefined);
-      expect(testStore.getState().auth.initialized).toBe(true);
-    });
-    fetchMock.disableMocks();
-  });
 
-  test('Auth token remains if other token revoked', async () => {
-    const testStore = createTestStore({
-      auth: {
-        username: 'someUser',
-        token: 'foo',
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        tokenInfo: { id: 'existing-tokenid' } as TokenInfo,
-        initialized: true,
-      },
+    test('Auth token gets removed from state if identical token is revoked', async () => {
+      fetchMock.mockOnce(''); // force the revokeToken call to succeed
+      await testStore.dispatch(revokeToken.initiate('existing-tokenid'));
+      await waitFor(() => {
+        expect(testStore.getState().auth.token).toBe(undefined);
+        expect(testStore.getState().auth.username).toBe(undefined);
+        expect(testStore.getState().auth.initialized).toBe(true);
+      });
     });
-    fetchMock.enableMocks();
-    fetchMock.mockOnce(''); // force the next call to succeed
-    await testStore.dispatch(revokeToken.initiate('other-tokenid'));
-    await waitFor(() => {
-      expect(testStore.getState().auth.token).toBe('foo');
-      expect(testStore.getState().auth.username).toBe('someUser');
-      expect(testStore.getState().auth.initialized).toBe(true);
+
+    test('Auth token remains in state if some other token is revoked', async () => {
+      fetchMock.mockOnce(''); // force the revokeToken call to succeed
+      await testStore.dispatch(revokeToken.initiate('other-tokenid'));
+      await waitFor(() => {
+        expect(testStore.getState().auth.token).toBe('foo');
+        expect(testStore.getState().auth.username).toBe('someUser');
+        expect(testStore.getState().auth.initialized).toBe(true);
+      });
     });
-    fetchMock.disableMocks();
   });
 
   describe('useTokenCookie', () => {
