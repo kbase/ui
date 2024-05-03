@@ -70,22 +70,60 @@ export const Microtrait: FC<{
     } else {
       return (
         <>
-          Type: {column.columnDef.meta?.type}
-          <hr />
-          Row: (
-          <DataViewLink identifier={getUPAFromEncoded(row.kbase_id)}>
-            {getUPAFromEncoded(row.kbase_id)}
-          </DataViewLink>
-          ) {row.kbase_display_name}
-          <br />
-          Col: {column.columnDef.header}
-          <br />
-          Val: {`${cell.val}`}
-          <>
-            {data.values.map(({ id, val }) => (
-              <div key={id}>{`- ${id}:${val}`}</div>
-            ))}
-          </>
+          <table>
+            <tr>
+              <th>KBase ID</th>
+              <td>
+                (
+                <DataViewLink identifier={getUPAFromEncoded(row.kbase_id)}>
+                  {getUPAFromEncoded(row.kbase_id)}
+                </DataViewLink>
+                ) {row.kbase_display_name}
+              </td>
+            </tr>
+            <tr>
+              <th>Trait</th>
+              <td>{`${column.columnDef.header}`}</td>
+            </tr>
+            <tr>
+              <td colSpan={2}>
+                <hr />
+              </td>
+            </tr>
+            <tr>
+              <th>Type</th>
+              <td>{column.columnDef.meta?.type}</td>
+            </tr>
+            <tr>
+              <th>Value</th>
+              <td> {`${cell.val}`}</td>
+            </tr>
+            {data.values.length > 0 ? (
+              <>
+                <tr>
+                  <td colSpan={2}>
+                    <hr />
+                  </td>
+                </tr>
+                <tr>
+                  <th>Genes Detected</th>
+                  <th>
+                    <abbr title="Trusted Cutoff">TC</abbr> value
+                  </th>
+                </tr>
+                <>
+                  {data.values.map(({ id, val }) => (
+                    <tr key={id}>
+                      <td>{id}</td>
+                      <td>{val}</td>
+                    </tr>
+                  ))}
+                </>
+              </>
+            ) : (
+              <></>
+            )}
+          </table>
         </>
       );
     }
