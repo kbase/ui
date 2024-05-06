@@ -93,15 +93,12 @@ export const Biolog: FC<{
             </tr>
             <tr>
               <th>Value</th>
-              <td> {`${cell.val}`}</td>
+              <td> {cell.val}</td>
             </tr>
             <tr>
               <th>Media</th>
               <td>{cell.meta?.growth_media}</td>
             </tr>
-            {data.values.map(({ id, val }) => (
-              <div key={id}>{`- ${id}:${val}`}</div>
-            ))}
           </table>
         </>
       );
