@@ -5,7 +5,12 @@ import {
   Routes as RRRoutes,
   useLocation,
 } from 'react-router-dom';
-
+import {
+  CollectionsList,
+  CollectionDetail,
+  detailPath,
+  detailDataProductPath,
+} from '../features/collections/Collections';
 import Legacy, { LEGACY_BASE_ROUTE } from '../features/legacy/Legacy';
 import { Fallback } from '../features/legacy/IFrameFallback';
 import Navigator, {
@@ -14,12 +19,7 @@ import Navigator, {
 } from '../features/navigator/Navigator';
 import PageNotFound from '../features/layout/PageNotFound';
 import ProfileWrapper from '../features/profile/Profile';
-import {
-  CollectionsList,
-  CollectionDetail,
-  detailPath,
-  detailDataProductPath,
-} from '../features/collections/Collections';
+import Status from '../features/status/Status';
 import {
   useAppSelector,
   useFilteredParams,
@@ -36,6 +36,7 @@ const Routes: FC = () => {
   return (
     <RRRoutes>
       <Route path={`${LEGACY_BASE_ROUTE}/*`} element={<Legacy />} />
+      <Route path="/status" element={<Authed element={<Status />} />} />
       <Route
         path="/profile/:usernameRequested/narratives"
         element={<Authed element={<ProfileWrapper />} />}
