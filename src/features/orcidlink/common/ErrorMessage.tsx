@@ -1,7 +1,13 @@
+/**
+ * Displays an error message as may be retured by an RTK query.
+ *
+ * Currently very basci, just displaying the message in an Alert. However, some
+ * errors can clearly use a more specialized display.
+ */
 import Alert from '@mui/material/Alert';
 import { SerializedError } from '@reduxjs/toolkit';
-import { KBaseBaseQueryError } from '../../common/api/utils/common';
-import styles from './orcidlink.module.scss';
+import { KBaseBaseQueryError } from '../../../common/api/utils/common';
+import styles from './ErrorMessage.module.scss';
 
 export interface ErrorMessageProps {
   error: KBaseBaseQueryError | SerializedError;
@@ -30,7 +36,7 @@ export default function ErrorMessage({ error }: ErrorMessageProps) {
     }
   })();
   return (
-    <div className={styles['error-message']}>
+    <div className={styles.main}>
       <Alert severity="error" title="Error">
         {message}
       </Alert>

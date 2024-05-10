@@ -1,37 +1,14 @@
 import { act, render, waitFor } from '@testing-library/react';
 import fetchMock, { MockResponseInit } from 'jest-fetch-mock';
 import { Provider } from 'react-redux';
+import { MemoryRouter } from 'react-router-dom';
 import { createTestStore } from '../../../app/store';
 import { setAuth } from '../../auth/authSlice';
-import LinkedController from './index';
+import { INITIAL_STORE_STATE } from '../test/data';
+import { mockIsLinked, mockIsLinked_not } from '../test/mocks';
+import HomeController from './index';
 
-// const TEST_LINK_RECORD_FOO: LinkRecordPublic = {
-//   username: 'foo',
-//   created_at: 123,
-//   expires_at: 456,
-//   retires_at: 789,
-//   orcid_auth: {
-//     name: 'Foo',
-//     orcid: 'abc123',
-//     scope: 'baz',
-//     expires_in: 100,
-//   },
-// };
-
-// const TEST_LINK_RECORD_BAR: LinkRecordPublic = {
-//   username: 'bar',
-//   created_at: 123,
-//   expires_at: 456,
-//   retires_at: 789,
-//   orcid_auth: {
-//     name: 'Bar',
-//     orcid: 'xyz123',
-//     scope: 'baz',
-//     expires_in: 100,
-//   },
-// };
-
-jest.mock('../Linked', () => {
+jest.mock('../HomeLinked', () => {
   return {
     __esModule: true,
     default: () => {
@@ -49,35 +26,16 @@ describe('The HomeController Component', () => {
   it('renders mocked "Linked" component if user is linked', async () => {
     fetchMock.mockResponseOnce(
       async (request): Promise<MockResponseInit | string> => {
-        if (request.method !== 'POST') {
-          return '';
-        }
         const { pathname } = new URL(request.url);
         switch (pathname) {
           case '/services/orcidlink/api/v1': {
+            if (request.method !== 'POST') {
+              return '';
+            }
             const body = await request.json();
             switch (body['method']) {
               case 'is-linked': {
-                const result = (() => {
-                  const username = body['params']['username'];
-                  switch (username) {
-                    case 'foo':
-                      return true;
-                    case 'bar':
-                      return false;
-                  }
-                })();
-                return {
-                  body: JSON.stringify({
-                    jsonrpc: '2.0',
-                    id: body['id'],
-                    result,
-                  }),
-                  status: 200,
-                  headers: {
-                    'content-type': 'application/json',
-                  },
-                };
+                return mockIsLinked(body);
               }
               default:
                 return '';
@@ -89,32 +47,13 @@ describe('The HomeController Component', () => {
       }
     );
 
-    const initialStoreState = {
-      auth: {
-        token: 'xyz123',
-        username: 'foo',
-        tokenInfo: {
-          created: 123,
-          expires: 456,
-          id: 'abc123',
-          name: 'Foo Bar',
-          type: 'Login',
-          user: 'foo',
-          cachefor: 890,
-        },
-        initialized: true,
-      },
-    };
-
     const { container } = render(
-      <Provider store={createTestStore(initialStoreState)}>
-        <LinkedController />
+      <Provider store={createTestStore(INITIAL_STORE_STATE)}>
+        <MemoryRouter initialEntries={['/foo']}>
+          <HomeController />
+        </MemoryRouter>
       </Provider>
     );
-
-    await waitFor(() => {
-      expect(container).toHaveTextContent('Loading...');
-    });
 
     await waitFor(() => {
       expect(container).toHaveTextContent('Mocked Linked Component');
@@ -133,17 +72,7 @@ describe('The HomeController Component', () => {
             const body = await request.json();
             switch (body['method']) {
               case 'is-linked': {
-                return {
-                  body: JSON.stringify({
-                    jsonrpc: '2.0',
-                    id: body['id'],
-                    result: false,
-                  }),
-                  status: 200,
-                  headers: {
-                    'content-type': 'application/json',
-                  },
-                };
+                return mockIsLinked_not(body);
               }
               default:
                 return '';
@@ -155,36 +84,17 @@ describe('The HomeController Component', () => {
       }
     );
 
-    const initialStoreState = {
-      auth: {
-        token: 'xyz123',
-        username: 'bar',
-        tokenInfo: {
-          created: 123,
-          expires: 456,
-          id: 'abc123',
-          name: 'Bar Baz',
-          type: 'Login',
-          user: 'bar',
-          cachefor: 890,
-        },
-        initialized: true,
-      },
-    };
-
     const { container } = render(
-      <Provider store={createTestStore(initialStoreState)}>
-        <LinkedController />
+      <Provider store={createTestStore(INITIAL_STORE_STATE)}>
+        <MemoryRouter initialEntries={['/foo']}>
+          <HomeController />
+        </MemoryRouter>
       </Provider>
     );
 
     await waitFor(() => {
-      expect(container).toHaveTextContent('Loading...');
-    });
-
-    await waitFor(() => {
       expect(container).toHaveTextContent(
-        'Your KBase account is not linked to an ORCID account.'
+        'You do not currently have a link from your KBase account to an ORCID® account.'
       );
     });
   });
@@ -197,30 +107,13 @@ describe('The HomeController Component', () => {
         }
         const { pathname } = new URL(request.url);
         switch (pathname) {
+          // MOcks for the orcidlink api
           case '/services/orcidlink/api/v1': {
             const body = await request.json();
             switch (body['method']) {
               case 'is-linked': {
-                const result = (() => {
-                  const username = body['params']['username'];
-                  switch (username) {
-                    case 'foo':
-                      return true;
-                    case 'bar':
-                      return false;
-                  }
-                })();
-                return {
-                  body: JSON.stringify({
-                    jsonrpc: '2.0',
-                    id: body['id'],
-                    result,
-                  }),
-                  status: 200,
-                  headers: {
-                    'content-type': 'application/json',
-                  },
-                };
+                // In this mock, user "foo" is linked, user "bar" is not.
+                return mockIsLinked(body);
               }
               default:
                 return '';
@@ -232,40 +125,19 @@ describe('The HomeController Component', () => {
       }
     );
 
-    const initialStoreState = {
-      auth: {
-        token: 'abc123',
-        username: 'foo',
-        tokenInfo: {
-          created: 123,
-          expires: 456,
-          id: 'abc123',
-          name: 'Foo Bar',
-          type: 'Login',
-          user: 'foo',
-          cachefor: 890,
-        },
-        initialized: true,
-      },
-    };
-
-    const testStore = createTestStore(initialStoreState);
+    const testStore = createTestStore(INITIAL_STORE_STATE);
 
     const { container } = render(
       <Provider store={testStore}>
-        <LinkedController />
+        <MemoryRouter initialEntries={['/foo']}>
+          <HomeController />
+        </MemoryRouter>
       </Provider>
     );
 
     await waitFor(() => {
-      expect(container).toHaveTextContent('Loading...');
-    });
-
-    await waitFor(() => {
       expect(container).toHaveTextContent('Mocked Linked Component');
     });
-
-    // initialStoreState.auth.username = 'bar';
 
     act(() => {
       testStore.dispatch(
@@ -286,12 +158,8 @@ describe('The HomeController Component', () => {
     });
 
     await waitFor(() => {
-      expect(container).toHaveTextContent('Fetching...');
-    });
-
-    await waitFor(() => {
       expect(container).toHaveTextContent(
-        'Your KBase account is not linked to an ORCID account.'
+        'You do not currently have a link from your KBase account to an ORCID® account.'
       );
     });
   });
@@ -326,26 +194,11 @@ describe('The HomeController Component', () => {
       }
     );
 
-    const initialStoreState = {
-      auth: {
-        token: 'xyz123',
-        username: 'foo',
-        tokenInfo: {
-          created: 123,
-          expires: 456,
-          id: 'abc123',
-          name: 'Foo Bar',
-          type: 'Login',
-          user: 'foo',
-          cachefor: 890,
-        },
-        initialized: true,
-      },
-    };
-
     const { container } = render(
-      <Provider store={createTestStore(initialStoreState)}>
-        <LinkedController />
+      <Provider store={createTestStore(INITIAL_STORE_STATE)}>
+        <MemoryRouter initialEntries={['/foo']}>
+          <HomeController />
+        </MemoryRouter>
       </Provider>
     );
 

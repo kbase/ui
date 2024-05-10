@@ -1,6 +1,7 @@
 import { SerializedError } from '@reduxjs/toolkit';
+import { FetchBaseQueryError } from '@reduxjs/toolkit/dist/query';
 import { render } from '@testing-library/react';
-import { KBaseBaseQueryError } from '../../common/api/utils/common';
+import { KBaseBaseQueryError } from '../../../common/api/utils/common';
 import ErrorMessage from './ErrorMessage';
 
 describe('The ErrorMessage Component', () => {
@@ -52,11 +53,14 @@ describe('The ErrorMessage Component', () => {
 
     expect(container).toHaveTextContent('baz');
   });
+
+  // TODO: type error for TIMEOUT_ERROR below - figure it out and fix, disabled
+  // for now because it is all crap.
+
   it('renders TIMEOUT_ERROR correctly', () => {
-    const error: KBaseBaseQueryError = {
+    const error: FetchBaseQueryError = {
       status: 'TIMEOUT_ERROR',
       error: 'foo',
-      data: 'bar',
     };
     const { container } = render(<ErrorMessage error={error} />);
 

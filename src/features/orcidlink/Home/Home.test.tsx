@@ -1,7 +1,11 @@
 import { render } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { SERVICE_INFO_1 } from '../test/data';
 import Home from './Home';
 
-jest.mock('../Linked', () => {
+// We are not testing the HomeLinked component; we just want to be sure that it
+// is rendered.
+jest.mock('../HomeLinked', () => {
   return {
     __esModule: true,
     default: () => {
@@ -12,16 +16,24 @@ jest.mock('../Linked', () => {
 
 describe('The Home Component', () => {
   it('renders correctly for unlinked', () => {
-    const { container } = render(<Home isLinked={false} />);
+    const { container } = render(
+      <MemoryRouter initialEntries={['/foo']}>
+        <Home isLinked={false} info={SERVICE_INFO_1} />
+      </MemoryRouter>
+    );
 
     expect(container).not.toBeNull();
     expect(container).toHaveTextContent(
-      'Your KBase account is not linked to an ORCID account.'
+      'You do not currently have a link from your KBase account'
     );
   });
 
   it('renders correctly for linked', () => {
-    const { container } = render(<Home isLinked={true} />);
+    const { container } = render(
+      <MemoryRouter initialEntries={['/foo']}>
+        <Home isLinked={true} info={SERVICE_INFO_1} />
+      </MemoryRouter>
+    );
 
     expect(container).not.toBeNull();
     expect(container).toHaveTextContent('Mocked Linked Component');

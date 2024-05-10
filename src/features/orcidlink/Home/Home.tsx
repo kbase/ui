@@ -1,22 +1,21 @@
-import Linked from '../Linked';
-import Unlinked from '../Unlinked';
-import styles from '../orcidlink.module.scss';
+/**
+ * The entrypoint to the root of the ORCID Link UI.
+ *
+ * Its primary responsibility is to branch to a view for a linked user or an
+ * unlinked user.
+ */
+import { InfoResult } from '../../../common/api/orcidlinkAPI';
+import HomeLinked from '../HomeLinked';
+import HomeUnlinked from '../HomeUnlinked';
 
 export interface HomeProps {
   isLinked: boolean;
+  info: InfoResult;
 }
 
-export default function Home({ isLinked }: HomeProps) {
+export default function Home({ isLinked, info }: HomeProps) {
   if (isLinked) {
-    return (
-      <div className={styles.box}>
-        <Linked />
-      </div>
-    );
+    return <HomeLinked info={info} />;
   }
-  return (
-    <div className={styles.box}>
-      <Unlinked />
-    </div>
-  );
+  return <HomeUnlinked />;
 }
