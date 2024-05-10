@@ -100,6 +100,7 @@ See the mouseout handler in the <HeatMap /> component.
   color: use-color("white");
   font-size: 0.667rem;
   font-weight: bold;
+  max-width: 250px;
   padding: 4px 8px;
   position: fixed;
   z-index: 1;
@@ -111,6 +112,19 @@ See the mouseout handler in the <HeatMap /> component.
 
 .tooltip a:visited {
   color: use-color("accent-cool");
+}
+
+.tooltip th {
+  min-width: 4rem;
+  text-align: left;
+  vertical-align: top;
+  word-break: normal;
+  word-wrap: break-word;
+}
+
+.tooltip td {
+  text-align: left;
+  word-break: break-all;
 }
 
 .trait-names {

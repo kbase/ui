@@ -51,7 +51,7 @@
       color: use-color("white");
     }
 
-    @if (use-color($state + "-dark")) {
+    @if (map-has-key($palette, $state + "-dark")) {
       &:hover {
         background-color: use-color($state + "-dark");
         color: use-color("white");
@@ -59,7 +59,7 @@
       }
     }
 
-    @if (use-color($state + "-dark")) {
+    @if (map-has-key($palette, $state + "-darker")) {
       &:focus {
         background-color: use-color($state + "-darker");
         color: use-color("white");
@@ -72,7 +72,7 @@
     color: use-color($state);
     font-weight: bold;
 
-    @if (use-color($state + "-dark")) {
+    @if (map-has-key($palette, $state + "-dark")) {
       &:hover {
         background-color: use-color("light-gray");
         color: use-color($state + "-dark");
@@ -80,7 +80,7 @@
       }
     }
 
-    @if (use-color($state + "-dark")) {
+    @if (map-has-key($palette, $state + "-darker")) {
       &:focus {
         color: use-color($state + "-darker");
       }
