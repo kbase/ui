@@ -28,11 +28,6 @@ export type KBaseBaseQueryError =
   | {
       status: 'JSONRPC_ERROR';
       data: JsonRpcError;
-    }
-  | {
-      status: 'CUSTOM_ERROR';
-      error: 'JsonRpcProtocolError';
-      data: string;
     };
 
 export const isJsonRpcError = (obj: unknown): obj is JsonRpcError => {
@@ -48,6 +43,29 @@ export const isJsonRpcError = (obj: unknown): obj is JsonRpcError => {
       typeof error === 'object' &&
       error !== null &&
       ['name', 'code', 'message'].every((k) => k in error)
+    ) {
+      return true;
+    }
+  }
+  return false;
+};
+
+export const isJsonRpc20Error = (obj: unknown): obj is JsonRpcError => {
+  if (
+    typeof obj === 'object' &&
+    obj !== null &&
+    ['jsonrpc', 'error', 'id'].every((k) => k in obj)
+  ) {
+    const { jsonrpc, error } = obj as { jsonrpc: string; error: unknown };
+    if (jsonrpc !== '2.0') {
+      return false;
+    }
+    // const versionsSupported = new Set(['1.1', '2.0']);
+    // if (!versionsSupported.has(version)) return false;
+    if (
+      typeof error === 'object' &&
+      error !== null &&
+      ['code', 'message'].every((k) => k in error)
     ) {
       return true;
     }

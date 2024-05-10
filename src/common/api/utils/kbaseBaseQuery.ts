@@ -1,5 +1,8 @@
 import { BaseQueryApi } from '@reduxjs/toolkit/dist/query/baseQueryTypes';
-import { FetchBaseQueryArgs } from '@reduxjs/toolkit/dist/query/fetchBaseQuery';
+import {
+  FetchBaseQueryArgs,
+  ResponseHandler,
+} from '@reduxjs/toolkit/dist/query/fetchBaseQuery';
 import {
   BaseQueryFn,
   FetchArgs,
@@ -7,7 +10,11 @@ import {
 } from '@reduxjs/toolkit/query/react';
 import { RootState } from '../../../app/store';
 import { serviceWizardApi } from '../serviceWizardApi';
-import { isJsonRpcError, KBaseBaseQueryError } from './common';
+import {
+  isJsonRpc20Error,
+  isJsonRpcError,
+  KBaseBaseQueryError,
+} from './common';
 
 export interface DynamicService {
   name: string;
@@ -25,6 +32,7 @@ export interface JsonRpcQueryArgs {
   method: string;
   params?: unknown;
   fetchArgs?: FetchArgs;
+  responseHandler?: ResponseHandler;
 }
 
 export interface JSONRPC11Body {
@@ -39,6 +47,12 @@ export interface JSONRPC20Body {
   id: string;
   method: string;
   params?: unknown;
+}
+
+export interface JSONRPC20Error {
+  code: number;
+  message: string;
+  data: unknown;
 }
 
 export type JSONRPCBody = JSONRPC11Body | JSONRPC20Body;
@@ -226,6 +240,7 @@ export const kbaseBaseQuery: (
       const response = await request;
 
       // identify and better differentiate jsonRpc errors
+      // This is for KBase's version of JSON-RPC 1.1
       if (response.error && response.error.status === 500) {
         if (isJsonRpcError(response.error.data)) {
           if (response.error.data.id && response.error.data.id !== reqId) {
@@ -244,6 +259,23 @@ export const kbaseBaseQuery: (
             },
           };
         }
+      }
+      if (isJsonRpc20Error(response.data)) {
+        if (response.data.id && response.data.id !== reqId) {
+          return {
+            error: {
+              status: 'CUSTOM_ERROR',
+              error: 'JsonRpcProtocolError',
+              data: `Response ID "${response.data.id}" !== Request ID "${reqId}"`,
+            },
+          };
+        }
+        return {
+          error: {
+            status: 'JSONRPC_ERROR',
+            data: response.data,
+          },
+        };
       }
 
       // If another error has occurred preventing a response, return default rtk-query response.

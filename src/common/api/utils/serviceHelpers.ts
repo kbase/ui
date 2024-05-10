@@ -13,6 +13,18 @@ export const jsonRpcService = (
   });
 };
 
+export const jsonRpc2Service = (
+  service: JsonRpcQueryArgs['service']
+): ((
+  queryArgs: Omit<JsonRpcQueryArgs, 'service' | 'apiType'>
+) => JsonRpcQueryArgs) => {
+  return (queryArgs) => ({
+    apiType: 'JsonRpc',
+    service,
+    ...queryArgs,
+  });
+};
+
 export const httpService = (
   service: HttpQueryArgs['service']
 ): ((
