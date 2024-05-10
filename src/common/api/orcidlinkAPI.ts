@@ -1,56 +1,79 @@
 import { baseApi } from '.';
-import { jsonRpcService } from './utils/serviceHelpers';
-
-// orcidlink system types
-
-export interface ORCIDAuthPublic {
-  expires_in: number;
-  name: string;
-  orcid: string;
-  scope: string;
-}
-
-export interface LinkRecordPublic {
-  created_at: number;
-  expires_at: number;
-  retires_at: number;
-  username: string;
-  orcid_auth: ORCIDAuthPublic;
-}
-
-// Method types
-
-export interface StatusResult {
-  status: string;
-  current_time: number;
-  start_time: number;
-}
-
-export interface InfoResult {
-  'service-description': {
-    name: string;
-    title: string;
-    version: string;
-  };
-}
+import { LinkRecordPublic, ORCIDProfile } from './orcidLinkCommon';
+import { jsonRpc2Service } from './utils/serviceHelpers';
 
 // is-linked
-
-export interface IsLinkedParams {
-  username: string;
-}
 
 export type IsLinkedResult = boolean;
 
 // owner-link
-export interface OwnerLinkParams {
-  username: string;
-}
 
 export type OwnerLinkResult = LinkRecordPublic;
 
+// system info
+
+export interface ServiceDescription {
+  name: string;
+  title: string;
+  version: string;
+  language: string;
+  description: string;
+  repoURL: string;
+}
+
+export interface GitInfo {
+  commit_hash: string;
+  commit_hash_abbreviated: string;
+  author_name: string;
+  committer_name: string;
+  committer_date: number;
+  url: string;
+  branch: string;
+  tag: string | null;
+}
+
+export interface RuntimeInfo {
+  current_time: number;
+  orcid_api_url: string;
+  orcid_oauth_url: string;
+  orcid_site_url: string;
+}
+
+// TODO: normalize to either kebab or underscore. Pref underscore.
+export interface InfoResult {
+  'service-description': ServiceDescription;
+  'git-info': GitInfo;
+  runtime_info: RuntimeInfo;
+}
+
+// orcid profile
+
+export type GetProfileResult = ORCIDProfile;
+
+// combined api calls for initial view
+
+export interface ORCIDLinkInitialStateResult {
+  isLinked: IsLinkedResult;
+  info: InfoResult;
+}
+
+export interface ORCIDLinkInitialStateParams {
+  username: string;
+}
+
+// combined api call for linked user info
+
+export interface ORCIDLinkLinkedUserInfoResult {
+  linkRecord: LinkRecordPublic;
+  profile: ORCIDProfile;
+}
+
+export interface ORCIDLinkLinkedUserInfoParams {
+  username: string;
+}
+
 // It is mostly a JSONRPC 2.0 service, although the oauth flow is rest-ish.
-const orcidlinkService = jsonRpcService({
+const orcidlinkService = jsonRpc2Service({
   url: '/services/orcidlink/api/v1',
   version: '2.0',
 });
@@ -62,31 +85,76 @@ export const orcidlinkAPI = baseApi
   .enhanceEndpoints({ addTagTypes: ['ORCIDLink'] })
   .injectEndpoints({
     endpoints: ({ query }) => ({
-      orcidlinkStatus: query<StatusResult, {}>({
-        query: () => {
-          return orcidlinkService({
-            method: 'status',
-          });
+      orcidlinkInitialState: query<
+        ORCIDLinkInitialStateResult,
+        ORCIDLinkInitialStateParams
+      >({
+        async queryFn({ username }, _queryApi, _extraOptions, fetchWithBQ) {
+          const [isLinked, info] = await Promise.all([
+            fetchWithBQ(
+              orcidlinkService({
+                method: 'is-linked',
+                params: {
+                  username,
+                },
+              })
+            ),
+            fetchWithBQ(
+              orcidlinkService({
+                method: 'info',
+              })
+            ),
+          ]);
+          if (isLinked.error) {
+            return { error: isLinked.error };
+          }
+          if (info.error) {
+            return { error: info.error };
+          }
+          return {
+            data: {
+              isLinked: isLinked.data as IsLinkedResult,
+              info: info.data as InfoResult,
+            },
+          };
         },
       }),
-      orcidlinkIsLinked: query<IsLinkedResult, IsLinkedParams>({
-        query: ({ username }) => {
-          return orcidlinkService({
-            method: 'is-linked',
+      orcidlinkLinkedUserInfo: query<
+        ORCIDLinkLinkedUserInfoResult,
+        ORCIDLinkLinkedUserInfoParams
+      >({
+        async queryFn({ username }, _queryApi, _extraOptions, fetchWithBQ) {
+          const profileQuery = orcidlinkService({
+            method: 'get-orcid-profile',
             params: {
               username,
             },
           });
-        },
-      }),
-      orcidlinkOwnerLink: query<OwnerLinkResult, OwnerLinkParams>({
-        query: ({ username }) => {
-          return orcidlinkService({
-            method: 'owner-link',
-            params: {
-              username,
+
+          const [linkRecord, profile] = await Promise.all([
+            fetchWithBQ(
+              orcidlinkService({
+                method: 'owner-link',
+                params: {
+                  username,
+                },
+              })
+            ),
+            fetchWithBQ(profileQuery),
+          ]);
+          if (linkRecord.error) {
+            return { error: linkRecord.error };
+          }
+
+          if (profile.error) {
+            return { error: profile.error };
+          }
+          return {
+            data: {
+              linkRecord: linkRecord.data as LinkRecordPublic,
+              profile: profile.data as ORCIDProfile,
             },
-          });
+          };
         },
       }),
     }),
