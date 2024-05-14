@@ -252,7 +252,9 @@ export const useContextFilterQueryManagement = (
                   type: 'bool',
                   value:
                     current?.type === column.type
-                      ? Boolean(current.value)
+                      ? typeof current.value !== 'undefined'
+                        ? Boolean(current.value)
+                        : undefined
                       : undefined,
                 },
               ])
