@@ -1015,6 +1015,11 @@ const BooleanFilterControls = ({
     setSelectValue(event.target.value as string);
   };
 
+  // In order not to create a dependency loop when filter changes within the below effect,
+  // use a filter ref
+  const filterRef = useRef(filter);
+  filterRef.current = filter;
+
   useEffect(() => {
     let value;
     if (selectValue === 'true') {
@@ -1022,8 +1027,15 @@ const BooleanFilterControls = ({
     } else if (selectValue === 'false') {
       value = 0;
     }
-    dispatch(setFilter([collectionId, context, column, { ...filter, value }]));
-  }, [selectValue, collectionId, context, column, filter, dispatch]);
+    dispatch(
+      setFilter([
+        collectionId,
+        context,
+        column,
+        { ...filterRef.current, value },
+      ])
+    );
+  }, [selectValue, collectionId, context, column, dispatch]);
 
   return (
     <FormControl fullWidth>
