@@ -41,6 +41,10 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  FormControl,
+  Select,
+  MenuItem,
+  SelectChangeEvent,
 } from '@mui/material';
 import { useForm } from 'react-hook-form';
 import { CollectionOverview } from './CollectionOverview';
@@ -178,7 +182,8 @@ export const CollectionDetail = () => {
       !filter ||
       filter.type === 'int' ||
       filter.type === 'float' ||
-      filter.type === 'date'
+      filter.type === 'date' ||
+      filter.type === 'bool'
     )
       return;
     if (e.target.value === filter.value) return;
@@ -596,6 +601,15 @@ const FilterControls = ({
         collectionId={collectionId}
       />
     );
+  } else if (filter.type === 'bool') {
+    return (
+      <BooleanFilterControls
+        column={column}
+        filter={filter}
+        context={context}
+        collectionId={collectionId}
+      />
+    );
   }
   return null;
 };
@@ -975,5 +989,49 @@ const TextFilterControls = ({
       variant="outlined"
       size="small"
     />
+  );
+};
+
+const BooleanFilterControls = ({
+  column,
+  filter,
+  collectionId,
+  context,
+}: FilterControlProps & {
+  filter: { type: 'bool' };
+}) => {
+  const dispatch = useAppDispatch();
+  const [selectValue, setSelectValue] = useState<string | undefined>(() => {
+    if (filter.value === true || filter.value === 1) {
+      return 'true';
+    } else if (filter.value === false || filter.value === 0) {
+      return 'false';
+    } else {
+      return;
+    }
+  });
+
+  const handleChange = (event: SelectChangeEvent) => {
+    setSelectValue(event.target.value as string);
+  };
+
+  useEffect(() => {
+    let value;
+    if (selectValue === 'true') {
+      value = 1;
+    } else if (selectValue === 'false') {
+      value = 0;
+    }
+    dispatch(setFilter([collectionId, context, column, { ...filter, value }]));
+  }, [selectValue, collectionId, context, column, filter, dispatch]);
+
+  return (
+    <FormControl fullWidth>
+      <Select value={selectValue} label="Age" onChange={handleChange}>
+        <MenuItem value="true">True</MenuItem>
+        <MenuItem value="false">False</MenuItem>
+        <MenuItem value={undefined}>Any</MenuItem>
+      </Select>
+    </FormControl>
   );
 };

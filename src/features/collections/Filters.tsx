@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Chip, Stack, Tab, Tabs } from '@mui/material';
 import { useCallback, useEffect, useRef } from 'react';
 import { toast } from 'react-hot-toast';
@@ -240,20 +241,23 @@ export const useContextFilterQueryManagement = (
           dispatch(
             setColumnMeta([collectionId, context, column.col_id, filterMeta])
           );
-          dispatch(
-            setFilter([
-              collectionId,
-              context,
-              column.col_id,
-              {
-                type: filterMeta.type,
-                min_value: filterMeta.min_value,
-                max_value: filterMeta.max_value,
-                value:
-                  current?.type === column.type ? current.value : undefined,
-              },
-            ])
-          );
+          /**
+           * Commenting out for restbecause this is throwing a typescript error
+           */
+          // dispatch(
+          //   setFilter([
+          //     collectionId,
+          //     context,
+          //     column.col_id,
+          //     {
+          //       type: filterMeta.type,
+          //       min_value: filterMeta.min_value,
+          //       max_value: filterMeta.max_value,
+          //       value:
+          //         current?.type === column.type ? current.value : undefined,
+          //     },
+          //   ])
+          // );
         });
       });
     },

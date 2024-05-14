@@ -40,6 +40,10 @@ export type FilterState =
       value?: FilterRange;
       min_value: number;
       max_value: number;
+    }
+  | {
+      type: 'bool';
+      value?: boolean | number;
     };
 
 interface ClnState {
