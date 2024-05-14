@@ -13,6 +13,16 @@ const testProps: FeedTabsProps = {
       feed: [],
       unseen: 0,
     },
+    user: {
+      name: 'Some User',
+      feed: [],
+      unseen: 0,
+    },
+    global: {
+      name: 'KBase',
+      feed: [],
+      unseen: 0,
+    },
   },
 };
 
@@ -25,5 +35,5 @@ test('FeedTabs renders', async () => {
     </Provider>
   );
   expect(container).toBeTruthy();
-  expect(container.textContent).toMatch(testProps.userId);
+  expect(container.textContent).toMatch('A feed');
 });

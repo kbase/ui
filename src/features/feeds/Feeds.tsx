@@ -10,7 +10,6 @@ const Feeds: FC = () => {
   const { data: feedsData } = getFeeds.useQuery({});
   return (
     <>
-      <h1>Hello I am Feeds.</h1>
       <FeedTabs userId="foo" isAdmin={false} feeds={feedsData}></FeedTabs>
     </>
   );
