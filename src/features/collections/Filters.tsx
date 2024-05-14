@@ -227,7 +227,7 @@ export const useContextFilterQueryManagement = (
         category.columns.forEach((column) => {
           const current =
             filtersRef.current && filtersRef.current[column.col_id];
-          if (current?.type === 'bool') {
+          if (column.type === 'bool') {
             setColumnMeta([
               collectionId,
               context,

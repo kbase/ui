@@ -67,8 +67,8 @@ const pageConfig: Record<
   }
 > = {
   samples: { features: ['filter'] },
-  biolog: { features: [] },
-  microtrait: { features: [] },
+  biolog: { features: ['filter'] },
+  microtrait: { features: ['filter'] },
   genome_attribs: {
     features: ['filter', 'match', 'search'],
   },
