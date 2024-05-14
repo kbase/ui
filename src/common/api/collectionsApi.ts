@@ -177,7 +177,7 @@ export type ColumnMeta = {
   display_name?: string;
 } & (
   | {
-      type: 'date' | 'int' | 'float' | 'bool';
+      type: 'date' | 'int' | 'float';
       filter_strategy: undefined;
       min_value: number;
       max_value: number;
@@ -196,6 +196,13 @@ export type ColumnMeta = {
       min_value: undefined;
       max_value: undefined;
       enum_values: string[];
+    }
+  | {
+      type: 'bool';
+      filter_strategy: undefined;
+      min_value: undefined;
+      max_value: undefined;
+      enum_values: undefined;
     }
 );
 

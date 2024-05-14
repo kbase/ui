@@ -227,37 +227,67 @@ export const useContextFilterQueryManagement = (
         category.columns.forEach((column) => {
           const current =
             filtersRef.current && filtersRef.current[column.col_id];
-          const filterMeta: ColumnMeta = {
-            type: 'int',
-            key: column.col_id,
-            max_value: filterData.max_value,
-            min_value: filterData.min_value,
-            category: category.category,
-            description: column.description,
-            display_name: column.name,
-            filter_strategy: undefined,
-            enum_values: undefined,
-          };
-          dispatch(
-            setColumnMeta([collectionId, context, column.col_id, filterMeta])
-          );
-          /**
-           * Commenting out for restbecause this is throwing a typescript error
-           */
-          // dispatch(
-          //   setFilter([
-          //     collectionId,
-          //     context,
-          //     column.col_id,
-          //     {
-          //       type: filterMeta.type,
-          //       min_value: filterMeta.min_value,
-          //       max_value: filterMeta.max_value,
-          //       value:
-          //         current?.type === column.type ? current.value : undefined,
-          //     },
-          //   ])
-          // );
+          if (current?.type === 'bool') {
+            setColumnMeta([
+              collectionId,
+              context,
+              column.col_id,
+              {
+                type: 'bool',
+                key: column.col_id,
+                max_value: undefined,
+                min_value: undefined,
+                category: category.category,
+                description: column.description,
+                display_name: column.name,
+                filter_strategy: undefined,
+                enum_values: undefined,
+              },
+            ]);
+            dispatch(
+              setFilter([
+                collectionId,
+                context,
+                column.col_id,
+                {
+                  type: 'bool',
+                  value:
+                    current?.type === column.type
+                      ? Boolean(current.value)
+                      : undefined,
+                },
+              ])
+            );
+          } else {
+            const filterMeta: ColumnMeta = {
+              type: 'int',
+              key: column.col_id,
+              max_value: filterData.max_value,
+              min_value: filterData.min_value,
+              category: category.category,
+              description: column.description,
+              display_name: column.name,
+              filter_strategy: undefined,
+              enum_values: undefined,
+            };
+            dispatch(
+              setColumnMeta([collectionId, context, column.col_id, filterMeta])
+            );
+            dispatch(
+              setFilter([
+                collectionId,
+                context,
+                column.col_id,
+                {
+                  type: filterMeta.type,
+                  min_value: filterMeta.min_value,
+                  max_value: filterMeta.max_value,
+                  value:
+                    current?.type === column.type ? current.value : undefined,
+                },
+              ])
+            );
+          }
         });
       });
     },
