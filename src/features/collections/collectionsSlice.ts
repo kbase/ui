@@ -30,7 +30,7 @@ interface FilterRange {
 export type FilterState =
   | { type: 'fulltext' | 'prefix' | 'identity' | 'ngram'; value?: string }
   | {
-      type: 'int' | 'float' | 'bool';
+      type: 'int' | 'float';
       value?: FilterRange;
       min_value: number;
       max_value: number;
@@ -439,11 +439,7 @@ export const useFilters = (
         filterState.type === 'bool' &&
         filterState.value !== undefined
       ) {
-        const fStart = filterState.value.range[0];
-        const fEnd = filterState.value.range[1];
-        if (fStart === fEnd) {
-          filterValue = fStart === 1 ? 'true' : 'false';
-        }
+        filterValue = Boolean(filterState.value).toString();
       } else if (
         (filterState.type === 'date' ||
           filterState.type === 'int' ||

@@ -592,11 +592,7 @@ const FilterControls = ({
         collectionId={collectionId}
       />
     );
-  } else if (
-    filter.type === 'int' ||
-    filter.type === 'float' ||
-    filter.type === 'bool'
-  ) {
+  } else if (filter.type === 'int' || filter.type === 'float') {
     return (
       <RangeFilterControls
         column={column}
@@ -793,7 +789,7 @@ const RangeFilterControls = ({
   collectionId,
   context,
 }: FilterControlProps & {
-  filter: { type: 'float' | 'int' | 'bool' };
+  filter: { type: 'float' | 'int' };
 }) => {
   // initial defaults
   const [defMin, defMax] = filter.value?.range ?? [
