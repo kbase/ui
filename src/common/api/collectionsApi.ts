@@ -177,7 +177,7 @@ export type ColumnMeta = {
   display_name?: string;
 } & (
   | {
-      type: 'date' | 'int' | 'float' | 'bool';
+      type: 'date' | 'int' | 'float';
       filter_strategy: undefined;
       min_value: number;
       max_value: number;
