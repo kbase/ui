@@ -17,11 +17,11 @@ import { DataViewLink } from '../../../common/components';
 import { Pagination, usePageBounds } from '../../../common/components/Table';
 import { useAppDispatch } from '../../../common/hooks';
 import { formatNumber } from '../../../common/utils/stringUtils';
-import { useAppParam } from '../../params/hooks';
 import classes from '../Collections.module.scss';
 import {
   useFilterContextState,
   useGenerateSelectionId,
+  useMatchId,
 } from '../collectionsSlice';
 import { useFilterContexts } from '../Filters';
 import { useProcessStatePolling } from '../hooks';
@@ -119,7 +119,7 @@ export const Biolog: FC<{
 };
 
 const useBiolog = (collection_id: string | undefined) => {
-  const matchId = useAppParam('match');
+  const matchId = useMatchId(collection_id);
   const selId = useGenerateSelectionId(collection_id || '', {
     skip: !collection_id,
   });

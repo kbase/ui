@@ -20,6 +20,7 @@ declare global {
 export const useAppDispatch = () => useDispatch<AppDispatch>();
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 
+const pollLock: Set<string> = new Set();
 export const useBackoffPolling = <
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   R extends UseQueryHookResult<QueryDefinition<unknown, any, any, unknown>>
@@ -30,18 +31,39 @@ export const useBackoffPolling = <
 ) => {
   const opts = { baseInterval: 200, rate: 2, skipPoll: false, ...options };
   const [count, setCount] = useState(0);
+  const pollLockStatus = useRef<boolean>(false);
   const shouldPollCallback = useRef<typeof pollCondition>(pollCondition);
   shouldPollCallback.current = pollCondition;
 
+  // Prevents us from polling the identical request from multiple components
+  useEffect(() => {
+    const lockId = result.requestId;
+    if (lockId && !pollLock.has(lockId)) {
+      pollLock.add(lockId);
+      pollLockStatus.current = true;
+    } else {
+      pollLockStatus.current = false;
+    }
+    return () => {
+      if (lockId && pollLock.has(lockId)) {
+        pollLock.delete(lockId);
+        pollLockStatus.current = false;
+      }
+    };
+  }, [result.requestId]);
+
   useEffect(() => setCount((c) => c + 1), [result.fulfilledTimeStamp]);
   const shouldPoll = useCallback(() => {
-    const should = !opts.skipPoll && shouldPollCallback.current(result, count);
+    const should =
+      !opts.skipPoll &&
+      pollLockStatus.current &&
+      shouldPollCallback.current(result, count);
     if (!should) setCount(0);
     return should;
   }, [count, opts.skipPoll, result]);
 
   useEffect(() => {
-    if (shouldPoll()) {
+    if (!result.isUninitialized && shouldPoll()) {
       const pollTime = opts.baseInterval * Math.pow(opts.rate, count);
       const now = Date.now();
       const duration = Math.max(
@@ -56,7 +78,15 @@ export const useBackoffPolling = <
         clearTimeout(timeout);
       };
     }
-  }, [opts.baseInterval, count, pollCondition, opts.rate, result, shouldPoll]);
+  }, [
+    opts.baseInterval,
+    count,
+    pollCondition,
+    opts.rate,
+    result,
+    shouldPoll,
+    result.isUninitialized,
+  ]);
 
   return result;
 };
