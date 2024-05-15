@@ -8,7 +8,11 @@ import {
   RowSelectionState,
 } from '@tanstack/react-table';
 import { FC, useEffect, useMemo, useState } from 'react';
-import { getGenomeAttribs } from '../../../common/api/collectionsApi';
+import {
+  getGenomeAttribs,
+  getMatch,
+  getSelection,
+} from '../../../common/api/collectionsApi';
 import {
   Pagination,
   Table,
@@ -30,7 +34,8 @@ import { Grid, Paper, Stack, Tooltip, Typography } from '@mui/material';
 import { formatNumber } from '../../../common/utils/stringUtils';
 import { Link } from 'react-router-dom';
 import { filterContextMode, useFilterContexts } from '../Filters';
-import { useTableViewParams } from '../hooks';
+import { useProcessStatePolling, useTableViewParams } from '../hooks';
+import { skipToken } from '@reduxjs/toolkit/dist/query';
 
 export const GenomeAttribs: FC<{
   collection_id: string;
@@ -372,6 +377,35 @@ export const useGenomeAttribsCount = (
   const result = getGenomeAttribs.useQuery(params, {
     skip: !collection_id,
   });
+
+  // Refetch count when the match changes and is done processing
+  const match = getMatch.useQuery(params.match_id ?? skipToken);
+  useProcessStatePolling(match, ['state']);
+
+  useEffect(() => {
+    if (match.data?.state === 'complete') {
+      result.refetch();
+    }
+  }, [match.data?.state, result]);
+
+  // Refetch count when the selection changes and is done processing
+  const selParams = useMemo(
+    () =>
+      params.selection_id !== undefined
+        ? {
+            selection_id: params.selection_id,
+          }
+        : skipToken,
+    [params.selection_id]
+  );
+  const selection = getSelection.useQuery(selParams);
+  useProcessStatePolling(selection, ['state']);
+
+  useEffect(() => {
+    if (selection.data?.state === 'complete') {
+      result.refetch();
+    }
+  }, [selection.data?.state, result]);
 
   return { count: result?.currentData?.count, result };
 };

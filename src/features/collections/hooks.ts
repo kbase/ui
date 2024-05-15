@@ -116,9 +116,14 @@ export const useProcessStatePolling = <
         } else if (result.data[processStateKey] === 'complete') {
           return false;
         } else if (result.data[processStateKey] === 'failed') {
-          toast('ProcessState Polling Failed, see console for more info');
+          toast(
+            `"${result.endpointName}" ProcessState Polling Failed, see console for more info`
+          );
           // eslint-disable-next-line no-console
-          console.error('ProcessState Polling Failed', { result });
+          console.error(
+            `"${result.endpointName}" ProcessState Polling Failed`,
+            { result }
+          );
           return false;
         } else {
           return false;

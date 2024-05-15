@@ -112,7 +112,10 @@ export const SampleAttribs: FC<{
     }),
     [allCountParams]
   );
-  const { data: matchCount } = getSampleAttribs.useQuery(matchCountParams);
+  const matchResult = getSampleAttribs.useQuery(matchCountParams);
+  useProcessStatePolling(matchResult, ['match_state']);
+  const matchCount = matchResult.data;
+
   const selectCountParams = useMemo(
     () => ({
       ...allCountParams,

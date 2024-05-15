@@ -18,10 +18,10 @@ import { useAppDispatch, useAppSelector } from '../../common/hooks';
 import { uriEncodeTemplateTag as encode } from '../../common/utils/stringUtils';
 import { NarrativeDoc } from '../../common/types/NarrativeDoc';
 import { Modal } from '../layout/Modal';
-import { useAppParam } from '../params/hooks';
 import {
   setLocalSelection,
   useCurrentSelection,
+  useMatchId,
   useSelectionId,
 } from './collectionsSlice';
 import classes from './Collections.module.scss';
@@ -30,7 +30,7 @@ import { useParamsForNarrativeDropdown } from './hooks';
 export const ExportModal = ({ collectionId }: { collectionId: string }) => {
   const dispatch = useAppDispatch();
   const selectionId = useSelectionId(collectionId);
-  const matchId = useAppParam('match');
+  const matchId = useMatchId(collectionId);
   const username = useAppSelector((state) => state.auth.username);
   const currentSelection = useCurrentSelection(collectionId);
 
