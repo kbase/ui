@@ -36,7 +36,7 @@ const Routes: FC = () => {
   return (
     <RRRoutes>
       <Route path={`${LEGACY_BASE_ROUTE}/*`} element={<Legacy />} />
-      <Route path="/status" element={<Authed element={<Status />} />} />
+      <Route path="/status" element={<Status />} />
       <Route
         path="/profile/:usernameRequested/narratives"
         element={<Authed element={<ProfileWrapper />} />}
