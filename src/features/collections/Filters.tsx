@@ -148,25 +148,22 @@ export const useContextFilterQueryManagement = (
     <T extends CommonResult>(
       result: T,
       collectionId: string | undefined
-    ): { filterData?: T['data']; context?: FilterContext } => {
+    ): { filterData?: T['data'] } => {
       if (result.isError) {
         const err = parseError(result.error);
         if (err.name !== 'AbortError')
           toast('Filter Loading failed: ' + parseError(result.error).message);
       }
-      const context = result.requestId
-        ? requestContext.current[result.requestId]
-        : undefined;
-      if (!collectionId || !result?.data || !context || result.isError)
-        return {};
-      return { filterData: result.data, context };
+
+      if (!collectionId || !result?.data || result.isError) return {};
+      return { filterData: result.data };
     },
     []
   );
 
   const handleTableFilters = useCallback(
     <T extends typeof genomeResult | typeof sampleResult>(result: T) => {
-      const { filterData, context } = handleResult(result, collectionId);
+      const { filterData } = handleResult(result, collectionId);
       if (!filterData || !collectionId || !context) return;
       dispatch(clearFiltersAndColumnMeta([collectionId, context]));
       filterData.columns.forEach((column) => {
@@ -215,12 +212,12 @@ export const useContextFilterQueryManagement = (
         }
       });
     },
-    [collectionId, dispatch, handleResult]
+    [collectionId, dispatch, handleResult, context]
   );
 
   const handleHeatmapFilters = useCallback(
     <T extends typeof biologResult | typeof microtraitResult>(result: T) => {
-      const { filterData, context } = handleResult(result, collectionId);
+      const { filterData } = handleResult(result, collectionId);
       if (!filterData || !collectionId || !context) return;
       dispatch(clearFiltersAndColumnMeta([collectionId, context]));
       filterData.categories.forEach((category) => {
@@ -228,22 +225,24 @@ export const useContextFilterQueryManagement = (
           const current =
             filtersRef.current && filtersRef.current[column.col_id];
           if (column.type === 'bool') {
-            setColumnMeta([
-              collectionId,
-              context,
-              column.col_id,
-              {
-                type: 'bool',
-                key: column.col_id,
-                max_value: undefined,
-                min_value: undefined,
-                category: category.category,
-                description: column.description,
-                display_name: column.name,
-                filter_strategy: undefined,
-                enum_values: undefined,
-              },
-            ]);
+            dispatch(
+              setColumnMeta([
+                collectionId,
+                context,
+                column.col_id,
+                {
+                  type: 'bool',
+                  key: column.col_id,
+                  max_value: undefined,
+                  min_value: undefined,
+                  category: category.category,
+                  description: column.description,
+                  display_name: column.name,
+                  filter_strategy: undefined,
+                  enum_values: undefined,
+                },
+              ])
+            );
             dispatch(
               setFilter([
                 collectionId,
@@ -253,7 +252,9 @@ export const useContextFilterQueryManagement = (
                   type: 'bool',
                   value:
                     current?.type === column.type
-                      ? Boolean(current.value)
+                      ? typeof current.value !== 'undefined'
+                        ? Boolean(current.value)
+                        : undefined
                       : undefined,
                 },
               ])
@@ -291,7 +292,7 @@ export const useContextFilterQueryManagement = (
         });
       });
     },
-    [collectionId, dispatch, handleResult]
+    [collectionId, dispatch, handleResult, context]
   );
 
   // When the context (or collection) changes, set the filter context and trigger appropriate query
@@ -311,8 +312,6 @@ export const useContextFilterQueryManagement = (
     } else {
       throw new Error(`No filter query matches filter context "${context}"`);
     }
-    requestContext.current[request.requestId] = context;
-
     return () => {
       // Abort request if context changes while running (prevents race conditions)
       if (request) {
