@@ -281,7 +281,7 @@ export const useContextFilterQueryManagement = (
                 context,
                 column.col_id,
                 {
-                  type: 'int',
+                  type: filterMeta.type,
                   min_value: filterMeta.min_value,
                   max_value: filterMeta.max_value,
                   value:
