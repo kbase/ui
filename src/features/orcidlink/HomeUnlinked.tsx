@@ -28,14 +28,14 @@ export default function Unlinked() {
             in GH issues), one must fiddle with padding and margins on a case-by-case
             basis.
           ) */}
-          <CardContent sx={{ pt: 0 }}>
-            <Typography sx={{ mt: 0 }}>
+          <CardContent>
+            <Typography>
               You do not currently have a link from your KBase account to an
               ORCID® account.
             </Typography>
-            <p>
+            <Typography sx={{ mt: 2 }}>
               Click the button below to begin the KBase ORCID® Link process.
-            </p>
+            </Typography>
           </CardContent>
           {/* Note that the card actions padding is overridden so that it matches 
               that of the card content and header. There are a number of formatting 
@@ -54,15 +54,15 @@ export default function Unlinked() {
       <Grid xs={6}>
         <Card variant="outlined">
           <CardHeader title="Notes" />
-          <CardContent sx={{ pt: 0 }}>
-            <div>NOTES HERE</div>
+          <CardContent>
+            <Typography>NOTES HERE</Typography>
           </CardContent>
         </Card>
 
         <Card variant="outlined" sx={{ mt: 2 }}>
           <CardHeader title="More Information" />
-          <CardContent sx={{ pt: 0 }}>
-            <div>LINKS TO MORE INFORMATION HERE</div>
+          <CardContent>
+            <Typography>LINKS TO MORE INFORMATION HERE</Typography>
           </CardContent>
         </Card>
       </Grid>

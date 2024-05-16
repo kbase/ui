@@ -2,6 +2,7 @@ import {
   Card,
   CardContent,
   CardHeader,
+  Typography,
   Unstable_Grid2 as Grid,
 } from '@mui/material';
 import { InfoResult } from '../../../common/api/orcidlinkAPI';
@@ -39,15 +40,15 @@ export default function OverviewTab({
       <Grid xs={6}>
         <Card variant="outlined">
           <CardHeader title="Notes" />
-          <CardContent sx={{ pt: 0 }}>
-            <div>NOTES HERE</div>
+          <CardContent>
+            <Typography sx={{ mt: 0 }}>NOTES HERE</Typography>
           </CardContent>
         </Card>
 
         <Card variant="outlined" sx={{ mt: 2 }}>
           <CardHeader title="More Information" />
-          <CardContent sx={{ pt: 0 }}>
-            <div>LINKS TO MORE INFO HERE</div>
+          <CardContent>
+            <Typography sx={{ mt: 0 }}>LINKS TO MORE INFO HERE</Typography>
           </CardContent>
         </Card>
       </Grid>
