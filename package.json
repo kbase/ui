@@ -20,7 +20,6 @@
     "@fortawesome/free-solid-svg-icons": "^6.1.1",
     "@fortawesome/react-fontawesome": "^0.1.18",
     "@mui/material": "^5.14.18",
-    "@mui/icons-material": "5.15.16",
     "@popperjs/core": "^2.11.8",
     "@reduxjs/toolkit": "^1.9.5",
     "@tanstack/react-table": "^8.5.13",

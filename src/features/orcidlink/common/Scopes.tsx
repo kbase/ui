@@ -6,7 +6,8 @@
  * by opening the accordion for that item.
  */
 
-import { ExpandMore } from '@mui/icons-material';
+import { faAngleRight } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   Accordion,
   AccordionDetails,
@@ -41,7 +42,16 @@ export default function Scopes({ scopes }: ScopesProps) {
     const { orcid, help, seeAlso } = getScopeHelp(scope);
     return (
       <Accordion key={scope}>
-        <AccordionSummary expandIcon={<ExpandMore />}>
+        <AccordionSummary
+          expandIcon={<FontAwesomeIcon icon={faAngleRight} />}
+          aria-controls={`accordion-panel-${index}-content`}
+          id={`accordion-panel-${index}-header`}
+          sx={{
+            '& .MuiAccordionSummary-expandIconWrapper.Mui-expanded': {
+              transform: 'rotate(90deg)',
+            },
+          }}
+        >
           <Typography>{orcid.label}</Typography>
         </AccordionSummary>
         <AccordionDetails>
