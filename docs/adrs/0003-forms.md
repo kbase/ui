@@ -18,7 +18,7 @@ best suited for our purposes.
 
 ## Status <!-- Status of this ADR -->
 
-Draft
+Accepted
 
 ## Alternatives Considered <!-- Short list of considered alternatives, should include the chosen path -->
 
@@ -51,15 +51,15 @@ of our needs).
 - `+` Basic API is concise (when using HTML elements)
 - `+` Good documentation
 - `?` Validation features preference validation library `Yup`
-- `-` Requires a signifigant amout of boilerplate when using custom input
+- `-` Requires a significant amount of boilerplate when using custom input
   components not designed without Formik in mind (e.g. if we used a date-picker
   component from a library)
 - `-` Straightforward use of custom input components requires modifying the
   component being used in the form, rather than wrapping it
 - `-` More complicated features (e.g. custom validation) require lots of
   boilerplate.
-- `-` Introduces react (anti?) pattern we don't use elswhere ([Function as Child
-  Components][])
+- `-` Introduces react (anti?) pattern we don't use elsewhere
+  ([Function as Child Components][])
 
 ### React Hook Form (8kB)
 

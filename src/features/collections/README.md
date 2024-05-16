@@ -1,7 +1,7 @@
 # Collections
 
-The collections feature supports the collections service (as of writing, hosted
-at: https://kbase.us/services/collections/docs).
+The collections feature supports the
+[collections service](https://kbase.us/services/collections/docs).
 
 The purpose of this README is to contain notes useful to developers, which may
 not be easily grokked from the code.
