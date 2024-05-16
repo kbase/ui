@@ -424,7 +424,7 @@ export const useFilters = (
   );
 
   const formattedFilters = Object.entries(filters ?? {})
-    .filter(([column, filterState]) => Boolean(filterState.value))
+    .filter(([column, filterState]) => filterState.value !== undefined)
     .map(([column, filterState]) => {
       const paramName = `filter_${column}`;
       let filterValue: string | undefined;

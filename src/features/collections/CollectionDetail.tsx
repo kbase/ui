@@ -517,7 +517,8 @@ const FilterMenu = ({
                 <AccordionDetails>
                   <Stack spacing={3}>
                     {category.filters.flatMap(([column, filter]) => {
-                      const hasVal = Boolean(filter.value);
+                      const hasVal =
+                        filter.value !== undefined && filter.value !== null;
                       return (
                         <Stack
                           className={styles['filter-container']}
@@ -882,7 +883,7 @@ const RangeFilterControls = ({
   const [filterMin, filterMax] = [filter.min_value, filter.max_value];
   useEffect(() => {
     //Clear when the filter is cleared
-    if (!filter.value) {
+    if (filter.value === undefined || filter.value === null) {
       setValue('min', filterMin);
       setValue('max', filterMax);
       setSliderPosition([filterMin, filterMax]);
@@ -1010,13 +1011,13 @@ const BooleanFilterControls = ({
   filter: { type: 'bool' };
 }) => {
   const dispatch = useAppDispatch();
-  const [selectValue, setSelectValue] = useState<string | undefined>(() => {
+  const [selectValue, setSelectValue] = useState<string>(() => {
     if (filter.value === true || filter.value === 1) {
       return 'true';
     } else if (filter.value === false || filter.value === 0) {
       return 'false';
     } else {
-      return;
+      return 'any';
     }
   });
 
@@ -1046,12 +1047,20 @@ const BooleanFilterControls = ({
     );
   }, [selectValue, collectionId, context, column, dispatch]);
 
+  useEffect(() => {
+    //Clear when the filter is cleared
+    // Use 'any' for empty value so the select stays controlled and shows "Any" in the dropdown
+    if (filter.value === undefined || filter.value === null) {
+      setSelectValue('any');
+    }
+  }, [filter.value, setSelectValue]);
+
   return (
     <FormControl fullWidth>
-      <Select value={selectValue} label="Age" onChange={handleChange}>
+      <Select value={selectValue} onChange={handleChange}>
         <MenuItem value="true">True</MenuItem>
         <MenuItem value="false">False</MenuItem>
-        <MenuItem value={undefined}>Any</MenuItem>
+        <MenuItem value="any">Any</MenuItem>
       </Select>
     </FormControl>
   );
