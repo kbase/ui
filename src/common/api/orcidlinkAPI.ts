@@ -2,14 +2,6 @@ import { baseApi } from '.';
 import { LinkRecordPublic, ORCIDProfile } from './orcidLinkCommon';
 import { jsonRpc2Service } from './utils/serviceHelpers';
 
-// is-linked
-
-export type IsLinkedResult = boolean;
-
-// owner-link
-
-export type OwnerLinkResult = LinkRecordPublic;
-
 // system info
 
 export interface ServiceDescription {
@@ -46,14 +38,10 @@ export interface InfoResult {
   runtime_info: RuntimeInfo;
 }
 
-// orcid profile
-
-export type GetProfileResult = ORCIDProfile;
-
 // combined api calls for initial view
 
 export interface ORCIDLinkInitialStateResult {
-  isLinked: IsLinkedResult;
+  isLinked: boolean;
   info: InfoResult;
 }
 
@@ -113,7 +101,7 @@ export const orcidlinkAPI = baseApi
           }
           return {
             data: {
-              isLinked: isLinked.data as IsLinkedResult,
+              isLinked: isLinked.data as boolean,
               info: info.data as InfoResult,
             },
           };
