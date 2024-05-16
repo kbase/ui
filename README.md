@@ -1,6 +1,14 @@
-# UI Refresh Test Repo
+# UI for KBase
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app) (`npx create-react-app ui-refresh-test --template typescript`). It also includes the following:
+![build and push status](https://github.com/kbase/ui/actions/workflows/build_and_push.yml/badge.svg)
+
+This project manages the User Interface (UI) for KBase tools, not including the
+narrative interface or documentation site [kbase.us](https://kbase.us).
+
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app)
+using the command `npx create-react-app ui-refresh-test --template typescript`.
+
+It also includes the following:
 
 - Redux (`@reduxjs/toolkit`) for state management
 - `react-router-dom` for routing
@@ -9,12 +17,10 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 - npm linting scripts (`lint`, `lint:fix`, `lint:strict`)
 - `husky` to enable a `lint:strict` precommit hook
 - `.nvmrc` specifying the node version
-- Very small example app implementation with mock login
 - `.editorconfig` for cross-editor config defaults. See
       [editorconfig.org](https://editorconfig.org) for compatability
 - Storybook (`npm run storybook`) for dev docs, style examples, and component
     examples.
-
 
 ## Architectural Decision Records
 
@@ -23,48 +29,47 @@ architecture decision made along with its context and consequences. They track
 major decisions that change the course of the project. You can find the ADRs
 for this project in [`docs/adrs`](docs/adrs).
 
-
 ## Getting Started
 
-First clone the repo into your working directory:
+First clone the repository into your working directory:
 
-```
+```sh
 git clone git@github.com:kbase/ui.git
 ```
 
 Install the dependencies:
 
-```
+```sh
 npm install
 ```
 
 Start the app:
 
-```
+```sh
 npm start
 ```
 
 ### Troubleshooting
 
 - Ensure that your node version matches the version specified in `.nvmrc`.
-We recommend using `nvm` to manage your node versions.
-Run `nvm install` to install and use the node version from `.nvmrc`.
+We recommend using [`nvm`](https://github.com/nvm-sh/nvm) to manage your node
+versions. Run `nvm install` to install and use the node version from `.nvmrc`.
 - If you receive the following error message after running `npm start`:
 `Invalid options object. Dev Server has been initialized using an options object that does not match the API schema.`
-then you may need to set the following environment variable: `DANGEROUSLY_DISABLE_HOST_CHECK=true`
-- If you are using a Mac with an M1 or M2 chip, you may run into an 
+then you may need to set the following environment variable:
+`DANGEROUSLY_DISABLE_HOST_CHECK=true`
+- If you are using a Mac with an M1 or M2 chip, you may run into an
 error caused by `canvas` and `node-gyp` after running `npm install`.
-    
-    - First, make sure your global python version (`python --version`) 
-    is under 3.12.
-    - If the install step still isn't working, try to install node-canvas 
-    from source by following the Installation: Mac OS X, HomeBrew steps below 
-    or on [this page](https://github.com/Automattic/node-canvas/wiki/Installation:-Mac-OS-X).
-        
-        - `brew install pkg-config cairo pango libpng jpeg giflib librsvg` 
-    - This python aspect of this issue may become obsolete once 
-    the `node-gyp` peer dependency is able to upgrade to v10+.
 
+    - First, make sure your global python version (`python --version`)
+    is under 3.12.
+    - If the install step still isn't working, try to install node-canvas
+    from source by following the Installation: Mac OS X, HomeBrew steps below
+    or on [this page](https://github.com/Automattic/node-canvas/wiki/Installation:-Mac-OS-X).
+
+        - `brew install pkg-config cairo pango libpng jpeg giflib librsvg`
+    - This python aspect of this issue may become obsolete once
+    the `node-gyp` peer dependency is able to upgrade to v10+.
 
 ## Available Scripts
 
@@ -109,28 +114,3 @@ errors/warnings and is used as a pre-commit hook.
 Opens storybook locally. Builds and watches `*.stories.[tsx|mdx]` files and
 launches a local storybook server. The storybook contains component examples
 and other dev documentation.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can
-`eject` at any time. This command will remove the single build dependency from
-your project.
-
-Instead, it will copy all the configuration files and the transitive
-dependencies (webpack, Babel, ESLint, etc) right into your project so you have
-full control over them. All of the commands except `eject` will still work, but
-they will point to the copied scripts so you can tweak them. At this point
-you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for
-small and middle deployments, and you shouldn’t feel obligated to use this
-feature. However we understand that this tool wouldn’t be useful if you
-couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).

@@ -52,7 +52,7 @@ component.
 - `+` Lots of useful, convenient components
 - `+` Styling is all handled in CSS sheets with namespaced class names for the
   blueprint component classes
-- `-` Low levels of configuartion (hard to match our existing styles)
+- `-` Low levels of configuration (hard to match our existing styles)
 - `-` No planned mobile/ small-screen support
 
 ### [U.S. Web Design System (USWDS)](https://designsystem.digital.gov/)
@@ -81,4 +81,3 @@ component.
   inline styles
 - `+` Comes with many styles out of the box
 - `-` Style configuration is in JS, not SCSS
-  [DU Project ADR Example](https://github.com/kbase/narrative/blob/44aaa558ec3c8c061777983531884a7ce7d9ad78/docs/adrs/0001-git-workflow.md)

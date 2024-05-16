@@ -26,7 +26,7 @@ Accepted
 
 - Create React App (CRA)
 - Manual React Setup
-- Other react bootstraping solutions
+- Other react bootstrapping solutions
 
 ## Decision Outcome <!-- Summary of the decision -->
 
@@ -36,7 +36,7 @@ template will be used, and redux added post-hoc.
 ## Consequences <!-- Summary of the decision -->
 
 Using CRA allows fast initial setup, but adds some "magic" to the repo. We felt
-this was a good tradeoff for initial development. CRA also offers `eject`[^1]
+this was a good trade-off for initial development. CRA also offers `eject`[^1]
 which allows for it to be removed as a dependency (though doing so also removes
 many of its benefits, such as not maintaining the webpack config). There is
 also a large dev community for CRA.
@@ -56,7 +56,7 @@ also a large dev community for CRA.
 - `+` Almost completely customizable
 - `-` Complicated configurations and decisions around bundling, css loading,
       etc. Best practices unclear.
-- `-` Would be KBase-specific, and perhaps even repo-specfic, adding to
+- `-` Would be KBase-specific, and perhaps even repo-specific, adding to
       required onboarding.
 
 ### Other react app-bootstrapping solutions

@@ -19,7 +19,7 @@ inside cells. This ADR explains the decision to use the headless
 
 ## Status <!-- Status of this ADR -->
 
-N/A
+Accepted
 
 ## Alternatives Considered <!-- Short list of considered alternatives, should include the chosen path -->
 

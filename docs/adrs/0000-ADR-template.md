@@ -33,7 +33,7 @@ Truss (DU project) ADRs [^1]
 ## Consequences <!-- Summary of the decision -->
 
 Adds a file to the repo, but allows easy discovery. Makes updating the template
-straightfoward if needed. However, this may need to be revisted if multiple
+straightforward if needed. However, this may need to be revisited if multiple
 repos are create for the project, as that might require duplicating the
 template, or changing where ADRs are stored.
 
@@ -47,7 +47,7 @@ template, or changing where ADRs are stored.
 
 ### Send an email describing how to make an ADR to everyone
 
-- `+` Everyone is notifed
+- `+` Everyone is notified
 - `-` Not discoverable after initial email
 - `-` Hard to update easily, might lose track of who to email
 - `-` Silly
@@ -55,7 +55,7 @@ template, or changing where ADRs are stored.
 ### Send an email describing how to make an ADR to everyone
 
 - `+` May work better if there are many repos related to the project
-- `-` Not particulary discoverable
+- `-` Not particularly discoverable
 
 ## References <!-- List any relevant resources about the ADR, consider using footnotes as below where useful -->
 
