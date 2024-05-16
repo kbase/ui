@@ -260,6 +260,7 @@ export const useContextFilterQueryManagement = (
               ])
             );
           } else {
+            // column.type === 'count'
             const filterMeta: ColumnMeta = {
               type: 'int',
               key: column.col_id,

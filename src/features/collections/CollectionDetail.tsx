@@ -49,7 +49,7 @@ import {
 import { useForm } from 'react-hook-form';
 import { CollectionOverview } from './CollectionOverview';
 import { FilterChip } from '../../common/components/FilterChip';
-import { FilterContextTabs } from './Filters';
+import { filterContextScope, FilterContextTabs } from './Filters';
 
 export const detailPath = ':id';
 export const detailDataProductPath = ':id/:data_product';
@@ -406,6 +406,7 @@ const useFilterEntries = (collectionId: string) => {
 };
 
 const FilterChips = ({ collectionId }: { collectionId: string }) => {
+  const { columnMeta } = useFilters(collectionId);
   const { filterEntries, clearFilterState, context } =
     useFilterEntries(collectionId);
   if (filterEntries.length === 0) return <></>;
@@ -416,7 +417,7 @@ const FilterChips = ({ collectionId }: { collectionId: string }) => {
           <FilterChip
             filter={filter}
             key={`${column}-${context}-${filter.type}`}
-            name={column}
+            name={columnMeta?.[column]?.display_name || column}
             onDelete={() => clearFilterState(column)}
           />
         );
@@ -456,11 +457,19 @@ const FilterMenu = ({
     setExpandedCategory(expanded ? category : '');
   };
 
+  const menuLabel = {
+    DEFAULT: 'Filters',
+    genomes: 'Genome Filters',
+    samples: 'Sample Filters',
+    biolog: 'Biolog Filters',
+    microtrait: 'Microtrait Filters',
+  }[filterContextScope(context) || 'DEFAULT'];
+
   if (open) {
     return (
       <div className={styles['filters_panel']}>
         <Stack direction="row" className={styles['filters-panel-header']}>
-          <h3>Genome Filters</h3>
+          <h3>{menuLabel}</h3>
           <Stack direction="row" spacing={1}>
             <Button
               size="small"

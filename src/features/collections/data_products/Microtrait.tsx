@@ -22,6 +22,7 @@ import {
   useMatchId,
   useGenerateSelectionId,
   useFilterContextState,
+  useFilters,
 } from '../collectionsSlice';
 import { useFilterContexts } from '../Filters';
 import { useProcessStatePolling } from '../hooks';
@@ -148,6 +149,10 @@ const useMicrotrait = (collection_id: string | undefined) => {
     skip: !collection_id,
   });
   const context = useFilterContextState(collection_id);
+  const { filterParams } = useFilters(collection_id, context);
+  const allFilters = useFilters(collection_id, 'biolog.all').filterParams;
+  const matchFilters = useFilters(collection_id, 'biolog.matched').filterParams;
+  const selFilters = useFilters(collection_id, 'biolog.selected').filterParams;
 
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
@@ -182,7 +187,7 @@ const useMicrotrait = (collection_id: string | undefined) => {
       context,
     ]
   );
-  const allCountParams = useMemo(
+  const countParams = useMemo(
     () => ({
       ...heatMapParams,
       count: true,
@@ -197,7 +202,14 @@ const useMicrotrait = (collection_id: string | undefined) => {
   );
 
   // HeatMap cell query
-  const microtraitQuery = getMicroTrait.useQuery(heatMapParams, {
+  const filteredParams = useMemo(
+    () => ({
+      ...heatMapParams,
+      ...filterParams,
+    }),
+    [heatMapParams, filterParams]
+  );
+  const microtraitQuery = getMicroTrait.useQuery(filteredParams, {
     skip: !collection_id,
   });
   const microtrait = microtraitQuery.data;
@@ -230,25 +242,31 @@ const useMicrotrait = (collection_id: string | undefined) => {
     skip: !collection_id,
   });
 
+  const [allCountParams, matchCountParams, selCountParams] = useMemo(
+    () => [
+      {
+        ...countParams,
+        ...allFilters,
+      },
+      {
+        ...countParams,
+        match_mark: false,
+        ...matchFilters,
+      },
+      {
+        ...countParams,
+        selection_mark: false,
+        ...selFilters,
+      },
+    ],
+    [allFilters, countParams, matchFilters, selFilters]
+  );
+
   const { data: count, ...countQuery } = getMicroTrait.useQuery(
     allCountParams,
     {
       skip: !collection_id,
     }
-  );
-
-  const [matchCountParams, selCountParams] = useMemo(
-    () => [
-      {
-        ...allCountParams,
-        match_mark: false,
-      },
-      {
-        ...allCountParams,
-        selection_mark: false,
-      },
-    ],
-    [allCountParams]
   );
 
   const matchCount = getMicroTrait.useQuery(matchCountParams, {

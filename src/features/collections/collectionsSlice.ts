@@ -436,6 +436,11 @@ export const useFilters = (
       ) {
         if (filterState.value !== undefined) filterValue = filterState.value;
       } else if (
+        filterState.type === 'bool' &&
+        filterState.value !== undefined
+      ) {
+        filterValue = Boolean(filterState.value).toString();
+      } else if (
         (filterState.type === 'date' ||
           filterState.type === 'int' ||
           filterState.type === 'float') &&
