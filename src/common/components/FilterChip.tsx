@@ -18,7 +18,7 @@ export const FilterChip = ({
   ...chipProps
 }: FilterChipProps) => {
   let filterString = '';
-  if (filter.value !== undefined && filter.value !== undefined) {
+  if (filter.value !== undefined && filter.value !== null) {
     if (
       filter.type === 'date' ||
       filter.type === 'int' ||

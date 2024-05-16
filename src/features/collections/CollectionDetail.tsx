@@ -1011,14 +1011,18 @@ const BooleanFilterControls = ({
   filter: { type: 'bool' };
 }) => {
   const dispatch = useAppDispatch();
-  const [selectValue, setSelectValue] = useState<string>(() => {
-    if (filter.value === true || filter.value === 1) {
+  // Convert boolean values to proper dropdown values
+  const getBooleanDropdownValue = (value?: number | boolean) => {
+    if (value === true || value === 1) {
       return 'true';
-    } else if (filter.value === false || filter.value === 0) {
+    } else if (value === false || value === 0) {
       return 'false';
     } else {
       return 'any';
     }
+  };
+  const [selectValue, setSelectValue] = useState<string>(() => {
+    return getBooleanDropdownValue(filter.value);
   });
 
   const handleChange = (event: SelectChangeEvent) => {
@@ -1052,6 +1056,8 @@ const BooleanFilterControls = ({
     // Use 'any' for empty value so the select stays controlled and shows "Any" in the dropdown
     if (filter.value === undefined || filter.value === null) {
       setSelectValue('any');
+    } else if (filter.value !== filterRef.current.value) {
+      setSelectValue(getBooleanDropdownValue(filter.value));
     }
   }, [filter.value, setSelectValue]);
 
