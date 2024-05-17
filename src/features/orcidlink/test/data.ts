@@ -95,3 +95,9 @@ export const INITIAL_STORE_STATE = {
     initialized: true,
   },
 };
+
+export const INITIAL_UNAUTHENTICATED_STORE_STATE = {
+  auth: {
+    initialized: true,
+  },
+};

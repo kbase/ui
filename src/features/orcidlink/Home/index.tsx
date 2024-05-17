@@ -6,8 +6,11 @@ import ErrorMessage from '../common/ErrorMessage';
 import Home from './Home';
 
 export default function HomeController() {
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const username = useAppSelector(authUsername)!;
+  const username = useAppSelector(authUsername);
+
+  if (typeof username === 'undefined') {
+    throw new Error('Impossible - username is not defined');
+  }
 
   usePageTitle('KBase ORCID Link');
 

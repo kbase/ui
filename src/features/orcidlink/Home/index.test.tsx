@@ -1,10 +1,14 @@
 import { act, render, waitFor } from '@testing-library/react';
 import fetchMock, { MockResponseInit } from 'jest-fetch-mock';
+import { ErrorBoundary } from 'react-error-boundary';
 import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
 import { createTestStore } from '../../../app/store';
 import { setAuth } from '../../auth/authSlice';
-import { INITIAL_STORE_STATE } from '../test/data';
+import {
+  INITIAL_STORE_STATE,
+  INITIAL_UNAUTHENTICATED_STORE_STATE,
+} from '../test/data';
 import { mockIsLinked, mockIsLinked_not } from '../test/mocks';
 import HomeController from './index';
 
@@ -205,6 +209,28 @@ describe('The HomeController Component', () => {
     await waitFor(() => {
       expect(container).toHaveTextContent(
         `SyntaxError: Unexpected token 'b', "bad" is not valid JSON`
+      );
+    });
+  });
+
+  it('throws an impossible error if called without authentication', async () => {
+    const { container } = render(
+      <ErrorBoundary
+        fallbackRender={({ error }) => {
+          return <div>{error.message}</div>;
+        }}
+      >
+        <Provider store={createTestStore(INITIAL_UNAUTHENTICATED_STORE_STATE)}>
+          <MemoryRouter initialEntries={['/foo']}>
+            <HomeController />
+          </MemoryRouter>
+        </Provider>
+      </ErrorBoundary>
+    );
+
+    await waitFor(() => {
+      expect(container).toHaveTextContent(
+        'Impossible - username is not defined'
       );
     });
   });
