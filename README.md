@@ -31,7 +31,11 @@ for this project in [`docs/adrs`](docs/adrs).
 
 ## Getting Started
 
-First clone the repository into your working directory:
+Ensure that your node version matches the version specified in `.nvmrc`. We
+recommend using [`nvm`](https://github.com/nvm-sh/nvm) to manage your node
+versions. Run `nvm install` to install and use the node version from `.nvmrc`.
+
+Clone the repository into your working directory:
 
 ```sh
 git clone git@github.com:kbase/ui.git
@@ -51,9 +55,6 @@ npm start
 
 ### Troubleshooting
 
-- Ensure that your node version matches the version specified in `.nvmrc`.
-We recommend using [`nvm`](https://github.com/nvm-sh/nvm) to manage your node
-versions. Run `nvm install` to install and use the node version from `.nvmrc`.
 - If you receive the following error message after running `npm start`:
 `Invalid options object. Dev Server has been initialized using an options object that does not match the API schema.`
 then you may need to set the following environment variable:
