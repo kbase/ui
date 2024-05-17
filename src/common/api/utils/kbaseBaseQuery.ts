@@ -1,8 +1,5 @@
 import { BaseQueryApi } from '@reduxjs/toolkit/dist/query/baseQueryTypes';
-import {
-  FetchBaseQueryArgs,
-  ResponseHandler,
-} from '@reduxjs/toolkit/dist/query/fetchBaseQuery';
+import { FetchBaseQueryArgs } from '@reduxjs/toolkit/dist/query/fetchBaseQuery';
 import {
   BaseQueryFn,
   FetchArgs,
@@ -32,7 +29,6 @@ export interface JsonRpcQueryArgs {
   method: string;
   params?: unknown;
   fetchArgs?: FetchArgs;
-  responseHandler?: ResponseHandler;
 }
 
 export interface JSONRPC11Body {
