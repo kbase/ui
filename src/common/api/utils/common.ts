@@ -59,8 +59,6 @@ export const isJsonRpc20Error = (obj: unknown): obj is JsonRpcError => {
     if (jsonrpc !== '2.0') {
       return false;
     }
-    // const versionsSupported = new Set(['1.1', '2.0']);
-    // if (!versionsSupported.has(version)) return false;
     if (
       typeof error === 'object' &&
       error !== null &&
