@@ -1,6 +1,6 @@
 import { baseApi } from '.';
 import { LinkRecordPublic, ORCIDProfile } from './orcidLinkCommon';
-import { jsonRpc2Service } from './utils/serviceHelpers';
+import { jsonRpcService } from './utils/serviceHelpers';
 
 // system info
 
@@ -61,7 +61,7 @@ export interface ORCIDLinkLinkedUserInfoParams {
 }
 
 // It is mostly a JSONRPC 2.0 service, although the oauth flow is rest-ish.
-const orcidlinkService = jsonRpc2Service({
+const orcidlinkService = jsonRpcService({
   url: '/services/orcidlink/api/v1',
   version: '2.0',
 });
