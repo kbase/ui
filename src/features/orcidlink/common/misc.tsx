@@ -26,11 +26,11 @@ export function renderORCIDIcon() {
   );
 }
 
-export function privateField() {
+function renderPrivateField() {
   return <Typography fontStyle="italic">private</Typography>;
 }
 
-export function naField() {
+function renderNA() {
   return (
     <Typography fontStyle="italic" variant="body1">
       n/a
@@ -41,7 +41,7 @@ export function naField() {
 export function renderRealname(profile: ORCIDProfile) {
   // Name is the one stored from the original linking, may have changed.
   if (profile.nameGroup.private) {
-    return privateField();
+    return renderPrivateField();
   }
 
   const { firstName, lastName } = profile.nameGroup.fields;
@@ -65,15 +65,15 @@ export function renderRealname(profile: ORCIDProfile) {
  */
 export function renderCreditName(profile: ORCIDProfile) {
   if (profile.nameGroup.private) {
-    return privateField();
+    return renderPrivateField();
   }
   if (!profile.nameGroup.fields.creditName) {
-    return naField();
+    return renderNA();
   }
   return <Typography>{profile.nameGroup.fields.creditName}</Typography>;
 }
 
-export function renderLoading(title: string, description: string) {
+function renderLoading(title: string, description: string) {
   return (
     <div className={styles.loading}>
       <Alert icon={<CircularProgress size="1rem" />}>
@@ -91,5 +91,30 @@ export function renderLoadingOverlay(open: boolean) {
     <Modal open={open} disableAutoFocus={true}>
       {renderLoading('Loading...', 'Loading ORCID Link')}
     </Modal>
+  );
+}
+
+/**
+ * Creates a link to an ORCID profile in the form recommended by ORCID.
+ *
+ * @param orcidSiteURL A URL to an ORCID public site that hosts orcid profiles
+ * @param orcidId An ORCID iD
+ * @returns An anchor component linking to the given ORCID iD
+ */
+export function renderORCIDId(orcidSiteURL: string, orcidId: string) {
+  return (
+    <a
+      href={`${orcidSiteURL}/${orcidId}`}
+      target="_blank"
+      rel="noreferrer"
+      style={{
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+      }}
+    >
+      {renderORCIDIcon()}
+      {orcidSiteURL}/{orcidId}
+    </a>
   );
 }

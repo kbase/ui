@@ -4,7 +4,7 @@ import {
 } from '../../../common/api/orcidLinkCommon';
 import {
   renderCreditName,
-  renderORCIDIcon,
+  renderORCIDId,
   renderRealname,
 } from '../common/misc';
 import Scopes from '../common/Scopes';
@@ -21,30 +21,12 @@ export default function LinkInfo({
   profile,
   orcidSiteURL,
 }: LinkInfoProps) {
-  function renderORCIDId() {
-    return (
-      <a
-        href={`${orcidSiteURL}/${linkRecord.orcid_auth.orcid}`}
-        target="_blank"
-        rel="noreferrer"
-        style={{
-          display: 'flex',
-          flexDirection: 'row',
-          alignItems: 'center',
-        }}
-      >
-        {renderORCIDIcon()}
-        {orcidSiteURL}/{linkRecord.orcid_auth.orcid}
-      </a>
-    );
-  }
-
   return (
     <div>
       <div className={styles['prop-table']}>
         <div>
           <div>ORCID iD</div>
-          <div>{renderORCIDId()}</div>
+          <div>{renderORCIDId(orcidSiteURL, linkRecord.orcid_auth.orcid)}</div>
         </div>
         <div>
           <div>Name on Account</div>
