@@ -22,5 +22,5 @@ export default function HomeController() {
   } else if (isSuccess) {
     return <Home isLinked={data.isLinked} info={data.info} />;
   }
-  return null;
+  return <></>;
 }
