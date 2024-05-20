@@ -2,7 +2,7 @@ import { InfoResult, orcidlinkAPI } from '../../../common/api/orcidlinkAPI';
 import { useAppSelector } from '../../../common/hooks';
 import { authUsername } from '../../auth/authSlice';
 import ErrorMessage from '../common/ErrorMessage';
-import { renderLoadingOverlay } from '../common/misc';
+import LoadingOverlay from '../common/LoadingOverlay';
 import HomeLinked from './view';
 
 export interface HomeLinkedControllerProps {
@@ -35,7 +35,7 @@ export default function HomeLinkedController({
 
   return (
     <>
-      {renderLoadingOverlay(isFetching)}
+      <LoadingOverlay open={isFetching} />
       {renderState()}
     </>
   );

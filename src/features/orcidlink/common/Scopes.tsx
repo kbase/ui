@@ -30,6 +30,13 @@ function isScope(possibleScope: string): possibleScope is ORCIDScope {
   return ['/read-limited', '/activities/update'].includes(possibleScope);
 }
 
+/**
+ * Renders the scopes as provided by an ORCID profile - a string containing
+ * space-separated scope identifiers.
+ *
+ * The scopes are displayed in a collapsed "accordion" component, the detail
+ * area of which contains the description of the associated scope.
+ */
 export default function Scopes({ scopes }: ScopesProps) {
   const rows = scopes.split(/\s+/).map((scope: string, index) => {
     if (!isScope(scope)) {

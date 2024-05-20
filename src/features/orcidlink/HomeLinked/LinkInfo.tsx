@@ -2,11 +2,9 @@ import {
   LinkRecordPublic,
   ORCIDProfile,
 } from '../../../common/api/orcidLinkCommon';
-import {
-  renderCreditName,
-  renderORCIDId,
-  renderRealname,
-} from '../common/misc';
+import CreditName from '../common/CreditName';
+import { ORCIDIdLink } from '../common/ORCIDIdLink';
+import RealName from '../common/RealName';
 import Scopes from '../common/Scopes';
 import styles from '../orcidlink.module.scss';
 
@@ -26,15 +24,24 @@ export default function LinkInfo({
       <div className={styles['prop-table']}>
         <div>
           <div>ORCID iD</div>
-          <div>{renderORCIDId(orcidSiteURL, linkRecord.orcid_auth.orcid)}</div>
+          <div>
+            <ORCIDIdLink
+              url={orcidSiteURL}
+              orcidId={linkRecord.orcid_auth.orcid}
+            />
+          </div>
         </div>
         <div>
           <div>Name on Account</div>
-          <div>{renderRealname(profile)}</div>
+          <div>
+            <RealName profile={profile} />
+          </div>
         </div>
         <div>
           <div>Published Name</div>
-          <div>{renderCreditName(profile)}</div>
+          <div>
+            <CreditName profile={profile} />
+          </div>
         </div>
         <div>
           <div>Created on</div>

@@ -1,8 +1,8 @@
 /**
  * Displays an error message as may be retured by an RTK query.
  *
- * Currently very basci, just displaying the message in an Alert. However, some
- * errors can clearly use a more specialized display.
+ * Currently very basic, just displaying the message in an Alert. However, some
+ * errors would benefit from a more specialized display.
  */
 import Alert from '@mui/material/Alert';
 import { SerializedError } from '@reduxjs/toolkit';
