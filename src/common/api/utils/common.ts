@@ -49,6 +49,27 @@ export const isJsonRpcError = (obj: unknown): obj is JsonRpcError => {
   return false;
 };
 
+export const isJsonRpc20Error = (obj: unknown): obj is JsonRpcError => {
+  if (
+    typeof obj === 'object' &&
+    obj !== null &&
+    ['jsonrpc', 'error', 'id'].every((k) => k in obj)
+  ) {
+    const { jsonrpc, error } = obj as { jsonrpc: string; error: unknown };
+    if (jsonrpc !== '2.0') {
+      return false;
+    }
+    if (
+      typeof error === 'object' &&
+      error !== null &&
+      ['code', 'message'].every((k) => k in error)
+    ) {
+      return true;
+    }
+  }
+  return false;
+};
+
 /**
  * Type predicate to narrow an unknown error to `FetchBaseQueryError`
  */

@@ -1,4 +1,4 @@
-import { JsonRpcQueryArgs, HttpQueryArgs } from './kbaseBaseQuery';
+import { HttpQueryArgs, JsonRpcQueryArgs } from './kbaseBaseQuery';
 
 // Helpers for adding service info to each query,
 export const jsonRpcService = (
