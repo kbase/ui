@@ -197,6 +197,13 @@ export type ColumnMeta = {
       max_value: undefined;
       enum_values: string[];
     }
+  | {
+      type: 'bool';
+      filter_strategy: undefined;
+      min_value: undefined;
+      max_value: undefined;
+      enum_values: undefined;
+    }
 );
 
 interface CollectionsResults {

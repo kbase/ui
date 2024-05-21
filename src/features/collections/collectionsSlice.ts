@@ -40,6 +40,10 @@ export type FilterState =
       value?: FilterRange;
       min_value: number;
       max_value: number;
+    }
+  | {
+      type: 'bool';
+      value?: boolean | number;
     };
 
 interface ClnState {
@@ -420,7 +424,7 @@ export const useFilters = (
   );
 
   const formattedFilters = Object.entries(filters ?? {})
-    .filter(([column, filterState]) => Boolean(filterState.value))
+    .filter(([column, filterState]) => filterState.value !== undefined)
     .map(([column, filterState]) => {
       const paramName = `filter_${column}`;
       let filterValue: string | undefined;
@@ -431,6 +435,11 @@ export const useFilters = (
         filterState.type === 'ngram'
       ) {
         if (filterState.value !== undefined) filterValue = filterState.value;
+      } else if (
+        filterState.type === 'bool' &&
+        filterState.value !== undefined
+      ) {
+        filterValue = Boolean(filterState.value).toString();
       } else if (
         (filterState.type === 'date' ||
           filterState.type === 'int' ||

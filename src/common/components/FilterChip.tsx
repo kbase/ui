@@ -18,7 +18,7 @@ export const FilterChip = ({
   ...chipProps
 }: FilterChipProps) => {
   let filterString = '';
-  if (filter.value) {
+  if (filter.value !== undefined && filter.value !== null) {
     if (
       filter.type === 'date' ||
       filter.type === 'int' ||
@@ -30,6 +30,8 @@ export const FilterChip = ({
         })
         .map((val) => val.toLocaleString());
       filterString = `${minString} to ${maxString}`;
+    } else if (filter.type === 'bool') {
+      filterString = Boolean(filter.value).toString();
     } else {
       const val = filter.value;
       if (typeof val === 'string') {

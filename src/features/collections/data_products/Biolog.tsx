@@ -20,6 +20,7 @@ import { formatNumber } from '../../../common/utils/stringUtils';
 import classes from '../Collections.module.scss';
 import {
   useFilterContextState,
+  useFilters,
   useGenerateSelectionId,
   useMatchId,
 } from '../collectionsSlice';
@@ -128,6 +129,10 @@ const useBiolog = (collection_id: string | undefined) => {
     pageSize: 56,
   });
   const context = useFilterContextState(collection_id);
+  const { filterParams } = useFilters(collection_id, context);
+  const allFilters = useFilters(collection_id, 'biolog.all').filterParams;
+  const matchFilters = useFilters(collection_id, 'biolog.matched').filterParams;
+  const selFilters = useFilters(collection_id, 'biolog.selected').filterParams;
 
   const pageLastIdCache: Record<string, string> = useMemo(
     () => ({}),
@@ -157,7 +162,8 @@ const useBiolog = (collection_id: string | undefined) => {
       context,
     ]
   );
-  const allCountParams = useMemo(
+
+  const countParams = useMemo(
     () => ({
       ...heatMapParams,
       count: true,
@@ -171,7 +177,15 @@ const useBiolog = (collection_id: string | undefined) => {
     [collection_id]
   );
 
-  const biologQuery = getBiolog.useQuery(heatMapParams, {
+  const filteredParams = useMemo(
+    () => ({
+      ...heatMapParams,
+      ...filterParams,
+    }),
+    [heatMapParams, filterParams]
+  );
+
+  const biologQuery = getBiolog.useQuery(filteredParams, {
     skip: !collection_id,
   });
   const biolog = biologQuery.data;
@@ -204,23 +218,29 @@ const useBiolog = (collection_id: string | undefined) => {
     skip: !collection_id,
   });
 
+  const [allCountParams, matchCountParams, selCountParams] = useMemo(
+    () => [
+      {
+        ...countParams,
+        ...allFilters,
+      },
+      {
+        ...countParams,
+        match_mark: false,
+        ...matchFilters,
+      },
+      {
+        ...countParams,
+        selection_mark: false,
+        ...selFilters,
+      },
+    ],
+    [allFilters, countParams, matchFilters, selFilters]
+  );
+
   const { data: count, ...countQuery } = getBiolog.useQuery(allCountParams, {
     skip: !collection_id,
   });
-
-  const [matchCountParams, selCountParams] = useMemo(
-    () => [
-      {
-        ...allCountParams,
-        match_mark: false,
-      },
-      {
-        ...allCountParams,
-        selection_mark: false,
-      },
-    ],
-    [allCountParams]
-  );
 
   const matchCount = getBiolog.useQuery(matchCountParams, {
     skip: !collection_id || !matchId,

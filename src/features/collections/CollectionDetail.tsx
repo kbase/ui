@@ -41,11 +41,15 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  FormControl,
+  Select,
+  MenuItem,
+  SelectChangeEvent,
 } from '@mui/material';
 import { useForm } from 'react-hook-form';
 import { CollectionOverview } from './CollectionOverview';
 import { FilterChip } from '../../common/components/FilterChip';
-import { FilterContextTabs } from './Filters';
+import { filterContextScope, FilterContextTabs } from './Filters';
 
 export const detailPath = ':id';
 export const detailDataProductPath = ':id/:data_product';
@@ -63,8 +67,8 @@ const pageConfig: Record<
   }
 > = {
   samples: { features: ['filter'] },
-  biolog: { features: [] },
-  microtrait: { features: [] },
+  biolog: { features: ['filter'] },
+  microtrait: { features: ['filter'] },
   genome_attribs: {
     features: ['filter', 'match', 'search'],
   },
@@ -178,7 +182,8 @@ export const CollectionDetail = () => {
       !filter ||
       filter.type === 'int' ||
       filter.type === 'float' ||
-      filter.type === 'date'
+      filter.type === 'date' ||
+      filter.type === 'bool'
     )
       return;
     if (e.target.value === filter.value) return;
@@ -401,6 +406,7 @@ const useFilterEntries = (collectionId: string) => {
 };
 
 const FilterChips = ({ collectionId }: { collectionId: string }) => {
+  const { columnMeta } = useFilters(collectionId);
   const { filterEntries, clearFilterState, context } =
     useFilterEntries(collectionId);
   if (filterEntries.length === 0) return <></>;
@@ -411,7 +417,7 @@ const FilterChips = ({ collectionId }: { collectionId: string }) => {
           <FilterChip
             filter={filter}
             key={`${column}-${context}-${filter.type}`}
-            name={column}
+            name={columnMeta?.[column]?.display_name || column}
             onDelete={() => clearFilterState(column)}
           />
         );
@@ -451,11 +457,19 @@ const FilterMenu = ({
     setExpandedCategory(expanded ? category : '');
   };
 
+  const menuLabel = {
+    DEFAULT: 'Filters',
+    genomes: 'Genome Filters',
+    samples: 'Sample Filters',
+    biolog: 'Biolog Filters',
+    microtrait: 'Microtrait Filters',
+  }[filterContextScope(context) || 'DEFAULT'];
+
   if (open) {
     return (
       <div className={styles['filters_panel']}>
         <Stack direction="row" className={styles['filters-panel-header']}>
-          <h3>Genome Filters</h3>
+          <h3>{menuLabel}</h3>
           <Stack direction="row" spacing={1}>
             <Button
               size="small"
@@ -503,7 +517,8 @@ const FilterMenu = ({
                 <AccordionDetails>
                   <Stack spacing={3}>
                     {category.filters.flatMap(([column, filter]) => {
-                      const hasVal = Boolean(filter.value);
+                      const hasVal =
+                        filter.value !== undefined && filter.value !== null;
                       return (
                         <Stack
                           className={styles['filter-container']}
@@ -590,6 +605,15 @@ const FilterControls = ({
   } else if (filter.type === 'date') {
     return (
       <DateRangeFilterControls
+        column={column}
+        filter={filter}
+        context={context}
+        collectionId={collectionId}
+      />
+    );
+  } else if (filter.type === 'bool') {
+    return (
+      <BooleanFilterControls
         column={column}
         filter={filter}
         context={context}
@@ -859,7 +883,7 @@ const RangeFilterControls = ({
   const [filterMin, filterMax] = [filter.min_value, filter.max_value];
   useEffect(() => {
     //Clear when the filter is cleared
-    if (!filter.value) {
+    if (filter.value === undefined || filter.value === null) {
       setValue('min', filterMin);
       setValue('max', filterMax);
       setSliderPosition([filterMin, filterMax]);
@@ -975,5 +999,75 @@ const TextFilterControls = ({
       variant="outlined"
       size="small"
     />
+  );
+};
+
+const BooleanFilterControls = ({
+  column,
+  filter,
+  collectionId,
+  context,
+}: FilterControlProps & {
+  filter: { type: 'bool' };
+}) => {
+  const dispatch = useAppDispatch();
+  // Convert boolean values to proper dropdown values
+  const getBooleanDropdownValue = (value?: number | boolean) => {
+    if (value === true || value === 1) {
+      return 'true';
+    } else if (value === false || value === 0) {
+      return 'false';
+    } else {
+      return 'any';
+    }
+  };
+  const [selectValue, setSelectValue] = useState<string>(() => {
+    return getBooleanDropdownValue(filter.value);
+  });
+
+  const handleChange = (event: SelectChangeEvent) => {
+    setSelectValue(event.target.value as string);
+  };
+
+  // In order not to create a dependency loop when filter changes within the below effect,
+  // use a filter ref
+  const filterRef = useRef(filter);
+  filterRef.current = filter;
+
+  useEffect(() => {
+    let value;
+    if (selectValue === 'true') {
+      value = 1;
+    } else if (selectValue === 'false') {
+      value = 0;
+    }
+    dispatch(
+      setFilter([
+        collectionId,
+        context,
+        column,
+        { ...filterRef.current, value },
+      ])
+    );
+  }, [selectValue, collectionId, context, column, dispatch]);
+
+  useEffect(() => {
+    //Clear when the filter is cleared
+    // Use 'any' for empty value so the select stays controlled and shows "Any" in the dropdown
+    if (filter.value === undefined || filter.value === null) {
+      setSelectValue('any');
+    } else if (filter.value !== filterRef.current.value) {
+      setSelectValue(getBooleanDropdownValue(filter.value));
+    }
+  }, [filter.value, setSelectValue]);
+
+  return (
+    <FormControl fullWidth>
+      <Select value={selectValue} onChange={handleChange}>
+        <MenuItem value="true">True</MenuItem>
+        <MenuItem value="false">False</MenuItem>
+        <MenuItem value="any">Any</MenuItem>
+      </Select>
+    </FormControl>
   );
 };
