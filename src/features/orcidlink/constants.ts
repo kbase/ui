@@ -66,3 +66,11 @@ export const SCOPE_HELP: { [K in ORCIDScope]: ScopeHelp } = {
     ],
   },
 };
+
+export const ORCID_ICON_URL = `${process.env.PUBLIC_URL}/assets/images/ORCID-iD_icon-vector.svg`;
+
+export const ORCID_SIGN_IN_SCREENSHOT = `${process.env.PUBLIC_URL}/assets/images/ORCID-sign-in.png`;
+
+export const ORCID_LABEL = 'ORCID®';
+
+export const ORCID_LINK_LABEL = `KBase ${ORCID_LABEL} Link`;
