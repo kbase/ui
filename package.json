@@ -96,6 +96,9 @@
     "stylelint-config-standard": "^22.0.0",
     "webpack": "^5.75.0"
   },
+  "overrides": {
+    "@testing-library/dom": "^9.0.1"
+  },
   "engines": {
     "node": ">=20.11.1"
   },
