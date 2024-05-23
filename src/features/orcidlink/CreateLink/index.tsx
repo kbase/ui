@@ -17,7 +17,7 @@ import { usePageTitle } from '../../layout/layoutSlice';
 import {
   ORCID_LABEL,
   ORCID_LINK_LABEL,
-  ORCID_SIGN_IN_SCREENSHOT,
+  ORCID_SIGN_IN_SCREENSHOT_URL,
 } from '../constants';
 import styles from '../orcidlink.module.scss';
 
@@ -126,7 +126,7 @@ export default function ORCIDLinkCreateLink() {
                     to register for a new account.
                   </p>
                   <img
-                    src={ORCID_SIGN_IN_SCREENSHOT}
+                    src={ORCID_SIGN_IN_SCREENSHOT_URL}
                     alt="ORCID® Sign In"
                     style={{
                       width: '80%',

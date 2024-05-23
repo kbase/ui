@@ -67,9 +67,12 @@ export const SCOPE_HELP: { [K in ORCIDScope]: ScopeHelp } = {
   },
 };
 
-export const ORCID_ICON_URL = `${process.env.PUBLIC_URL}/assets/images/ORCID-iD_icon-vector.svg`;
+function image_url(filename: string): string {
+  return `${process.env.PUBLIC_URL}/assets/features/orcidlink/images/${filename}`;
+}
 
-export const ORCID_SIGN_IN_SCREENSHOT = `${process.env.PUBLIC_URL}/assets/images/ORCID-sign-in.png`;
+export const ORCID_ICON_URL = image_url('ORCID-iD_icon-vector.svg');
+export const ORCID_SIGN_IN_SCREENSHOT_URL = image_url('ORCID-sign-in.png');
 
 export const ORCID_LABEL = 'ORCID®';
 
