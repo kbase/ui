@@ -12,6 +12,7 @@ import {
   Typography,
   Unstable_Grid2 as Grid,
 } from '@mui/material';
+import { Link } from 'react-router-dom';
 import MoreInformation from './common/MoreInformation';
 
 export default function Unlinked() {
@@ -31,13 +32,15 @@ export default function Unlinked() {
             </Typography>
           </CardContent>
           <CardActions style={{ justifyContent: 'center' }} sx={{ p: 2 }}>
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<FontAwesomeIcon icon={faPlus} size="lg" />}
-            >
-              Create your KBase ORCID® Link …
-            </Button>
+            <Link to={'/orcidlink/link'}>
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<FontAwesomeIcon icon={faPlus} size="lg" />}
+              >
+                Create your KBase ORCID® Link …
+              </Button>
+            </Link>
           </CardActions>
         </Card>
       </Grid>
