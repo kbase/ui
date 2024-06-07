@@ -9,6 +9,9 @@ import {
 } from '@mui/material';
 import { FC } from 'react';
 import logoRectangle from '../../common/assets/logo/rectangle.png';
+import orcidLogo from '../../common/assets/orcid.png';
+import globusLogo from '../../common/assets/globus.png';
+import googleLogo from '../../common/assets/google.webp';
 import classes from './SignIn.module.scss';
 
 export const SignIn: FC = () => {
@@ -32,6 +35,7 @@ export const SignIn: FC = () => {
           microbes and their communities.
         </Typography>
         <Paper
+          elevation={0}
           sx={{
             padding: 2,
           }}
@@ -41,9 +45,48 @@ export const SignIn: FC = () => {
               <Typography variant="h4" component="h1">
                 Sign in
               </Typography>
-              <Button variant="contained">Continue with ORCID</Button>
-              <Button variant="contained">Continue with Google</Button>
-              <Button variant="contained">Continue with Globus</Button>
+              <Button
+                variant="outlined"
+                color="base"
+                size="large"
+                startIcon={
+                  <img
+                    src={orcidLogo}
+                    alt="ORCID logo"
+                    style={{ height: '2.5rem', width: 'auto' }}
+                  />
+                }
+              >
+                Continue with ORCID
+              </Button>
+              <Button
+                variant="outlined"
+                color="base"
+                size="large"
+                startIcon={
+                  <img
+                    src={googleLogo}
+                    alt="Google logo"
+                    style={{ height: '2.5rem', width: 'auto' }}
+                  />
+                }
+              >
+                Continue with Google
+              </Button>
+              <Button
+                variant="outlined"
+                color="base"
+                size="large"
+                startIcon={
+                  <img
+                    src={globusLogo}
+                    alt="Globus logo"
+                    style={{ height: '2.5rem', width: 'auto' }}
+                  />
+                }
+              >
+                Continue with Globus
+              </Button>
             </Stack>
             <Box
               sx={{
@@ -53,8 +96,11 @@ export const SignIn: FC = () => {
                 width: '80%',
               }}
             />
-            <Typography textAlign="center">
+            <Typography>
               Need a KBase account? <Link>Sign up</Link>
+            </Typography>
+            <Typography>
+              <Link>Need help logging in?</Link>
             </Typography>
           </Stack>
         </Paper>
