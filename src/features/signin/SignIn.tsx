@@ -8,31 +8,29 @@ import {
   Typography,
 } from '@mui/material';
 import { FC } from 'react';
-import logoCircles from '../../common/assets/logo/circles.png';
+import logoRectangle from '../../common/assets/logo/rectangle.png';
 import classes from './SignIn.module.scss';
 
 export const SignIn: FC = () => {
   return (
     <Container maxWidth="sm">
       <Stack spacing={2} textAlign="center">
-        <Stack width="80%" alignItems="center">
-          <Stack
-            direction="row"
-            spacing={2}
-            alignItems="center"
-            justifyContent="center"
-          >
-            <img
-              src={logoCircles}
-              alt="KBase circles logo"
-              className={classes['logo']}
-            />
-          </Stack>
-          <Typography>
-            A collaborative, open environment for systems biology of plants,
-            microbes and their communities.
-          </Typography>
+        <Stack
+          direction="row"
+          spacing={2}
+          alignItems="center"
+          justifyContent="center"
+        >
+          <img
+            src={logoRectangle}
+            alt="KBase circles logo"
+            className={classes['logo']}
+          />
         </Stack>
+        <Typography fontStyle="italic">
+          A collaborative, open environment for systems biology of plants,
+          microbes and their communities.
+        </Typography>
         <Paper
           sx={{
             padding: 2,
