@@ -97,10 +97,15 @@ export const SignIn: FC = () => {
               }}
             />
             <Typography>
-              Need a KBase account? <Link>Sign up</Link>
+              New to KBase? <Link>Sign up</Link>
             </Typography>
             <Typography>
-              <Link>Need help logging in?</Link>
+              <Link
+                href="https://docs.kbase.us/getting-started/sign-up"
+                target="_blank"
+              >
+                Need help signing in?
+              </Link>
             </Typography>
           </Stack>
         </Paper>
