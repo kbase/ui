@@ -51,7 +51,7 @@ const Routes: FC = () => {
         element={<Authed element={<ProfileWrapper />} />}
       />
 
-      {/* orcidlink */}
+      {/* Log In */}
       <Route path="/login" element={<LogIn />} />
 
       {/* Navigator */}
