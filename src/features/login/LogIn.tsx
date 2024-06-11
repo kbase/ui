@@ -12,9 +12,9 @@ import logoRectangle from '../../common/assets/logo/rectangle.png';
 import orcidLogo from '../../common/assets/orcid.png';
 import globusLogo from '../../common/assets/globus.png';
 import googleLogo from '../../common/assets/google.webp';
-import classes from './SignIn.module.scss';
+import classes from './LogIn.module.scss';
 
-export const SignIn: FC = () => {
+export const LogIn: FC = () => {
   return (
     <Container maxWidth="sm">
       <Stack spacing={2} textAlign="center">
@@ -41,10 +41,10 @@ export const SignIn: FC = () => {
           }}
         >
           <Stack spacing={2}>
-            <Stack spacing={1}>
-              <Typography variant="h4" component="h1">
-                Sign in
-              </Typography>
+            <Typography variant="h4" component="h1">
+              Log in
+            </Typography>
+            <Stack spacing={2}>
               <Button
                 variant="outlined"
                 color="base"
@@ -53,49 +53,45 @@ export const SignIn: FC = () => {
                   <img
                     src={orcidLogo}
                     alt="ORCID logo"
-                    style={{ height: '2.5rem', width: 'auto' }}
+                    className={classes['sso-logo']}
                   />
                 }
               >
                 Continue with ORCID
               </Button>
-              <Button
-                variant="outlined"
-                color="base"
-                size="large"
-                startIcon={
-                  <img
-                    src={googleLogo}
-                    alt="Google logo"
-                    style={{ height: '2.5rem', width: 'auto' }}
-                  />
-                }
-              >
-                Continue with Google
-              </Button>
-              <Button
-                variant="outlined"
-                color="base"
-                size="large"
-                startIcon={
-                  <img
-                    src={globusLogo}
-                    alt="Globus logo"
-                    style={{ height: '2.5rem', width: 'auto' }}
-                  />
-                }
-              >
-                Continue with Globus
-              </Button>
+              <Box className={classes['separator']} />
+              <Stack spacing={1}>
+                <Button
+                  variant="outlined"
+                  color="base"
+                  size="large"
+                  startIcon={
+                    <img
+                      src={googleLogo}
+                      alt="Google logo"
+                      className={classes['sso-logo']}
+                    />
+                  }
+                >
+                  Continue with Google
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="base"
+                  size="large"
+                  startIcon={
+                    <img
+                      src={globusLogo}
+                      alt="Globus logo"
+                      className={classes['sso-logo']}
+                    />
+                  }
+                >
+                  Continue with Globus
+                </Button>
+              </Stack>
             </Stack>
-            <Box
-              sx={{
-                alignSelf: 'center',
-                backgroundColor: 'grey.400',
-                height: '1px',
-                width: '80%',
-              }}
-            />
+            <Box className={classes['separator']} />
             <Typography>
               New to KBase? <Link>Sign up</Link>
             </Typography>
@@ -104,7 +100,7 @@ export const SignIn: FC = () => {
                 href="https://docs.kbase.us/getting-started/sign-up"
                 target="_blank"
               >
-                Need help signing in?
+                Need help logging in?
               </Link>
             </Typography>
           </Stack>

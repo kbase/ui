@@ -13,11 +13,7 @@ const RouterCompatibleLink = forwardRef<
   return <RouterLink ref={ref} to={href} {...other} />;
 });
 
-/**
- * This is hardcoded at the moment but
- * we should explore importing the color
- * variables from colors.scss
- */
+// TODO: import from single source of truth
 const baseColor = 'rgb(62, 56, 50)';
 
 export const theme = createTheme({
@@ -26,6 +22,11 @@ export const theme = createTheme({
       main: baseColor,
       contrastText: getContrastRatio(baseColor, '#fff') > 4.5 ? '#fff' : '#111',
     },
+  },
+  typography: {
+    // TODO: import from single source of truth
+    fontFamily:
+      'Oxygen, -apple-system, BlinkMacSystemFont, avenir next, avenir, helvetica neue, helvetica, ubuntu, roboto, noto, segoe ui, arial, sans-serif',
   },
   components: {
     MuiLink: {

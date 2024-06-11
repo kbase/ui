@@ -1,0 +1,18 @@
+@import "../../common/colors";
+
+.logo {
+  height: 150px;
+  width: auto;
+}
+
+.sso-logo {
+  height: 2.5rem;
+  width: auto;
+}
+
+.separator {
+  align-self: center;
+  background-color: use-color("base-lighter");
+  height: 1px;
+  width: 80%;
+}
