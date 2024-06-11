@@ -13,7 +13,7 @@ const RouterCompatibleLink = forwardRef<
   return <RouterLink ref={ref} to={href} {...other} />;
 });
 
-// TODO: import from single source of truth (test)
+// TODO: import from single source of truth
 const baseColor = 'rgb(62, 56, 50)';
 
 export const theme = createTheme({
