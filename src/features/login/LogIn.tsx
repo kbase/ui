@@ -41,9 +41,7 @@ export const LogIn: FC = () => {
           }}
         >
           <Stack spacing={2}>
-            <Typography variant="h4" component="h1">
-              Log in
-            </Typography>
+            <Typography variant="h1">Log in</Typography>
             <Stack spacing={2}>
               <Button
                 variant="outlined"

@@ -27,6 +27,7 @@ import {
 } from '../common/hooks';
 import ORCIDLinkFeature from '../features/orcidlink';
 import { LogIn } from '../features/login/LogIn';
+import { SignUp } from '../features/signup/SignUp';
 
 export const LOGIN_ROUTE = '/legacy/login';
 export const ROOT_REDIRECT_ROUTE = '/narratives';
@@ -53,6 +54,9 @@ const Routes: FC = () => {
 
       {/* Log In */}
       <Route path="/login" element={<LogIn />} />
+
+      {/* Sign Up */}
+      <Route path="/signup" element={<SignUp />} />
 
       {/* Navigator */}
       <Route

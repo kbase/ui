@@ -1,0 +1,18 @@
+@import "../../common/colors";
+
+.signup-panel {
+  padding: 1rem;
+  text-align: center;
+}
+
+.sso-logo {
+  height: 2.5rem;
+  width: auto;
+}
+
+.separator {
+  align-self: center;
+  background-color: use-color("base-lighter");
+  height: 1px;
+  width: 80%;
+}
