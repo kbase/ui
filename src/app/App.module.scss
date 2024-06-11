@@ -48,7 +48,7 @@
     }
 
     .page_content {
-      background-color: transparent;
+      background-color: use-color("base-lightest");
       flex-grow: 1;
       flex-shrink: 1;
       max-height: 100%;
