@@ -18,6 +18,14 @@ const baseColor = 'rgb(62, 56, 50)';
 
 export const theme = createTheme({
   palette: {
+    primary: {
+      // TODO: import from single source of truth
+      main: 'rgb(2, 109, 170)',
+    },
+    warning: {
+      // TODO: import from single source of truth
+      main: 'rgb(255, 210, 0)',
+    },
     base: {
       main: baseColor,
       contrastText: getContrastRatio(baseColor, '#fff') > 4.5 ? '#fff' : '#111',
