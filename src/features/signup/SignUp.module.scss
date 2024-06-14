@@ -1,3 +1,5 @@
+/* stylelint-disable selector-class-pattern */
+
 @import "../../common/colors";
 
 .signup-panel {
@@ -15,4 +17,64 @@
   background-color: use-color("base-lighter");
   height: 1px;
   width: 80%;
+}
+
+.collapsible-message {
+  &:global(.MuiAccordion-root) {
+    background: none;
+    box-shadow: none;
+    color: inherit;
+    min-height: 0;
+  }
+
+  :global(.MuiAccordionSummary-root) {
+    flex-direction: row-reverse;
+    min-height: 0;
+    padding-left: 0.25rem;
+    padding-right: 0;
+  }
+  
+  :global(.MuiAccordionSummary-content) {
+    margin-bottom: 0.25rem;
+    margin-left: 0.5rem;
+    margin-top: 0.25rem;
+  }
+
+  :global(.MuiAccordionSummary-expandIconWrapper.Mui-expanded) {
+    transform: rotate(90deg);
+  }
+
+  :global(.MuiAccordionDetails-root) {
+    padding-bottom: 0;
+  }
+}
+
+.account-information-panel,
+.use-policies-panel {
+  padding: 1rem;
+
+  :global(.MuiFormLabel-root) {
+    color: #000;
+  }
+}
+
+.policy-panel {
+  background-color: use-color("base-lightest") !important;
+  max-height: 500px;
+  overflow: auto;
+  padding: 1rem;
+
+  blockquote {
+    border-left: 4px solid use-color("base");
+    padding-left: 1rem;
+  }
+}
+
+.agreement-box {
+  border: 1px solid use-color("base");
+  border-radius: 4px;
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 1rem;
+
 }

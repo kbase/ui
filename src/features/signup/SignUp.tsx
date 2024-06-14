@@ -1,105 +1,49 @@
 import {
-  Box,
-  Button,
   Container,
-  Link,
-  Paper,
   Stack,
   Step,
   StepLabel,
   Stepper,
   Typography,
 } from '@mui/material';
-import { FC } from 'react';
-import orcidLogo from '../../common/assets/orcid.png';
-import globusLogo from '../../common/assets/globus.png';
-import googleLogo from '../../common/assets/google.webp';
-import classes from './SignUp.module.scss';
+import { FC, useEffect, useState } from 'react';
+import { AccountInformation } from './AccountInformation';
+import { ProviderSelect } from './ProviderSelect';
+import { UsePolicies } from './UsePolicies';
 
+const signUpSteps = [
+  'Sign up with a supported provider',
+  'Account information',
+  'KBase use policies',
+];
+
+/**
+ * Sign up flow that handles choosing a provider, populating account information,
+ * and accepting the KBase use policies.
+ */
 export const SignUp: FC = () => {
+  const [activeStep, setActiveStep] = useState(0);
+
+  useEffect(() => {
+    document.querySelector('main')?.scrollTo(0, 0);
+  }, [activeStep]);
+
   return (
     <Container maxWidth="lg">
       <Stack spacing={4}>
         <Typography variant="h1">Sign up for KBase</Typography>
-        <Stepper>
-          <Step>
-            <StepLabel>Sign up with a supported provider</StepLabel>
-          </Step>
-          <Step>
-            <StepLabel>Account information</StepLabel>
-          </Step>
-          <Step>
-            <StepLabel>KBase use policies</StepLabel>
-          </Step>
+        <Stepper activeStep={activeStep}>
+          {signUpSteps.map((step, i) => (
+            <Step key={step} onClick={() => setActiveStep(i)}>
+              <StepLabel>{step}</StepLabel>
+            </Step>
+          ))}
         </Stepper>
-        <Stack justifyContent="center">
-          <Container maxWidth="sm">
-            <Paper className={classes['signup-panel']} elevation={0}>
-              <Stack spacing={2}>
-                <Typography variant="h2">Choose a provider</Typography>
-                <Stack spacing={2}>
-                  <Button
-                    variant="outlined"
-                    color="base"
-                    size="large"
-                    startIcon={
-                      <img
-                        src={orcidLogo}
-                        alt="ORCID logo"
-                        className={classes['sso-logo']}
-                      />
-                    }
-                  >
-                    Sign up with ORCID
-                  </Button>
-                  <Box className={classes['separator']} />
-                  <Stack spacing={1}>
-                    <Button
-                      variant="outlined"
-                      color="base"
-                      size="large"
-                      startIcon={
-                        <img
-                          src={googleLogo}
-                          alt="Google logo"
-                          className={classes['sso-logo']}
-                        />
-                      }
-                    >
-                      Sign up with Google
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      color="base"
-                      size="large"
-                      startIcon={
-                        <img
-                          src={globusLogo}
-                          alt="Globus logo"
-                          className={classes['sso-logo']}
-                        />
-                      }
-                    >
-                      Sign up with Globus
-                    </Button>
-                  </Stack>
-                </Stack>
-                <Box className={classes['separator']} />
-                <Typography>
-                  Already have an account? <Link>Log in</Link>
-                </Typography>
-                <Typography>
-                  <Link
-                    href="https://docs.kbase.us/getting-started/sign-up"
-                    target="_blank"
-                  >
-                    Need help signing up?
-                  </Link>
-                </Typography>
-              </Stack>
-            </Paper>
-          </Container>
-        </Stack>
+        {activeStep === 0 && <ProviderSelect />}
+        {activeStep === 1 && (
+          <AccountInformation setActiveStep={setActiveStep} />
+        )}
+        {activeStep === 2 && <UsePolicies setActiveStep={setActiveStep} />}
       </Stack>
     </Container>
   );
