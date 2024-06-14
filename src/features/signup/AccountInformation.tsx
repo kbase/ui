@@ -5,6 +5,7 @@ import {
   AccordionDetails,
   AccordionSummary,
   Alert,
+  Box,
   Button,
   Checkbox,
   FormControl,
@@ -30,8 +31,9 @@ export const AccountInformation: FC<{
       <Alert>
         <Stack spacing={1}>
           <span>
-            You have signed in with your Google account ctodonnell@lbl.gov. This
-            will be the account linked to your KBase account.
+            You have signed in with your <strong>Google</strong> account{' '}
+            <strong>ctodonnell@lbl.gov</strong>. This will be the account linked
+            to your KBase account.
           </span>
           <Accordion className={classes['collapsible-message']} disableGutters>
             <AccordionSummary
@@ -42,15 +44,27 @@ export const AccountInformation: FC<{
               Not the account you were expecting?
             </AccordionSummary>
             <AccordionDetails>
-              If this browser is already signed in to Google, a sign-in attempt
-              from KBase will route you to Google and back again without any
-              warning. If this just happened to you, and the account you see
-              above is not the one you want, you should use the link below to
-              log out of Google, and then try again. If you have signed in with
-              a Google account already linked to a KBase account, you will be
-              unable to create a new KBase account using that Google account.
-              Logout from Google After signing out from Google you will need to
-              Sign in to KBaseagain.
+              <Stack spacing={1}>
+                <span>
+                  If the account you see above is not the one you want, use the
+                  link below to log out of Google, and then try again.
+                </span>
+                <Box>
+                  <Button variant="outlined">Log out from Google</Button>
+                </Box>
+                <span>
+                  If you are trying to sign up with a Google account that is
+                  already linked to a KBase account, you will be unable to
+                  create a new KBase account using that Google account.
+                </span>
+                <span>
+                  After signing out from Google you will need to restart the
+                  sign up process.
+                </span>
+                <Box>
+                  <Button variant="outlined">Sign up for KBase</Button>
+                </Box>
+              </Stack>
             </AccordionDetails>
           </Accordion>
         </Stack>
