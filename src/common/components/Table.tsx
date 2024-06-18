@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useId, useMemo, useState } from 'react';
 import {
   createColumnHelper,
   ColumnDef,
@@ -22,9 +22,17 @@ import classes from './Table.module.scss';
 import { Button } from './Button';
 import { CheckBox } from './CheckBox';
 import { Loader } from './Loader';
-import { HeatMapRow } from '../api/collectionsApi';
-import { Tooltip } from '@mui/material';
-
+import { ColumnMeta, HeatMapRow } from '../api/collectionsApi';
+import {
+  Checkbox,
+  FormControl,
+  InputLabel,
+  ListItemText,
+  MenuItem,
+  OutlinedInput,
+  Select,
+  Tooltip,
+} from '@mui/material';
 /*
 See also: https://tanstack.com/table/v8/docs/api/core/column-def#meta
 This supports passing arbitrary data into the table.
@@ -362,6 +370,8 @@ export const useTableColumns = ({
     accessors[id] = (rowData) => rowData[index];
   });
 
+  const [columnVisibility, setColumnVisibility] = useState({});
+
   const fieldsOrdered = fields
     .filter(({ id }) => !exclude.includes(id))
     .sort((a, b) => {
@@ -378,30 +388,41 @@ export const useTableColumns = ({
       }
     });
 
-  return useMemo(
-    () => {
-      const columns = createColumnHelper<unknown[]>();
-      return fieldsOrdered.map((field) =>
-        columns.accessor(accessors[field.id], {
-          header: field.displayName ?? field.id.replace(/_/g, ' ').trim(),
-          id: field.id,
-          meta: field.options,
-          cell:
-            field.render ||
-            ((cell: CellContext<unknown[], unknown>) => {
-              const val = cell.getValue();
-              if (typeof val === 'string') return cell.getValue();
-              if (typeof val === 'number')
-                return (cell.getValue() as number).toLocaleString();
-              return cell.getValue();
-            }),
-        })
-      );
-    },
-    // We only want to remake the columns if fieldNames or fieldsOrdered have new values
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [JSON.stringify(fields), JSON.stringify(fieldsOrdered)]
-  );
+  return {
+    columnVisibility,
+    setColumnVisibility,
+    ...useMemo(
+      () => {
+        const columns = createColumnHelper<unknown[]>();
+        setColumnVisibility((columnVisibility) => ({
+          ...Object.fromEntries(fieldsOrdered.map((col) => [col.id, true])),
+          ...columnVisibility,
+        }));
+        return {
+          columns: fieldsOrdered,
+          columnDefs: fieldsOrdered.map((field) =>
+            columns.accessor(accessors[field.id], {
+              header: field.displayName ?? field.id.replace(/_/g, ' ').trim(),
+              id: field.id,
+              meta: field.options,
+              cell:
+                field.render ||
+                ((cell: CellContext<unknown[], unknown>) => {
+                  const val = cell.getValue();
+                  if (typeof val === 'string') return cell.getValue();
+                  if (typeof val === 'number')
+                    return (cell.getValue() as number).toLocaleString();
+                  return cell.getValue();
+                }),
+            })
+          ),
+        };
+      },
+      // We only want to remake the columns if fieldNames or fieldsOrdered have new values
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [JSON.stringify(fields), JSON.stringify(fieldsOrdered)]
+    ),
+  };
 };
 
 /**
@@ -422,4 +443,68 @@ export const usePageBounds = (
     firstRow,
     lastRow,
   };
+};
+
+export const ColumnSelect = ({
+  columnVisibility,
+  setColumnVisibility,
+  columnMeta,
+}: {
+  columnVisibility: { [k: string]: boolean | undefined };
+  setColumnVisibility: React.Dispatch<
+    React.SetStateAction<{ [k: string]: boolean | undefined }>
+  >;
+  columnMeta: { [k: string]: ColumnMeta } | undefined;
+}) => {
+  const id = useId();
+  const visible = Object.entries(columnVisibility)
+    .filter(([id, visible]) => visible)
+    .map(([id]) => id);
+  return (
+    <>
+      <FormControl sx={{ m: 1, width: 300 }}>
+        <InputLabel id={id}>Columns</InputLabel>
+        <Select
+          labelId={id}
+          id="demo-multiple-checkbox"
+          multiple
+          value={visible}
+          onChange={(visibleCols) => {
+            const isViz =
+              typeof visibleCols.target.value === 'string'
+                ? [visibleCols.target.value]
+                : visibleCols.target.value;
+            setColumnVisibility(
+              Object.fromEntries(
+                Object.entries(columnVisibility).map(([id, val]) => {
+                  return [id, isViz.includes(id)];
+                })
+              )
+            );
+          }}
+          input={<OutlinedInput label="Columns" />}
+          renderValue={(selected) => {
+            return selected
+              .map((id) => columnMeta?.[id]?.display_name || id)
+              .join(', ');
+          }}
+          MenuProps={{
+            PaperProps: {
+              style: {
+                maxHeight: 48 * 4.5 + 8,
+                width: 250,
+              },
+            },
+          }}
+        >
+          {Object.entries(columnVisibility).map(([id, value]) => (
+            <MenuItem key={id} value={id}>
+              <Checkbox checked={value} />
+              <ListItemText primary={columnMeta?.[id]?.display_name || id} />
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+    </>
+  );
 };
