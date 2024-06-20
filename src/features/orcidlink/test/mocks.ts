@@ -160,11 +160,3 @@ export function setupMockRegularUserWithError() {
     }
   );
 }
-
-/**
- * This is an empty function that serves as a placeholder for props that expect
- * one, but in tests in which these props are not tested, so they need not do anything.
- */
-export function noop() {
-  // do nothing
-}

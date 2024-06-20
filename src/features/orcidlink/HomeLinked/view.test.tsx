@@ -1,8 +1,8 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
+import { noOp } from '../../common';
 import { LINK_RECORD_1, PROFILE_1, SERVICE_INFO_1 } from '../test/data';
-import { noop } from '../test/mocks';
 import HomeLinked from './view';
 
 describe('The HomeLinked Component', () => {
@@ -24,8 +24,8 @@ describe('The HomeLinked Component', () => {
         info={info}
         linkRecord={linkRecord}
         profile={profile}
-        removeLink={noop}
-        toggleShowInProfile={noop}
+        removeLink={noOp}
+        toggleShowInProfile={noOp}
       />
     );
 
@@ -48,8 +48,8 @@ describe('The HomeLinked Component', () => {
           info={info}
           linkRecord={linkRecord}
           profile={profile}
-          removeLink={noop}
-          toggleShowInProfile={noop}
+          removeLink={noOp}
+          toggleShowInProfile={noOp}
         />
       </MemoryRouter>
     );
@@ -100,7 +100,7 @@ describe('The HomeLinked Component', () => {
           info={info}
           linkRecord={linkRecord}
           profile={profile}
-          removeLink={noop}
+          removeLink={noOp}
           toggleShowInProfile={toggleShowInProfile}
         />
       </MemoryRouter>

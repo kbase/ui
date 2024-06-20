@@ -2,8 +2,8 @@ import { screen } from '@testing-library/dom';
 import { render, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
+import { noOp } from '../../common';
 import { LINK_RECORD_1, PROFILE_1 } from '../test/data';
-import { noop } from '../test/mocks';
 import ManageTab from './ManageTab';
 
 describe('The ManageTab component', () => {
@@ -18,8 +18,8 @@ describe('The ManageTab component', () => {
           linkRecord={linkRecord}
           profile={profile}
           orcidSiteURL={orcidSiteURL}
-          removeLink={noop}
-          toggleShowInProfile={noop}
+          removeLink={noOp}
+          toggleShowInProfile={noOp}
         />
       </MemoryRouter>
     );
@@ -45,8 +45,8 @@ describe('The ManageTab component', () => {
           linkRecord={linkRecord}
           profile={profile}
           orcidSiteURL={orcidSiteURL}
-          removeLink={noop}
-          toggleShowInProfile={noop}
+          removeLink={noOp}
+          toggleShowInProfile={noOp}
         />
       </MemoryRouter>
     );
@@ -95,7 +95,7 @@ describe('The ManageTab component', () => {
           profile={profile}
           orcidSiteURL={orcidSiteURL}
           removeLink={removeLink}
-          toggleShowInProfile={noop}
+          toggleShowInProfile={noOp}
         />
       </MemoryRouter>
     );
@@ -137,8 +137,8 @@ describe('The ManageTab component', () => {
           linkRecord={linkRecord}
           profile={profile}
           orcidSiteURL={orcidSiteURL}
-          removeLink={noop}
-          toggleShowInProfile={noop}
+          removeLink={noOp}
+          toggleShowInProfile={noOp}
         />
       </MemoryRouter>
     );
@@ -183,7 +183,7 @@ describe('The ManageTab component', () => {
           linkRecord={linkRecord}
           profile={profile}
           orcidSiteURL={orcidSiteURL}
-          removeLink={noop}
+          removeLink={noOp}
           toggleShowInProfile={toggleShowInProfile}
         />
       </MemoryRouter>
