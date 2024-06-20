@@ -1,12 +1,12 @@
 import { render } from '@testing-library/react';
+import 'core-js/actual/structured-clone';
 import { ORCIDProfile } from '../../../common/api/orcidLinkCommon';
 import { PROFILE_1 } from '../test/data';
-import { jsonCopy } from '../test/mocks';
 import CreditName from './CreditName';
 
 describe('The renderCreditName render function', () => {
   it('renders correctly if not private', () => {
-    const profile = jsonCopy<ORCIDProfile>(PROFILE_1);
+    const profile = structuredClone<ORCIDProfile>(PROFILE_1);
 
     const { container } = render(<CreditName profile={profile} />);
 
@@ -14,7 +14,7 @@ describe('The renderCreditName render function', () => {
   });
 
   it('renders a special string if it is private', () => {
-    const profile = jsonCopy<ORCIDProfile>(PROFILE_1);
+    const profile = structuredClone<ORCIDProfile>(PROFILE_1);
 
     profile.nameGroup.private = true;
 
@@ -24,7 +24,7 @@ describe('The renderCreditName render function', () => {
   });
 
   it('renders a "not available" string if it is absent', () => {
-    const profile = jsonCopy<ORCIDProfile>(PROFILE_1);
+    const profile = structuredClone<ORCIDProfile>(PROFILE_1);
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     profile.nameGroup.fields!.creditName = null;

@@ -162,20 +162,6 @@ export function setupMockRegularUserWithError() {
 }
 
 /**
- * Make a copy of a given "json-compatible" value.
- *
- * This can be replaced with "structuredClone". In order to that that, we need
- * to use core-js, but we don't have a direct dependency upon core-js; it is a
- * transitive dependency of several packages already.
- *
- * This technique is not ideal, but in the limited usage of it for test data,
- * works just fine.
- */
-export function jsonCopy<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value));
-}
-
-/**
  * This is an empty function that serves as a placeholder for props that expect
  * one, but in tests in which these props are not tested, so they need not do anything.
  */
