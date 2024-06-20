@@ -9,7 +9,7 @@ import {
   INITIAL_STORE_STATE,
   INITIAL_UNAUTHENTICATED_STORE_STATE,
 } from '../test/data';
-import { mockIsLinked, mockIsLinked_not } from '../test/mocks';
+import { mockIsLinkedNotResponse, mockIsLinkedResponse } from '../test/mocks';
 import HomeController from './index';
 
 jest.mock('../HomeLinked', () => {
@@ -39,7 +39,7 @@ describe('The HomeController Component', () => {
             const body = await request.json();
             switch (body['method']) {
               case 'is-linked': {
-                return mockIsLinked(body);
+                return mockIsLinkedResponse(body);
               }
               default:
                 return '';
@@ -76,7 +76,7 @@ describe('The HomeController Component', () => {
             const body = await request.json();
             switch (body['method']) {
               case 'is-linked': {
-                return mockIsLinked_not(body);
+                return mockIsLinkedNotResponse(body);
               }
               default:
                 return '';
@@ -117,7 +117,7 @@ describe('The HomeController Component', () => {
             switch (body['method']) {
               case 'is-linked': {
                 // In this mock, user "foo" is linked, user "bar" is not.
-                return mockIsLinked(body);
+                return mockIsLinkedResponse(body);
               }
               default:
                 return '';

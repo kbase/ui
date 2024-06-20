@@ -10,6 +10,7 @@ import {
   LinkRecordPublic,
   ORCIDProfile,
 } from '../../../common/api/orcidLinkCommon';
+import MoreInformation from '../common/MoreInformation';
 import LinkInfo from './LinkInfo';
 
 export interface OverviewTabProps {
@@ -39,16 +40,28 @@ export default function OverviewTab({
       </Grid>
       <Grid xs={6}>
         <Card variant="outlined">
-          <CardHeader title="Notes" />
+          <CardHeader title="About" />
           <CardContent>
-            <Typography sx={{ mt: 0 }}>NOTES HERE</Typography>
+            <Typography>
+              Your KBase ORCID® Link gives KBase tools access to your ORCID®
+              account while you are logged into KBase.
+            </Typography>
+            <p>
+              Your KBase ORCID® Link will be stored at KBase until you remove
+              it.
+            </p>
+            <p>
+              The link will only be used when you are signed in to KBase. In
+              addition, any tool that uses the link will alert you before using
+              it, and will explain how it will use it.
+            </p>
           </CardContent>
         </Card>
 
         <Card variant="outlined" sx={{ mt: 2 }}>
           <CardHeader title="More Information" />
           <CardContent>
-            <Typography sx={{ mt: 0 }}>LINKS TO MORE INFO HERE</Typography>
+            <MoreInformation />
           </CardContent>
         </Card>
       </Grid>

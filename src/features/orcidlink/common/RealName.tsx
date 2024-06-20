@@ -1,4 +1,3 @@
-import { Typography } from '@mui/material';
 import { ORCIDProfile } from '../../../common/api/orcidLinkCommon';
 import PrivateField from './PrivateField';
 
@@ -17,10 +16,10 @@ export default function RealName({ profile }: RealNameProps) {
   const { firstName, lastName } = profile.nameGroup.fields;
   if (lastName) {
     return (
-      <Typography>
+      <span>
         {firstName} {lastName}
-      </Typography>
+      </span>
     );
   }
-  return <Typography>{firstName}</Typography>;
+  return <span>{firstName}</span>;
 }

@@ -1,5 +1,5 @@
 import { render } from '@testing-library/react';
-import 'core-js/stable/structured-clone';
+import 'core-js/actual/structured-clone';
 import { ORCIDProfile } from '../../../common/api/orcidLinkCommon';
 import { PROFILE_1 } from '../test/data';
 import CreditName from './CreditName';

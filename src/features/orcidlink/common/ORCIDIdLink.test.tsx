@@ -1,5 +1,4 @@
 import { render, screen } from '@testing-library/react';
-import 'core-js/stable/structured-clone';
 import { ORCIDIdLink } from './ORCIDIdLink';
 
 describe('The renderORCIDId render function', () => {
