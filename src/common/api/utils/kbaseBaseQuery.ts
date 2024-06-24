@@ -48,7 +48,7 @@ export interface JSONRPC20Body {
 export interface JSONRPC20Error {
   code: number;
   message: string;
-  data: unknown;
+  data?: unknown;
 }
 
 export type JSONRPCBody = JSONRPC11Body | JSONRPC20Body;
