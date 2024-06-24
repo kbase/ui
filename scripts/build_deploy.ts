@@ -1,14 +1,8 @@
 #!/usr/bin/env ts-node
 
-// invoke using
-// node --loader ts-node/esm ./scripts/build_deploy.ts
-
 // This node script uses CommonJS require
 /* eslint-disable @typescript-eslint/no-var-requires */
 
-// import { spawn } from 'node:child_process';
-
-// import * as config from '../config.json';
 const { spawn } = require('node:child_process');
 
 const config = require('../config.json');
@@ -25,25 +19,35 @@ interface EnvConfig {
     name: string;
   };
 }
-/*
-console.log({ config }); // eslint-disable-line no-console
-
-const environment = '';
-const data = '';
-*/
 
 const build = (
   environment: string,
-  { domain, legacy, public_url, backup_cookie }: EnvConfig
+  hash: string,
+  tag: string,
+  envConfig: EnvConfig
 ) => {
+  const {
+    domain,
+    legacy,
+    public_url: publicURL,
+    backup_cookie: backupCookie,
+  } = envConfig;
+  // eslint-disable-next-line no-console
+  console.log(`Build environment "${environment}" using this configuration:`, {
+    domain,
+    legacy,
+    publicURL,
+    backupCookie,
+  });
   let count = 0;
+  const build_path = `./deploy/${environment}`;
   const envsNew: Envs = {
-    BUILD_PATH: `./deploy/${environment}`,
-    PUBLIC_URL: public_url,
+    BUILD_PATH: build_path,
+    PUBLIC_URL: publicURL,
     REACT_APP_KBASE_ENV: environment,
     REACT_APP_KBASE_DOMAIN: domain,
     REACT_APP_KBASE_LEGACY_DOMAIN: legacy,
-    REACT_APP_KBASE_BACKUP_COOKIE_NAME: backup_cookie?.name || '',
+    REACT_APP_KBASE_BACKUP_COOKIE_NAME: backupCookie?.name || '',
   };
 
   Object.assign(process.env, envsNew);
@@ -54,19 +58,29 @@ const build = (
     console.log({ count, stdout: `${data}` });
     count += 1;
   });
+
+  proc.on('close', (code: number) => {
+    const artifact = {
+      environment,
+      hash,
+      name: 'Europa',
+      tag,
+    };
+    console.log({ artifact, code }); // eslint-disable-line no-console
+  });
 };
 
 const main = () => {
   const envs = config.environments;
+  const hash = process.env.HASH || '';
+  const tag = process.env.TAG || '';
   Object.keys(envs).forEach((env) => {
     // console.log({ env, data: envs[env] }); // eslint-disable-line no-console
-    build(env, envs[env]);
+    build(env, hash, tag, envs[env]);
   });
-  build('nodetest', config.environments.ci);
+  build('nodetest', hash, tag, config.environments.ci);
 };
 
 if (require.main === module) {
   main();
 }
-
-//export {};
