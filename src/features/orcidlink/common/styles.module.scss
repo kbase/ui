@@ -1,0 +1,11 @@
+@import "../../../common/colors";
+
+/**
+* A background color for orcidlink pages.
+*
+* Used to enable content contained in "Card" components to be distict, as cards
+* are rather subtle. Similar approach, and same color, as Navigator.
+*/
+.paper {
+  background-color: use-color("base-lightest");
+}
