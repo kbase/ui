@@ -16,7 +16,6 @@ import {
   Typography,
 } from '@mui/material';
 import { ORCIDScope, ScopeHelp, SCOPE_HELP } from '../constants';
-import styles from '../orcidlink.module.scss';
 
 export interface ScopesProps {
   scopes: string;
@@ -62,13 +61,13 @@ export default function Scopes({ scopes }: ScopesProps) {
           <Typography>{orcid.label}</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <div className={styles['section-title']}>ORCID® Policy</div>
+          <Typography fontWeight="bold">ORCID® Policy</Typography>
           <p>{orcid.tooltip}</p>
-          <div className={styles['section-title']}>How KBase Uses It</div>
+          <Typography fontWeight="bold">How KBase Uses It</Typography>
           {help.map((item, index) => {
             return <p key={index}>{item}</p>;
           })}
-          <div className={styles['section-title']}>See Also</div>
+          <Typography fontWeight="bold">See Also</Typography>
           <ul>
             {seeAlso.map(({ url, label }, index) => {
               return (
