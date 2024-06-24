@@ -6,7 +6,7 @@ import CreditName from '../common/CreditName';
 import { ORCIDIdLink } from '../common/ORCIDIdLink';
 import RealName from '../common/RealName';
 import Scopes from '../common/Scopes';
-import styles from '../orcidlink.module.scss';
+import styles from './LinkInfo.module.scss';
 
 export interface LinkInfoProps {
   linkRecord: LinkRecordPublic;
@@ -21,7 +21,7 @@ export default function LinkInfo({
 }: LinkInfoProps) {
   return (
     <div>
-      <div className={styles['prop-table']}>
+      <div className={styles.info_table}>
         <div>
           <div>ORCID iD</div>
           <div>
