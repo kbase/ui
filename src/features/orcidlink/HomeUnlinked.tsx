@@ -20,7 +20,7 @@ export default function Unlinked() {
     <Grid container rowSpacing={2} columnSpacing={2}>
       <Grid xs={6}>
         <Card variant="outlined">
-          <CardHeader title="Create Your KBase ORCID® Link!" />
+          <CardHeader title="Create your KBase ORCID® Link" />
 
           <CardContent>
             <Typography>
