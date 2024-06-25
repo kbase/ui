@@ -1,12 +1,17 @@
+/**
+ * Displays basic information about an orcid link from a user's orcidlink public
+ * record, and orcid profile.
+ *
+ */
 import {
   LinkRecordPublic,
   ORCIDProfile,
 } from '../../../common/api/orcidLinkCommon';
-import CreditName from '../common/CreditName';
-import { ORCIDIdLink } from '../common/ORCIDIdLink';
-import RealName from '../common/RealName';
-import Scopes from '../common/Scopes';
+import CreditName from './CreditName';
 import styles from './LinkInfo.module.scss';
+import { ORCIDIdLink } from './ORCIDIdLink';
+import RealName from './RealName';
+import Scopes from './Scopes';
 
 export interface LinkInfoProps {
   linkRecord: LinkRecordPublic;

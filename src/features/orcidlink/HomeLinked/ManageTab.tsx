@@ -1,3 +1,13 @@
+/**
+ * Implements the "Manage Your Link" tab for the "HomeLinked" component.
+ *
+ * The primary task of this tab view is to provide options for the user to
+ * control their orcid link.
+ *
+ * At present this consists of removing their link and controlling whether their
+ * orcid id and link appears in their user profile.
+ *
+ */
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {

@@ -1,5 +1,8 @@
 /**
  * Displays the "home page", or primary orcidlink view, for unlinked users.
+ *
+ * The main task fo this view is to explain briefly what an orcid link is, and
+ * to provide a button for the user to initiate the process of creating a link.
  */
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -13,9 +16,9 @@ import {
   Unstable_Grid2 as Grid,
 } from '@mui/material';
 import { Link } from 'react-router-dom';
-import MoreInformation from './common/MoreInformation';
+import MoreInformation from '../common/MoreInformation';
 
-export default function Unlinked() {
+export default function HomeUnlinked() {
   return (
     <Grid container rowSpacing={2} columnSpacing={2}>
       <Grid xs={6}>

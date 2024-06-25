@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import HomeUnlinked from './HomeUnlinked';
+import HomeUnlinked from '.';
 
 describe('The HomeUnlinked Component', () => {
   it('renders correctly', () => {
