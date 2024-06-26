@@ -1,0 +1,21 @@
+@import "../../../common/colors";
+
+.info_table {
+  display: flex;
+  flex-direction: column;
+}
+  
+.info_table > div {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 0.5rem;
+}
+  
+.info_table > div > div:nth-child(1) {
+  flex: 0 0 12rem;
+  font-weight: bold;
+}
+  
+.info_table > div > div:nth-child(2) {
+  flex: 1 1 0;
+}

@@ -1,3 +1,9 @@
+/**
+ * Implements the "Overview" tab of the linked home view.
+ *
+ * THe primary job of this tab view is to display a summary of the user's
+ * orcidlink and orcid profile.
+ */
 import {
   Card,
   CardContent,
@@ -10,8 +16,8 @@ import {
   LinkRecordPublic,
   ORCIDProfile,
 } from '../../../common/api/orcidLinkCommon';
+import LinkInfo from '../common/LinkInfo';
 import MoreInformation from '../common/MoreInformation';
-import LinkInfo from './LinkInfo';
 
 export interface OverviewTabProps {
   info: InfoResult;

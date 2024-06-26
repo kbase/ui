@@ -6,6 +6,8 @@
  * If a constat value is hardcoded, it should be moved here.
  */
 
+import { baseUrl } from '../../common/api';
+
 export const MANAGER_ROLE = 'ORCIDLINK_MANAGER';
 
 export type ORCIDScope = '/read-limited' | '/activities/update';
@@ -74,6 +76,32 @@ function image_url(filename: string): string {
 export const ORCID_ICON_URL = image_url('ORCID-iD_icon-vector.svg');
 export const ORCID_SIGN_IN_SCREENSHOT_URL = image_url('ORCID-sign-in.png');
 
+/**
+ * Conforms to ORCID branding
+ */
 export const ORCID_LABEL = 'ORCID®';
 
+/**
+ * Conforms to ORCID branding and helps us make a consistent label for this service.
+ */
 export const ORCID_LINK_LABEL = `KBase ${ORCID_LABEL} Link`;
+
+/**
+ * Service paths.
+ *
+ * Ideally these would be in a central config for services, but there does not
+ * appear to be such a thing at present. Rather the service paths are embedded
+ * in the RTK api definitions.
+ */
+export const ORCIDLINK_SERVICE_API_ENDPOINT = `${baseUrl}services/orcidlink/api/v1`;
+export const ORCIDLINK_SERVICE_OAUTH_ENDPOINT = `${baseUrl}/services/orcidlink`;
+
+/**
+ * An API call will be abandoned after this duration of time, 1 minute.
+ *
+ * Typically, the network stack may have other timeouts involved. Generally, any
+ * request used by orcidlink is expected to be short-duration. A long timeout
+ * that may be appropriate for a rare case like uploading a large file is simply
+ * not expected, so a short timeout limit should be appropriate.
+ */
+export const API_CALL_TIMEOUT = 60000;

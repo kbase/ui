@@ -6,27 +6,29 @@ import {
   useLocation,
 } from 'react-router-dom';
 import {
-  CollectionsList,
-  CollectionDetail,
-  detailPath,
-  detailDataProductPath,
-} from '../features/collections/Collections';
-import Legacy, { LEGACY_BASE_ROUTE } from '../features/legacy/Legacy';
-import { Fallback } from '../features/legacy/IFrameFallback';
-import Navigator, {
-  navigatorPath,
-  navigatorPathWithCategory,
-} from '../features/navigator/Navigator';
-import PageNotFound from '../features/layout/PageNotFound';
-import ProfileWrapper from '../features/profile/Profile';
-import Status from '../features/status/Status';
-import {
   useAppSelector,
   useFilteredParams,
   usePageTracking,
 } from '../common/hooks';
-import ORCIDLinkFeature from '../features/orcidlink';
+import {
+  CollectionDetail,
+  CollectionsList,
+  detailDataProductPath,
+  detailPath,
+} from '../features/collections/Collections';
+import PageNotFound from '../features/layout/PageNotFound';
+import { Fallback } from '../features/legacy/IFrameFallback';
+import Legacy, { LEGACY_BASE_ROUTE } from '../features/legacy/Legacy';
+import Navigator, {
+  navigatorPath,
+  navigatorPathWithCategory,
+} from '../features/navigator/Navigator';
+import ORCIDLinkConfirmLink from '../features/orcidlink/ConfirmLink';
 import ORCIDLinkCreateLink from '../features/orcidlink/CreateLink';
+import ORCIDLinkHome from '../features/orcidlink/Home';
+import ORCIDLinkServiceError from '../features/orcidlink/ServiceError';
+import ProfileWrapper from '../features/profile/Profile';
+import Status from '../features/status/Status';
 
 export const LOGIN_ROUTE = '/legacy/login';
 export const ROOT_REDIRECT_ROUTE = '/narratives';
@@ -82,10 +84,16 @@ const Routes: FC = () => {
 
       {/* orcidlink */}
       <Route path="/orcidlink">
-        <Route index element={<Authed element={<ORCIDLinkFeature />} />} />
+        <Route index element={<Authed element={<ORCIDLinkHome />} />} />
       </Route>
       <Route path="/orcidlink/link">
         <Route index element={<Authed element={<ORCIDLinkCreateLink />} />} />
+      </Route>
+      <Route path="/orcidlink/linkcontinue/:sessionId">
+        <Route index element={<Authed element={<ORCIDLinkConfirmLink />} />} />
+      </Route>
+      <Route path="/orcidlink/error">
+        <Route index element={<Authed element={<ORCIDLinkServiceError />} />} />
       </Route>
 
       {/* IFrame Fallback Routes */}

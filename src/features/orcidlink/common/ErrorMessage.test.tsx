@@ -1,10 +1,10 @@
 import { SerializedError } from '@reduxjs/toolkit';
 import { FetchBaseQueryError } from '@reduxjs/toolkit/dist/query';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { KBaseBaseQueryError } from '../../../common/api/utils/common';
-import ErrorMessage from './ErrorMessage';
+import ErrorMessage, { CommonError, makeCommonError } from './ErrorMessage';
 
-describe('The ErrorMessage Component', () => {
+describe('The ErrorMessage Component for KBaseBaseQueryError', () => {
   it('renders CUSTOM_ERROR correctly', () => {
     const error: KBaseBaseQueryError = {
       status: 'CUSTOM_ERROR',
@@ -76,7 +76,9 @@ describe('The ErrorMessage Component', () => {
 
     expect(container).toHaveTextContent(`HTTP Status Code: ${400}`);
   });
+});
 
+describe('The ErrorMessage Component for SerializedError', () => {
   it('renders a Redux SerializedError error with a message correctly', () => {
     const error: SerializedError = {
       code: '123',
@@ -97,6 +99,87 @@ describe('The ErrorMessage Component', () => {
     };
     const { container } = render(<ErrorMessage error={error} />);
 
-    expect(container).toHaveTextContent('Unknown Error');
+    expect(container).toHaveTextContent('Unknown error');
+  });
+});
+
+const TEST_ERROR_MESSAGE = 'Test Error Message';
+const TEST_ERROR_DETAILS = 'Test Error Details';
+const TEST_ERROR_TITLE = 'Test Error Title';
+const TEST_SOLUTION_DESCRIPTION = 'MY SOLUTION';
+const TEST_SOLUTION_LABEL = 'MY SOLUTION LINK LABEL';
+const TEST_SOLUTION_URL = 'http://example.com';
+
+describe('The ErrorMessage Component for CommonError', () => {
+  it('renders minimal error correctly', () => {
+    const error: CommonError = makeCommonError({
+      message: TEST_ERROR_MESSAGE,
+    });
+    const { container } = render(<ErrorMessage error={error} />);
+
+    expect(container).toHaveTextContent(TEST_ERROR_MESSAGE);
+  });
+
+  it('renders error with details and title correctly', () => {
+    const error: CommonError = makeCommonError({
+      message: TEST_ERROR_MESSAGE,
+      details: TEST_ERROR_DETAILS,
+      title: TEST_ERROR_TITLE,
+    });
+    const { container } = render(<ErrorMessage error={error} />);
+
+    expect(container).toHaveTextContent(TEST_ERROR_MESSAGE);
+    expect(container).toHaveTextContent(TEST_ERROR_DETAILS);
+    expect(container).toHaveTextContent(TEST_ERROR_TITLE);
+  });
+
+  it('renders error with minimal solution', async () => {
+    const error: CommonError = makeCommonError({
+      message: TEST_ERROR_MESSAGE,
+      details: TEST_ERROR_DETAILS,
+      title: TEST_ERROR_TITLE,
+      solutions: [
+        {
+          description: TEST_SOLUTION_DESCRIPTION,
+        },
+      ],
+    });
+    const { container } = render(<ErrorMessage error={error} />);
+
+    expect(container).toHaveTextContent(TEST_ERROR_MESSAGE);
+    expect(container).toHaveTextContent(TEST_ERROR_DETAILS);
+    expect(container).toHaveTextContent(TEST_ERROR_TITLE);
+    expect(container).toHaveTextContent(TEST_SOLUTION_DESCRIPTION);
+    expect(container).toHaveTextContent(TEST_ERROR_TITLE);
+  });
+
+  it('renders error with full solution', async () => {
+    const error: CommonError = makeCommonError({
+      message: TEST_ERROR_MESSAGE,
+      details: TEST_ERROR_DETAILS,
+      title: TEST_ERROR_TITLE,
+      solutions: [
+        {
+          description: TEST_SOLUTION_DESCRIPTION,
+          link: {
+            label: TEST_SOLUTION_LABEL,
+            url: TEST_SOLUTION_URL,
+          },
+        },
+      ],
+    });
+    const { container } = render(<ErrorMessage error={error} />);
+
+    expect(container).toHaveTextContent(TEST_ERROR_MESSAGE);
+    expect(container).toHaveTextContent(TEST_ERROR_DETAILS);
+    expect(container).toHaveTextContent(TEST_ERROR_TITLE);
+    expect(container).toHaveTextContent(TEST_SOLUTION_DESCRIPTION);
+    expect(container).toHaveTextContent(TEST_SOLUTION_LABEL);
+    expect(container).toHaveTextContent(TEST_ERROR_TITLE);
+
+    const solutionLink = await screen.findByText(TEST_SOLUTION_LABEL);
+
+    expect(solutionLink).toBeVisible();
+    expect(solutionLink).toHaveAttribute('href', TEST_SOLUTION_URL);
   });
 });
