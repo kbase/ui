@@ -1,135 +1,98 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import 'core-js/actual/structured-clone';
+import fetchMock from 'jest-fetch-mock';
+import { FetchMock } from 'jest-fetch-mock/types';
 import { Provider } from 'react-redux';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { createTestStore } from '../../../app/store';
-import { INITIAL_STORE_STATE } from '../test/data';
+import { createTestStore, RootState } from '../../../app/store';
+import { INITIAL_STORE_STATE, INITIAL_STORE_STATE_BAR } from '../test/data';
+import { makeOrcidlinkServiceMock } from '../test/orcidlinkServiceMock';
 import CreateLinkIndex from './index';
 
-describe('The CreateLink component', () => {
-  const user = userEvent.setup();
-  let debugLogSpy: jest.SpyInstance;
+describe('The CreateLinkIndex component', () => {
+  let mockService: FetchMock;
+
   beforeEach(() => {
-    jest.resetAllMocks();
-  });
-  beforeEach(() => {
-    debugLogSpy = jest.spyOn(console, 'debug');
+    fetchMock.enableMocks();
+    mockService = makeOrcidlinkServiceMock();
   });
 
-  async function expectAccordion(
-    container: HTMLElement,
-    titleText: string,
-    contentText: string
-  ) {
-    expect(container).toHaveTextContent(titleText);
+  afterEach(() => {
+    mockService.mockClear();
+    fetchMock.disableMocks();
+  });
 
-    const faq1Content = await screen.findByText(new RegExp(contentText), {
-      exact: false,
-    });
-
-    expect(faq1Content).not.toBeVisible();
-
-    const faq1Title = await screen.findByText(new RegExp(titleText), {
-      exact: false,
-    });
-    await user.click(faq1Title);
-
-    await waitFor(() => {
-      expect(faq1Content).toBeVisible();
-    });
-  }
-
-  it('renders placeholder content', () => {
+  it('renders correct error if no username', async () => {
+    const state = structuredClone<Partial<RootState>>(INITIAL_STORE_STATE);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    state.auth!.username = undefined;
     const { container } = render(
-      <Provider store={createTestStore(INITIAL_STORE_STATE)}>
-        <MemoryRouter initialEntries={['/foo']}>
-          <CreateLinkIndex />
-        </MemoryRouter>
+      <Provider store={createTestStore(state)}>
+        <CreateLinkIndex />
       </Provider>
     );
 
-    expect(container).toHaveTextContent('Create Your KBase ORCID® Link');
-    expect(container).toHaveTextContent('FAQs');
-    expect(document.title).toBe('KBase: ORCID Link - Create Link');
+    // Whle calling "is-linked" this message is displayed and the continue
+    // button is disabled.
+    expect(container).toHaveTextContent('Impossible - username is not present');
   });
 
-  it('cancel button returns to the ORCID Link home page', async () => {
-    const user = userEvent.setup();
-    let fakeHomeCalled = false;
-    function FakeHome() {
-      fakeHomeCalled = true;
-      return <div>FAKE HOME</div>;
-    }
+  it('renders correct error if no username', async () => {
+    const state = structuredClone<Partial<RootState>>(INITIAL_STORE_STATE);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    state.auth!.token = undefined;
     const { container } = render(
-      <Provider store={createTestStore(INITIAL_STORE_STATE)}>
+      <Provider store={createTestStore(state)}>
+        <CreateLinkIndex />
+      </Provider>
+    );
+
+    // Whle calling "is-linked" this message is displayed and the continue
+    // button is disabled.
+    expect(container).toHaveTextContent('Impossible - no token present');
+  });
+
+  it('renders normally for an already-linked user', async () => {
+    const { container } = render(
+      <Provider store={createTestStore(INITIAL_STORE_STATE_BAR)}>
         <MemoryRouter initialEntries={['/orcidlink/link']}>
           <Routes>
-            <Route path={'orcidlink/link'} element={<CreateLinkIndex />} />
-            <Route path={'orcidlink'} element={<FakeHome />} />
+            <Route path="/orcidlink/link" element={<CreateLinkIndex />} />
           </Routes>
         </MemoryRouter>
       </Provider>
     );
 
-    expect(container).toHaveTextContent('Create Your KBase ORCID® Link');
-    expect(container).toHaveTextContent('FAQs');
-    expect(document.title).toBe('KBase: ORCID Link - Create Link');
-
-    const cancelButton = await screen.findByText('Cancel');
-    await user.click(cancelButton);
-
-    await waitFor(() => {
-      expect(fakeHomeCalled).toBe(true);
-    });
-  });
-
-  it('cancel button returns to the ORCID Link home page', async () => {
-    const user = userEvent.setup();
-    const { container } = render(
-      <Provider store={createTestStore(INITIAL_STORE_STATE)}>
-        <MemoryRouter initialEntries={['/orcidlink/link']}>
-          <Routes>
-            <Route path={'orcidlink/link'} element={<CreateLinkIndex />} />
-          </Routes>
-        </MemoryRouter>
-      </Provider>
-    );
-
-    expect(container).toHaveTextContent('Create Your KBase ORCID® Link');
-    expect(container).toHaveTextContent('FAQs');
-    expect(document.title).toBe('KBase: ORCID Link - Create Link');
-
-    const continueButton = await screen.findByText('Continue to ORCID®');
-    await user.click(continueButton);
-
-    await waitFor(() => {
-      expect(debugLogSpy).toHaveBeenCalledWith(
-        'WILL START THE LINKING PROCESS'
+    await waitFor(async () => {
+      expect(container).toHaveTextContent(
+        'Determining whether your account is already linked'
       );
     });
+
+    await waitFor(async () => {
+      expect(container).toHaveTextContent('Already Linked');
+    });
   });
 
-  it('faq accordions are present and work', async () => {
+  it('renders normally for an unlinked user', async () => {
     const { container } = render(
       <Provider store={createTestStore(INITIAL_STORE_STATE)}>
-        <MemoryRouter initialEntries={['/orcidlink/link']}>
+        <MemoryRouter initialEntries={['/x']}>
           <Routes>
-            <Route path={'orcidlink/link'} element={<CreateLinkIndex />} />
+            <Route path="/x" element={<CreateLinkIndex />} />
           </Routes>
         </MemoryRouter>
       </Provider>
     );
 
-    expectAccordion(
-      container,
-      "What if I don't have an ORCID® Account",
-      "But what if you don't have an ORCID® account?"
-    );
+    await waitFor(async () => {
+      expect(container).toHaveTextContent(
+        'Determining whether your account is already linked'
+      );
+    });
 
-    expectAccordion(
-      container,
-      'But I already log in with ORCID®',
-      'Your ORCID® sign-in link is only used to obtain your ORCID® iD during sign-in'
-    );
+    const button = await screen.findByText('Continue to ORCID®');
+    expect(button).toBeVisible();
+    expect(button).toBeEnabled();
   });
 });
