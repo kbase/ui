@@ -22,7 +22,7 @@ interface EnvConfig {
   };
 }
 
-const build = (
+const build = async (
   environment: string,
   hash: string,
   tag: string,
@@ -53,37 +53,55 @@ const build = (
   };
 
   Object.assign(process.env, envsNew);
-  const proc = spawn('npm', ['run', 'build'], { timeout: 60000 });
-  proc.stdout.on('data', (data: Buffer) => {
-    console.log(data.toString()); // eslint-disable-line no-console
-  });
+  return new Promise((resolve) => {
+    const proc = spawn('npm', ['run', 'build'], { timeout: 60000 });
+    proc.stdout.on('data', (data: Buffer) => {
+      console.log(data.toString()); // eslint-disable-line no-console
+    });
 
-  proc.on('close', async (code: number) => {
-    const build = {
-      date: buildDate,
-      name: 'Europa',
-      environment,
-      hash,
-      tag,
-    };
-    let filehandle;
-    try {
-      filehandle = await promises.open(path.join(buildPath, 'build.json'), 'w');
-      await filehandle.write(JSON.stringify(build));
-    } finally {
-      await filehandle?.close();
-    }
+    proc.on('close', async (code: number) => {
+      const buildArtifact = {
+        date: buildDate,
+        name: 'Europa',
+        environment,
+        hash,
+        tag,
+      };
+      let filehandle;
+      try {
+        filehandle = await promises.open(
+          path.join(buildPath, 'build.json'),
+          'w'
+        );
+        await filehandle.write(JSON.stringify(buildArtifact));
+      } finally {
+        await filehandle?.close();
+      }
+      console.log(`Build for ${environment} complete.`); // eslint-disable-line no-console
+      resolve(buildArtifact);
+    });
   });
 };
 
-const main = () => {
+const main = async () => {
   const envs = config.environments;
   const hash = process.env.HASH || '';
   const tag = process.env.TAG || '';
-  Object.keys(envs).forEach((env) => {
-    build(env, hash, tag, envs[env]);
+  const keysSort = Object.keys(envs).sort();
+  const groupSize = 4;
+  const nGroups = Math.floor(keysSort.length / groupSize) + 1;
+  const envGroups: string[][] = Array(nGroups)
+    .fill(0)
+    .map(() => []);
+  keysSort.forEach((env, ix) => {
+    const index = Math.floor(ix / groupSize);
+    envGroups[Math.floor(index)].push(env);
   });
-  build('nodetest', hash, tag, config.environments.ci);
+  for (const group in envGroups) {
+    await Promise.all(
+      envGroups[group].map((env) => build(env, hash, tag, envs[env]))
+    );
+  }
 };
 
 if (require.main === module) {
