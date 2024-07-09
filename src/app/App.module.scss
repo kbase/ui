@@ -39,6 +39,7 @@
 
     .left_navbar {
       background-color: use-color("white");
+      border-right: 1px solid use-color("silver");
       flex-grow: 0;
       flex-shrink: 0;
       max-height: 100%;
