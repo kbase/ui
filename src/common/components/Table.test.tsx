@@ -388,7 +388,7 @@ test('useTableColumns hook makes appropriate headers from string lists', () => {
       exclude: ['b', 'z'],
       order: ['c', 'a', 'q'],
     });
-    useEffect(() => colSpy(cols), [cols]);
+    useEffect(() => colSpy(cols.columnDefs), [cols.columnDefs]);
     return <></>;
   };
 
@@ -413,7 +413,7 @@ test('Empty useTableColumns hook returns empty column list', () => {
   const colSpy = jest.fn();
   const Wrapper = () => {
     const cols = useTableColumns({});
-    useEffect(() => colSpy(cols), [cols]);
+    useEffect(() => colSpy(cols.columnDefs), [cols.columnDefs]);
     return <></>;
   };
 
