@@ -1,34 +1,56 @@
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
+import { noOp } from '../../common';
 import { LINK_RECORD_1, PROFILE_1, SERVICE_INFO_1 } from '../test/data';
 import HomeLinked from './view';
 
 describe('The HomeLinked Component', () => {
+  let debugLogSpy: jest.SpyInstance;
+  beforeEach(() => {
+    jest.resetAllMocks();
+  });
+  beforeEach(() => {
+    debugLogSpy = jest.spyOn(console, 'debug');
+  });
+
   it('renders with minimal props', async () => {
     const info = SERVICE_INFO_1;
     const linkRecord = LINK_RECORD_1;
     const profile = PROFILE_1;
 
     render(
-      <HomeLinked info={info} linkRecord={linkRecord} profile={profile} />
+      <HomeLinked
+        info={info}
+        linkRecord={linkRecord}
+        profile={profile}
+        removeLink={noOp}
+        toggleShowInProfile={noOp}
+      />
     );
 
     const creditName = 'Foo B. Bar';
     const realName = 'Foo Bar';
 
-    // Part of the profile should be available
+    // The profile fields should be displayed.
     expect(await screen.findByText(creditName)).toBeVisible();
     expect(await screen.findByText(realName)).toBeVisible();
   });
 
   it('tab content switches when tabs are selected', async () => {
+    const user = userEvent.setup();
     const info = SERVICE_INFO_1;
     const linkRecord = LINK_RECORD_1;
     const profile = PROFILE_1;
-
     render(
       <MemoryRouter initialEntries={['/foo']}>
-        <HomeLinked info={info} linkRecord={linkRecord} profile={profile} />
+        <HomeLinked
+          info={info}
+          linkRecord={linkRecord}
+          profile={profile}
+          removeLink={noOp}
+          toggleShowInProfile={noOp}
+        />
       </MemoryRouter>
     );
 
@@ -48,20 +70,65 @@ describe('The HomeLinked Component', () => {
     expect(await screen.findByText(creditName)).toBeVisible();
     expect(await screen.findByText(realName)).toBeVisible();
 
-    act(() => {
-      manageTab.click();
-    });
+    await user.click(manageTab);
 
     waitFor(async () => {
       expect(await screen.findByText(removeAreaTitle)).toBeVisible();
     });
 
-    act(() => {
-      overviewTab.click();
-    });
+    await user.click(overviewTab);
 
     waitFor(async () => {
       expect(await screen.findByText(overviewAreaTitle)).toBeVisible();
+    });
+  });
+
+  it('"show in user profile" toggle calls the function passed down to it', async () => {
+    const user = userEvent.setup();
+    const info = SERVICE_INFO_1;
+    const linkRecord = LINK_RECORD_1;
+    const profile = PROFILE_1;
+
+    const toggleShowInProfile = () => {
+      // eslint-disable-next-line no-console
+      console.debug('TOGGLE SHOW IN PROFILE');
+    };
+
+    render(
+      <MemoryRouter initialEntries={['/foo']}>
+        <HomeLinked
+          info={info}
+          linkRecord={linkRecord}
+          profile={profile}
+          removeLink={noOp}
+          toggleShowInProfile={toggleShowInProfile}
+        />
+      </MemoryRouter>
+    );
+
+    const creditName = 'Foo B. Bar';
+    const removeAreaTitle = 'Remove your KBase ORCID® Link';
+    const manageTabLabel = 'Manage Your Link';
+
+    const manageTab = await screen.findByText(manageTabLabel);
+
+    // Part of the profile should be available on initial tab.
+    expect(await screen.findByText(creditName)).toBeVisible();
+
+    // Now select the manage tab
+    await user.click(manageTab);
+
+    waitFor(async () => {
+      expect(await screen.findByText(removeAreaTitle)).toBeVisible();
+    });
+
+    // And finally, click the toggle
+    const toggleControl = await screen.findByText('Yes');
+
+    await user.click(toggleControl);
+
+    await waitFor(() => {
+      expect(debugLogSpy).toHaveBeenCalledWith('TOGGLE SHOW IN PROFILE');
     });
   });
 });

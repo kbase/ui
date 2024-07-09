@@ -28,6 +28,7 @@ import {
 import ORCIDLinkFeature from '../features/orcidlink';
 import { LogIn } from '../features/login/LogIn';
 import { SignUp } from '../features/signup/SignUp';
+import ORCIDLinkCreateLink from '../features/orcidlink/CreateLink';
 
 export const LOGIN_ROUTE = '/legacy/login';
 export const ROOT_REDIRECT_ROUTE = '/narratives';
@@ -90,6 +91,9 @@ const Routes: FC = () => {
       {/* orcidlink */}
       <Route path="/orcidlink">
         <Route index element={<Authed element={<ORCIDLinkFeature />} />} />
+      </Route>
+      <Route path="/orcidlink/link">
+        <Route index element={<Authed element={<ORCIDLinkCreateLink />} />} />
       </Route>
 
       {/* IFrame Fallback Routes */}

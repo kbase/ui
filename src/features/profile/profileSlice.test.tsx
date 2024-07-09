@@ -1,21 +1,31 @@
-// Start a new test file for profileSlice specifically.
 import { render, waitFor } from '@testing-library/react';
+import fetchMock from 'jest-fetch-mock';
+import { FetchMock } from 'jest-fetch-mock/types';
 import { ErrorBoundary } from 'react-error-boundary';
 import { Provider } from 'react-redux';
-
 import { createTestStore } from '../../app/store';
-
+import { makeKBaseServices } from '../../test/kbaseServiceMock';
 import { useLoggedInProfileUser } from './profileSlice';
 
 let testStore = createTestStore({});
+
 describe('useLoggedInProfileUser', () => {
+  let mockService: FetchMock;
+
   beforeEach(() => {
     testStore = createTestStore({});
+    fetchMock.enableMocks();
+    mockService = makeKBaseServices();
   });
 
-  test('useLoggedInProfileUser sets loggedInProfile on success with valid username', async () => {
+  afterEach(() => {
+    mockService.mockClear();
+    fetchMock.disableMocks();
+  });
+
+  test('sets loggedInProfile on success with valid username', async () => {
     const Component = () => {
-      useLoggedInProfileUser('dlyon');
+      useLoggedInProfileUser('kbaseuitest');
       return <></>;
     };
     render(
@@ -25,18 +35,18 @@ describe('useLoggedInProfileUser', () => {
     );
     await waitFor(() =>
       expect(testStore.getState().profile.loggedInProfile?.user.username).toBe(
-        'dlyon'
+        'kbaseuitest'
       )
     );
   });
 
-  test('useLoggedInProfileUser throws error when called with invalid username', async () => {
+  test('throws error when called with invalid username', async () => {
     const onErr = jest.fn();
     const consoleError = jest.spyOn(console, 'error');
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     consoleError.mockImplementation(() => {});
     const Component = () => {
-      useLoggedInProfileUser('!!!Iamnotause');
+      useLoggedInProfileUser('not_a_user');
       return <></>;
     };
     render(

@@ -1,5 +1,5 @@
 import { render } from '@testing-library/react';
-import 'core-js/stable/structured-clone';
+import 'core-js/actual/structured-clone';
 import { ORCIDProfile } from '../../../common/api/orcidLinkCommon';
 import { PROFILE_1 } from '../test/data';
 import RealName from './RealName';
@@ -15,6 +15,8 @@ describe('the renderRealName render function ', () => {
 
   it('renders just the first name if no last name', () => {
     const profile = structuredClone<ORCIDProfile>(PROFILE_1);
+
+    // We know how the test profile is populated.
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     profile.nameGroup.fields!.lastName = null;
 

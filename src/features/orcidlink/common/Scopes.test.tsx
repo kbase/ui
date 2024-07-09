@@ -1,4 +1,5 @@
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import Scopes from './Scopes';
 
 describe('The Scopes component', () => {
@@ -11,15 +12,17 @@ describe('The Scopes component', () => {
   });
 
   it('renders scope description when scope is selected', async () => {
+    const user = userEvent.setup();
     const scopes = '/read-limited';
+
     render(<Scopes scopes={scopes} />);
+
     const buttonText =
       'Allows KBase to read your information with visibility set to Trusted Organizations.';
     const button = await screen.findByText(buttonText);
     expect(button).toBeVisible();
-    act(() => {
-      button.click();
-    });
+    await user.click(button);
+
     const revealedContentSample =
       'Allows KBase to read any information from your record';
     waitFor(async () => {

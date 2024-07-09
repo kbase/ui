@@ -14,6 +14,7 @@ import {
 } from '../../../common/api/collectionsApi';
 import { LeafletMap, useLeaflet } from '../../../common/components/Map';
 import {
+  ColumnSelect,
   Pagination,
   Table,
   usePageBounds,
@@ -239,10 +240,8 @@ export const SampleAttribs: FC<{
     },
   ];
 
-  const table = useReactTable<unknown[]>({
-    data: data?.table || [],
-    getRowId: (row) => rowId(row),
-    columns: useTableColumns({
+  const { columnDefs, columnVisibility, setColumnVisibility } = useTableColumns(
+    {
       fields: data?.fields.map((field) => ({
         id: field.name,
         displayName: columnMeta?.[field.name]?.display_name,
@@ -295,7 +294,13 @@ export const SampleAttribs: FC<{
         'genome_count',
       ],
       exclude: ['__match__', '__sel__'],
-    }),
+    }
+  );
+
+  const table = useReactTable<unknown[]>({
+    data: data?.table || [],
+    getRowId: (row) => rowId(row),
+    columns: columnDefs,
 
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -313,10 +318,13 @@ export const SampleAttribs: FC<{
     enableRowSelection: false,
     onRowSelectionChange: setSelectionFromSamples,
 
+    onColumnVisibilityChange: setColumnVisibility,
+
     state: {
       sorting,
       pagination,
       rowSelection: sampleSelection,
+      columnVisibility,
     },
   });
 
@@ -378,11 +386,16 @@ export const SampleAttribs: FC<{
             justifyContent="space-between"
             alignItems="center"
           >
-            <Stack direction="row" spacing={1}>
+            <Stack direction="row" spacing={2} alignItems="center">
               <span>
                 Showing {formatNumber(firstRow)} - {formatNumber(lastRow)} of{' '}
                 {formatNumber(countData?.count || 0)} samples
               </span>
+              <ColumnSelect
+                columnMeta={columnMeta}
+                columnVisibility={columnVisibility}
+                setColumnVisibility={setColumnVisibility}
+              />
             </Stack>
             {context !== 'samples.all' ? (
               <Alert

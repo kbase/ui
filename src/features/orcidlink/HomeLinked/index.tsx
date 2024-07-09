@@ -12,14 +12,29 @@ export interface HomeLinkedControllerProps {
 export default function HomeLinkedController({
   info,
 }: HomeLinkedControllerProps) {
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const username = useAppSelector(authUsername)!;
+  const username = useAppSelector(authUsername);
+
+  if (typeof username === 'undefined') {
+    throw new Error('Impossible - username is not defined');
+  }
 
   const { data, error, isError, isFetching, isSuccess } =
     orcidlinkAPI.useOrcidlinkLinkedUserInfoQuery(
       { username },
       { refetchOnMountOrArgChange: true }
     );
+
+  const removeLink = () => {
+    // This console output is only for this intermediate state of the code, to facilitate testing.
+    // eslint-disable-next-line no-console
+    console.debug('WILL REMOVE LINK');
+  };
+
+  const toggleShowInProfile = () => {
+    // This console output is only for this intermediate state of the code, to facilitate testing.
+    // eslint-disable-next-line no-console
+    console.debug('TOGGLE SHOW IN PROFILE');
+  };
 
   // Renderers
   function renderState() {
@@ -28,7 +43,13 @@ export default function HomeLinkedController({
     } else if (isSuccess) {
       const { linkRecord, profile } = data;
       return (
-        <HomeLinked info={info} linkRecord={linkRecord} profile={profile} />
+        <HomeLinked
+          info={info}
+          linkRecord={linkRecord}
+          profile={profile}
+          removeLink={removeLink}
+          toggleShowInProfile={toggleShowInProfile}
+        />
       );
     }
   }

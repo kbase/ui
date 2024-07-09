@@ -1,4 +1,4 @@
-import { image } from '../images';
+import { ORCID_ICON_URL } from '../constants';
 import styles from './ORCIDIdLink.module.scss';
 
 export interface ORCIDIdLinkProps {
@@ -18,7 +18,7 @@ export function ORCIDIdLink({ url, orcidId }: ORCIDIdLinkProps) {
       rel="noreferrer"
       className={styles.main}
     >
-      <img src={image('orcidIcon')} alt="ORCID Icon" className={styles.icon} />
+      <img src={ORCID_ICON_URL} alt="ORCID Icon" className={styles.icon} />
       {url}/{orcidId}
     </a>
   );
