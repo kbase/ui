@@ -19,7 +19,14 @@ export const AccountInfo: FC = () => {
     <Stack spacing={4}>
       <Stack direction="row" justifyContent="space-between">
         <Typography variant="h2">Edit Account</Typography>
-        <Tooltip title="You may view and edit edit your basic account information here. Changes saved will be immediately available.">
+        <Tooltip
+          title={
+            <Typography variant="body2">
+              You may view and edit edit your basic account information here.
+              Changes saved will be immediately available.
+            </Typography>
+          }
+        >
           <Button startIcon={<FontAwesomeIcon icon={faInfoCircle} />}>
             About this tab
           </Button>
