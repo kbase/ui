@@ -2,6 +2,7 @@ import { Container, Stack, Tab, Tabs } from '@mui/material';
 import { FC, useEffect, useState } from 'react';
 import { AccountInfo } from './AccountInfo';
 import { LinkedProviders } from './LinkedProviders';
+import { LogInSessions } from './LogInSessions';
 
 /**
  * Main Account page with four subpages represented as tabs.
@@ -32,7 +33,7 @@ export const Account: FC = () => {
             aria-controls="providers-tabpanel"
           />
           <Tab
-            label="Log Ins"
+            label="Log In Sessions"
             id="logins-tab"
             aria-controls="logins-tabpanel"
           />
@@ -47,6 +48,9 @@ export const Account: FC = () => {
         </CustomTabPanel>
         <CustomTabPanel value={activeTab} index={1} name="providers">
           <LinkedProviders />
+        </CustomTabPanel>
+        <CustomTabPanel value={activeTab} index={2} name="logins">
+          <LogInSessions />
         </CustomTabPanel>
       </Stack>
     </Container>
