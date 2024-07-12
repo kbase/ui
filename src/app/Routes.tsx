@@ -32,6 +32,7 @@ import { LogInContinue } from '../features/login/LogInContinue';
 import { LoggedOut } from '../features/login/LoggedOut';
 import { SignUp } from '../features/signup/SignUp';
 import ORCIDLinkCreateLink from '../features/orcidlink/CreateLink';
+import { Account } from '../features/account/Account';
 
 export const LOGIN_ROUTE = '/login';
 export const SIGNUP_ROUTE = '/signup';
@@ -66,6 +67,9 @@ const Routes: FC = () => {
 
       {/* Sign Up */}
       <Route path={`${SIGNUP_ROUTE}/:step?`} element={<SignUp />} />
+
+      {/* Account */}
+      <Route path="/account" element={<Authed element={<Account />} />} />
 
       {/* Navigator */}
       <Route
