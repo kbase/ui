@@ -1,6 +1,7 @@
 import { Container, Stack, Tab, Tabs } from '@mui/material';
 import { FC, useEffect, useState } from 'react';
 import { AccountInfo } from './AccountInfo';
+import { LinkedProviders } from './LinkedProviders';
 
 /**
  * Main Account page with four subpages represented as tabs.
@@ -45,7 +46,7 @@ export const Account: FC = () => {
           <AccountInfo />
         </CustomTabPanel>
         <CustomTabPanel value={activeTab} index={1} name="providers">
-          Providers info
+          <LinkedProviders />
         </CustomTabPanel>
       </Stack>
     </Container>
