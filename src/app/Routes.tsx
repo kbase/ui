@@ -29,6 +29,7 @@ import ORCIDLinkFeature from '../features/orcidlink';
 import { LogIn } from '../features/login/LogIn';
 import { SignUp } from '../features/signup/SignUp';
 import ORCIDLinkCreateLink from '../features/orcidlink/CreateLink';
+import { Account } from '../features/account/Account';
 
 export const LOGIN_ROUTE = '/legacy/login';
 export const ROOT_REDIRECT_ROUTE = '/narratives';
@@ -58,6 +59,9 @@ const Routes: FC = () => {
 
       {/* Sign Up */}
       <Route path="/signup" element={<SignUp />} />
+
+      {/* Account */}
+      <Route path="/account" element={<Authed element={<Account />} />} />
 
       {/* Navigator */}
       <Route

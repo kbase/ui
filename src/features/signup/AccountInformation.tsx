@@ -32,8 +32,8 @@ export const AccountInformation: FC<{
         <Stack spacing={1}>
           <span>
             You have signed in with your <strong>Google</strong> account{' '}
-            <strong>ctodonnell@lbl.gov</strong>. This will be the account linked
-            to your KBase account.
+            <strong>coolkbasehuman@lbl.gov</strong>. This will be the account
+            linked to your KBase account.
           </span>
           <Accordion className={classes['collapsible-message']} disableGutters>
             <AccordionSummary
