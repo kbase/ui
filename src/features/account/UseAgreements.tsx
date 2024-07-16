@@ -70,10 +70,10 @@ const samplePolicies: Policy[] = [
  * Content for the Use Agreements tab in the Account page
  */
 export const UseAgreements: FC = () => {
-  const [policies, setPolicies] = useState(samplePolicies);
+  const currentPolicies = samplePolicies.filter((d) => d.isCurrent === true);
+  const [policies, setPolicies] = useState(currentPolicies);
   const [showExpired, setShowExpired] = useState(false);
   const [selectedPolicy, setSelectedPolicy] = useState(policies[0]);
-  const currentPolicies = samplePolicies.filter((d) => d.isCurrent === true);
 
   const handleChangeExpired = (
     event: React.ChangeEvent<HTMLInputElement>,
