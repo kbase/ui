@@ -26,6 +26,8 @@ import {
   usePageTracking,
 } from '../common/hooks';
 import ORCIDLinkFeature from '../features/orcidlink';
+import { LogIn } from '../features/login/LogIn';
+import { SignUp } from '../features/signup/SignUp';
 import ORCIDLinkCreateLink from '../features/orcidlink/CreateLink';
 
 export const LOGIN_ROUTE = '/legacy/login';
@@ -50,6 +52,12 @@ const Routes: FC = () => {
         path="/profile"
         element={<Authed element={<ProfileWrapper />} />}
       />
+
+      {/* Log In */}
+      <Route path="/login" element={<LogIn />} />
+
+      {/* Sign Up */}
+      <Route path="/signup" element={<SignUp />} />
 
       {/* Navigator */}
       <Route

@@ -5,10 +5,8 @@ pre {
 }
 
 .navigator {
-  background-color: use-color("base-lightest");
-  border-left: 1px solid use-color("silver");
   min-height: 100%;
-  padding: 1rem;
+  padding: 0 1rem;
 }
 
 .navigator a {
