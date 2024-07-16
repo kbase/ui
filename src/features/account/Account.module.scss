@@ -1,3 +1,7 @@
+/* stylelint-disable selector-class-pattern */
+
+@import "../../common/colors";
+
 .sso-logo {
   height: 2.5rem;
   width: auto;
@@ -6,5 +10,33 @@
 .provider-link-panel {
   margin: auto;
   max-width: 500px;
+  padding: 1rem;
+}
+
+.separator {
+  background-color: use-color("base-lighter");
+  height: 1px;
+}
+
+.policy-card {
+  border: 2px solid #fff;
+  cursor: pointer;
+  
+  &:global(.MuiCard-root) {
+    transition: 0.25s;
+  }
+
+  &:hover {
+    background-color: use-color("light-gray");
+    border-color: use-color("light-gray");
+  }
+
+  &.selected-card {
+    background-color: use-color("primary-lightest");
+    border-color: use-color("primary");
+  }
+}
+
+.policy-content {
   padding: 1rem;
 }

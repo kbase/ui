@@ -3,6 +3,7 @@ import { FC, useEffect, useState } from 'react';
 import { AccountInfo } from './AccountInfo';
 import { LinkedProviders } from './LinkedProviders';
 import { LogInSessions } from './LogInSessions';
+import { UseAgreements } from './UseAgreements';
 
 /**
  * Main Account page with four subpages represented as tabs.
@@ -51,6 +52,9 @@ export const Account: FC = () => {
         </CustomTabPanel>
         <CustomTabPanel value={activeTab} index={2} name="logins">
           <LogInSessions />
+        </CustomTabPanel>
+        <CustomTabPanel value={activeTab} index={3} name="use-agreements">
+          <UseAgreements />
         </CustomTabPanel>
       </Stack>
     </Container>
