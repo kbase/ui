@@ -1,5 +1,6 @@
 import { FC, ReactElement } from 'react';
 import {
+  createSearchParams,
   Navigate,
   Route,
   Routes as RRRoutes,
@@ -30,7 +31,7 @@ import { LogIn } from '../features/login/LogIn';
 import { LogInContinue } from '../features/login/LogInContinue';
 import ORCIDLinkCreateLink from '../features/orcidlink/CreateLink';
 
-export const LOGIN_ROUTE = '/legacy/login';
+export const LOGIN_ROUTE = '/login';
 export const ROOT_REDIRECT_ROUTE = '/narratives';
 
 const Routes: FC = () => {
@@ -124,9 +125,13 @@ export const Authed: FC<{ element: ReactElement }> = ({ element }) => {
   if (!token)
     return (
       <Navigate
-        to={LOGIN_ROUTE}
+        to={{
+          pathname: LOGIN_ROUTE,
+          search: createSearchParams({
+            nextRequest: JSON.stringify(location),
+          }).toString(),
+        }}
         replace
-        state={{ preLoginPath: location.pathname }}
       />
     );
 

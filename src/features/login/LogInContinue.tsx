@@ -3,7 +3,6 @@ import { FC, useEffect } from 'react';
 import logoRectangle from '../../common/assets/logo/rectangle.png';
 import classes from './LogIn.module.scss';
 import { Loader } from '../../common/components';
-import { useCookie } from '../../common/cookie';
 import { getLoginChoice, postLoginPick } from '../../common/api/authService';
 import { useTryAuthFromToken } from '../auth/hooks';
 import { useCheckLoggedIn } from './LogIn';
@@ -12,11 +11,7 @@ export const LogInContinue: FC = () => {
   // redirect if/when login is completed
   useCheckLoggedIn();
 
-  const [loginProcessToken] = useCookie('in-process-login-token');
-
-  const { data: choiceData } = getLoginChoice.useQuery(undefined, {
-    skip: !loginProcessToken,
-  });
+  const { data: choiceData } = getLoginChoice.useQuery();
 
   const [trigger, result] = postLoginPick.useMutation();
 

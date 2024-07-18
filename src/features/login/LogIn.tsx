@@ -23,14 +23,14 @@ export const useCheckLoggedIn = () => {
 
   const navigate = useNavigate();
   if (token && initialized) {
-    // TODO: handle nextrequest
+    // TODO: handle nextRequest
     navigate('/narratives');
   }
 };
 
 export const LogIn: FC = () => {
   useCheckLoggedIn();
-  const nextRequest = useAppParam('nextrequest');
+  const nextRequest = useAppParam('nextRequest');
 
   // OAuth Login wont work in dev mode, but send dev users to CI so they can grab their token
   const loginOrigin =
@@ -45,7 +45,7 @@ export const LogIn: FC = () => {
   ).toString();
   const loginState = encodeURIComponent(
     JSON.stringify({
-      nextrequest: nextRequest,
+      nextRequest: nextRequest,
       origin: loginOrigin,
     })
   );

@@ -31,6 +31,7 @@ import { useAppDispatch, useAppSelector } from '../../common/hooks';
 import { authUsername, setAuth } from '../auth/authSlice';
 import { noOp } from '../common';
 import classes from './TopBar.module.scss';
+import { LOGIN_ROUTE } from '../../app/Routes';
 
 export default function TopBar() {
   const username = useAppSelector(authUsername);
@@ -57,7 +58,7 @@ export default function TopBar() {
 }
 
 const LoginPrompt: FC = () => (
-  <Link role="button" to={'/legacy/login'} className={classes.login_prompt}>
+  <Link role="button" to={LOGIN_ROUTE} className={classes.login_prompt}>
     <FAIcon icon={faSignIn} />
     <span>Sign In</span>
   </Link>
