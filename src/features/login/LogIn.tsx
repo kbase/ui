@@ -92,7 +92,7 @@ export const LogIn: FC = () => {
               <Stack spacing={2}>
                 <Button
                   name="provider"
-                  value="Google"
+                  value="ORCID"
                   type="submit"
                   variant="outlined"
                   color="base"
@@ -128,7 +128,7 @@ export const LogIn: FC = () => {
                   </Button>
                   <Button
                     name="provider"
-                    value="Google"
+                    value="Globus"
                     type="submit"
                     variant="outlined"
                     color="base"
