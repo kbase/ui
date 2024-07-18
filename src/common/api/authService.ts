@@ -30,12 +30,62 @@ interface AuthParams {
     search: string;
     token: string;
   };
+  getLoginChoice: void;
+  postLoginPick: { id: string; policyids: string[] };
 }
 
 interface AuthResults {
   getMe: Me;
   getUsers: Record<string, string>;
   searchUsers: Record<string, string>;
+  getLoginChoice: {
+    // cancelurl: string;
+    create: {
+      availablename: string;
+      id: string;
+      provemail: string;
+      provfullname: string;
+      provusername: string;
+    }[];
+    // createurl: string;
+    creationallowed: true;
+    expires: number;
+    login: {
+      adminonly: boolean;
+      disabled: boolean;
+      id: string;
+      loginallowed: true;
+      policyids: {
+        agreedon: number;
+        id: string;
+      }[];
+      provusernames: string[];
+      user: string;
+    }[];
+    // pickurl: string;
+    provider: string;
+    // redirecturl: string | null;
+    // suggestnameurl: string;
+  };
+  postLoginPick: {
+    redirecturl: null | string;
+    token: {
+      agent: string;
+      agentver: string;
+      created: number;
+      custom: unknown;
+      device: unknown;
+      expires: number;
+      id: string;
+      ip: string;
+      name: unknown;
+      os: unknown;
+      osver: unknown;
+      token: string;
+      type: string;
+      user: string;
+    };
+  };
 }
 
 // Auth does not use JSONRpc, so we use queryFn to make custom queries
@@ -102,8 +152,40 @@ export const authApi = baseApi.injectEndpoints({
           method: 'DELETE',
         }),
     }),
+    getLoginChoice: builder.query<
+      AuthResults['getLoginChoice'],
+      AuthParams['getLoginChoice']
+    >({
+      query: () =>
+        // MUST have an in-process-login-token cookie
+        authService({
+          headers: {
+            accept: 'application/json',
+          },
+          method: 'GET',
+          url: '/login/choice',
+        }),
+    }),
+    postLoginPick: builder.mutation<
+      AuthResults['postLoginPick'],
+      AuthParams['postLoginPick']
+    >({
+      query: (pickedChoice) =>
+        authService({
+          url: encode`/login/pick`,
+          body: pickedChoice,
+          method: 'POST',
+        }),
+    }),
   }),
 });
 
-export const { authFromToken, getMe, getUsers, searchUsers, revokeToken } =
-  authApi.endpoints;
+export const {
+  authFromToken,
+  getMe,
+  getUsers,
+  searchUsers,
+  revokeToken,
+  getLoginChoice,
+  postLoginPick,
+} = authApi.endpoints;

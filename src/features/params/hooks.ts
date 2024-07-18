@@ -26,7 +26,9 @@ export const useUpdateAppParams = () => {
   );
 };
 
-export const useAppParam = <Key extends keyof ParamsState>(key: Key) => {
+export const useAppParam = <Key extends keyof ParamsState>(
+  key: Key
+): NonNullable<ParamsState[Key]> | undefined => {
   const val = useAppSelector((state) => state.params[key]);
   if (val === undefined || val === null) return undefined;
   return val as NonNullable<ParamsState[Key]>;

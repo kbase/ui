@@ -27,6 +27,7 @@ import {
 } from '../common/hooks';
 import ORCIDLinkFeature from '../features/orcidlink';
 import { LogIn } from '../features/login/LogIn';
+import { LogInContinue } from '../features/login/LogInContinue';
 import ORCIDLinkCreateLink from '../features/orcidlink/CreateLink';
 
 export const LOGIN_ROUTE = '/legacy/login';
@@ -54,6 +55,7 @@ const Routes: FC = () => {
 
       {/* Log In */}
       <Route path="/login" element={<LogIn />} />
+      <Route path="/login/continue" element={<LogInContinue />} />
 
       {/* Navigator */}
       <Route
