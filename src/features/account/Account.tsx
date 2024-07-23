@@ -1,15 +1,27 @@
 import { Container, Stack, Tab, Tabs } from '@mui/material';
 import { FC, useEffect, useState } from 'react';
-import { AccountInfo } from './AccountInfo';
-import { LinkedProviders } from './LinkedProviders';
-import { LogInSessions } from './LogInSessions';
-import { UseAgreements } from './UseAgreements';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 /**
  * Main Account page with four subpages represented as tabs.
  */
 export const Account: FC = () => {
-  const [activeTab, setActiveTab] = useState(0);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState(() => {
+    switch (location.pathname) {
+      case '/account/info':
+        return 0;
+      case '/account/providers':
+        return 1;
+      case '/account/logins':
+        return 2;
+      case '/account/use-agreements':
+        return 3;
+      default:
+        return 0;
+    }
+  });
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
@@ -24,70 +36,36 @@ export const Account: FC = () => {
       <Stack spacing={4}>
         <Tabs value={activeTab} onChange={handleChange}>
           <Tab
+            component="a"
             label="Account"
             id="account-tab"
             aria-controls="account-tabpanel"
+            onClick={() => navigate('info')}
           />
           <Tab
+            component="a"
             label="Linked Providers"
             id="providers-tab"
             aria-controls="providers-tabpanel"
+            onClick={() => navigate('providers')}
           />
           <Tab
+            component="a"
             label="Log In Sessions"
-            id="logins-tab"
-            aria-controls="logins-tabpanel"
+            id="sessions-tab"
+            aria-controls="sessions-tabpanel"
+            onClick={() => navigate('sessions')}
           />
           <Tab
+            component="a"
             label="Use Agreements"
             id="use-agreements-tab"
             aria-controls="use-agreements-tabpanel"
+            onClick={() => navigate('use-agreements')}
           />
         </Tabs>
-        <CustomTabPanel value={activeTab} index={0} name="account">
-          <AccountInfo />
-        </CustomTabPanel>
-        <CustomTabPanel value={activeTab} index={1} name="providers">
-          <LinkedProviders />
-        </CustomTabPanel>
-        <CustomTabPanel value={activeTab} index={2} name="logins">
-          <LogInSessions />
-        </CustomTabPanel>
-        <CustomTabPanel value={activeTab} index={3} name="use-agreements">
-          <UseAgreements />
-        </CustomTabPanel>
+        <Outlet />
       </Stack>
     </Container>
-  );
-};
-
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-  name: string;
-}
-
-/**
- * Tab panel wrapper that conditionally displays tab content
- * depending on the active tab.
- */
-const CustomTabPanel: FC<TabPanelProps> = ({
-  value,
-  index,
-  name,
-  children,
-  ...rest
-}) => {
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`${name}-tabpanel`}
-      aria-labelledby={`${name}-tab`}
-      {...rest}
-    >
-      {value === index && children}
-    </div>
   );
 };

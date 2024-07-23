@@ -16,7 +16,12 @@ import { FC } from 'react';
  */
 export const AccountInfo: FC = () => {
   return (
-    <Stack spacing={4}>
+    <Stack
+      spacing={4}
+      role="tabpanel"
+      id="account-tabpanel"
+      aria-labelledby="account-tab"
+    >
       <Stack direction="row" justifyContent="space-between">
         <Typography variant="h2">Edit Account</Typography>
         <Tooltip

@@ -95,7 +95,12 @@ export const UseAgreements: FC = () => {
   }, [showExpired, currentPolicies]);
 
   return (
-    <Stack spacing={4}>
+    <Stack
+      spacing={4}
+      role="tabpanel"
+      id="use-agreements-tabpanel"
+      aria-labelledby="use-agreements-tab"
+    >
       <Stack direction="row" justifyContent="space-between">
         <Typography variant="h2">My Policy Agreements</Typography>
         <Tooltip
@@ -128,6 +133,7 @@ export const UseAgreements: FC = () => {
               />
               {policies.map((policy) => (
                 <Card
+                  key={policy.name}
                   className={`${classes['policy-card']} ${
                     selectedPolicy.name === policy.name &&
                     selectedPolicy.version === policy.version

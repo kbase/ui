@@ -36,7 +36,12 @@ const sampleProviders = [
 export const LinkedProviders: FC = () => {
   const linkedProviders = sampleProviders;
   return (
-    <Stack spacing={4}>
+    <Stack
+      spacing={4}
+      role="tabpanel"
+      id="providers-tabpanel"
+      aria-labelledby="providers-tab"
+    >
       <Stack direction="row" justifyContent="space-between">
         <Typography variant="h2">Currently Linked Providers</Typography>
         <Tooltip
