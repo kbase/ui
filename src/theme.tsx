@@ -15,12 +15,13 @@ const RouterCompatibleLink = forwardRef<
 
 // TODO: import from single source of truth
 const baseColor = 'rgb(62, 56, 50)';
+const primaryColor = 'rgb(2, 109, 170)';
 
 export const theme = createTheme({
   palette: {
     primary: {
       // TODO: import from single source of truth
-      main: 'rgb(2, 109, 170)',
+      main: primaryColor,
     },
     warning: {
       // TODO: import from single source of truth
@@ -64,11 +65,33 @@ export const theme = createTheme({
         },
       },
     },
+    MuiInputBase: {
+      styleOverrides: {
+        root: {
+          backgroundColor: 'white',
+        },
+      },
+    },
     MuiPaper: {
       styleOverrides: {
         elevation0: {
           border: '1px solid',
           borderColor: alpha(baseColor, 0.3),
+        },
+      },
+    },
+    MuiTab: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+        },
+      },
+    },
+    MuiTabs: {
+      styleOverrides: {
+        root: {
+          borderBottom: '1px solid',
+          borderBottomColor: 'rgb(222, 213, 203)',
         },
       },
     },
