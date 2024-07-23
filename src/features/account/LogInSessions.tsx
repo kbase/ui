@@ -36,7 +36,12 @@ export const LogInSessions: FC = () => {
   const otherSessions: any[] = [];
 
   return (
-    <Stack spacing={4}>
+    <Stack
+      spacing={4}
+      role="tabpanel"
+      id="sessions-tabpanel"
+      aria-labelledby="sessions-tab"
+    >
       <Stack direction="row" justifyContent="space-between">
         <Typography variant="h2">My Current Log In Sessions</Typography>
         <Tooltip
