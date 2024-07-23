@@ -13,12 +13,17 @@ ul.nav_list {
   li.nav_item {
     align-items: center;
     background: use-color("white");
+    border-radius: 4px;
+    color: use-color("base-darker");
     display: flex;
     flex-flow: column nowrap;
-    margin: 3px 0;
-    padding: 3px;
+    margin-top: 1rem;
+    margin-left: 0.25rem;
+    margin-right: 0.25rem;
+    padding: 0.25rem;
     position: relative;
     text-align: center;
+    transition: 0.25s;
 
     // Items contain links, so lets remove the default link styles
     a {
@@ -28,20 +33,20 @@ ul.nav_list {
     }
 
     &.active {
+      background: use-color("base-lighter");
+    }
+
+    &:hover:not(.active) {
       background: use-rgba-color("silver", 0.5);
     }
 
-    &:hover {
-      background: use-rgba-color("silver", 0.7);
-    }
-
     .nav_icon {
-      font-size: 42px;
+      font-size: 2rem;
       width: 100%;
     }
 
     .nav_desc {
-      font-size: 14px;
+      font-size: 0.75rem;
     }
 
     .nav_notifs {
