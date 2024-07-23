@@ -1,31 +1,21 @@
 import {
-  faBars,
-  faEnvelope,
-  faFile,
   faFlask,
   faIdCard,
-  faInfo,
-  faPlus,
-  faQuestion,
   faQuestionCircle,
-  faSearch,
-  faServer,
-  faSignIn,
   faSignOutAlt,
   faSortDown,
   faUser,
   faWrench,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
+import { Button, Stack } from '@mui/material';
 import { FC, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-
 import { toast } from 'react-hot-toast';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { resetStateAction } from '../../app/store';
 import { revokeToken } from '../../common/api/authService';
 import { getUserProfile } from '../../common/api/userProfileApi';
-import logo from '../../common/assets/logo/46_square.png';
+import logo from '../../common/assets/logo/circles.png';
 import { Dropdown } from '../../common/components';
 import { useAppDispatch, useAppSelector } from '../../common/hooks';
 import { authUsername, setAuth } from '../auth/authSlice';
@@ -38,9 +28,7 @@ export default function TopBar() {
   return (
     <header className={classes.topbar}>
       <div className={classes.topbar_item}>
-        <HamburgerMenu />
-      </div>
-      <div className={classes.topbar_item}>
+        {/* TODO: replace with recntagular logo without tagline */}
         <img src={logo} alt="" />
       </div>
       <div className={[classes.topbar_item, classes.stretch].join(' ')}>
@@ -57,10 +45,14 @@ export default function TopBar() {
 }
 
 const LoginPrompt: FC = () => (
-  <Link role="button" to={'/legacy/login'} className={classes.login_prompt}>
-    <FAIcon icon={faSignIn} />
-    <span>Sign In</span>
-  </Link>
+  <Stack direction="row" spacing={1}>
+    <Link role="button" to={'/login'} className={classes.login_prompt}>
+      <Button variant="contained">Log in</Button>
+    </Link>
+    <Link role="button" to={'/signup'} className={classes.login_prompt}>
+      <Button variant="outlined">Sign up</Button>
+    </Link>
+  </Stack>
 );
 
 const UserMenu: FC = () => {
@@ -166,80 +158,80 @@ const useLogout = () => {
   };
 };
 
-const HamburgerMenu: FC = () => {
-  const navigate = useNavigate();
-  return (
-    <div className={classes.hamburger_menu}>
-      <Dropdown
-        options={[
-          {
-            options: [
-              {
-                value: '/legacy/narrativemanager/start',
-                icon: <FAIcon icon={faFile} />,
-                label: 'Narrative Interface',
-              },
-              {
-                value: '/legacy/narrativemanager/new',
-                icon: <FAIcon icon={faPlus} />,
-                label: 'New Narrative',
-              },
-              {
-                value: '/legacy/jgi-search',
-                icon: <FAIcon icon={faSearch} />,
-                label: 'JGI Search',
-              },
-              {
-                value: '/legacy/biochem-search',
-                icon: <FAIcon icon={faSearch} />,
-                label: 'Biochem Search',
-              },
-            ],
-          },
-          {
-            options: [
-              {
-                value: '/legacy/about/services',
-                icon: <FAIcon icon={faServer} />,
-                label: 'KBase Services Status',
-              },
-            ],
-          },
-          {
-            options: [
-              {
-                value: '/legacy/about',
-                icon: <FAIcon icon={faInfo} />,
-                label: 'About',
-              },
-              {
-                value: 'https://kbase.us/contact-us',
-                icon: <FAIcon icon={faEnvelope} />,
-                label: 'Contact KBase',
-              },
-              {
-                value: 'https://kbase.us/narrative-guide/',
-                icon: <FAIcon icon={faQuestion} />,
-                label: 'Support',
-              },
-            ],
-          },
-        ]}
-        onChange={(opt) => {
-          if (typeof opt?.[0]?.value === 'string') {
-            if (opt[0].value.startsWith('http')) {
-              window.location.href = opt[0].value;
-            } else {
-              navigate(opt[0].value, { relative: 'path' });
-            }
-          }
-        }}
-      >
-        <FAIcon className={classes.hamburger_menu_icon} icon={faBars} />
-      </Dropdown>
-    </div>
-  );
-};
+// const HamburgerMenu: FC = () => {
+//   const navigate = useNavigate();
+//   return (
+//     <div className={classes.hamburger_menu}>
+//       <Dropdown
+//         options={[
+//           {
+//             options: [
+//               {
+//                 value: '/legacy/narrativemanager/start',
+//                 icon: <FAIcon icon={faFile} />,
+//                 label: 'Narrative Interface',
+//               },
+//               {
+//                 value: '/legacy/narrativemanager/new',
+//                 icon: <FAIcon icon={faPlus} />,
+//                 label: 'New Narrative',
+//               },
+//               {
+//                 value: '/legacy/jgi-search',
+//                 icon: <FAIcon icon={faSearch} />,
+//                 label: 'JGI Search',
+//               },
+//               {
+//                 value: '/legacy/biochem-search',
+//                 icon: <FAIcon icon={faSearch} />,
+//                 label: 'Biochem Search',
+//               },
+//             ],
+//           },
+//           {
+//             options: [
+//               {
+//                 value: '/legacy/about/services',
+//                 icon: <FAIcon icon={faServer} />,
+//                 label: 'KBase Services Status',
+//               },
+//             ],
+//           },
+//           {
+//             options: [
+//               {
+//                 value: '/legacy/about',
+//                 icon: <FAIcon icon={faInfo} />,
+//                 label: 'About',
+//               },
+//               {
+//                 value: 'https://kbase.us/contact-us',
+//                 icon: <FAIcon icon={faEnvelope} />,
+//                 label: 'Contact KBase',
+//               },
+//               {
+//                 value: 'https://kbase.us/narrative-guide/',
+//                 icon: <FAIcon icon={faQuestion} />,
+//                 label: 'Support',
+//               },
+//             ],
+//           },
+//         ]}
+//         onChange={(opt) => {
+//           if (typeof opt?.[0]?.value === 'string') {
+//             if (opt[0].value.startsWith('http')) {
+//               window.location.href = opt[0].value;
+//             } else {
+//               navigate(opt[0].value, { relative: 'path' });
+//             }
+//           }
+//         }}
+//       >
+//         <FAIcon className={classes.hamburger_menu_icon} icon={faBars} />
+//       </Dropdown>
+//     </div>
+//   );
+// };
 
 const UserAvatar = () => {
   const username = useAppSelector(authUsername);

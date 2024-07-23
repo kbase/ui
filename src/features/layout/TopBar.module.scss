@@ -2,24 +2,32 @@
 
 .topbar {
   align-items: center;
-  border-bottom: 5px solid #e0e0e0;
+  border-bottom: 1px solid;
+  border-bottom-color: use-color("silver");
   display: flex;
   height: 100%;
   justify-content: stretch;
+  padding: 0 1rem;
   position: relative;
   z-index: 100;
 
   .topbar_item {
+    display: flex;
     flex-grow: 0;
     flex-shrink: 0;
     height: auto;
     position: relative;
     vertical-align: middle;
+    white-space: nowrap;
 
     &.stretch {
       flex-grow: 1;
       flex-shrink: 1;
       overflow: hidden;
+    }
+
+    img {
+      height: 40px;
     }
   }
 }
@@ -39,11 +47,13 @@
 }
 
 .page_title {
+  border-left: 1px solid;
+  border-left-color: use-color("silver");
   color: use-color("black");
-  font-size: 2rem;
-  font-weight: bold;
+  font-size: 1.5rem;
+  margin-left: 1rem;
   overflow: hidden;
-  padding-left: 10px;
+  padding-left: 1rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -52,13 +62,14 @@
   align-items: center;
   display: flex;
   flex-flow: column nowrap;
+  font-size: 0.75rem;
   font-weight: bold;
   justify-content: center;
-  padding: 0 12px 0 5px;
+  padding: 0 1rem 0 5px;
 
   >svg {
     color: use-color("mid-blue");
-    font-size: 2rem;
+    font-size: 1.5rem;
   }
 }
 
