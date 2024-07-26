@@ -15,7 +15,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { resetStateAction } from '../../app/store';
 import { revokeToken } from '../../common/api/authService';
 import { getUserProfile } from '../../common/api/userProfileApi';
-import logo from '../../common/assets/logo/circles.png';
+import logo from '../../common/assets/logo/rectangle_short.png';
 import { Dropdown } from '../../common/components';
 import { useAppDispatch, useAppSelector } from '../../common/hooks';
 import { authUsername, setAuth } from '../auth/authSlice';
