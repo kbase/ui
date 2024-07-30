@@ -10,6 +10,7 @@ import { FC, useEffect, useState } from 'react';
 import { AccountInformation } from './AccountInformation';
 import { ProviderSelect } from './ProviderSelect';
 import { UsePolicies } from './UsePolicies';
+import { usePageTitle } from '../layout/layoutSlice';
 
 const signUpSteps = [
   'Sign up with a supported provider',
@@ -22,6 +23,7 @@ const signUpSteps = [
  * and accepting the KBase use policies.
  */
 export const SignUp: FC = () => {
+  usePageTitle('Sign Up');
   const [activeStep, setActiveStep] = useState(0);
 
   useEffect(() => {
