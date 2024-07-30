@@ -10,7 +10,12 @@ ul.nav_list {
   padding: 3px 0 0;
   width: 100%;
 
-  li.nav_item {
+  &:first-of-type:not(:last-of-type) {
+    border-bottom: 1px solid use-color("silver");
+    padding-bottom: 1rem;
+  }
+
+  .nav_item {
     align-items: center;
     background: use-color("white");
     border-radius: 4px;
@@ -61,6 +66,18 @@ ul.nav_list {
       right: 0;
       top: 0;
     }
+  }
+}
+
+.more_menu_item {
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .more_menu_icon {
+    color: use-color("base-darker");
+    margin-right: 0.5rem;
   }
 }
 
