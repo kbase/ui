@@ -6,17 +6,17 @@ import {
   faSortDown,
   faUser,
   faWrench,
+  faPlus,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
-import { Button, Stack } from '@mui/material';
-import { FC, useMemo } from 'react';
+import { Button, Menu, MenuItem, Stack, Typography } from '@mui/material';
+import { FC, useMemo, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { Link, useNavigate } from 'react-router-dom';
 import { resetStateAction } from '../../app/store';
 import { revokeToken } from '../../common/api/authService';
 import { getUserProfile } from '../../common/api/userProfileApi';
 import logo from '../../common/assets/logo/rectangle_short.png';
-import { Dropdown } from '../../common/components';
 import { useAppDispatch, useAppSelector } from '../../common/hooks';
 import { authUsername, setAuth } from '../auth/authSlice';
 import { noOp } from '../common';
@@ -33,6 +33,19 @@ export default function TopBar() {
       </div>
       <div className={[classes.topbar_item, classes.stretch].join(' ')}>
         <PageTitle />
+      </div>
+      <div className={classes.topbar_item}>
+        {username && (
+          <a
+            href="/legacy/narrativemanager/new"
+            target="_blank"
+            className={classes.narrative_link}
+          >
+            <Button variant="outlined" startIcon={<FAIcon icon={faPlus} />}>
+              Narrative
+            </Button>
+          </a>
+        )}
       </div>
       <div className={classes.topbar_item}>
         <Enviroment />
@@ -67,69 +80,69 @@ const UserMenu: FC = () => {
     { skip: !username }
   );
   const realname = profData?.[0]?.[0]?.user.realname;
-  const navigate = useNavigate();
   const logout = useLogout();
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const menuOpen = Boolean(anchorEl);
+  const handleClickMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleCloseMenu = () => {
+    setAnchorEl(null);
+  };
   return (
-    <div className={classes.login_menu}>
-      <Dropdown
-        horizontalMenuAlign="right"
-        options={[
-          {
-            options: [
-              {
-                value: '',
-                icon: undefined,
-                fullWidth: true,
-                label: (
-                  <div className={classes['name_item']}>
-                    <div>{realname}</div>
-                    <div className={classes.login_menu_username}>
-                      {username}
-                    </div>
-                  </div>
-                ),
-              },
-            ],
-          },
-          {
-            options: [
-              {
-                value: '/legacy/people',
-                icon: <FAIcon icon={faUser} />,
-                label: 'Your Profile',
-              },
-              {
-                value: '/legacy/account',
-                icon: <FAIcon icon={faIdCard} />,
-                label: 'Your Account',
-              },
-            ],
-          },
-          {
-            options: [
-              {
-                value: 'LOGOUT',
-                icon: <FAIcon icon={faSignOutAlt} />,
-                label: 'Sign Out',
-              },
-            ],
-          },
-        ]}
-        onChange={(opt) => {
-          if (opt?.[0]) {
-            if (opt[0].value === 'LOGOUT') {
-              logout();
-            } else {
-              navigate(opt[0].value as string);
-            }
-          }
+    <div className={classes.login_menu_container}>
+      <Button
+        id="user-menu-button"
+        aria-controls={menuOpen ? 'user-menu' : undefined}
+        aria-haspopup="true"
+        aria-expanded={menuOpen ? 'true' : undefined}
+        className={classes.login_menu_button}
+        onClick={handleClickMenu}
+      >
+        <Stack direction="row" spacing={1} alignItems="center">
+          <UserAvatar />
+          <Typography fontSize="small">{username}</Typography>
+          <FAIcon icon={faSortDown} />
+        </Stack>
+      </Button>
+      <Menu
+        id="user-menu"
+        className={classes.login_menu}
+        anchorEl={anchorEl}
+        open={menuOpen}
+        onClose={handleCloseMenu}
+        MenuListProps={{
+          'aria-labelledby': 'user-menu-button',
+        }}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'left',
         }}
       >
-        <div className={classes.login_menu_button}>
-          <UserAvatar />
-          <FAIcon icon={faSortDown} />
-        </div>
-      </Dropdown>
+        <Typography className={classes.login_menu_username}>
+          {realname}
+        </Typography>
+        <MenuItem onClick={handleCloseMenu}>
+          <Link to="profile">
+            <FAIcon className={classes.login_menu_icon} icon={faUser} />
+            My Profile
+          </Link>
+        </MenuItem>
+        <MenuItem onClick={handleCloseMenu}>
+          <Link to="account">
+            <FAIcon className={classes.login_menu_icon} icon={faIdCard} />
+            My Account
+          </Link>
+        </MenuItem>
+        <MenuItem onClick={() => logout()}>
+          <FAIcon className={classes.login_menu_icon} icon={faSignOutAlt} />
+          Log out
+        </MenuItem>
+      </Menu>
     </div>
   );
 };
@@ -157,81 +170,6 @@ const useLogout = () => {
       });
   };
 };
-
-// const HamburgerMenu: FC = () => {
-//   const navigate = useNavigate();
-//   return (
-//     <div className={classes.hamburger_menu}>
-//       <Dropdown
-//         options={[
-//           {
-//             options: [
-//               {
-//                 value: '/legacy/narrativemanager/start',
-//                 icon: <FAIcon icon={faFile} />,
-//                 label: 'Narrative Interface',
-//               },
-//               {
-//                 value: '/legacy/narrativemanager/new',
-//                 icon: <FAIcon icon={faPlus} />,
-//                 label: 'New Narrative',
-//               },
-//               {
-//                 value: '/legacy/jgi-search',
-//                 icon: <FAIcon icon={faSearch} />,
-//                 label: 'JGI Search',
-//               },
-//               {
-//                 value: '/legacy/biochem-search',
-//                 icon: <FAIcon icon={faSearch} />,
-//                 label: 'Biochem Search',
-//               },
-//             ],
-//           },
-//           {
-//             options: [
-//               {
-//                 value: '/legacy/about/services',
-//                 icon: <FAIcon icon={faServer} />,
-//                 label: 'KBase Services Status',
-//               },
-//             ],
-//           },
-//           {
-//             options: [
-//               {
-//                 value: '/legacy/about',
-//                 icon: <FAIcon icon={faInfo} />,
-//                 label: 'About',
-//               },
-//               {
-//                 value: 'https://kbase.us/contact-us',
-//                 icon: <FAIcon icon={faEnvelope} />,
-//                 label: 'Contact KBase',
-//               },
-//               {
-//                 value: 'https://kbase.us/narrative-guide/',
-//                 icon: <FAIcon icon={faQuestion} />,
-//                 label: 'Support',
-//               },
-//             ],
-//           },
-//         ]}
-//         onChange={(opt) => {
-//           if (typeof opt?.[0]?.value === 'string') {
-//             if (opt[0].value.startsWith('http')) {
-//               window.location.href = opt[0].value;
-//             } else {
-//               navigate(opt[0].value, { relative: 'path' });
-//             }
-//           }
-//         }}
-//       >
-//         <FAIcon className={classes.hamburger_menu_icon} icon={faBars} />
-//       </Dropdown>
-//     </div>
-//   );
-// };
 
 const UserAvatar = () => {
   const username = useAppSelector(authUsername);
