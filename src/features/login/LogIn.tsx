@@ -16,21 +16,29 @@ import googleLogo from '../../common/assets/google.webp';
 import classes from './LogIn.module.scss';
 import { useAppSelector } from '../../common/hooks';
 import { useAppParam } from '../params/hooks';
-import { useNavigate } from 'react-router-dom';
+import { To, useNavigate } from 'react-router-dom';
 
-export const useCheckLoggedIn = () => {
+export const useCheckLoggedIn = (nextRequest: string | undefined) => {
   const { initialized, token } = useAppSelector((state) => state.auth);
 
   const navigate = useNavigate();
   if (token && initialized) {
-    // TODO: handle nextRequest
-    navigate('/narratives');
+    if (nextRequest) {
+      try {
+        const next = JSON.parse(nextRequest) as To;
+        navigate(next);
+      } catch {
+        throw TypeError('nextRequest param cannot be parsed');
+      }
+    } else {
+      navigate('/narratives');
+    }
   }
 };
 
 export const LogIn: FC = () => {
-  useCheckLoggedIn();
   const nextRequest = useAppParam('nextRequest');
+  useCheckLoggedIn(nextRequest);
 
   // OAuth Login wont work in dev mode, but send dev users to CI so they can grab their token
   const loginOrigin =
@@ -39,22 +47,27 @@ export const LogIn: FC = () => {
       : document.location.origin;
 
   // Triggering login requires a form POST submission
-  const loginActionUrl = new URL(
-    '/services/auth/login/start/',
-    loginOrigin
-  ).toString();
-  const loginState = encodeURIComponent(
+  const loginActionUrl = new URL('/services/auth/login/start/', loginOrigin);
+
+  // Redirect URL is used to pass state to login/continue
+  const loginRedirectUrl = new URL(`${loginOrigin}/login/continue`);
+  loginRedirectUrl.searchParams.set(
+    'state',
     JSON.stringify({
       nextRequest: nextRequest,
       origin: loginOrigin,
     })
   );
-  const loginRedirectURL = `${loginOrigin}/login/redirect?state=${loginState}`;
 
   return (
     <Container maxWidth="sm">
-      <form action={loginActionUrl} method="post">
-        <input hidden name="redirecturl" value={loginRedirectURL} />
+      <form action={loginActionUrl.toString()} method="post">
+        <input
+          readOnly
+          hidden
+          name="redirecturl"
+          value={loginRedirectUrl.toString()}
+        />
         <Stack spacing={2} textAlign="center">
           <Stack
             direction="row"
