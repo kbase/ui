@@ -8,7 +8,7 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
-import { FC } from 'react';
+import { FC, useEffect } from 'react';
 import logoRectangle from '../../common/assets/logo/rectangle.png';
 import orcidLogo from '../../common/assets/orcid.png';
 import globusLogo from '../../common/assets/globus.png';
@@ -22,18 +22,20 @@ export const useCheckLoggedIn = (nextRequest: string | undefined) => {
   const { initialized, token } = useAppSelector((state) => state.auth);
 
   const navigate = useNavigate();
-  if (token && initialized) {
-    if (nextRequest) {
-      try {
-        const next = JSON.parse(nextRequest) as To;
-        navigate(next);
-      } catch {
-        throw TypeError('nextRequest param cannot be parsed');
+  useEffect(() => {
+    if (token && initialized) {
+      if (nextRequest) {
+        try {
+          const next = JSON.parse(nextRequest) as To;
+          navigate(next);
+        } catch {
+          throw TypeError('nextRequest param cannot be parsed');
+        }
+      } else {
+        navigate('/narratives');
       }
-    } else {
-      navigate('/narratives');
     }
-  }
+  }, [initialized, navigate, nextRequest, token]);
 };
 
 export const LogIn: FC = () => {
@@ -61,12 +63,17 @@ export const LogIn: FC = () => {
 
   return (
     <Container maxWidth="sm">
-      <form action={loginActionUrl.toString()} method="post">
+      <form
+        action={loginActionUrl.toString()}
+        method="post"
+        data-testid="loginForm"
+      >
         <input
           readOnly
           hidden
           name="redirecturl"
           value={loginRedirectUrl.toString()}
+          data-testid="redirecturl"
         />
         <Stack spacing={2} textAlign="center">
           <Stack
@@ -117,6 +124,7 @@ export const LogIn: FC = () => {
                       className={classes['sso-logo']}
                     />
                   }
+                  data-testid="loginORCID"
                 >
                   Continue with ORCID
                 </Button>
