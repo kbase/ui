@@ -22,6 +22,7 @@ import { setAuth } from '../auth/authSlice';
 import { toast } from 'react-hot-toast';
 import { revokeToken } from '../../common/api/authService';
 import { noOp } from '../common';
+import { useCookie } from '../../common/cookie';
 
 export const useCheckLoggedIn = (nextRequest: string | undefined) => {
   const { initialized, token } = useAppSelector((state) => state.auth);
@@ -49,6 +50,8 @@ export const useLogout = () => {
   const [revoke] = revokeToken.useMutation();
   const navigate = useNavigate();
 
+  const clearNarrativeSession = useCookie('narrative_session')[2];
+
   if (!tokenId) return noOp;
 
   return () => {
@@ -58,6 +61,7 @@ export const useLogout = () => {
         dispatch(resetStateAction());
         // setAuth(null) follow the state reset to initialize the page as un-Authed
         dispatch(setAuth(null));
+        clearNarrativeSession();
         toast('You have been signed out');
         navigate('/loggedout');
       })
