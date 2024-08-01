@@ -47,6 +47,7 @@ export const LogInContinue: FC = () => {
     if (choiceData) {
       const accountExists = choiceData.login.length > 0;
       // TODO: support choiceData.create cases
+      // TODO: support policy enforcement
       if (accountExists) {
         if (choiceData.login.length > 1) {
           // needs to be implemented if we have multiple KBase accounts linked to one provider account
@@ -114,7 +115,6 @@ export const LogInContinue: FC = () => {
             <Typography variant="h4" component="h1">
               <Loader /> Logging in
             </Typography>
-            <pre>{JSON.stringify(pickResult.data || choiceData, null, 4)}</pre>
           </Stack>
         </Paper>
       </Stack>

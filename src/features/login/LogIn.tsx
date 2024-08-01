@@ -14,9 +14,14 @@ import orcidLogo from '../../common/assets/orcid.png';
 import globusLogo from '../../common/assets/globus.png';
 import googleLogo from '../../common/assets/google.webp';
 import classes from './LogIn.module.scss';
-import { useAppSelector } from '../../common/hooks';
+import { useAppDispatch, useAppSelector } from '../../common/hooks';
 import { useAppParam } from '../params/hooks';
 import { To, useNavigate } from 'react-router-dom';
+import { resetStateAction } from '../../app/store';
+import { setAuth } from '../auth/authSlice';
+import { toast } from 'react-hot-toast';
+import { revokeToken } from '../../common/api/authService';
+import { noOp } from '../common';
 
 export const useCheckLoggedIn = (nextRequest: string | undefined) => {
   const { initialized, token } = useAppSelector((state) => state.auth);
@@ -36,6 +41,30 @@ export const useCheckLoggedIn = (nextRequest: string | undefined) => {
       }
     }
   }, [initialized, navigate, nextRequest, token]);
+};
+
+export const useLogout = () => {
+  const tokenId = useAppSelector(({ auth }) => auth.tokenInfo?.id);
+  const dispatch = useAppDispatch();
+  const [revoke] = revokeToken.useMutation();
+  const navigate = useNavigate();
+
+  if (!tokenId) return noOp;
+
+  return () => {
+    revoke(tokenId)
+      .unwrap()
+      .then(() => {
+        dispatch(resetStateAction());
+        // setAuth(null) follow the state reset to initialize the page as un-Authed
+        dispatch(setAuth(null));
+        toast('You have been signed out');
+        navigate('/loggedout');
+      })
+      .catch(() => {
+        toast('Error, could not log out.');
+      });
+  };
 };
 
 export const LogIn: FC = () => {

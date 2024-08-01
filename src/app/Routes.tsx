@@ -30,6 +30,7 @@ import ORCIDLinkFeature from '../features/orcidlink';
 import { LogIn } from '../features/login/LogIn';
 import { LogInContinue } from '../features/login/LogInContinue';
 import ORCIDLinkCreateLink from '../features/orcidlink/CreateLink';
+import { LoggedOut } from '../features/login/LoggedOut';
 
 export const LOGIN_ROUTE = '/login';
 export const ROOT_REDIRECT_ROUTE = '/narratives';
@@ -57,6 +58,7 @@ const Routes: FC = () => {
       {/* Log In */}
       <Route path="/login" element={<LogIn />} />
       <Route path="/login/continue" element={<LogInContinue />} />
+      <Route path="/loggedout" element={<LoggedOut />} />
 
       {/* Navigator */}
       <Route
