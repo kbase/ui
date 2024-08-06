@@ -40,7 +40,7 @@ export const LogInContinue: FC = () => {
   const choiceData = choiceResult.data;
 
   // if/when postLoginPick has a result, update app auth state using that token
-  useTryAuthFromToken(pickResult.data?.token.token);
+  const tokenResult = useTryAuthFromToken(pickResult.data?.token.token);
 
   // wrap choiceData handling in an effect so we only trigger the pick call once
   useEffect(() => {
@@ -65,7 +65,7 @@ export const LogInContinue: FC = () => {
 
   useEffect(() => {
     // Monitor error state, return to login
-    if (!pickResult.isError && !choiceResult.isError) {
+    if (!pickResult.isError && !choiceResult.isError && !tokenResult.isError) {
       return;
     } else {
       // eslint-disable-next-line no-console
@@ -73,6 +73,7 @@ export const LogInContinue: FC = () => {
         'login error(s)': {
           pick: pickResult.error,
           choice: choiceResult.error,
+          token: tokenResult.error,
         },
       });
       toast('An error occured during login, please try again.');
@@ -84,6 +85,8 @@ export const LogInContinue: FC = () => {
     navigate,
     pickResult.error,
     pickResult.isError,
+    tokenResult.error,
+    tokenResult.isError,
   ]);
 
   return (

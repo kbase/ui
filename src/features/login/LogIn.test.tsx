@@ -112,12 +112,7 @@ describe('Login', () => {
   });
 
   it('redirect if logged in', () => {
-    const redirectSpy = jest.fn();
-    const Redirect = () => {
-      redirectSpy();
-      return <></>;
-    };
-
+    const Narratives = jest.fn(() => <></>);
     render(
       <Provider
         store={createTestStore({
@@ -131,13 +126,13 @@ describe('Login', () => {
           <MemoryRouter initialEntries={[LOGIN_ROUTE]}>
             <Routes>
               <Route path={LOGIN_ROUTE} element={<LogIn />} />
-              <Route path={'/narratives'} element={<Redirect />} />
+              <Route path={'/narratives'} Component={Narratives} />
             </Routes>
           </MemoryRouter>
         </ThemeProvider>
       </Provider>
     );
-    expect(redirectSpy).toBeCalled();
+    expect(Narratives).toBeCalled();
   });
 
   it('redirect if logged in with nextRequest', () => {
