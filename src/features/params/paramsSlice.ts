@@ -5,6 +5,8 @@ import type { RootState } from '../../app/store';
 // Define a type for the slice state
 class ParamsClass {
   constructor(
+    // For Auth/Login/Linking
+    readonly nextRequest: string | null = null,
     // Search
     readonly limit: string | null = '20',
     readonly search: string | null = null,
@@ -28,7 +30,7 @@ class ParamsClass {
     // For narrative opening
     readonly n: string | null = null,
     readonly check: string | null = null,
-    // For kbase-ui navigation via auth
+    // For kbase-ui navigation via auth in an iframe
     readonly nextrequest: string | null = null,
     readonly source: string | null = null,
     // for account management ui
