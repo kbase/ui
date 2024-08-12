@@ -1,4 +1,4 @@
-import { useId, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 import {
   createColumnHelper,
   ColumnDef,
@@ -7,6 +7,7 @@ import {
   Table as TableType,
   Row,
   CellContext,
+  VisibilityState,
 } from '@tanstack/react-table';
 import type { RowData } from '@tanstack/react-table';
 import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
@@ -351,6 +352,7 @@ export const useTableColumns = ({
   fields = [],
   order = [],
   exclude = [],
+  defaultVisible = undefined,
 }: {
   fields?: {
     displayName?: string;
@@ -360,6 +362,7 @@ export const useTableColumns = ({
   }[];
   order?: string[];
   exclude?: string[];
+  defaultVisible?: string[] | undefined;
 }) => {
   const accessors: {
     [fieldName: string]: <RowData extends unknown[]>(
@@ -370,13 +373,11 @@ export const useTableColumns = ({
     accessors[id] = (rowData) => rowData[index];
   });
 
-  const [columnVisibility, setColumnVisibility] = useState({});
-
   const fieldsOrdered = fields
-    .filter(({ id }) => !exclude.includes(id))
+    .filter(({ id }) => !exclude.includes(id.toLowerCase()))
     .sort((a, b) => {
-      const aOrder = order.indexOf(a.id);
-      const bOrder = order.indexOf(b.id);
+      const aOrder = order.indexOf(a.id.toLowerCase());
+      const bOrder = order.indexOf(b.id.toLowerCase());
       if (aOrder !== -1 && bOrder !== -1) {
         return aOrder - bOrder;
       } else if (aOrder !== -1) {
@@ -387,6 +388,26 @@ export const useTableColumns = ({
         return fields.indexOf(a) - fields.indexOf(b);
       }
     });
+
+  const createDefaultVisible = (): VisibilityState => {
+    if (!defaultVisible) return {};
+    return fieldsOrdered.reduce<VisibilityState>((columnVisibility, field) => {
+      columnVisibility[field.id] = defaultVisible.includes(
+        field.id.toLowerCase()
+      );
+      return columnVisibility;
+    }, {});
+  };
+
+  const [columnVisibility, setColumnVisibility] =
+    useState<VisibilityState>(createDefaultVisible);
+
+  // in case fields change, this happens during initialization so is required.
+  const fieldsKey = JSON.stringify(fieldsOrdered.map(({ id }) => id));
+  useEffect(() => {
+    setColumnVisibility(createDefaultVisible);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fieldsKey]);
 
   return {
     columnVisibility,
@@ -450,10 +471,8 @@ export const ColumnSelect = ({
   setColumnVisibility,
   columnMeta,
 }: {
-  columnVisibility: { [k: string]: boolean | undefined };
-  setColumnVisibility: React.Dispatch<
-    React.SetStateAction<{ [k: string]: boolean | undefined }>
-  >;
+  columnVisibility: VisibilityState;
+  setColumnVisibility: React.Dispatch<React.SetStateAction<VisibilityState>>;
   columnMeta: { [k: string]: ColumnMeta } | undefined;
 }) => {
   const id = useId();
