@@ -13,10 +13,12 @@ import orcidLogo from '../../common/assets/orcid.png';
 import globusLogo from '../../common/assets/globus.png';
 import googleLogo from '../../common/assets/google.webp';
 import classes from './LogIn.module.scss';
+import { usePageTitle } from '../layout/layoutSlice';
 
 export const LogIn: FC = () => {
+  usePageTitle('Log In');
   return (
-    <Container maxWidth="sm">
+    <Container className={classes['login']} maxWidth="sm">
       <Stack spacing={2} textAlign="center">
         <Stack
           direction="row"
