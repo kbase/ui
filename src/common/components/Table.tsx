@@ -279,7 +279,7 @@ const TableHeader = <Datum,>({ table }: { table: TableType<Datum> }) => (
               >
                 <FAIcon
                   icon={
-                    { asc: faCaretDown, desc: faCaretUp }[
+                    { asc: faCaretUp, desc: faCaretDown }[
                       header.column.getIsSorted() as string
                     ] ?? faSort
                   }
