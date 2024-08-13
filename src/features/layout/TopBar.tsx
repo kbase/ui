@@ -28,8 +28,10 @@ export default function TopBar() {
   return (
     <header className={classes.topbar}>
       <div className={classes.topbar_item}>
-        {/* TODO: replace with recntagular logo without tagline */}
-        <img src={logo} alt="" />
+        <img
+          src={logo}
+          alt="KBase: Predictive Biology logo with three circles"
+        />
       </div>
       <div className={[classes.topbar_item, classes.stretch].join(' ')}>
         <PageTitle />
