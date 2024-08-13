@@ -18,7 +18,7 @@ import { usePageTitle } from '../layout/layoutSlice';
 export const LogIn: FC = () => {
   usePageTitle('Log In');
   return (
-    <Container maxWidth="sm">
+    <Container className={classes['login']} maxWidth="sm">
       <Stack spacing={2} textAlign="center">
         <Stack
           direction="row"
