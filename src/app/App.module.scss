@@ -39,6 +39,7 @@
 
     .left_navbar {
       background-color: use-color("white");
+      border-right: 1px solid use-color("silver");
       flex-grow: 0;
       flex-shrink: 0;
       max-height: 100%;
@@ -53,6 +54,8 @@
       flex-shrink: 1;
       max-height: 100%;
       overflow-y: auto;
+      padding-bottom: 1rem;
+      padding-top: 1rem;
       position: relative;
     }
   }

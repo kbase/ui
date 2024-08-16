@@ -3,8 +3,6 @@
 $border: 1px solid use-color("base-lighter");
 
 .collections-main {
-  background-color: use-color("base-lightest");
-  border-left: 1px solid use-color("silver");
   min-height: 100%;
 }
 
@@ -22,7 +20,7 @@ $border: 1px solid use-color("base-lighter");
   font-size: 1.25rem;
   font-weight: 500;
   margin: 0;
-  padding: 2rem 1rem 1rem;
+  padding: 1rem;
 }
 
 .collection-card {

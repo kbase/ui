@@ -18,6 +18,14 @@ const baseColor = 'rgb(62, 56, 50)';
 
 export const theme = createTheme({
   palette: {
+    primary: {
+      // TODO: import from single source of truth
+      main: 'rgb(2, 109, 170)',
+    },
+    warning: {
+      // TODO: import from single source of truth
+      main: 'rgb(255, 210, 0)',
+    },
     base: {
       main: baseColor,
       contrastText: getContrastRatio(baseColor, '#fff') > 4.5 ? '#fff' : '#111',
@@ -61,6 +69,28 @@ export const theme = createTheme({
         elevation0: {
           border: '1px solid',
           borderColor: alpha(baseColor, 0.3),
+        },
+      },
+    },
+    MuiTypography: {
+      styleOverrides: {
+        h1: {
+          fontSize: '2.5rem',
+        },
+        h2: {
+          fontSize: '2rem',
+        },
+        h3: {
+          fontSize: '1.75rem',
+        },
+        h4: {
+          fontSize: '1.5rem',
+        },
+        h5: {
+          fontSize: '1.25rem',
+        },
+        h6: {
+          fontSize: '1rem',
         },
       },
     },

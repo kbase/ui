@@ -60,7 +60,7 @@ const App: FC = () => {
         <div className={classes.left_navbar}>
           <LeftNavBar />
         </div>
-        <div className={classes.page_content}>
+        <main className={classes.page_content}>
           <ErrorBoundary FallbackComponent={ErrorPage}>
             <Loader loading={isLoading}>
               <Routes />
@@ -68,7 +68,7 @@ const App: FC = () => {
             <Toaster />
             <ModalDialog />
           </ErrorBoundary>
-        </div>
+        </main>
       </div>
     </div>
   );
