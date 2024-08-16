@@ -1,11 +1,9 @@
 import { RefObject, useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { createSearchParams, useLocation, useNavigate } from 'react-router-dom';
 import { usePageTitle } from '../layout/layoutSlice';
 import { useTryAuthFromToken } from '../auth/hooks';
-import { useAppDispatch } from '../../common/hooks';
-import { resetStateAction } from '../../app/store';
-import { setAuth } from '../auth/authSlice';
-import { toast } from 'react-hot-toast';
+import { LOGIN_ROUTE } from '../../app/Routes';
+import { useLogout } from '../login/LogIn';
 
 export const LEGACY_BASE_ROUTE = '/legacy';
 
@@ -17,7 +15,7 @@ export default function Legacy() {
 
   const location = useLocation();
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
+  const logout = useLogout();
 
   const legacyContentRef = useRef<HTMLIFrameElement>(null);
   const [legacyTitle, setLegacyTitle] = useState('');
@@ -43,8 +41,17 @@ export default function Legacy() {
       let path = d.payload.request.original;
       if (path[0] === '/') path = path.slice(1);
       if (legacyPath !== path) {
-        setLegacyPath(path);
-        navigate(`./${path}`);
+        if (path === 'login') {
+          navigate({
+            pathname: LOGIN_ROUTE,
+            search: createSearchParams({
+              nextRequest: JSON.stringify(location),
+            }).toString(),
+          });
+        } else {
+          setLegacyPath(path);
+          navigate(`./${path}`);
+        }
       }
     } else if (isTitleMessage(d)) {
       setLegacyTitle(d.payload);
@@ -53,10 +60,7 @@ export default function Legacy() {
         setReceivedToken(d.payload.token);
       }
     } else if (isLogoutMessage(d)) {
-      dispatch(resetStateAction());
-      dispatch(setAuth(null));
-      toast('You have been signed out');
-      navigate('/legacy/auth2/signedout');
+      logout();
     }
   });
 
