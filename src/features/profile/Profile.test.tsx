@@ -107,6 +107,7 @@ describe('Profile related components', () => {
             narrativesLink={''}
             pageTitle={''}
             profileLink={''}
+            profileData={{}}
             realname={''}
             username={''}
             viewMine={true}
@@ -130,7 +131,13 @@ describe('Profile related components', () => {
   });
 
   test('renders ProfileView', () => {
-    render(<ProfileView realname={realname} />);
+    render(
+      <ProfileView
+        realname={realname}
+        username={''}
+        profileData={initialState.profile.loggedInProfile.profile}
+      />
+    );
   });
 
   test('renders ProfileWrapper', () => {
