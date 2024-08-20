@@ -15,6 +15,7 @@ const ProfileTemplate: ComponentStory<typeof Profile> = (args) => {
     narrativesLink,
     pageTitle,
     profileLink,
+    profileData,
     realname,
     username,
     viewMine,
@@ -25,6 +26,7 @@ const ProfileTemplate: ComponentStory<typeof Profile> = (args) => {
       narrativesLink={narrativesLink}
       pageTitle={pageTitle}
       profileLink={profileLink}
+      profileData={profileData}
       realname={realname}
       username={username}
       viewMine={viewMine}
@@ -40,6 +42,7 @@ Default.args = {
   narrativesLink: '/profile/narratives',
   pageTitle: 'Some profile',
   profileLink: '/profile',
+  profileData: {},
   realname: 'Some Realname',
   username: 'someusername',
   viewMine: true,
