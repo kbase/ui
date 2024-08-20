@@ -1,8 +1,25 @@
-import { FC, useMemo } from 'react';
-import { Link, useLocation, useParams } from 'react-router-dom';
+import { faEdit } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  Button,
+  Chip,
+  Container,
+  Grid,
+  Paper,
+  Stack,
+  Tab,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Tabs,
+  Typography,
+} from '@mui/material';
+import { FC, useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { getUserProfile } from '../../common/api/userProfileApi';
 import { parseError } from '../../common/api/utils/parseError';
-import { Button } from '../../common/components';
 import { Loader } from '../../common/components/Loader';
 import { useAppSelector } from '../../common/hooks';
 import { authUsername } from '../auth/authSlice';
@@ -63,11 +80,144 @@ export const ProfileInfobox: FC<{ realname: string }> = ({ realname }) => {
   return <div>Profile Infobox for {realname}.</div>;
 };
 
-export const ProfileView: FC<{ realname: string }> = ({ realname }) => {
+export const ProfileView: FC<{
+  realname: string;
+  username: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  profileData: any;
+}> = ({ realname, username, profileData }) => {
+  const gravatarHash = profileData.synced.gravatarHash;
+  const avatarSrc = gravatarHash
+    ? `https://www.gravatar.com/avatar/${gravatarHash}?s=300&amp;r=pg&d=identicon`
+    : '';
+  // Placeholder data for research interests
+  const researchInterests = [
+    'Biology',
+    'Genomics',
+    'Data Management',
+    'Scientific Communication',
+  ];
+  // Placeholder data for organizations
+  const organizations = [
+    'Eiusmod sit est aute aliqua nostrud sint eu ex tempor.',
+    'Sint non cupidatat reprehenderit proident deserunt esse Lorem.',
+    'Tempor reprehenderit commodo voluptate fugiat aliqua.',
+    'Reprehenderit dolore aute proident et.',
+  ];
   return (
-    <div className={classes.profile}>
-      <ProfileInfobox realname={realname} />
-      <ProfileResume />
+    <div
+      className={classes.profile}
+      role="tabpanel"
+      id="profile-tabpanel"
+      aria-labelledby="profile-tab"
+    >
+      <Grid container spacing={2}>
+        <Grid item md={3}>
+          <Stack spacing={2}>
+            <Paper>
+              <Stack spacing={1}>
+                <img src={avatarSrc} alt={`Profile avatar for ${realname}`} />
+                <Stack className={classes['profile-names']}>
+                  <Typography variant="h2">{realname}</Typography>
+                  <Typography variant="h5">{username}</Typography>
+                </Stack>
+              </Stack>
+            </Paper>
+            <Paper className={classes['profile-panel']}>
+              <Stack spacing={2}>
+                <Stack spacing={1}>
+                  <Typography fontWeight="bold">Position</Typography>
+                  <Typography>Consectetur culpa commodo</Typography>
+                </Stack>
+                <Stack spacing={1}>
+                  <Typography fontWeight="bold">Department</Typography>
+                  <Typography>Consectetur culpa commodo</Typography>
+                </Stack>
+                <Stack spacing={1}>
+                  <Typography fontWeight="bold">Organization</Typography>
+                  <Typography>Consectetur culpa commodo</Typography>
+                </Stack>
+                <Stack spacing={1}>
+                  <Typography fontWeight="bold">Location</Typography>
+                  <Typography>Consectetur culpa commodo</Typography>
+                </Stack>
+              </Stack>
+            </Paper>
+            <Button
+              variant="contained"
+              startIcon={<FontAwesomeIcon icon={faEdit} />}
+            >
+              Edit Profile
+            </Button>
+          </Stack>
+        </Grid>
+        <Grid item md={9}>
+          <Paper className={classes['profile-panel']}>
+            <Stack spacing={4}>
+              <Stack spacing={1}>
+                <Typography variant="h5" fontWeight="bold">
+                  Research or Personal Statement
+                </Typography>
+                <Typography>
+                  {profileData.userdata.researchStatement}
+                </Typography>
+              </Stack>
+              <Stack spacing={1}>
+                <Typography variant="h5" fontWeight="bold">
+                  Research Interests
+                </Typography>
+                <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
+                  {researchInterests.map((interest, i) => (
+                    <Chip key={interest} label={interest} />
+                  ))}
+                </Stack>
+              </Stack>
+              <Stack spacing={1}>
+                <Typography variant="h5" fontWeight="bold">
+                  Organizations
+                </Typography>
+                <Stack spacing={1}>
+                  {organizations.map((org) => (
+                    <Typography key={org}>{org}</Typography>
+                  ))}
+                </Stack>
+              </Stack>
+              <Stack spacing={1}>
+                <Typography variant="h5" fontWeight="bold">
+                  Affiliations
+                </Typography>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Position</TableCell>
+                      <TableCell>Organization</TableCell>
+                      <TableCell>Tenure</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {/* eslint-disable @typescript-eslint/no-explicit-any */}
+                    {profileData.userdata.affiliations.map(
+                      (affiliation: any) => (
+                        <TableRow
+                          key={`${affiliation.title}-${affiliation.organization}`}
+                        >
+                          <TableCell>{affiliation.title}</TableCell>
+                          <TableCell>{affiliation.organization}</TableCell>
+                          <TableCell>
+                            {affiliation.started} -{' '}
+                            {affiliation.ended || 'Present'}
+                          </TableCell>
+                        </TableRow>
+                      )
+                    )}
+                    {/* eslint-enable @typescript-eslint/no-explicit-any */}
+                  </TableBody>
+                </Table>
+              </Stack>
+            </Stack>
+          </Paper>
+        </Grid>
+      </Grid>
     </div>
   );
 };
@@ -76,6 +226,7 @@ export interface ProfileParams {
   narrativesLink: string;
   pageTitle: string;
   profileLink: string;
+  profileData: unknown;
   realname: string;
   username: string;
   viewMine: boolean;
@@ -86,33 +237,66 @@ export const Profile: FC<ProfileParams> = ({
   narrativesLink,
   pageTitle,
   profileLink,
+  profileData,
   realname,
   username,
   viewMine,
   viewNarratives,
 }) => {
   usePageTitle(pageTitle);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState(() => {
+    switch (location.pathname) {
+      case profileLink:
+        return 0;
+      case narrativesLink:
+        return 1;
+      default:
+        return 0;
+    }
+  });
+
+  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+    setActiveTab(newValue);
+  };
+
+  useEffect(() => {
+    document.querySelector('main')?.scrollTo(0, 0);
+  }, [activeTab]);
+
   return (
-    <>
-      <nav className={classes['profile-nav']}>
-        <ul className="links">
-          <li>
-            <Link to={profileLink}>Profile</Link>
-          </li>
-          <li>
-            <Link to={narrativesLink}>Narratives</Link>
-          </li>
-        </ul>
-      </nav>
-      <section className={classes['profile-narratives']}>
-        {viewNarratives ? (
-          <NarrativesView realname={realname} yours={viewMine} />
-        ) : (
-          <ProfileView realname={realname} />
-        )}
-        <Button>Edit</Button>
-      </section>
-    </>
+    <Container>
+      <Stack spacing={4}>
+        <Tabs value={activeTab} onChange={handleChange}>
+          <Tab
+            component="a"
+            label="Profile"
+            id="profile-tab"
+            aria-controls="profile-tabpanel"
+            onClick={() => navigate(profileLink)}
+          />
+          <Tab
+            component="a"
+            label="Narratives"
+            id="narratives-tab"
+            aria-controls="narratives-tabpanel"
+            onClick={() => navigate(narrativesLink)}
+          />
+        </Tabs>
+        <section className={classes['profile-narratives']}>
+          {viewNarratives ? (
+            <NarrativesView realname={realname} yours={viewMine} />
+          ) : (
+            <ProfileView
+              realname={realname}
+              username={username}
+              profileData={profileData}
+            />
+          )}
+        </section>
+      </Stack>
+    </Container>
   );
 };
 
@@ -178,6 +362,7 @@ export const ProfileWrapper: FC = () => {
         narrativesLink={narrativesLink}
         pageTitle={pageTitle}
         profileLink={profileLink}
+        profileData={profile.profile}
         realname={realname}
         username={viewUsername}
         viewMine={viewMine}
