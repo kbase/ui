@@ -42,13 +42,10 @@ export const ProfileNarrativesMessage: FC<{
   yours: boolean;
 }> = ({ realname, yours }) => {
   if (yours) {
-    return <span>This table shows all of your narratives.</span>;
+    return <span>Narratives owned by me.</span>;
   }
   return (
-    <span>
-      This table shows all narratives owned by {realname} which are also
-      accessible to you.
-    </span>
+    <span>Narratives owned by {realname} which are also accessible to me.</span>
   );
 };
 
