@@ -123,27 +123,39 @@ describe('authSlice', () => {
       ReturnType<typeof console.error>,
       Parameters<typeof console.error>
     >;
-    let mockCookieVal = '';
-    const setTokenCookieMock = jest.fn();
-    const clearTokenCookieMock = jest.fn();
+    let mockCookieVals: Record<string, string> = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let setTokenCookieMocks: Record<string, jest.Mock<any, any, any>> = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let clearTokenCookieMocks: Record<string, jest.Mock<any, any, any>> = {};
     beforeAll(() => {
       useCookieMock = jest.spyOn(cookies, 'useCookie');
-      useCookieMock.mockImplementation(() => [
-        mockCookieVal,
-        setTokenCookieMock,
-        clearTokenCookieMock,
-      ]);
+      useCookieMock.mockImplementation((name?: string) => {
+        const key = name || 'UNKNOWN';
+        setTokenCookieMocks[key] ??= jest.fn((val) => {
+          if (val) mockCookieVals[key] = val;
+        });
+        clearTokenCookieMocks[key] ??= jest.fn(() => {
+          mockCookieVals[key] = '';
+        });
+        return [
+          mockCookieVals[key] || '',
+          setTokenCookieMocks[key],
+          clearTokenCookieMocks[key],
+        ];
+      });
       consoleErrorMock = jest.spyOn(console, 'error');
       consoleErrorMock.mockImplementation(() => undefined);
     });
     beforeEach(() => {
-      setTokenCookieMock.mockClear();
-      clearTokenCookieMock.mockClear();
+      mockCookieVals = {};
+      setTokenCookieMocks = {};
+      clearTokenCookieMocks = {};
+      useCookieMock.mockClear();
       consoleErrorMock.mockClear();
     });
     afterAll(() => {
-      setTokenCookieMock.mockRestore();
-      clearTokenCookieMock.mockRestore();
+      useCookieMock.mockRestore();
       consoleErrorMock.mockRestore();
     });
 
@@ -158,7 +170,7 @@ describe('authSlice', () => {
         </Provider>
       );
       await waitFor(() => {
-        expect(clearTokenCookieMock).toHaveBeenCalledWith();
+        expect(clearTokenCookieMocks['kbase_session']).toHaveBeenCalledWith();
         expect(consoleErrorMock).not.toHaveBeenCalled();
       });
     });
@@ -182,10 +194,114 @@ describe('authSlice', () => {
         </Provider>
       );
       await waitFor(() => {
-        expect(setTokenCookieMock).toHaveBeenCalledWith('some-token', {
-          expires: new Date(auth.tokenInfo.expires),
-        });
+        expect(setTokenCookieMocks['kbase_session']).toHaveBeenCalledWith(
+          'some-token',
+          {
+            expires: new Date(auth.tokenInfo.expires),
+          }
+        );
         expect(consoleErrorMock).not.toHaveBeenCalled();
+      });
+    });
+
+    test('useTokenCookie sets backup cookie if auth token exists with expiration', async () => {
+      const auth = {
+        token: 'some-token',
+        username: 'some-user',
+        tokenInfo: {
+          expires: Date.now() + Math.floor(Math.random() * 10000),
+        } as TokenInfo,
+        initialized: true,
+      };
+      const Component = () => {
+        useTokenCookie('kbase_session', 'backup_cookie', '.backup.domain');
+        return <></>;
+      };
+      render(
+        <Provider store={createTestStore({ auth })}>
+          <Component />
+        </Provider>
+      );
+      await waitFor(() => {
+        expect(useCookieMock).toHaveBeenCalledWith('backup_cookie', {
+          domain: '.backup.domain',
+          path: '/',
+          secure: true,
+        });
+        expect(setTokenCookieMocks['backup_cookie']).toHaveBeenCalledWith(
+          'some-token',
+          {
+            expires: new Date(auth.tokenInfo.expires),
+          }
+        );
+        expect(consoleErrorMock).not.toHaveBeenCalled();
+      });
+    });
+
+    test('useTokenCookie sets backup cookie if missing', async () => {
+      const auth = {
+        token: 'some-token',
+        username: 'some-user',
+        tokenInfo: {
+          expires: Date.now() + Math.floor(Math.random() * 10000),
+        } as TokenInfo,
+        initialized: true,
+      };
+      mockCookieVals['kbase_session'] = 'some-token';
+      const Component = () => {
+        useTokenCookie('kbase_session', 'backup_cookie', '.backup.domain');
+        return <></>;
+      };
+      render(
+        <Provider store={createTestStore({ auth })}>
+          <Component />
+        </Provider>
+      );
+      await waitFor(() => {
+        expect(useCookieMock).toHaveBeenCalledWith('backup_cookie', {
+          domain: '.backup.domain',
+          path: '/',
+          secure: true,
+        });
+        expect(setTokenCookieMocks['backup_cookie']).toHaveBeenCalledWith(
+          'some-token',
+          {
+            expires: new Date(auth.tokenInfo.expires),
+          }
+        );
+        expect(consoleErrorMock).not.toHaveBeenCalled();
+      });
+    });
+
+    test('useTokenCookie wont set backup cookie if domain is empty', async () => {
+      const auth = {
+        token: 'some-token',
+        username: 'some-user',
+        tokenInfo: {
+          expires: Date.now() + Math.floor(Math.random() * 10000),
+        } as TokenInfo,
+        initialized: true,
+      };
+      mockCookieVals['kbase_session'] = 'some-token';
+      const Component = () => {
+        useTokenCookie('kbase_session', 'backup_cookie', '');
+        return <></>;
+      };
+      render(
+        <Provider store={createTestStore({ auth })}>
+          <Component />
+        </Provider>
+      );
+      await waitFor(() => {
+        expect(useCookieMock).toHaveBeenCalledWith('backup_cookie', {
+          domain: '',
+          path: '/',
+          secure: true,
+        });
+        expect(setTokenCookieMocks['backup_cookie']).not.toHaveBeenCalled();
+        expect(consoleErrorMock).toHaveBeenCalledWith(
+          'Backup cookie cannot be set due to bad configuration.'
+        );
       });
     });
 
@@ -210,9 +326,12 @@ describe('authSlice', () => {
         </Provider>
       );
       await waitFor(() => {
-        expect(setTokenCookieMock).toHaveBeenCalledWith('some-token', {
-          expires: new Date(auth.tokenInfo.expires),
-        });
+        expect(setTokenCookieMocks['kbase_session']).toHaveBeenCalledWith(
+          'some-token',
+          {
+            expires: new Date(auth.tokenInfo.expires),
+          }
+        );
         expect(consoleErrorMock).not.toHaveBeenCalled();
       });
       process.env = processEnv;
@@ -239,13 +358,13 @@ describe('authSlice', () => {
         expect(consoleErrorMock).toHaveBeenCalledWith(
           'Could not set token cookie, missing expire time'
         );
-        expect(setTokenCookieMock).not.toHaveBeenCalled();
+        expect(setTokenCookieMocks['kbase_session']).not.toHaveBeenCalled();
       });
     });
 
     test('useTokenCookie clears cookie for bad cookie token and empty auth state', async () => {
       const auth = { initialized: false };
-      mockCookieVal = 'AAAAAA';
+      mockCookieVals['kbase_session'] = 'AAAAAA';
       const mock = jest.spyOn(authFromToken, 'useQuery');
       mock.mockImplementation(() => {
         return {
@@ -264,8 +383,8 @@ describe('authSlice', () => {
         </Provider>
       );
       await waitFor(() => {
-        expect(setTokenCookieMock).not.toBeCalled();
-        expect(clearTokenCookieMock).toBeCalled();
+        expect(setTokenCookieMocks['kbase_session']).not.toBeCalled();
+        expect(clearTokenCookieMocks['kbase_session']).toBeCalled();
       });
       mock.mockClear();
     });
@@ -279,7 +398,7 @@ describe('authSlice', () => {
         } as TokenInfo,
         initialized: true,
       };
-      mockCookieVal = 'AAAAAA';
+      mockCookieVals['kbase_session'] = 'AAAAAA';
       const mock = jest.spyOn(authFromToken, 'useQuery');
       mock.mockImplementation(() => {
         return {
@@ -298,15 +417,15 @@ describe('authSlice', () => {
         </Provider>
       );
       await waitFor(() => {
-        expect(setTokenCookieMock).toBeCalled();
-        expect(clearTokenCookieMock).not.toBeCalled();
+        expect(setTokenCookieMocks['kbase_session']).toBeCalled();
+        expect(clearTokenCookieMocks['kbase_session']).not.toBeCalled();
       });
       mock.mockClear();
     });
 
     test('useTokenCookie does not set cookie while awaiting auth response', async () => {
       const auth = { initialized: false };
-      mockCookieVal = 'AAAAAA';
+      mockCookieVals['kbase_session'] = 'AAAAAA';
       const mock = jest.spyOn(authFromToken, 'useQuery');
       mock.mockImplementation(() => {
         return {
@@ -325,8 +444,8 @@ describe('authSlice', () => {
         </Provider>
       );
       await waitFor(() => {
-        expect(setTokenCookieMock).not.toBeCalled();
-        expect(clearTokenCookieMock).not.toBeCalled();
+        expect(setTokenCookieMocks['kbase_session']).not.toBeCalled();
+        expect(clearTokenCookieMocks['kbase_session']).not.toBeCalled();
       });
       mock.mockImplementation(() => {
         return {
@@ -342,10 +461,10 @@ describe('authSlice', () => {
         </Provider>
       );
       await waitFor(() => {
-        expect(setTokenCookieMock).toBeCalledWith('AAAAAA', {
+        expect(setTokenCookieMocks['kbase_session']).toBeCalledWith('AAAAAA', {
           expires: new Date(10),
         });
-        expect(clearTokenCookieMock).not.toBeCalled();
+        expect(clearTokenCookieMocks['kbase_session']).not.toBeCalled();
       });
       mock.mockClear();
     });
