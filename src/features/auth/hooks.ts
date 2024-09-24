@@ -125,6 +125,7 @@ export const useTokenCookie = (
   useEffect(() => {
     if (
       Boolean(backupCookieName) &&
+      Boolean(backupCookieDomain) &&
       initialized &&
       currentToken &&
       backupCookieToken !== currentToken
@@ -137,6 +138,12 @@ export const useTokenCookie = (
           expires: new Date(currentExpires),
         });
       }
+    } else if (
+      (Boolean(backupCookieName) || Boolean(backupCookieDomain)) &&
+      (!backupCookieDomain || !backupCookieName)
+    ) {
+      // eslint-disable-next-line no-console
+      console.error('Backup cookie cannot be set due to bad configuration.');
     }
   }, [
     backupCookieDomain,
