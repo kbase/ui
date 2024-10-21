@@ -14,7 +14,7 @@ import {
 export const useAuthMe = () => {
   const dispatch = useAppDispatch();
   const token = useAppSelector(authToken) || '';
-  const authAPIQuery = getMe.useQuery({ token });
+  const authAPIQuery = getMe.useQuery({ token }, { skip: !token });
   useEffect(() => {
     if (authAPIQuery && authAPIQuery.isSuccess && authAPIQuery.data) {
       const data = authAPIQuery.data;
