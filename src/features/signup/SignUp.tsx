@@ -6,10 +6,11 @@ import {
   Stepper,
   Typography,
 } from '@mui/material';
-import { FC, useEffect, useState } from 'react';
+import { FC, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { AccountInformation } from './AccountInformation';
 import { ProviderSelect } from './ProviderSelect';
-import { UsePolicies } from './UsePolicies';
+import { KBasePolicies } from './KBasePolicies';
 
 const signUpSteps = [
   'Sign up with a supported provider',
@@ -22,7 +23,14 @@ const signUpSteps = [
  * and accepting the KBase use policies.
  */
 export const SignUp: FC = () => {
-  const [activeStep, setActiveStep] = useState(0);
+  const navigate = useNavigate();
+
+  const { step = '1' } = useParams();
+  const activeStep = Number.parseInt(step) - 1;
+
+  const setActiveStep = (step: number) => {
+    navigate(`/signup/${step + 1}`);
+  };
 
   useEffect(() => {
     document.querySelector('main')?.scrollTo(0, 0);
@@ -43,7 +51,7 @@ export const SignUp: FC = () => {
         {activeStep === 1 && (
           <AccountInformation setActiveStep={setActiveStep} />
         )}
-        {activeStep === 2 && <UsePolicies setActiveStep={setActiveStep} />}
+        {activeStep === 2 && <KBasePolicies setActiveStep={setActiveStep} />}
       </Stack>
     </Container>
   );

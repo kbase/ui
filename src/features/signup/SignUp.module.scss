@@ -33,7 +33,7 @@
     padding-left: 0.25rem;
     padding-right: 0;
   }
-  
+
   :global(.MuiAccordionSummary-content) {
     margin-bottom: 0.25rem;
     margin-left: 0.5rem;
@@ -68,13 +68,4 @@
     border-left: 4px solid use-color("base");
     padding-left: 1rem;
   }
-}
-
-.agreement-box {
-  border: 1px solid use-color("base");
-  border-radius: 4px;
-  display: inline-block;
-  margin-top: 1rem;
-  padding: 1rem;
-
 }

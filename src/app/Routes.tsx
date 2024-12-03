@@ -62,7 +62,7 @@ const Routes: FC = () => {
       <Route path="/loggedout" element={<LoggedOut />} />
 
       {/* Sign Up */}
-      <Route path="/signup" element={<SignUp />} />
+      <Route path="/signup/:step?" element={<SignUp />} />
 
       {/* Navigator */}
       <Route
@@ -128,7 +128,7 @@ const Routes: FC = () => {
 export const Authed: FC<{ element: ReactElement }> = ({ element }) => {
   const token = useAppSelector((state) => state.auth.token);
   const location = useLocation();
-  if (!token)
+  if (!token) {
     return (
       <Navigate
         to={{
@@ -140,6 +140,17 @@ export const Authed: FC<{ element: ReactElement }> = ({ element }) => {
         replace
       />
     );
+  } //else if (!true) {
+  //   <Navigate
+  //     to={{
+  //       pathname: LOGIN_ROUTE,
+  //       search: createSearchParams({
+  //         nextRequest: JSON.stringify(location),
+  //       }).toString(),
+  //     }}
+  //     replace
+  //   />;
+  // }
 
   return <>{element}</>;
 };

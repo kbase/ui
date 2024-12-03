@@ -32,6 +32,7 @@ interface AuthParams {
   };
   getLoginChoice: void;
   postLoginPick: { id: string; policyids: string[] };
+  loginUsernameSuggest: string;
 }
 
 interface AuthResults {
@@ -86,6 +87,7 @@ interface AuthResults {
       user: string;
     };
   };
+  loginUsernameSuggest: { availablename: string };
 }
 
 // Auth does not use JSONRpc, so we use queryFn to make custom queries
@@ -177,6 +179,20 @@ export const authApi = baseApi.injectEndpoints({
           method: 'POST',
         }),
     }),
+    loginUsernameSuggest: builder.query<
+      AuthResults['loginUsernameSuggest'],
+      AuthParams['loginUsernameSuggest']
+    >({
+      query: (username) =>
+        // MUST have an in-process-login-token cookie
+        authService({
+          headers: {
+            accept: 'application/json',
+          },
+          method: 'GET',
+          url: `/login/suggestname/${encodeURIComponent(username)}`,
+        }),
+    }),
   }),
 });
 
@@ -188,4 +204,6 @@ export const {
   revokeToken,
   getLoginChoice,
   postLoginPick,
+  loginUsernameSuggest,
 } = authApi.endpoints;
+export type GetLoginChoiceResult = AuthResults['getLoginChoice'];

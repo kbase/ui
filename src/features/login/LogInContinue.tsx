@@ -9,9 +9,13 @@ import { useCheckLoggedIn } from './LogIn';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { LOGIN_ROUTE } from '../../app/Routes';
+import { useAppDispatch } from '../../common/hooks';
+import { setLoginData } from '../signup/SignupSlice';
 
 export const LogInContinue: FC = () => {
   const [trigger, pickResult] = postLoginPick.useMutation();
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
 
   // Redirect logic is somewhat odd due to how state must be passed with the Auth service.
   // Instead of redirecting to redirecturl, we extract the state param and from that, which
@@ -46,7 +50,6 @@ export const LogInContinue: FC = () => {
   useEffect(() => {
     if (choiceData) {
       const accountExists = choiceData.login.length > 0;
-      // TODO: support choiceData.create cases
       // TODO: support policy enforcement
       if (accountExists) {
         if (choiceData.login.length > 1) {
@@ -57,11 +60,12 @@ export const LogInContinue: FC = () => {
             policyids: choiceData.login[0].policyids.map(({ id }) => id),
           });
         }
+      } else if (choiceData.create.length > 0) {
+        dispatch(setLoginData(choiceData));
+        navigate('/signup/2');
       }
     }
-  }, [choiceData, trigger]);
-
-  const navigate = useNavigate();
+  }, [choiceData, trigger, dispatch, navigate]);
 
   useEffect(() => {
     // Monitor error state, return to login
