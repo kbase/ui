@@ -28,7 +28,7 @@ export interface JsonRpcQueryArgs {
   service: StaticService | DynamicService;
   method: string;
   params?: unknown;
-  fetchArgs?: FetchArgs;
+  fetchArgs?: Partial<FetchArgs>;
 }
 
 export interface JSONRPC11Body {

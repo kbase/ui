@@ -8,9 +8,11 @@ import {
   Paper,
   Typography,
 } from '@mui/material';
-import classes from './policies.module.scss';
+import classes from './PolicyViewer.module.scss';
 import createDOMPurify from 'dompurify';
 import { marked } from 'marked';
+
+export const ENFORCED_POLICIES = ['kbase-user'];
 
 const purify = createDOMPurify(window);
 
@@ -33,7 +35,7 @@ export const kbasePolicies = policyStrings.reduce(
       version: String(attr.version) ?? '',
       equivalentVersions: (attr.equivalentVersions ?? []) as string[],
     };
-    policies[policy.id] = policy;
+    if (ENFORCED_POLICIES.includes(policy.id)) policies[policy.id] = policy;
     return policies;
   },
   {} as Record<
@@ -48,7 +50,7 @@ export const kbasePolicies = policyStrings.reduce(
 export const PolicyViewer = ({
   policyId,
   setAccept,
-  accepted = undefined,
+  accepted = false,
 }: {
   policyId: string;
   setAccept: (accepted: boolean) => void;

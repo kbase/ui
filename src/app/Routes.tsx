@@ -34,6 +34,7 @@ import { SignUp } from '../features/signup/SignUp';
 import ORCIDLinkCreateLink from '../features/orcidlink/CreateLink';
 
 export const LOGIN_ROUTE = '/login';
+export const SIGNUP_ROUTE = '/signup';
 export const ROOT_REDIRECT_ROUTE = '/narratives';
 
 const Routes: FC = () => {
@@ -62,7 +63,7 @@ const Routes: FC = () => {
       <Route path="/loggedout" element={<LoggedOut />} />
 
       {/* Sign Up */}
-      <Route path="/signup/:step?" element={<SignUp />} />
+      <Route path={`${SIGNUP_ROUTE}/:step?`} element={<SignUp />} />
 
       {/* Navigator */}
       <Route
@@ -140,17 +141,7 @@ export const Authed: FC<{ element: ReactElement }> = ({ element }) => {
         replace
       />
     );
-  } //else if (!true) {
-  //   <Navigate
-  //     to={{
-  //       pathname: LOGIN_ROUTE,
-  //       search: createSearchParams({
-  //         nextRequest: JSON.stringify(location),
-  //       }).toString(),
-  //     }}
-  //     replace
-  //   />;
-  // }
+  }
 
   return <>{element}</>;
 };

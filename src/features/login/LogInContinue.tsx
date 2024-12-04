@@ -1,5 +1,5 @@
 import { Container, Paper, Stack, Typography } from '@mui/material';
-import { FC, useEffect } from 'react';
+import { FC, useEffect, useMemo, useState } from 'react';
 import logoRectangle from '../../common/assets/logo/rectangle.png';
 import classes from './LogIn.module.scss';
 import { Loader } from '../../common/components';
@@ -11,9 +11,11 @@ import { useNavigate } from 'react-router-dom';
 import { LOGIN_ROUTE } from '../../app/Routes';
 import { useAppDispatch } from '../../common/hooks';
 import { setLoginData } from '../signup/SignupSlice';
+import { kbasePolicies } from '../auth/Policies';
+import { EnforcePolicies } from './EnforcePolicies';
 
 export const LogInContinue: FC = () => {
-  const [trigger, pickResult] = postLoginPick.useMutation();
+  const [triggerPick, pickResult] = postLoginPick.useMutation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
@@ -43,10 +45,30 @@ export const LogInContinue: FC = () => {
   const choiceResult = getLoginChoice.useQuery();
   const choiceData = choiceResult.data;
 
+  const policyids = choiceData?.login[0].policyids;
+  // Check for missing policies
+  const missingPolicies = useMemo(
+    () =>
+      Object.values(kbasePolicies).filter((policy) => {
+        const policyVersionsOk = [
+          policy.version,
+          ...policy.equivalentVersions,
+        ].map((version) => `${policy.id}.${version}`);
+        return !policyids?.find((policy) =>
+          policyVersionsOk.find((policyVersion) => policyVersion === policy.id)
+        );
+      }),
+    [policyids]
+  );
+  const [agreedPolicyIds, setAgreedPolicyIds] = useState<string[]>([]);
+  const allNewPolicyAgreed = missingPolicies.every((p) =>
+    agreedPolicyIds.includes([p.id, p.version].join('.'))
+  );
+
   // if/when postLoginPick has a result, update app auth state using that token
   const tokenResult = useTryAuthFromToken(pickResult.data?.token.token);
 
-  // wrap choiceData handling in an effect so we only trigger the pick call once
+  // wrap choiceData handling in an effect so we only triggerPick the pick call once
   useEffect(() => {
     if (choiceData) {
       const accountExists = choiceData.login.length > 0;
@@ -55,17 +77,29 @@ export const LogInContinue: FC = () => {
         if (choiceData.login.length > 1) {
           // needs to be implemented if we have multiple KBase accounts linked to one provider account
         } else {
-          trigger({
-            id: choiceData.login[0].id,
-            policyids: choiceData.login[0].policyids.map(({ id }) => id),
-          });
+          if (allNewPolicyAgreed) {
+            const existingPolicyIds = choiceData.login[0].policyids.map(
+              ({ id }) => id
+            );
+            triggerPick({
+              id: choiceData.login[0].id,
+              policyids: [...agreedPolicyIds, ...existingPolicyIds],
+            });
+          }
         }
       } else if (choiceData.create.length > 0) {
         dispatch(setLoginData(choiceData));
         navigate('/signup/2');
       }
     }
-  }, [choiceData, trigger, dispatch, navigate]);
+  }, [
+    choiceData,
+    triggerPick,
+    dispatch,
+    navigate,
+    allNewPolicyAgreed,
+    agreedPolicyIds,
+  ]);
 
   useEffect(() => {
     // Monitor error state, return to login
@@ -92,6 +126,17 @@ export const LogInContinue: FC = () => {
     tokenResult.error,
     tokenResult.isError,
   ]);
+
+  if (!allNewPolicyAgreed) {
+    return (
+      <EnforcePolicies
+        policyIds={missingPolicies.map((p) => p.id)}
+        onAccept={(accepted) => {
+          setAgreedPolicyIds([...accepted]);
+        }}
+      />
+    );
+  }
 
   return (
     <Container maxWidth="sm">
