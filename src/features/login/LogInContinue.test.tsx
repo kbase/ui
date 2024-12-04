@@ -8,6 +8,7 @@ import { LogInContinue } from './LogInContinue';
 import fetchMock from 'jest-fetch-mock';
 import { toast } from 'react-hot-toast';
 import { noOp } from '../common';
+import { kbasePolicies } from '../auth/Policies';
 
 jest.mock('react-hot-toast', () => ({
   toast: jest.fn(),
@@ -26,12 +27,10 @@ describe('Login Continue', () => {
         login: [
           {
             id: 'foouserid',
-            policyids: [
-              {
-                agreedon: 0,
-                id: 'foopolicy',
-              },
-            ],
+            policyids: Object.values(kbasePolicies).map((p) => ({
+              agreedon: 0,
+              id: [p.id, p.version].join('.'),
+            })),
           },
         ],
       })
@@ -81,12 +80,10 @@ describe('Login Continue', () => {
         login: [
           {
             id: 'foouserid',
-            policyids: [
-              {
-                agreedon: 0,
-                id: 'foopolicy',
-              },
-            ],
+            policyids: Object.values(kbasePolicies).map((p) => ({
+              agreedon: 0,
+              id: [p.id, p.version].join('.'),
+            })),
           },
         ],
       })
@@ -167,12 +164,10 @@ describe('Login Continue', () => {
         login: [
           {
             id: 'foouserid',
-            policyids: [
-              {
-                agreedon: 0,
-                id: 'foopolicy',
-              },
-            ],
+            policyids: Object.values(kbasePolicies).map((p) => ({
+              agreedon: 0,
+              id: [p.id, p.version].join('.'),
+            })),
           },
         ],
       })
@@ -211,12 +206,10 @@ describe('Login Continue', () => {
         login: [
           {
             id: 'foouserid',
-            policyids: [
-              {
-                agreedon: 0,
-                id: 'foopolicy',
-              },
-            ],
+            policyids: Object.values(kbasePolicies).map((p) => ({
+              agreedon: 0,
+              id: [p.id, p.version].join('.'),
+            })),
           },
         ],
       })

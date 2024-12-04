@@ -28,8 +28,8 @@ export const EnforcePolicies = ({
       <Paper className={classes['use-policies-panel']} elevation={0}>
         <Stack spacing={2}>
           <Alert severity="warning" variant="filled">
-            To continue using your account, you must agree to the following
-            KBase use policies.
+            To continue to your account, you must agree to the following KBase
+            use policies.
           </Alert>
           {targetPolicies.map((policy) => {
             return (
