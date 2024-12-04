@@ -45,7 +45,7 @@ export const LogInContinue: FC = () => {
   const choiceResult = getLoginChoice.useQuery();
   const choiceData = choiceResult.data;
 
-  const policyids = choiceData?.login[0].policyids;
+  const policyids = choiceData?.login[0]?.policyids;
   // Check for missing policies
   const missingPolicies = useMemo(
     () =>
@@ -78,11 +78,11 @@ export const LogInContinue: FC = () => {
           // needs to be implemented if we have multiple KBase accounts linked to one provider account
         } else {
           if (allNewPolicyAgreed) {
-            const existingPolicyIds = choiceData.login[0].policyids.map(
+            const existingPolicyIds = choiceData.login[0]?.policyids.map(
               ({ id }) => id
             );
             triggerPick({
-              id: choiceData.login[0].id,
+              id: choiceData.login[0]?.id,
               policyids: [...agreedPolicyIds, ...existingPolicyIds],
             });
           }

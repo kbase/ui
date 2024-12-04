@@ -42,7 +42,9 @@ const Routes: FC = () => {
   usePageTracking();
   return (
     <RRRoutes>
+      {/* Legacy */}
       <Route path={`${LEGACY_BASE_ROUTE}/*`} element={<Legacy />} />
+
       <Route path="/status" element={<Status />} />
       <Route
         path="/profile/:usernameRequested/narratives"

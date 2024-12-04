@@ -23,13 +23,23 @@ export const EnforcePolicies = ({
     (policy) => accepted[policy.id] === true
   );
 
+  let message =
+    'To continue to your account, you must agree to the following KBase use policies.'; // Default message
+  if (
+    targetPolicies.find(
+      (p) => p.id === 'kbase-user' && String(p.version) === '2'
+    )
+  ) {
+    message =
+      "KBase's recent renewal (Oct '2024) has prompted an update and version 2 release to our Terms and Conditions. Please review and agree to these policies changes to continue using this free resource.";
+  }
+
   return (
     <Container maxWidth="lg">
       <Paper className={classes['use-policies-panel']} elevation={0}>
         <Stack spacing={2}>
           <Alert severity="warning" variant="filled">
-            To continue to your account, you must agree to the following KBase
-            use policies.
+            {message}
           </Alert>
           {targetPolicies.map((policy) => {
             return (

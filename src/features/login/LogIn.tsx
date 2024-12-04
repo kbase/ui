@@ -74,25 +74,8 @@ export const useLogout = () => {
 export const LogIn: FC = () => {
   const nextRequest = useAppParam('nextRequest');
   useCheckLoggedIn(nextRequest);
-
-  // OAuth Login wont work in dev mode, but send dev users to CI so they can grab their token
-  const loginOrigin =
-    process.env.NODE_ENV === 'development'
-      ? 'https://ci.kbase.us'
-      : document.location.origin;
-
-  // Triggering login requires a form POST submission
-  const loginActionUrl = new URL('/services/auth/login/start/', loginOrigin);
-
-  // Redirect URL is used to pass state to login/continue
-  const loginRedirectUrl = new URL(`${loginOrigin}/login/continue`);
-  loginRedirectUrl.searchParams.set(
-    'state',
-    JSON.stringify({
-      nextRequest: nextRequest,
-      origin: loginOrigin,
-    })
-  );
+  const { loginActionUrl, loginRedirectUrl, loginOrigin } =
+    makelLoginURLs(nextRequest);
 
   return (
     <Container maxWidth="sm">
@@ -142,66 +125,10 @@ export const LogIn: FC = () => {
               ) : (
                 <></>
               )}
-              <Stack spacing={2}>
-                <Button
-                  name="provider"
-                  value="ORCID"
-                  type="submit"
-                  variant="outlined"
-                  color="base"
-                  size="large"
-                  startIcon={
-                    <img
-                      src={orcidLogo}
-                      alt="ORCID logo"
-                      className={classes['sso-logo']}
-                    />
-                  }
-                  data-testid="loginORCID"
-                >
-                  Continue with ORCID
-                </Button>
-                <Box className={classes['separator']} />
-                <Stack spacing={1}>
-                  <Button
-                    name="provider"
-                    value="Google"
-                    type="submit"
-                    variant="outlined"
-                    color="base"
-                    size="large"
-                    startIcon={
-                      <img
-                        src={googleLogo}
-                        alt="Google logo"
-                        className={classes['sso-logo']}
-                      />
-                    }
-                  >
-                    Continue with Google
-                  </Button>
-                  <Button
-                    name="provider"
-                    value="Globus"
-                    type="submit"
-                    variant="outlined"
-                    color="base"
-                    size="large"
-                    startIcon={
-                      <img
-                        src={globusLogo}
-                        alt="Globus logo"
-                        className={classes['sso-logo']}
-                      />
-                    }
-                  >
-                    Continue with Globus
-                  </Button>
-                </Stack>
-              </Stack>
+              <LoginButtons />
               <Box className={classes['separator']} />
               <Typography>
-                New to KBase? <Link>Sign up</Link>
+                New to KBase? <Link href="/signup">Sign up</Link>
               </Typography>
               <Typography>
                 <Link
@@ -216,5 +143,90 @@ export const LogIn: FC = () => {
         </Stack>
       </form>
     </Container>
+  );
+};
+
+export const makelLoginURLs = (nextRequest?: string) => {
+  // OAuth Login wont work in dev mode, but send dev users to CI so they can grab their token
+  const loginOrigin =
+    process.env.NODE_ENV === 'development'
+      ? 'https://ci.kbase.us'
+      : document.location.origin;
+
+  // Triggering login requires a form POST submission
+  const loginActionUrl = new URL('/services/auth/login/start/', loginOrigin);
+
+  // Redirect URL is used to pass state to login/continue
+  const loginRedirectUrl = new URL(`${loginOrigin}/login/continue`);
+  loginRedirectUrl.searchParams.set(
+    'state',
+    JSON.stringify({
+      nextRequest: nextRequest,
+      origin: loginOrigin,
+    })
+  );
+
+  return { loginOrigin, loginActionUrl, loginRedirectUrl };
+};
+
+export const LoginButtons = () => {
+  return (
+    <Stack spacing={2}>
+      <Button
+        name="provider"
+        value="ORCID"
+        type="submit"
+        variant="outlined"
+        color="base"
+        size="large"
+        startIcon={
+          <img
+            src={orcidLogo}
+            alt="ORCID logo"
+            className={classes['sso-logo']}
+          />
+        }
+        data-testid="loginORCID"
+      >
+        Continue with ORCID
+      </Button>
+      <Box className={classes['separator']} />
+      <Stack spacing={1}>
+        <Button
+          name="provider"
+          value="Google"
+          type="submit"
+          variant="outlined"
+          color="base"
+          size="large"
+          startIcon={
+            <img
+              src={googleLogo}
+              alt="Google logo"
+              className={classes['sso-logo']}
+            />
+          }
+        >
+          Continue with Google
+        </Button>
+        <Button
+          name="provider"
+          value="Globus"
+          type="submit"
+          variant="outlined"
+          color="base"
+          size="large"
+          startIcon={
+            <img
+              src={globusLogo}
+              alt="Globus logo"
+              className={classes['sso-logo']}
+            />
+          }
+        >
+          Continue with Globus
+        </Button>
+      </Stack>
+    </Stack>
   );
 };
