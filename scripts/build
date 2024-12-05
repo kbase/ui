@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+# Note that Europa calls prod "production", but in all other cases the environment name
+# serves as the hostname for the domain as well, so let us be consistent here, and
+# handle the exception below.
+deploy_envs=( ci ci-europa narrative-dev next appdev narrative )
+
+for env in "${deploy_envs[@]}"
+do 
+    echo "ENV: ${env}"
+
+    # The prod env is called "production" in Europa, as is the
+    # deploy directory. The rest are named after the environment
+    # hostname.
+    #
+    # in kbase-ui we've switched to "narrative" as the prod environmane name,
+    # since that is the hostname, just to avoid this sort of conditional.
+    #
+    if [ $env = "narrative" ]
+    then
+        dir="production"
+        backup_cookie_name="kbase_session_backup"
+        backup_cookie_domain="${env}.kbase.us"
+    else 
+        dir=$env
+        backup_cookie_name=""
+        backup_cookie_domain=""
+    fi
+
+    export BUILD_PATH="deploy/${dir}"
+    export REACT_APP_KBASE_ENV="${dir}" 
+    export REACT_APP_KBASE_DOMAIN="${env}.kbase.us"
+    export REACT_APP_KBASE_LEGACY_DOMAIN="legacy.${env}.kbase.us"
+    export REACT_APP_KBASE_BACKUP_COOKIE_NAME="${backup_cookie_name}"
+    export REACT_APP_KBASE_BACKUP_COOKIE_DOMAIN="${backup_cookie_domain}"
+    export PUBLIC_URL=/
+    npm run build
+done
