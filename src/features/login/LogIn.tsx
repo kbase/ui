@@ -125,7 +125,7 @@ export const LogIn: FC = () => {
               ) : (
                 <></>
               )}
-              <LoginButtons />
+              <LoginButtons text={(provider) => `Continue with ${provider}`} />
               <Box className={classes['separator']} />
               <Typography>
                 New to KBase? <Link href="/signup">Sign up</Link>
@@ -169,7 +169,11 @@ export const makelLoginURLs = (nextRequest?: string) => {
   return { loginOrigin, loginActionUrl, loginRedirectUrl };
 };
 
-export const LoginButtons = () => {
+export const LoginButtons = ({
+  text,
+}: {
+  text: (provider: string) => string;
+}) => {
   return (
     <Stack spacing={2}>
       <Button
@@ -188,7 +192,7 @@ export const LoginButtons = () => {
         }
         data-testid="loginORCID"
       >
-        Continue with ORCID
+        {text('ORCID')}
       </Button>
       <Box className={classes['separator']} />
       <Stack spacing={1}>
@@ -207,7 +211,7 @@ export const LoginButtons = () => {
             />
           }
         >
-          Continue with Google
+          {text('Google')}
         </Button>
         <Button
           name="provider"
@@ -224,7 +228,7 @@ export const LoginButtons = () => {
             />
           }
         >
-          Continue with Globus
+          {text('Globus')}
         </Button>
       </Stack>
     </Stack>

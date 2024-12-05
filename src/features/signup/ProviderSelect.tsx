@@ -1,7 +1,6 @@
 import {
   Alert,
   Box,
-  Button,
   Container,
   Link,
   Paper,
@@ -9,9 +8,6 @@ import {
   Typography,
 } from '@mui/material';
 import { FC } from 'react';
-import globusLogo from '../../common/assets/globus.png';
-import googleLogo from '../../common/assets/google.webp';
-import orcidLogo from '../../common/assets/orcid.png';
 import { LoginButtons, makelLoginURLs } from '../login/LogIn';
 import classes from './SignUp.module.scss';
 
@@ -35,7 +31,7 @@ export const ProviderSelect: FC = () => {
               <></>
             )}
             <form action={loginActionUrl.toString()} method="post">
-              <LoginButtons />
+              <LoginButtons text={(provider) => `Sign up with ${provider}`} />
               <input
                 readOnly
                 hidden
@@ -44,53 +40,6 @@ export const ProviderSelect: FC = () => {
                 data-testid="redirecturl"
               />
             </form>
-            <Stack spacing={2}>
-              <Button
-                variant="outlined"
-                color="base"
-                size="large"
-                startIcon={
-                  <img
-                    src={orcidLogo}
-                    alt="ORCID logo"
-                    className={classes['sso-logo']}
-                  />
-                }
-              >
-                Sign up with ORCID
-              </Button>
-              <Box className={classes['separator']} />
-              <Stack spacing={1}>
-                <Button
-                  variant="outlined"
-                  color="base"
-                  size="large"
-                  startIcon={
-                    <img
-                      src={googleLogo}
-                      alt="Google logo"
-                      className={classes['sso-logo']}
-                    />
-                  }
-                >
-                  Sign up with Google
-                </Button>
-                <Button
-                  variant="outlined"
-                  color="base"
-                  size="large"
-                  startIcon={
-                    <img
-                      src={globusLogo}
-                      alt="Globus logo"
-                      className={classes['sso-logo']}
-                    />
-                  }
-                >
-                  Sign up with Globus
-                </Button>
-              </Stack>
-            </Stack>
             <Box className={classes['separator']} />
             <Typography>
               Already have an account? <Link>Log in</Link>

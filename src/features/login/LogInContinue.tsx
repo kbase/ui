@@ -68,11 +68,11 @@ export const LogInContinue: FC = () => {
   // if/when postLoginPick has a result, update app auth state using that token
   const tokenResult = useTryAuthFromToken(pickResult.data?.token.token);
 
+  const accountExists = (choiceData?.login?.length || 0) > 0;
+
   // wrap choiceData handling in an effect so we only triggerPick the pick call once
   useEffect(() => {
     if (choiceData) {
-      const accountExists = choiceData.login.length > 0;
-      // TODO: support policy enforcement
       if (accountExists) {
         if (choiceData.login.length > 1) {
           // needs to be implemented if we have multiple KBase accounts linked to one provider account
@@ -99,6 +99,7 @@ export const LogInContinue: FC = () => {
     navigate,
     allNewPolicyAgreed,
     agreedPolicyIds,
+    accountExists,
   ]);
 
   useEffect(() => {
@@ -127,7 +128,7 @@ export const LogInContinue: FC = () => {
     tokenResult.isError,
   ]);
 
-  if (!allNewPolicyAgreed) {
+  if (!allNewPolicyAgreed && accountExists) {
     return (
       <EnforcePolicies
         policyIds={missingPolicies.map((p) => p.id)}
