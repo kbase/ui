@@ -33,18 +33,18 @@ export const KBasePolicies: FC<{
   // eslint-disable-next-line no-console
   console.error(errors);
 
-  const onSubmit = async () => {
-    await dispatch(
+  const onSubmit = () => {
+    const policyIds = signupPolicies.map((policyId) => {
+      return [kbasePolicies[policyId].id, kbasePolicies[policyId].version].join(
+        '.'
+      );
+    });
+    dispatch(
       setAccount({
-        policyids: signupPolicies.map((policyId) => {
-          return [
-            kbasePolicies[policyId].id,
-            kbasePolicies[policyId].version,
-          ].join('.');
-        }),
+        policyids: policyIds,
       })
     );
-    doSignup();
+    doSignup(policyIds);
   };
 
   if (complete) {
