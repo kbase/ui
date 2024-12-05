@@ -20,6 +20,11 @@ export const KBasePolicies: FC<{
   const dispatch = useAppDispatch();
 
   const signupPolicies = Object.values(kbasePolicies).map((p) => p.id);
+  const versionedPolicyIds = signupPolicies.map((policyId) => {
+    return [kbasePolicies[policyId].id, kbasePolicies[policyId].version].join(
+      '.'
+    );
+  });
 
   const [accepted, setAccepted] = useState<{
     [k in typeof signupPolicies[number]]?: boolean;
@@ -33,18 +38,14 @@ export const KBasePolicies: FC<{
   // eslint-disable-next-line no-console
   console.error(errors);
 
-  const onSubmit = async () => {
-    await dispatch(
+  const onSubmit = () => {
+    if (!allAccepted) return;
+    dispatch(
       setAccount({
-        policyids: signupPolicies.map((policyId) => {
-          return [
-            kbasePolicies[policyId].id,
-            kbasePolicies[policyId].version,
-          ].join('.');
-        }),
+        policyids: versionedPolicyIds,
       })
     );
-    doSignup();
+    doSignup(versionedPolicyIds);
   };
 
   if (complete) {

@@ -82,19 +82,20 @@ export const useDoSignup = () => {
 
   const error = accountResult.error || profileResult.error;
 
-  const doSignup = async () => {
+  const doSignup = (policyIds: string[]) => {
     if (!signupOk) return;
     triggerAccount({
       id: String(data.loginData?.create[0].id),
       user: String(data.account.username),
       display: String(data.account.display),
       email: String(data.account.email),
-      policyids: data.account.policyids,
+      policyids: policyIds,
       linkall: false,
     });
   };
 
   useEffect(() => {
+    if (!accountResult.data?.token.token) return;
     triggerProfile([
       {
         profile: {

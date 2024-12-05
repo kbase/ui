@@ -43,7 +43,7 @@ export const LogInContinue: FC = () => {
   useCheckLoggedIn(nextRequest);
 
   const choiceResult = getLoginChoice.useQuery();
-  const choiceData = choiceResult.data;
+  const choiceData = choiceResult.currentData;
 
   const policyids = choiceData?.login[0]?.policyids;
   // Check for missing policies
