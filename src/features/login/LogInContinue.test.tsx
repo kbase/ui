@@ -8,7 +8,7 @@ import { LogInContinue } from './LogInContinue';
 import fetchMock from 'jest-fetch-mock';
 import { toast } from 'react-hot-toast';
 import { noOp } from '../common';
-import { kbasePolicies } from '../auth/Policies';
+import { kbasePolicies } from './Policies';
 
 jest.mock('react-hot-toast', () => ({
   toast: jest.fn(),

@@ -8,14 +8,14 @@ import {
   Typography,
 } from '@mui/material';
 import { FC } from 'react';
-import { LoginButtons, makelLoginURLs } from '../login/LogIn';
+import { LoginButtons, makeLoginURLs } from '../login/LogIn';
 import classes from './SignUp.module.scss';
 
 /**
  * Provider selection screen for sign up flow
  */
 export const ProviderSelect: FC = () => {
-  const { loginActionUrl, loginRedirectUrl, loginOrigin } = makelLoginURLs();
+  const { loginActionUrl, loginRedirectUrl, loginOrigin } = makeLoginURLs();
 
   return (
     <Stack justifyContent="center">
@@ -25,7 +25,7 @@ export const ProviderSelect: FC = () => {
             <Typography variant="h2">Choose a provider</Typography>
             {process.env.NODE_ENV === 'development' ? (
               <Alert severity="error">
-                DEV MODE: Login will occur on {loginOrigin}
+                DEV MODE: Signup will occur on {loginOrigin}
               </Alert>
             ) : (
               <></>

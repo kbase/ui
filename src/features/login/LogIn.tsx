@@ -75,7 +75,7 @@ export const LogIn: FC = () => {
   const nextRequest = useAppParam('nextRequest');
   useCheckLoggedIn(nextRequest);
   const { loginActionUrl, loginRedirectUrl, loginOrigin } =
-    makelLoginURLs(nextRequest);
+    makeLoginURLs(nextRequest);
 
   return (
     <Container maxWidth="sm">
@@ -146,7 +146,7 @@ export const LogIn: FC = () => {
   );
 };
 
-export const makelLoginURLs = (nextRequest?: string) => {
+export const makeLoginURLs = (nextRequest?: string) => {
   // OAuth Login wont work in dev mode, but send dev users to CI so they can grab their token
   const loginOrigin =
     process.env.NODE_ENV === 'development'

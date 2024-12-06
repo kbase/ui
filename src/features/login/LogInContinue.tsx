@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { LOGIN_ROUTE } from '../../app/Routes';
 import { useAppDispatch } from '../../common/hooks';
 import { setLoginData } from '../signup/SignupSlice';
-import { kbasePolicies } from '../auth/Policies';
+import { kbasePolicies } from './Policies';
 import { EnforcePolicies } from './EnforcePolicies';
 
 export const LogInContinue: FC = () => {

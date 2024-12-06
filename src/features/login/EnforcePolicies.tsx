@@ -4,7 +4,7 @@ import { Alert, Button, Container, Paper } from '@mui/material';
 import { Stack } from '@mui/system';
 import { useState } from 'react';
 import classes from '../signup/SignUp.module.scss';
-import { kbasePolicies, PolicyViewer } from '../auth/Policies';
+import { kbasePolicies, PolicyViewer } from './Policies';
 
 export const EnforcePolicies = ({
   policyIds,
@@ -13,16 +13,16 @@ export const EnforcePolicies = ({
   policyIds: string[];
   onAccept: (versionedPolicyIds: string[]) => void;
 }) => {
+  // Get policy information
   const targetPolicies = policyIds.map((id) => kbasePolicies[id]);
-
   const [accepted, setAccepted] = useState<{
     [k in typeof targetPolicies[number]['id']]?: boolean;
   }>({});
-
   const allAccepted = targetPolicies.every(
     (policy) => accepted[policy.id] === true
   );
 
+  // Message to user, uses a special message when agreeing to kbase-user.2
   let message =
     'To continue to your account, you must agree to the following KBase use policies.'; // Default message
   if (

@@ -1,7 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { GetLoginChoiceResult } from '../../common/api/authService';
 
-// Define a type for the slice state
 export interface SignupState {
   loginData?: GetLoginChoiceResult;
   account: {

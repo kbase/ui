@@ -17,7 +17,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../common/hooks';
@@ -27,39 +27,31 @@ import { loginUsernameSuggest } from '../../common/api/authService';
 import { useForm } from 'react-hook-form';
 import { setAccount, setProfile } from './SignupSlice';
 
+export const useCheckLoginDataOk = () => {
+  const navigate = useNavigate();
+  const loginData = useAppSelector((state) => state.signup.loginData);
+  useEffect(() => {
+    if (!loginData) {
+      toast('You must login using a provider first to sign up!');
+      navigate('/signup/1');
+    }
+  }, [loginData, navigate]);
+};
+
 /**
  * Account information form for sign up flow
  */
-export const AccountInformation: FC<{
-  setActiveStep: (step: number) => void;
-}> = ({ setActiveStep }) => {
+export const AccountInformation: FC<{}> = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
+  useCheckLoginDataOk();
+
   // Login Data
-  const loginData = useAppSelector(
-    (state) =>
-      state.signup.loginData || {
-        provider: 'ORCiD',
-        create: [
-          {
-            availablename: 'dlyon',
-            id: 'someuserid',
-            provemail: 'dlyon@lbl.gov',
-            provfullname: 'David Lyon',
-            provusername: 'dlyon',
-          },
-        ],
-      }
-  );
+  const loginData = useAppSelector((state) => state.signup.loginData);
 
   // Account data
   const account = useAppSelector((state) => state.signup.account);
-
-  if (!loginData) {
-    toast('You must login using a provider first to sign up!');
-    navigate('/signup/1');
-  }
 
   //username availibility
   const [username, setUsername] = useState(account.username ?? '');
@@ -71,7 +63,7 @@ export const AccountInformation: FC<{
   const surveyQuestion = 'How did you hear about us? (select all that apply)';
   const [optionalText, setOptionalText] = useState<Record<string, string>>({});
 
-  // Form
+  // Form state
   const { register, handleSubmit } = useForm({
     defaultValues: {
       account: account,
@@ -90,9 +82,10 @@ export const AccountInformation: FC<{
     },
   });
 
+  // Form submission
   const onSubmit = handleSubmit(async (fieldValues, event) => {
     event?.preventDefault();
-    // Add in the optional survey text content
+    // Add in survey text content from form
     ReferalSources.forEach((src) => {
       if (
         src.customText &&
@@ -102,7 +95,7 @@ export const AccountInformation: FC<{
         fieldValues.profile.surveydata.referralSources.response[src.value] =
           optionalText[src.value];
     });
-    // dispatch form data to state
+    // dispatch form data to signup state
     dispatch(setAccount(fieldValues.account));
     dispatch(
       setProfile({
@@ -123,8 +116,8 @@ export const AccountInformation: FC<{
       <Alert>
         <Stack spacing={1}>
           <span>
-            You have signed in with your <strong>{loginData.provider}</strong>{' '}
-            account <strong>{loginData.create[0].provemail}</strong>. This will
+            You have signed in with your <strong>{loginData?.provider}</strong>{' '}
+            account <strong>{loginData?.create[0].provemail}</strong>. This will
             be the account linked to your KBase account.
           </span>
           <Accordion className={classes['collapsible-message']} disableGutters>
@@ -139,22 +132,22 @@ export const AccountInformation: FC<{
               <Stack spacing={1}>
                 <span>
                   If the account you see above is not the one you want, use the
-                  link below to log out of {loginData.provider}, and then try
+                  link below to log out of {loginData?.provider}, and then try
                   again.
                 </span>
                 <Box>
                   <Button variant="outlined">
-                    Log out from {loginData.provider}
+                    Log out from {loginData?.provider}
                   </Button>
                 </Box>
                 <span>
-                  If you are trying to sign up with a {loginData.provider}{' '}
+                  If you are trying to sign up with a {loginData?.provider}{' '}
                   account that is already linked to a KBase account, you will be
                   unable to create a new KBase account using that{' '}
-                  {loginData.provider} account.
+                  {loginData?.provider} account.
                 </span>
                 <span>
-                  After signing out from {loginData.provider} you will need to
+                  After signing out from {loginData?.provider} you will need to
                   restart the sign up process.
                 </span>
                 <Box>
@@ -171,7 +164,7 @@ export const AccountInformation: FC<{
             <Typography variant="h2">Create a new KBase Account</Typography>
             <Typography>
               Some field values have been pre-populated from your{' '}
-              <strong>{loginData.provider}</strong> account.
+              <strong>{loginData?.provider}</strong> account.
               <strong> All fields are required.</strong>
             </Typography>
             <FormControl>
