@@ -1,20 +1,7 @@
 import policyStrings from 'kbase-policies';
 import frontmatter from 'front-matter';
-import {
-  Box,
-  Checkbox,
-  FormControl,
-  FormControlLabel,
-  Paper,
-  Typography,
-} from '@mui/material';
-import classes from './PolicyViewer.module.scss';
-import createDOMPurify from 'dompurify';
-import { marked } from 'marked';
 
 export const ENFORCED_POLICIES = ['kbase-user'];
-
-const purify = createDOMPurify(window);
 
 interface PolicyMeta {
   title: string;
@@ -46,44 +33,3 @@ export const kbasePolicies = policyStrings.reduce(
     }
   >
 );
-
-export const PolicyViewer = ({
-  policyId,
-  setAccept,
-  accepted = false,
-}: {
-  policyId: string;
-  setAccept: (accepted: boolean) => void;
-  accepted?: boolean;
-}) => {
-  const policy = kbasePolicies[policyId];
-  if (!policy)
-    throw new Error(`Required policy "${policyId}" cannot be loaded`);
-  return (
-    <FormControl>
-      <Typography fontWeight="bold">{policy.title}</Typography>
-      <Paper className={classes['policy-panel']} elevation={0}>
-        <div
-          dangerouslySetInnerHTML={{
-            __html: purify.sanitize(marked(policy.markdown)),
-          }}
-        />
-      </Paper>
-      <div>
-        <Box className={classes['agreement-box']}>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={accepted}
-                onChange={(e) => {
-                  setAccept(e.currentTarget.checked);
-                }}
-              />
-            }
-            label="I have read and agree to this policy"
-          />
-        </Box>
-      </div>
-    </FormControl>
-  );
-};

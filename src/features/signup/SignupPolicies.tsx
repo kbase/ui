@@ -6,11 +6,12 @@ import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { Loader } from '../../common/components';
 import { useAppDispatch, useAppSelector } from '../../common/hooks';
-import { kbasePolicies, PolicyViewer } from '../login/Policies';
+import { PolicyViewer } from '../login/EnforcePolicies';
+import { kbasePolicies } from '../login/Policies';
 import { useCheckLoginDataOk } from './AccountInformation';
 import { useDoSignup } from './SignUp';
 import classes from './SignUp.module.scss';
-import { setAccount } from './SignupSlice';
+import { resetSignup, setAccount } from './SignupSlice';
 
 /**
  * KBase policy agreements step for sign up flow.
@@ -67,6 +68,7 @@ export const KBasePolicies: FC<{}> = () => {
           {Object.values(kbasePolicies).map((policy) => {
             return (
               <PolicyViewer
+                key={policy.id}
                 policyId={policy.id}
                 accepted={accepted[policy.id] ?? false}
                 setAccept={(val) =>
@@ -96,6 +98,7 @@ export const KBasePolicies: FC<{}> = () => {
           size="large"
           onClick={() => {
             navigate('/signup/1');
+            dispatch(resetSignup());
           }}
         >
           Cancel sign up

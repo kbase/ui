@@ -245,4 +245,52 @@ describe('Login Continue', () => {
       expect(Login).toHaveBeenCalled();
     });
   });
+
+  it('handles new user signup flow', async () => {
+    // getLoginChoice - return create data instead of login data
+    fetchMock.mockResponseOnce(
+      JSON.stringify({
+        login: [],
+        create: [
+          {
+            id: 'newuserid',
+            provider: 'google',
+            username: 'newuser@google.com',
+          },
+        ],
+      })
+    );
+
+    const Signup = jest.fn(() => <></>);
+    const store = createTestStore();
+    render(
+      <Provider store={store}>
+        <ThemeProvider theme={theme}>
+          <MemoryRouter initialEntries={['/login/continue']}>
+            <Routes>
+              <Route path={'/login/continue'} element={<LogInContinue />} />
+              <Route path={'/signup/2'} Component={Signup} />
+            </Routes>
+          </MemoryRouter>
+        </ThemeProvider>
+      </Provider>
+    );
+
+    await waitFor(() => {
+      // Check that login data was set in store
+      expect(store.getState().signup.loginData).toEqual({
+        login: [],
+        create: [
+          {
+            id: 'newuserid',
+            provider: 'google',
+            username: 'newuser@google.com',
+          },
+        ],
+      });
+    });
+    await waitFor(() => {
+      expect(window.location.pathname === '/signup/2');
+    });
+  });
 });

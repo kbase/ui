@@ -39,7 +39,7 @@ export const SignUp: FC = () => {
   };
 
   useEffect(() => {
-    document.querySelector('main')?.scrollTo(0, 0);
+    document.querySelector('main')?.scrollTo?.(0, 0);
   }, [activeStep]);
 
   return (
@@ -148,6 +148,6 @@ export const useDoSignup = () => {
   return [doSignup, loading, complete, error] as const;
 };
 
-const gravatarHash = (email: string) => {
+export const gravatarHash = (email: string) => {
   return md5.create().update(email.trim().toLowerCase()).hex();
 };

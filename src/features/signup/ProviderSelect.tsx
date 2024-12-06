@@ -8,6 +8,7 @@ import {
   Typography,
 } from '@mui/material';
 import { FC } from 'react';
+import { LOGIN_ROUTE } from '../../app/Routes';
 import { LoginButtons, makeLoginURLs } from '../login/LogIn';
 import classes from './SignUp.module.scss';
 
@@ -42,7 +43,7 @@ export const ProviderSelect: FC = () => {
             </form>
             <Box className={classes['separator']} />
             <Typography>
-              Already have an account? <Link>Log in</Link>
+              Already have an account? <Link href={LOGIN_ROUTE}>Log in</Link>
             </Typography>
             <Typography>
               <Link

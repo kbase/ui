@@ -57,8 +57,14 @@ export const signupSlice = createSlice({
     setProfile: (state, action: PayloadAction<SignupState['profile']>) => {
       state.profile = action.payload;
     },
+    resetSignup: (state) => {
+      state.account = initialState.account;
+      state.loginData = initialState.loginData;
+      state.profile = initialState.profile;
+    },
   },
 });
 
 export default signupSlice.reducer;
-export const { setLoginData, setAccount, setProfile } = signupSlice.actions;
+export const { setLoginData, setAccount, setProfile, resetSignup } =
+  signupSlice.actions;

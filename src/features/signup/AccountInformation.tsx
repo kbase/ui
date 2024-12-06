@@ -17,7 +17,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { FC, useEffect, useState } from 'react';
+import { FC, useEffect, useState, Fragment } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../common/hooks';
@@ -25,7 +25,7 @@ import classes from './SignUp.module.scss';
 import ReferalSources from './ReferralSources.json';
 import { loginUsernameSuggest } from '../../common/api/authService';
 import { useForm } from 'react-hook-form';
-import { setAccount, setProfile } from './SignupSlice';
+import { resetSignup, setAccount, setProfile } from './SignupSlice';
 
 export const useCheckLoginDataOk = () => {
   const navigate = useNavigate();
@@ -158,7 +158,7 @@ export const AccountInformation: FC<{}> = () => {
           </Accordion>
         </Stack>
       </Alert>
-      <form onSubmit={onSubmit}>
+      <form data-testid="accountinfoform" onSubmit={onSubmit}>
         <Paper className={classes['account-information-panel']} elevation={0}>
           <Stack spacing={2}>
             <Typography variant="h2">Create a new KBase Account</Typography>
@@ -254,7 +254,7 @@ export const AccountInformation: FC<{}> = () => {
                 {ReferalSources.map((source) => {
                   if (source.customText) {
                     return (
-                      <>
+                      <Fragment key={source.value + '-check'}>
                         <FormControlLabel
                           id={source.value}
                           control={
@@ -277,11 +277,12 @@ export const AccountInformation: FC<{}> = () => {
                             }}
                           />
                         </FormControl>
-                      </>
+                      </Fragment>
                     );
                   } else {
                     return (
                       <FormControlLabel
+                        key={source.value + '-check'}
                         control={
                           <Checkbox
                             {...register(
@@ -302,7 +303,15 @@ export const AccountInformation: FC<{}> = () => {
           <Button variant="contained" size="large" type="submit">
             Continue to use policies
           </Button>
-          <Button variant="contained" color="warning" size="large">
+          <Button
+            variant="contained"
+            color="warning"
+            size="large"
+            onClick={() => {
+              navigate('/signup/1');
+              dispatch(resetSignup());
+            }}
+          >
             Cancel sign up
           </Button>
         </Stack>
