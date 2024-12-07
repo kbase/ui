@@ -138,7 +138,7 @@ export const useDoSignup = () => {
   const tokenQuery = useTryAuthFromToken(tryToken);
 
   const complete = createComplete && tokenQuery.isSuccess;
-  const loading = createLoading || !complete;
+  const loading = createLoading || tokenQuery.isLoading;
 
   // once everything completes and we're authed from the token, redirect to root.
   useEffect(() => {
