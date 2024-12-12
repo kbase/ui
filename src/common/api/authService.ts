@@ -54,6 +54,8 @@ interface AuthParams {
     token: string;
     id: string;
   };
+  getTokens: string;
+  revokeToken: string;
 }
 
 interface AuthResults {
@@ -123,11 +125,35 @@ interface AuthResults {
     linked: { provusername: string; id: string; user: string }[]; // if already linked
   };
   postLinkPick: void;
+  getTokens: {
+    current: AuthResults['getTokens']['tokens'][number];
+    dev: boolean;
+    revokeurl: string;
+    service: boolean;
+    createurl: string;
+    tokens: {
+      type: string;
+      id: string;
+      expires: number;
+      created: number;
+      user: string;
+      custom: unknown;
+      os: string;
+      osver: string;
+      agent: string;
+      agentver: string;
+      device: string;
+      ip: string;
+    }[];
+    user: string;
+    revokeallurl: string;
+  };
+  revokeToken: boolean;
 }
 
 // Auth does not use JSONRpc, so we use queryFn to make custom queries
 export const authApi = baseApi
-  .enhanceEndpoints({ addTagTypes: ['AccountMe'] })
+  .enhanceEndpoints({ addTagTypes: ['AccountMe', 'AccountTokens'] })
   .injectEndpoints({
     endpoints: (builder) => ({
       authFromToken: builder.query<TokenResponse, string>({
@@ -198,12 +224,31 @@ export const authApi = baseApi
             url: `/api/V2/users/search/${search}`,
           }),
       }),
-      revokeToken: builder.mutation<boolean, string>({
+      getTokens: builder.query<
+        AuthResults['getTokens'],
+        AuthParams['getTokens']
+      >({
+        query: (token) =>
+          authService({
+            headers: {
+              accept: 'application/json',
+              Authorization: token,
+            },
+            url: encode`/tokens/`,
+            method: 'GET',
+          }),
+        providesTags: ['AccountTokens'],
+      }),
+      revokeToken: builder.mutation<
+        AuthResults['revokeToken'],
+        AuthParams['revokeToken']
+      >({
         query: (tokenId) =>
           authService({
             url: encode`/tokens/revoke/${tokenId}`,
             method: 'DELETE',
           }),
+        invalidatesTags: ['AccountTokens'],
       }),
       getLoginChoice: builder.query<
         AuthResults['getLoginChoice'],
@@ -312,6 +357,7 @@ export const {
   setMe,
   getUsers,
   searchUsers,
+  getTokens,
   revokeToken,
   getLoginChoice,
   postLoginPick,

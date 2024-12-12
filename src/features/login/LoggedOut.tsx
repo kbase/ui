@@ -10,7 +10,7 @@ import { useCheckLoggedIn } from './LogIn';
 import orcidLogo from '../../common/assets/orcid.png';
 import globusLogo from '../../common/assets/globus.png';
 import googleLogo from '../../common/assets/google.webp';
-import classes from './LogIn.module.scss';
+import providerClasses from '../auth/providers.module.scss';
 
 export const LoggedOut = () => {
   useCheckLoggedIn(undefined);
@@ -34,7 +34,7 @@ export const LoggedOut = () => {
               browser, you should sign out of any provider accounts you have
               used to access KBase.
             </Typography>
-            <Box className={classes['separator']} />
+            <Box className={providerClasses['separator']} />
             <Stack spacing={1}>
               <Button
                 role="link"
@@ -46,7 +46,7 @@ export const LoggedOut = () => {
                   <img
                     src={orcidLogo}
                     alt="ORCID logo"
-                    className={classes['sso-logo']}
+                    className={providerClasses['sso-logo']}
                   />
                 }
               >
@@ -62,7 +62,7 @@ export const LoggedOut = () => {
                   <img
                     src={googleLogo}
                     alt="Google logo"
-                    className={classes['sso-logo']}
+                    className={providerClasses['sso-logo']}
                   />
                 }
               >
@@ -78,7 +78,7 @@ export const LoggedOut = () => {
                   <img
                     src={globusLogo}
                     alt="Globus logo"
-                    className={classes['sso-logo']}
+                    className={providerClasses['sso-logo']}
                   />
                 }
               >
