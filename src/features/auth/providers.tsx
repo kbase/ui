@@ -28,8 +28,10 @@ export const providers = [
 
 export const ProviderButtons = ({
   text,
+  href = () => undefined,
 }: {
-  text: (provider: string) => string;
+  text: (provider: string) => React.ReactNode;
+  href?: (provider: string) => string | undefined;
 }) => {
   const [orcidProvider, ...otherProviders] = providers;
 
@@ -37,8 +39,9 @@ export const ProviderButtons = ({
     <Stack spacing={2}>
       <Button
         name="provider"
+        href={href(orcidProvider.name)}
         value={orcidProvider.name}
-        type="submit"
+        type={href(orcidProvider.name) ? 'button' : 'submit'}
         variant="outlined"
         color="base"
         size="large"
@@ -53,8 +56,9 @@ export const ProviderButtons = ({
           <Button
             key={provider.name}
             name="provider"
+            href={href(provider.name)}
             value={provider.name}
-            type="submit"
+            type={href(orcidProvider.name) ? 'button' : 'submit'}
             variant="outlined"
             color="base"
             size="large"
