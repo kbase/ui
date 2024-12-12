@@ -19,68 +19,86 @@ import {
   getUserProfile,
   setUserProfile,
 } from '../../common/api/userProfileApi';
+import { toast } from 'react-hot-toast';
 
 /**
  * Content for the Account tab in the Account page
  */
 export const AccountInfo: FC = () => {
-  const token = useAppSelector((s) => s.auth.token) ?? '';
-  const username = useAppSelector((s) => s.auth.username) ?? '';
+  const token = useAppSelector(({ auth }) => auth.token ?? '');
+  const username = useAppSelector(({ auth }) => auth.username ?? '');
 
   // Profile
-  const profiles = getUserProfile.useQuery({ usernames: [username] });
-  const profile = profiles.data?.[0]?.[0];
+  const { data: profiles, refetch: refetchProfiles } = getUserProfile.useQuery({
+    usernames: [username],
+  });
+  const profile = profiles?.[0]?.[0];
   const [triggerSetProfile, setProfileResult] = setUserProfile.useMutation();
+
   // Account
-  const account = getMe.useQuery({ token });
+  const { data: accountData, refetch: refetchAccount } = getMe.useQuery({
+    token,
+  });
   const [triggerSetMe, setMeResult] = setMe.useMutation();
+
+  // Form
 
   const form = useForm<{ name: string; email: string }>({
     values: {
-      name: account.data?.display ?? '',
-      email: account.data?.email ?? '',
+      name: accountData?.display ?? '',
+      email: accountData?.email ?? '',
     },
     mode: 'onChange',
   });
 
-  const onSubmit = form.handleSubmit((formData) => {
-    if (!profile) throw new Error('Error, undefined profile cannot be set');
-    triggerSetProfile([
-      {
-        profile: {
-          user: {
-            username: profile.user.username,
-            realname: formData.name,
+  // Save the form info to Account/Profile
+  const onSubmit = form.handleSubmit(
+    async (formData) => {
+      if (!profile) throw new Error('Error, undefined profile cannot be set');
+      await triggerSetProfile([
+        {
+          profile: {
+            user: {
+              username: profile.user.username,
+              realname: formData.name,
+            },
+            profile: profile.profile,
           },
-          profile: profile.profile,
         },
-      },
-      token,
-    ]);
-    triggerSetMe({
-      token,
-      meUpdate: {
-        display: formData.name,
-        email: formData.email,
-      },
-    });
-  });
+        token,
+      ]);
+      await triggerSetMe({
+        token,
+        meUpdate: {
+          display: formData.name,
+          email: formData.email,
+        },
+      });
+    },
+    (e) => {
+      const firstErr = [e.name, e.email].filter(Boolean)?.[0];
+      toast(firstErr?.message ?? 'Something went wrong');
+    }
+  );
 
   const onReset = () => {
     setMeResult.reset();
     setProfileResult.reset();
     form.reset();
-    profiles.refetch();
-    account.refetch();
+    refetchProfiles();
+    refetchAccount();
   };
 
-  const loading = setProfileResult.isLoading || setMeResult.isLoading;
-  const complete =
-    !setProfileResult.isUninitialized &&
-    !setMeResult.isUninitialized &&
-    setProfileResult.isSuccess &&
-    setMeResult.isSuccess;
-  const error = setProfileResult.isError || setMeResult.isError;
+  // Request States
+  const save = {
+    loading: setProfileResult.isLoading || setMeResult.isLoading,
+    complete:
+      setProfileResult.isSuccess &&
+      setMeResult.isSuccess &&
+      !setProfileResult.isUninitialized &&
+      !setMeResult.isUninitialized,
+    error: setProfileResult.isError || setMeResult.isError,
+  };
 
   return (
     <Stack
@@ -145,13 +163,13 @@ export const AccountInfo: FC = () => {
               type="submit"
               variant={!form.formState.isValid ? 'outlined' : 'contained'}
               endIcon={
-                <Loader loading={loading} type="spinner">
-                  {complete ? (
-                    <FontAwesomeIcon icon={faCheck} />
-                  ) : error ? (
-                    <FontAwesomeIcon icon={faX} />
-                  ) : undefined}
-                </Loader>
+                save.loading ? (
+                  <Loader loading={true} type="spinner" />
+                ) : save.complete ? (
+                  <FontAwesomeIcon icon={faCheck} />
+                ) : save.error ? (
+                  <FontAwesomeIcon icon={faX} />
+                ) : undefined
               }
               size="large"
             >
@@ -164,18 +182,18 @@ export const AccountInfo: FC = () => {
       <Stack spacing={2}>
         <Stack>
           <Typography fontWeight="bold">Username</Typography>
-          <Typography>{account.data?.user}</Typography>
+          <Typography>{accountData?.user}</Typography>
         </Stack>
         <Stack>
           <Typography fontWeight="bold">Account Created</Typography>
           <Typography>
-            {new Date(account.data?.created ?? 0).toLocaleString()}
+            {new Date(accountData?.created ?? 0).toLocaleString()}
           </Typography>
         </Stack>
         <Stack>
           <Typography fontWeight="bold">Last Sign In</Typography>
           <Typography>
-            {new Date(account.data?.lastlogin ?? 0).toLocaleString()}
+            {new Date(accountData?.lastlogin ?? 0).toLocaleString()}
           </Typography>
         </Stack>
       </Stack>

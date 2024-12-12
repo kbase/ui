@@ -45,6 +45,15 @@ interface AuthParams {
     linkall: false;
     policyids: string[];
   };
+  unlinkID: {
+    token: string;
+    id: string;
+  };
+  getLinkChoice: void;
+  postLinkPick: {
+    token: string;
+    id: string;
+  };
 }
 
 interface AuthResults {
@@ -102,6 +111,18 @@ interface AuthResults {
   };
   loginUsernameSuggest: { availablename: string };
   loginCreate: AuthResults['postLoginPick'];
+  unlinkID: void;
+  getLinkChoice: {
+    pickurl: string;
+    expires: number;
+    provider: string;
+    haslinks: boolean;
+    user: string;
+    cancelurl: string;
+    idents: { provusername: string; id: string }[]; // if linkable
+    linked: { provusername: string; id: string; user: string }[]; // if already linked
+  };
+  postLinkPick: void;
 }
 
 // Auth does not use JSONRpc, so we use queryFn to make custom queries
@@ -238,6 +259,50 @@ export const authApi = baseApi
             url: `/login/create/`,
           }),
       }),
+      unlinkID: builder.mutation<
+        AuthResults['unlinkID'],
+        AuthParams['unlinkID']
+      >({
+        query: ({ token, id }) =>
+          authService({
+            headers: {
+              Authorization: token,
+            },
+            method: 'POST',
+            url: `/me/unlink/${id}`,
+          }),
+        invalidatesTags: ['AccountMe'],
+      }),
+
+      getLinkChoice: builder.query<
+        AuthResults['getLinkChoice'],
+        AuthParams['getLinkChoice']
+      >({
+        query: () =>
+          // MUST have an in-process-link-token cookie
+          authService({
+            headers: {
+              accept: 'application/json',
+            },
+            method: 'GET',
+            url: '/link/choice',
+          }),
+      }),
+      postLinkPick: builder.mutation<
+        AuthResults['postLinkPick'],
+        AuthParams['postLinkPick']
+      >({
+        query: ({ token, id }) =>
+          authService({
+            headers: {
+              Authorization: token,
+            },
+            url: encode`/link/pick`,
+            body: { id },
+            method: 'POST',
+          }),
+        invalidatesTags: ['AccountMe'],
+      }),
     }),
   });
 
@@ -252,5 +317,8 @@ export const {
   postLoginPick,
   loginUsernameSuggest,
   loginCreate,
+  unlinkID,
+  getLinkChoice,
+  postLinkPick,
 } = authApi.endpoints;
 export type GetLoginChoiceResult = AuthResults['getLoginChoice'];
