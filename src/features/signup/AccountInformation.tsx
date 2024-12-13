@@ -26,6 +26,7 @@ import ReferalSources from './ReferralSources.json';
 import { loginUsernameSuggest } from '../../common/api/authService';
 import { useForm } from 'react-hook-form';
 import { resetSignup, setAccount, setProfile } from './SignupSlice';
+import { emailRegex } from '../../common';
 
 export const useCheckLoginDataOk = () => {
   const navigate = useNavigate();
@@ -182,8 +183,7 @@ export const AccountInformation: FC<{}> = () => {
                 {...register('account.email', {
                   required: true,
                   pattern: {
-                    value:
-                      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+                    value: emailRegex,
                     message: 'Invalid email address',
                   },
                 })}

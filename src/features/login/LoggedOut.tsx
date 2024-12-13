@@ -1,16 +1,7 @@
-import {
-  Box,
-  Button,
-  Container,
-  Paper,
-  Stack,
-  Typography,
-} from '@mui/material';
+import { Box, Container, Paper, Stack, Typography } from '@mui/material';
 import { useCheckLoggedIn } from './LogIn';
-import orcidLogo from '../../common/assets/orcid.png';
-import globusLogo from '../../common/assets/globus.png';
-import googleLogo from '../../common/assets/google.webp';
-import classes from './LogIn.module.scss';
+import providerClasses from '../auth/providers.module.scss';
+import { ProviderButtons } from '../auth/providers';
 
 export const LoggedOut = () => {
   useCheckLoggedIn(undefined);
@@ -34,57 +25,17 @@ export const LoggedOut = () => {
               browser, you should sign out of any provider accounts you have
               used to access KBase.
             </Typography>
-            <Box className={classes['separator']} />
-            <Stack spacing={1}>
-              <Button
-                role="link"
-                href="https://www.orcid.org/signout"
-                variant="outlined"
-                color="base"
-                size="large"
-                startIcon={
-                  <img
-                    src={orcidLogo}
-                    alt="ORCID logo"
-                    className={classes['sso-logo']}
-                  />
-                }
-              >
-                Log out from ORCID
-              </Button>
-              <Button
-                role="link"
-                href="https://accounts.google.com/Logout"
-                variant="outlined"
-                color="base"
-                size="large"
-                startIcon={
-                  <img
-                    src={googleLogo}
-                    alt="Google logo"
-                    className={classes['sso-logo']}
-                  />
-                }
-              >
-                Log out from Google
-              </Button>
-              <Button
-                role="link"
-                href="https://app.globus.org/logout"
-                variant="outlined"
-                color="base"
-                size="large"
-                startIcon={
-                  <img
-                    src={globusLogo}
-                    alt="Globus logo"
-                    className={classes['sso-logo']}
-                  />
-                }
-              >
-                Log out from Globus
-              </Button>
-            </Stack>
+            <Box className={providerClasses['separator']} />
+            <ProviderButtons
+              text={(provider) => `Log out from ${provider}`}
+              href={(provider) =>
+                ({
+                  ORCID: 'https://www.orcid.org/signout',
+                  Google: 'https://accounts.google.com/Logout',
+                  Globus: 'https://app.globus.org/logout',
+                }[provider])
+              }
+            />
           </Stack>
         </Paper>
       </Stack>

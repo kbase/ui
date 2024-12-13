@@ -9,7 +9,8 @@ import {
 } from '@mui/material';
 import { FC } from 'react';
 import { LOGIN_ROUTE } from '../../app/Routes';
-import { LoginButtons, makeLoginURLs } from '../login/LogIn';
+import { ProviderButtons } from '../auth/providers';
+import { makeLoginURLs } from '../login/LogIn';
 import classes from './SignUp.module.scss';
 
 /**
@@ -32,7 +33,9 @@ export const ProviderSelect: FC = () => {
               <></>
             )}
             <form action={loginActionUrl.toString()} method="post">
-              <LoginButtons text={(provider) => `Sign up with ${provider}`} />
+              <ProviderButtons
+                text={(provider) => `Sign up with ${provider}`}
+              />
               <input
                 readOnly
                 hidden

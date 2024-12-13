@@ -32,6 +32,11 @@ import { LogInContinue } from '../features/login/LogInContinue';
 import { LoggedOut } from '../features/login/LoggedOut';
 import { SignUp } from '../features/signup/SignUp';
 import ORCIDLinkCreateLink from '../features/orcidlink/CreateLink';
+import { Account } from '../features/account/Account';
+import { AccountInfo } from '../features/account/AccountInfo';
+import { LinkedProviders } from '../features/account/LinkedProviders';
+import { LogInSessions } from '../features/account/LogInSessions';
+import { UseAgreements } from '../features/account/UseAgreements';
 
 export const LOGIN_ROUTE = '/login';
 export const SIGNUP_ROUTE = '/signup';
@@ -66,6 +71,28 @@ const Routes: FC = () => {
 
       {/* Sign Up */}
       <Route path={`${SIGNUP_ROUTE}/:step?`} element={<SignUp />} />
+
+      {/* Account */}
+      <Route path="/account" element={<Authed element={<Account />} />}>
+        <Route index element={<Authed element={<AccountInfo />} />} />
+        <Route path="info" element={<Authed element={<AccountInfo />} />} />
+        <Route
+          path="providers"
+          element={<Authed element={<LinkedProviders />} />}
+        />
+        <Route
+          path="providers/link/continue"
+          element={<Authed element={<LinkedProviders isContinueRoute />} />}
+        />
+        <Route
+          path="sessions"
+          element={<Authed element={<LogInSessions />} />}
+        />
+        <Route
+          path="use-agreements"
+          element={<Authed element={<UseAgreements />} />}
+        />
+      </Route>
 
       {/* Navigator */}
       <Route

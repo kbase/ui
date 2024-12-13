@@ -1,7 +1,6 @@
 import {
   Alert,
   Box,
-  Button,
   Container,
   Link,
   Paper,
@@ -10,9 +9,6 @@ import {
 } from '@mui/material';
 import { FC, useEffect } from 'react';
 import logoRectangle from '../../common/assets/logo/rectangle.png';
-import orcidLogo from '../../common/assets/orcid.png';
-import globusLogo from '../../common/assets/globus.png';
-import googleLogo from '../../common/assets/google.webp';
 import classes from './LogIn.module.scss';
 import { useAppDispatch, useAppSelector } from '../../common/hooks';
 import { useAppParam } from '../params/hooks';
@@ -23,6 +19,7 @@ import { toast } from 'react-hot-toast';
 import { revokeToken } from '../../common/api/authService';
 import { noOp } from '../common';
 import { useCookie } from '../../common/cookie';
+import { ProviderButtons } from '../auth/providers';
 
 export const useCheckLoggedIn = (nextRequest: string | undefined) => {
   const { initialized, token } = useAppSelector((state) => state.auth);
@@ -125,7 +122,9 @@ export const LogIn: FC = () => {
               ) : (
                 <></>
               )}
-              <LoginButtons text={(provider) => `Continue with ${provider}`} />
+              <ProviderButtons
+                text={(provider) => `Continue with ${provider}`}
+              />
               <Box className={classes['separator']} />
               <Typography>
                 New to KBase? <Link href="/signup">Sign up</Link>
@@ -167,70 +166,4 @@ export const makeLoginURLs = (nextRequest?: string) => {
   );
 
   return { loginOrigin, loginActionUrl, loginRedirectUrl };
-};
-
-export const LoginButtons = ({
-  text,
-}: {
-  text: (provider: string) => string;
-}) => {
-  return (
-    <Stack spacing={2}>
-      <Button
-        name="provider"
-        value="ORCID"
-        type="submit"
-        variant="outlined"
-        color="base"
-        size="large"
-        startIcon={
-          <img
-            src={orcidLogo}
-            alt="ORCID logo"
-            className={classes['sso-logo']}
-          />
-        }
-        data-testid="loginORCID"
-      >
-        {text('ORCID')}
-      </Button>
-      <Box className={classes['separator']} />
-      <Stack spacing={1}>
-        <Button
-          name="provider"
-          value="Google"
-          type="submit"
-          variant="outlined"
-          color="base"
-          size="large"
-          startIcon={
-            <img
-              src={googleLogo}
-              alt="Google logo"
-              className={classes['sso-logo']}
-            />
-          }
-        >
-          {text('Google')}
-        </Button>
-        <Button
-          name="provider"
-          value="Globus"
-          type="submit"
-          variant="outlined"
-          color="base"
-          size="large"
-          startIcon={
-            <img
-              src={globusLogo}
-              alt="Globus logo"
-              className={classes['sso-logo']}
-            />
-          }
-        >
-          {text('Globus')}
-        </Button>
-      </Stack>
-    </Stack>
-  );
 };
