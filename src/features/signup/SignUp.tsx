@@ -10,8 +10,6 @@ import { FC, useEffect, useState } from 'react';
 import { AccountInformation } from './AccountInformation';
 import { ProviderSelect } from './ProviderSelect';
 import { UsePolicies } from './UsePolicies';
-import { usePageTitle } from '../layout/layoutSlice';
-import classes from './SignUp.module.scss';
 
 const signUpSteps = [
   'Sign up with a supported provider',
@@ -24,7 +22,6 @@ const signUpSteps = [
  * and accepting the KBase use policies.
  */
 export const SignUp: FC = () => {
-  usePageTitle('Sign Up');
   const [activeStep, setActiveStep] = useState(0);
 
   useEffect(() => {
@@ -32,7 +29,7 @@ export const SignUp: FC = () => {
   }, [activeStep]);
 
   return (
-    <Container className={classes['signup']} maxWidth="lg">
+    <Container maxWidth="lg">
       <Stack spacing={4}>
         <Typography variant="h1">Sign up for KBase</Typography>
         <Stepper activeStep={activeStep}>

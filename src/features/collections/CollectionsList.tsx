@@ -13,11 +13,11 @@ export const CollectionsList = () => {
   const collections = listCollections.useQuery();
 
   return (
-    <section className={classes['collections-main']}>
+    <main className={classes['collections-main']}>
+      <h2 className={classes['collections-subtitle']}>
+        Explore, relate, and integrate curated data collections.
+      </h2>
       <Container className={classes['inner-container']} disableGutters>
-        <h2 className={classes['collections-subtitle']}>
-          Explore, relate, and integrate curated data collections.
-        </h2>
         <Grid container spacing={2}>
           {collections.isSuccess &&
             collections.data?.data.map((collection) => (
@@ -27,7 +27,7 @@ export const CollectionsList = () => {
             ))}
         </Grid>
       </Container>
-    </section>
+    </main>
   );
 };
 

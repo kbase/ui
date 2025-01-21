@@ -9,21 +9,15 @@ import {
   faSuitcase,
   faUsers,
   IconDefinition,
-  faEllipsis,
-  faInfoCircle,
-  faQuestionCircle,
-  faServer,
-  faNoteSticky,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
-import { FC, useState } from 'react';
+import { FC } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { getFeedsUnseenCount } from '../../common/api/feedsService';
 import { useAppSelector } from '../../common/hooks';
 import { authMe, authToken } from '../auth/authSlice';
 import { useAuthMe } from '../auth/hooks';
 import classes from './LeftNavBar.module.scss';
-import { Button, Menu, MenuItem } from '@mui/material';
 
 const LeftNavBar: FC = () => {
   const token = useAppSelector(authToken);
@@ -33,14 +27,6 @@ const LeftNavBar: FC = () => {
     refetchOnFocus: true,
     refetchOnReconnect: true,
   });
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const moreMenuOpen = Boolean(anchorEl);
-  const handleClickMoreMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-  const handleCloseMoreMenu = () => {
-    setAnchorEl(null);
-  };
 
   return (
     <nav>
@@ -65,80 +51,6 @@ const LeftNavBar: FC = () => {
           badgeColor={'primary'}
         />
         <DevNav />
-      </ul>
-      <ul className={classes.nav_list}>
-        <Button
-          className={classes.nav_item}
-          id="more-item"
-          aria-controls={moreMenuOpen ? 'more-menu' : undefined}
-          aria-haspopup="true"
-          aria-expanded={moreMenuOpen ? 'true' : undefined}
-          onClick={handleClickMoreMenu}
-        >
-          <FAIcon className={classes.nav_icon} icon={faEllipsis} />
-          <span className={classes.nav_desc}>More</span>
-        </Button>
-        <Menu
-          id="more-menu"
-          anchorEl={anchorEl}
-          open={moreMenuOpen}
-          onClose={handleCloseMoreMenu}
-          MenuListProps={{
-            'aria-labelledby': 'more-item',
-          }}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'right',
-          }}
-          transformOrigin={{
-            vertical: 'bottom',
-            horizontal: 'left',
-          }}
-        >
-          <MenuItem
-            className={classes.more_menu_item}
-            onClick={handleCloseMoreMenu}
-          >
-            <Link to="about">
-              <FAIcon className={classes.more_menu_icon} icon={faInfoCircle} />
-              About
-            </Link>
-          </MenuItem>
-          <MenuItem
-            className={classes.more_menu_item}
-            onClick={handleCloseMoreMenu}
-          >
-            <Link to="services">
-              <FAIcon className={classes.more_menu_icon} icon={faServer} />
-              Services
-            </Link>
-          </MenuItem>
-          <MenuItem
-            className={classes.more_menu_item}
-            onClick={handleCloseMoreMenu}
-          >
-            <a
-              href="https://www.kbase.us/support/"
-              target="_blank"
-              rel="noreferrer"
-            >
-              <FAIcon
-                className={classes.more_menu_icon}
-                icon={faQuestionCircle}
-              />
-              Support
-            </a>
-          </MenuItem>
-          <MenuItem
-            className={classes.more_menu_item}
-            onClick={handleCloseMoreMenu}
-          >
-            <a href="https://docs.kbase.us/" target="_blank" rel="noreferrer">
-              <FAIcon className={classes.more_menu_icon} icon={faNoteSticky} />
-              Documentation
-            </a>
-          </MenuItem>
-        </Menu>
       </ul>
     </nav>
   );
