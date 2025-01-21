@@ -8,7 +8,7 @@ export interface Me {
   idents: Record<string, string>[];
   lastlogin: number;
   local: boolean;
-  policyids: Record<string, string | number>[];
+  policyids: { id: string; agreedon: number }[];
   roles: Record<string, string>[];
   user: string;
 }

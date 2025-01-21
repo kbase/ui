@@ -249,8 +249,42 @@ export const GenomeAttribs: FC<{
             : undefined,
       })),
       // HARDCODED the field order parameter and the hidden fields parameter hardcode overrides for which columns will appear and in what order
+      // GTDB has different column names (#4)
       order: ['kbase_display_name', 'kbase_id', 'genome_size'],
       exclude: ['__match__', '__sel__'],
+      defaultVisible: [
+        // GROW / ENIGMA / PMI
+        'kbase_display_name',
+        'kbase_id',
+        'completeness',
+        'contamination',
+        'classification',
+        'classification_method',
+        'kbase_gc_content',
+        'kbase_genome_size',
+        'kbase_num_protein_encoding_genes',
+        'kbase_num_cds',
+        'kbase_num_contigs',
+        // GTDB special-casing
+        'accession',
+        'gtdb_taxonomy',
+        'checkm_completeness',
+        'checkm_contamination',
+        'genome_size',
+        'gc_percentage',
+        'mimag_high_quality',
+        'mimag_medium_quality',
+        'mimag_low_quality',
+        'ncbi_assembly_level',
+        'ncbi_bioproject',
+        'ncbi_biosample',
+        'ncbi_date',
+        'ncbi_organism_name',
+        'protein_count',
+        'trna_count',
+        'gtdb_representative',
+        'gtdb_type_species_of_genus',
+      ],
     }
   );
 

@@ -8,6 +8,7 @@ import navigator from '../features/navigator/navigatorSlice';
 import orcidlink from '../features/orcidlink/orcidlinkSlice';
 import params from '../features/params/paramsSlice';
 import profile from '../features/profile/profileSlice';
+import signup from '../features/signup/SignupSlice';
 
 const everyReducer = combineReducers({
   auth,
@@ -18,6 +19,7 @@ const everyReducer = combineReducers({
   params,
   profile,
   orcidlink,
+  signup,
   [baseApi.reducerPath]: baseApi.reducer,
 });
 

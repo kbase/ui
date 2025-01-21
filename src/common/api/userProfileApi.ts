@@ -8,12 +8,15 @@ const userProfile = jsonRpcService({
 interface UserProfileParams {
   status: void;
   get_user_profile: { usernames: string[] };
-  set_user_profile: {
+  set_user_profile: [
     profile: {
-      user: { username: string; realname: string };
-      profile: unknown;
-    };
-  };
+      profile: {
+        user: { username: string; realname: string };
+        profile: unknown;
+      };
+    },
+    optionalToken: string | undefined
+  ];
 }
 
 interface UserProfileResults {
@@ -64,13 +67,16 @@ export const userProfileApi = baseApi
         UserProfileResults['set_user_profile'],
         UserProfileParams['set_user_profile']
       >({
-        query: ({ profile }) =>
+        query: ([profile, optionalToken]) =>
           userProfile({
+            fetchArgs: optionalToken
+              ? { headers: { Authorization: optionalToken } }
+              : {},
             method: 'UserProfile.set_user_profile',
-            params: [{ profile }],
+            params: [profile],
           }),
         // Invalidates the cache for any queries with a matching tag
-        invalidatesTags: (result, error, { profile }) => [
+        invalidatesTags: (result, error, [{ profile }]) => [
           { type: 'Profile', id: profile.user.username },
         ],
       }),

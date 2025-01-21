@@ -1,5 +1,6 @@
 import { FC, ReactElement } from 'react';
 import {
+  createSearchParams,
   Navigate,
   Route,
   Routes as RRRoutes,
@@ -27,6 +28,8 @@ import {
 } from '../common/hooks';
 import ORCIDLinkFeature from '../features/orcidlink';
 import { LogIn } from '../features/login/LogIn';
+import { LogInContinue } from '../features/login/LogInContinue';
+import { LoggedOut } from '../features/login/LoggedOut';
 import { SignUp } from '../features/signup/SignUp';
 import ORCIDLinkCreateLink from '../features/orcidlink/CreateLink';
 import { Account } from '../features/account/Account';
@@ -35,7 +38,8 @@ import { LinkedProviders } from '../features/account/LinkedProviders';
 import { LogInSessions } from '../features/account/LogInSessions';
 import { UseAgreements } from '../features/account/UseAgreements';
 
-export const LOGIN_ROUTE = '/legacy/login';
+export const LOGIN_ROUTE = '/login';
+export const SIGNUP_ROUTE = '/signup';
 export const ROOT_REDIRECT_ROUTE = '/narratives';
 
 const Routes: FC = () => {
@@ -43,7 +47,9 @@ const Routes: FC = () => {
   usePageTracking();
   return (
     <RRRoutes>
+      {/* Legacy */}
       <Route path={`${LEGACY_BASE_ROUTE}/*`} element={<Legacy />} />
+
       <Route path="/status" element={<Status />} />
       <Route
         path="/profile/:usernameRequested/narratives"
@@ -60,9 +66,11 @@ const Routes: FC = () => {
 
       {/* Log In */}
       <Route path="/login" element={<LogIn />} />
+      <Route path="/login/continue" element={<LogInContinue />} />
+      <Route path="/loggedout" element={<LoggedOut />} />
 
       {/* Sign Up */}
-      <Route path="/signup" element={<SignUp />} />
+      <Route path={`${SIGNUP_ROUTE}/:step?`} element={<SignUp />} />
 
       {/* Account */}
       <Route path="/account" element={<Authed element={<Account />} />}>
@@ -146,14 +154,19 @@ const Routes: FC = () => {
 export const Authed: FC<{ element: ReactElement }> = ({ element }) => {
   const token = useAppSelector((state) => state.auth.token);
   const location = useLocation();
-  if (!token)
+  if (!token) {
     return (
       <Navigate
-        to={LOGIN_ROUTE}
+        to={{
+          pathname: LOGIN_ROUTE,
+          search: createSearchParams({
+            nextRequest: JSON.stringify(location),
+          }).toString(),
+        }}
         replace
-        state={{ preLoginPath: location.pathname }}
       />
     );
+  }
 
   return <>{element}</>;
 };

@@ -16,6 +16,7 @@ interface EnvironmentConfig {
   public_url: string;
   backup_cookie?: {
     name: string;
+    domain: string;
   };
 }
 
@@ -60,6 +61,7 @@ const setEnvironment = (
     REACT_APP_KBASE_DOMAIN: domain,
     REACT_APP_KBASE_LEGACY_DOMAIN: legacy,
     REACT_APP_KBASE_BACKUP_COOKIE_NAME: backupCookie?.name || '',
+    REACT_APP_KBASE_BACKUP_COOKIE_DOMAIN: backupCookie?.domain || '',
   };
   Object.assign(process.env, envsNew);
 };

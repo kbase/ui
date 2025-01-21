@@ -11,16 +11,14 @@ import {
 import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
 import { Button, Menu, MenuItem, Stack, Typography } from '@mui/material';
 import { FC, useMemo, useState } from 'react';
-import { toast } from 'react-hot-toast';
-import { Link, useNavigate } from 'react-router-dom';
-import { resetStateAction } from '../../app/store';
-import { revokeToken } from '../../common/api/authService';
+import { Link } from 'react-router-dom';
 import { getUserProfile } from '../../common/api/userProfileApi';
 import logo from '../../common/assets/logo/rectangle_short.png';
-import { useAppDispatch, useAppSelector } from '../../common/hooks';
-import { authUsername, setAuth } from '../auth/authSlice';
-import { noOp } from '../common';
+import { useAppSelector } from '../../common/hooks';
+import { authUsername } from '../auth/authSlice';
+
 import classes from './TopBar.module.scss';
+import { useLogout } from '../login/LogIn';
 
 export default function TopBar() {
   const username = useAppSelector(authUsername);
@@ -147,30 +145,6 @@ const UserMenu: FC = () => {
       </Menu>
     </div>
   );
-};
-
-const useLogout = () => {
-  const tokenId = useAppSelector(({ auth }) => auth.tokenInfo?.id);
-  const dispatch = useAppDispatch();
-  const [revoke] = revokeToken.useMutation();
-  const navigate = useNavigate();
-
-  if (!tokenId) return noOp;
-
-  return () => {
-    revoke(tokenId)
-      .unwrap()
-      .then(() => {
-        dispatch(resetStateAction());
-        // setAuth(null) follow the state reset to initialize the page as un-Authed
-        dispatch(setAuth(null));
-        toast('You have been signed out');
-        navigate('/legacy/auth2/signedout');
-      })
-      .catch(() => {
-        toast('Error, could not log out.');
-      });
-  };
 };
 
 const UserAvatar = () => {
