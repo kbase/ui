@@ -4,22 +4,23 @@ $border: 1px solid use-color("base-lighter");
 
 .collections-main {
   min-height: 100%;
-  padding: 1rem;
 }
 
 .collections-main .inner-container {
   margin-left: 0;
+  padding-left: 1rem;
 }
 
 .collections-list {
   overflow: scroll;
+  padding: 1rem;
 }
 
 .collections-subtitle {
-  border-bottom: 1px solid use-color("silver");
   font-size: 1.25rem;
   font-weight: 500;
-  padding-bottom: 1rem;
+  margin: 0;
+  padding: 1rem;
 }
 
 .collection-card {
