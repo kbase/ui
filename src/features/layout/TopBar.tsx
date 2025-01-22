@@ -127,13 +127,13 @@ const UserMenu: FC = () => {
           {realname}
         </Typography>
         <MenuItem onClick={handleCloseMenu}>
-          <Link to="profile">
+          <Link to="/legacy/people">
             <FAIcon className={classes.login_menu_icon} icon={faUser} />
             My Profile
           </Link>
         </MenuItem>
         <MenuItem onClick={handleCloseMenu}>
-          <Link to="account">
+          <Link to="/account">
             <FAIcon className={classes.login_menu_icon} icon={faIdCard} />
             My Account
           </Link>

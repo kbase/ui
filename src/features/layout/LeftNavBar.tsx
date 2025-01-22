@@ -99,7 +99,7 @@ const LeftNavBar: FC = () => {
             className={classes.more_menu_item}
             onClick={handleCloseMoreMenu}
           >
-            <Link to="about">
+            <Link to="/legacy/about">
               <FAIcon className={classes.more_menu_icon} icon={faInfoCircle} />
               About
             </Link>
@@ -108,7 +108,7 @@ const LeftNavBar: FC = () => {
             className={classes.more_menu_item}
             onClick={handleCloseMoreMenu}
           >
-            <Link to="services">
+            <Link to="/legacy/about/services">
               <FAIcon className={classes.more_menu_icon} icon={faServer} />
               Services
             </Link>
