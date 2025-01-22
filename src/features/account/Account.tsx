@@ -10,20 +10,18 @@ export const Account: FC = () => {
   usePageTitle('Account');
   const navigate = useNavigate();
   const location = useLocation();
-  const [activeTab, setActiveTab] = useState(() => {
-    switch (location.pathname) {
-      case '/account/info':
-        return 0;
-      case '/account/providers':
-        return 1;
-      case '/account/logins':
-        return 2;
-      case '/account/use-agreements':
-        return 3;
-      default:
-        return 0;
-    }
-  });
+  const tabs = [
+    '/account/info',
+    '/account/providers',
+    '/account/logins',
+    '/account/use-agreements',
+  ];
+  const defaultTab = tabs.findIndex((tabPath) =>
+    location.pathname.startsWith(tabPath)
+  );
+  const [activeTab, setActiveTab] = useState(
+    defaultTab === -1 ? 0 : defaultTab
+  );
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);

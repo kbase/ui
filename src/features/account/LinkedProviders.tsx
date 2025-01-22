@@ -1,6 +1,7 @@
-import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
+import { faCheck, faInfoCircle, faX } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
+  Alert,
   Button,
   Paper,
   Stack,
@@ -12,29 +13,35 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import { FC } from 'react';
-import globusLogo from '../../common/assets/globus.png';
-import googleLogo from '../../common/assets/google.webp';
-import orcidLogo from '../../common/assets/orcid.png';
+import { FC, useEffect } from 'react';
+import { toast } from 'react-hot-toast';
+import {
+  getLinkChoice,
+  getMe,
+  postLinkPick,
+  unlinkID,
+} from '../../common/api/authService';
+import { Loader } from '../../common/components';
+import { useAppSelector } from '../../common/hooks';
+import { ProviderButtons } from '../auth/providers';
 import classes from './Account.module.scss';
-
-/**
- * Dummy data for the linked providers table.
- * Can be deleted once table is linked to backend.
- */
-const sampleProviders = [
-  {
-    provider: 'Google',
-    username: 'coolkbasehuman@lbl.gov',
-    linked: true,
-  },
-];
 
 /**
  * Content for the Linked Providers tab in the Account page
  */
-export const LinkedProviders: FC = () => {
-  const linkedProviders = sampleProviders;
+export const LinkedProviders: FC<{ isContinueRoute?: boolean }> = ({
+  isContinueRoute,
+}) => {
+  const token = useAppSelector(({ auth }) => auth.token ?? '');
+  const { data: me } = getMe.useQuery({ token }, { skip: !token });
+
+  const identities = me?.idents;
+
+  const { loginOrigin, loginActionUrl, loginRedirectUrl } = makeLinkURLs();
+  const { linkPending, targetLinkProvider, targetLink } =
+    useManageLinkContinue(isContinueRoute);
+  const unklinkOk = (identities?.length ?? 0) > 1;
+
   return (
     <Stack
       spacing={4}
@@ -87,68 +94,161 @@ export const LinkedProviders: FC = () => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {linkedProviders.map((provider, i) => (
+          {identities?.map(({ provider, provusername, id }, i) => (
             <TableRow key={`${provider}-${i}`}>
-              <TableCell>{provider.provider}</TableCell>
-              <TableCell>{provider.username}</TableCell>
+              <TableCell>{provider}</TableCell>
+              <TableCell>{provusername}</TableCell>
               <TableCell>
-                <Button variant="contained" color="error">
-                  Unlink
-                </Button>
+                <UnlinkButton id={id} unklinkOk={unklinkOk} />
               </TableCell>
             </TableRow>
           ))}
+          {linkPending ? (
+            <TableRow>
+              <TableCell>{targetLinkProvider}</TableCell>
+              <TableCell>{targetLink?.provusername}</TableCell>
+              <TableCell>
+                <Button
+                  variant="contained"
+                  color="info"
+                  endIcon={<Loader loading={true} type="spinner" />}
+                >
+                  Linking
+                </Button>
+              </TableCell>
+            </TableRow>
+          ) : undefined}
         </TableBody>
       </Table>
       <Typography variant="h2">
         Link an additional sign-in account to this KBase account
       </Typography>
+      {process.env.NODE_ENV === 'development' ? (
+        <Alert severity="error">
+          DEV MODE: Link will occur on {loginOrigin}
+        </Alert>
+      ) : (
+        <></>
+      )}
       <Paper className={classes['provider-link-panel']} elevation={0}>
-        <Stack spacing={2}>
-          <Button
-            variant="outlined"
-            color="base"
-            size="large"
-            startIcon={
-              <img
-                src={orcidLogo}
-                alt="ORCID logo"
-                className={classes['sso-logo']}
-              />
-            }
-          >
-            Link with ORCID
-          </Button>
-          <Button
-            variant="outlined"
-            color="base"
-            size="large"
-            startIcon={
-              <img
-                src={googleLogo}
-                alt="Google logo"
-                className={classes['sso-logo']}
-              />
-            }
-          >
-            Link with Google
-          </Button>
-          <Button
-            variant="outlined"
-            color="base"
-            size="large"
-            startIcon={
-              <img
-                src={globusLogo}
-                alt="Globus logo"
-                className={classes['sso-logo']}
-              />
-            }
-          >
-            Link with Globus
-          </Button>
-        </Stack>
+        <form
+          action={loginActionUrl.toString()}
+          method="post"
+          data-testid="linkForm"
+        >
+          <ProviderButtons text={(provider) => `Link with ${provider}`} />
+          <input
+            readOnly
+            hidden
+            name="redirecturl"
+            value={loginRedirectUrl.toString()}
+            data-testid="redirecturl"
+          />
+        </form>
       </Paper>
     </Stack>
   );
+};
+
+const UnlinkButton = ({
+  id,
+  unklinkOk,
+}: {
+  id: string;
+  unklinkOk: boolean;
+}) => {
+  const token = useAppSelector(({ auth }) => auth.token ?? '');
+  const [triggerUnlink, unlink] = unlinkID.useMutation();
+  return (
+    <Button
+      variant="contained"
+      color="error"
+      {...(unklinkOk
+        ? {
+            onClick: () => {
+              triggerUnlink({ token, id });
+            },
+          }
+        : {
+            disabled: true,
+            title:
+              'Since this is the only external sign-in account linked to your KBase account, you cannot unlink it',
+          })}
+      endIcon={
+        unlink.isLoading ? (
+          <Loader loading={true} type="spinner" />
+        ) : unlink.isSuccess ? (
+          <FontAwesomeIcon icon={faCheck} />
+        ) : unlink.isError ? (
+          <FontAwesomeIcon icon={faX} />
+        ) : undefined
+      }
+    >
+      Unlink
+    </Button>
+  );
+};
+
+const useManageLinkContinue = (isContinueRoute = false) => {
+  const token = useAppSelector(({ auth }) => auth.token ?? '');
+  const choiceResult = getLinkChoice.useQuery(undefined, {
+    skip: !isContinueRoute,
+  });
+  const [triggerLink, linkPick] = postLinkPick.useMutation();
+
+  const linkOk = (choiceResult.data?.linked.length ?? 0) < 1;
+  const targetLinkProvider = choiceResult.data?.provider;
+  const targetLink = choiceResult.data?.idents?.[0] ?? undefined;
+  const priorLinkProvUsername = choiceResult.data?.linked?.[0]?.provusername;
+  const otherUser = choiceResult.data?.linked?.[0]?.user;
+
+  useEffect(() => {
+    if (targetLink && linkOk) {
+      triggerLink({ token, id: targetLink.id });
+    }
+    if (!linkOk) {
+      toast(
+        `Cannot link ${targetLinkProvider} account "${priorLinkProvUsername}". Already linked to account ${otherUser}`
+      );
+    }
+  }, [
+    linkOk,
+    targetLinkProvider,
+    otherUser,
+    priorLinkProvUsername,
+    targetLink,
+    token,
+    triggerLink,
+  ]);
+
+  return {
+    linkPending: choiceResult.isLoading || linkPick.isLoading,
+    targetLinkProvider,
+    targetLink,
+  };
+};
+
+export const makeLinkURLs = (nextRequest?: string) => {
+  // OAuth Login wont work in dev mode, so redirect to ci
+  const loginOrigin =
+    process.env.NODE_ENV === 'development'
+      ? 'https://ci.kbase.us'
+      : document.location.origin;
+
+  // Triggering login requires a form POST submission
+  const loginActionUrl = new URL('/services/auth/link/start/', loginOrigin);
+
+  // Redirect URL is used to pass state to link/continue
+  const loginRedirectUrl = new URL(
+    `${loginOrigin}/account/providers/link/continue`
+  );
+  loginRedirectUrl.searchParams.set(
+    'state',
+    JSON.stringify({
+      nextRequest: nextRequest,
+      origin: loginOrigin,
+    })
+  );
+
+  return { loginOrigin, loginActionUrl, loginRedirectUrl };
 };

@@ -81,6 +81,10 @@ const Routes: FC = () => {
           element={<Authed element={<LinkedProviders />} />}
         />
         <Route
+          path="providers/link/continue"
+          element={<Authed element={<LinkedProviders isContinueRoute />} />}
+        />
+        <Route
           path="sessions"
           element={<Authed element={<LogInSessions />} />}
         />

@@ -19,61 +19,54 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
+import { marked } from 'marked';
+import createDOMPurify from 'dompurify';
 import { FC, useEffect, useState } from 'react';
+import { getMe } from '../../common/api/authService';
 import { LabelValueTable } from '../../common/components/LabelValueTable';
+import { useAppSelector } from '../../common/hooks';
+import { getPolicies } from '../login/Policies';
 import classes from './Account.module.scss';
+import { Loader } from '../../common/components';
 
-interface Policy {
-  name: string;
-  publishedDate: string;
-  agreedDate: string;
-  version: number;
-  isCurrent: boolean;
-  content: string;
-}
-
-/**
- * Dummy data for the log in sessions table.
- * Can be deleted once table is linked to backend.
- */
-const samplePolicies: Policy[] = [
-  {
-    name: 'KBase Use Agreement',
-    publishedDate: 'Jul 1, 2024	',
-    agreedDate: 'Jul 9, 2024	',
-    version: 1,
-    isCurrent: true,
-    content:
-      'Quis veniam dolor ex aliqua ullamco incididunt commodo commodo nulla. Adipisicing id dolor elit aliquip laborum aliquip ad exercitation qui dolor eu exercitation cillum. Magna voluptate ut voluptate non esse sunt esse nostrud. Labore cillum esse ex dolor aliqua do culpa eu et mollit do reprehenderit id cupidatat.',
-  },
-  {
-    name: 'KBase Data Policy',
-    publishedDate: 'Jul 1, 2024	',
-    agreedDate: 'Jul 9, 2024',
-    version: 1,
-    isCurrent: true,
-    content:
-      'Irure qui dolor ut enim culpa nulla aute nostrud deserunt commodo ad sit ut non. Ullamco velit laboris sint laboris dolore velit Lorem. Dolore sit ea sint quis Lorem laborum exercitation non voluptate. Enim sint velit anim et anim enim consequat exercitation labore aliquip mollit proident. Do pariatur elit excepteur mollit labore irure cillum tempor commodo proident proident. Et nostrud esse sunt ipsum est reprehenderit elit ex proident. Sit ipsum magna eu quis est commodo incididunt.',
-  },
-  {
-    name: 'KBase Data Policy',
-    publishedDate: 'Jul 1, 2024	',
-    agreedDate: 'Jul 9, 2024',
-    version: 0,
-    isCurrent: false,
-    content:
-      'Id amet aliqua mollit ex consectetur esse ex. Aute culpa cillum sint ullamco anim. Aliquip sunt qui enim exercitation irure in. Aliqua exercitation qui aliquip ex ut ullamco nulla ea exercitation. Consectetur duis aliqua ad dolore occaecat velit proident eiusmod fugiat.',
-  },
-];
+const purify = createDOMPurify(window);
 
 /**
  * Content for the Use Agreements tab in the Account page
  */
 export const UseAgreements: FC = () => {
-  const currentPolicies = samplePolicies.filter((d) => d.isCurrent === true);
-  const [policies, setPolicies] = useState(currentPolicies);
+  const token = useAppSelector(({ auth }) => auth.token ?? '');
+  const me = getMe.useQuery({ token });
+  const allPolicies = getPolicies({ onlyEnforced: false });
+
+  const userAgreed = (me.data?.policyids ?? []).map((p) => {
+    const [id, version] = p.id.split('.');
+    return { id, version, agreedon: p.agreedon };
+  });
+
+  const current = userAgreed.filter(({ id, version }) => {
+    if (!(id in allPolicies)) return false;
+    return (
+      version === allPolicies[id].version ||
+      allPolicies[id].equivalentVersions.includes(version)
+    );
+  });
+
+  const expired = userAgreed.filter((p) => !current.includes(p));
+
+  const currentPolicies = current
+    .filter((p) => !expired.includes(p))
+    .map(({ id }) => allPolicies[id]);
+
+  const expiredPolicies = expired.map((p) => {
+    const title = allPolicies[p.id]?.title ?? `Policy "${p.id}.${p.version}"`;
+    return { ...p, title };
+  });
+
   const [showExpired, setShowExpired] = useState(false);
-  const [selectedPolicy, setSelectedPolicy] = useState(policies[0]);
+  const [selectedPolicy, setSelectedPolicy] = useState<
+    typeof currentPolicies[number] | undefined
+  >(undefined);
 
   const handleChangeExpired = (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -82,17 +75,14 @@ export const UseAgreements: FC = () => {
     setShowExpired(checked);
   };
 
-  const handleClickPolicy = (policy: Policy) => {
+  const handleClickPolicy = (policy: typeof allPolicies[number]) => {
     setSelectedPolicy(policy);
   };
 
   useEffect(() => {
-    if (showExpired) {
-      setPolicies(samplePolicies);
-    } else {
-      setPolicies(currentPolicies);
-    }
-  }, [showExpired, currentPolicies]);
+    if (currentPolicies && selectedPolicy === undefined)
+      setSelectedPolicy(currentPolicies[0]);
+  }, [currentPolicies, selectedPolicy]);
 
   return (
     <Stack
@@ -122,91 +112,139 @@ export const UseAgreements: FC = () => {
         <Grid container spacing={2}>
           <Grid item sm={3}>
             <Stack spacing={2}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    value={showExpired}
-                    onChange={handleChangeExpired}
-                  />
-                }
-                label="Show expired policies"
-              />
-              {policies.map((policy) => (
-                <Card
-                  key={policy.name}
-                  className={`${classes['policy-card']} ${
-                    selectedPolicy.name === policy.name &&
-                    selectedPolicy.version === policy.version
-                      ? classes['selected-card']
-                      : ''
-                  }`}
-                  onClick={() => handleClickPolicy(policy)}
-                >
-                  <CardContent>
-                    <Stack spacing={1}>
-                      <Typography variant="h5">{policy.name}</Typography>
-                      <Box>
-                        {policy.isCurrent && (
-                          <Chip
-                            icon={<FontAwesomeIcon icon={faCheckCircle} />}
-                            label="Current"
-                            color="info"
-                            size="small"
-                          />
-                        )}
-                        {!policy.isCurrent && (
-                          <Chip
-                            icon={<FontAwesomeIcon icon={faTimesCircle} />}
-                            label="Expired"
-                            color="error"
-                            size="small"
-                          />
-                        )}
-                      </Box>
-                      <div className={classes['separator']} />
-                      <LabelValueTable
-                        data={[
-                          {
-                            label: 'Version',
-                            value: policy.version,
-                          },
-                          {
-                            label: 'Published',
-                            value: policy.publishedDate,
-                          },
-                          {
-                            label: 'Agreed',
-                            value: policy.agreedDate,
-                          },
-                        ]}
+              <>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      value={showExpired}
+                      onChange={handleChangeExpired}
+                    />
+                  }
+                  label="Show expired policies"
+                />
+                {currentPolicies.map((policy) => {
+                  return (
+                    <Card
+                      key={policy.title}
+                      className={`${classes['policy-card']} ${
+                        selectedPolicy?.id === policy.id &&
+                        selectedPolicy?.version === policy.version
+                          ? classes['selected-card']
+                          : ''
+                      }`}
+                      onClick={() => handleClickPolicy(policy)}
+                    >
+                      <PolicyCardContent
+                        title={policy.title}
+                        isCurrent={true}
+                        version={policy.version}
+                        agreedDate={
+                          current.find(
+                            (p) =>
+                              p.id === policy.id && p.version === policy.version
+                          )?.agreedon
+                        }
                       />
-                    </Stack>
-                  </CardContent>
-                </Card>
-              ))}
+                    </Card>
+                  );
+                })}
+                {showExpired ? (
+                  expiredPolicies.map((policy) => {
+                    return (
+                      <Card
+                        key={policy.title}
+                        className={`${classes['policy-card']}`}
+                      >
+                        <PolicyCardContent
+                          title={policy.title}
+                          isCurrent={false}
+                          version={policy.version}
+                          agreedDate={policy.agreedon}
+                        />
+                      </Card>
+                    );
+                  })
+                ) : (
+                  <></>
+                )}
+              </>
             </Stack>
           </Grid>
           <Grid item sm={9}>
             <Stack spacing={2}>
-              {selectedPolicy.isCurrent && (
+              {
                 <Alert severity="info">
                   This policy is current. You have agreed to it and it applies
                   to your usage of KBase.
                 </Alert>
-              )}
-              {!selectedPolicy.isCurrent && (
-                <Alert severity="error">
-                  This policy is expired. There is a newer policy that applies
-                  to your usage of KBase.
-                </Alert>
-              )}
+              }
               <Paper className={classes['policy-content']}>
-                {selectedPolicy.content}
+                {selectedPolicy ? (
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html: purify.sanitize(marked(selectedPolicy.markdown)),
+                    }}
+                  />
+                ) : (
+                  <Loader></Loader>
+                )}
               </Paper>
             </Stack>
           </Grid>
         </Grid>
       </Box>
     </Stack>
+  );
+};
+
+const PolicyCardContent = (props: {
+  title: string;
+  isCurrent: boolean;
+  version: string;
+  agreedDate?: number;
+}) => {
+  return (
+    <CardContent>
+      <Stack spacing={1}>
+        <Typography variant="h5">{props.title}</Typography>
+        <Box>
+          {props.isCurrent && (
+            <Chip
+              icon={<FontAwesomeIcon icon={faCheckCircle} />}
+              data-testid="current-chip"
+              label="Current"
+              color="info"
+              size="small"
+            />
+          )}
+          {!props.isCurrent && (
+            <Chip
+              icon={<FontAwesomeIcon icon={faTimesCircle} />}
+              data-testid="expired-chip"
+              label="Expired"
+              color="error"
+              size="small"
+            />
+          )}
+        </Box>
+        <div className={classes['separator']} />
+        <LabelValueTable
+          data={[
+            {
+              label: 'Version',
+              value: props.version,
+            },
+            ...(props.agreedDate
+              ? [
+                  {
+                    label: 'Agreed',
+                    value: new Date(props.agreedDate).toLocaleDateString(),
+                  },
+                ]
+              : []),
+          ]}
+        />
+      </Stack>
+    </CardContent>
   );
 };

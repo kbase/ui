@@ -27,7 +27,7 @@ export const Loader = (props: {
       ...forwardProps
     } = props;
     return (
-      <Box sx={{ width, height, position: 'relative' }}>
+      <Box data-testid="loader" sx={{ width, height, position: 'relative' }}>
         <Stack
           direction="row"
           justifyContent="center"
@@ -43,15 +43,16 @@ export const Loader = (props: {
     if (props.render !== undefined) return <>{props.render}</>;
     switch (props.type) {
       case 'text':
-        return <>Loading...</>;
+        return <span data-testid="loader">Loading...</span>;
       case 'spinner':
       default:
-        return <FontAwesomeIcon icon={faSpinner} spin />;
+        return <FontAwesomeIcon data-testid="loader" icon={faSpinner} spin />;
     }
   }
   if (props.error) {
     return (
       <Chip
+        data-testid="loader"
         icon={<FontAwesomeIcon icon={faExclamationCircle} />}
         variant="outlined"
         color="error"
