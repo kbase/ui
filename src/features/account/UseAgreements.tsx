@@ -30,7 +30,6 @@ import classes from './Account.module.scss';
 import { Loader } from '../../common/components';
 
 const purify = createDOMPurify(window);
-const allPolicies = getPolicies({ onlyEnforced: false });
 
 /**
  * Content for the Use Agreements tab in the Account page
@@ -38,6 +37,7 @@ const allPolicies = getPolicies({ onlyEnforced: false });
 export const UseAgreements: FC = () => {
   const token = useAppSelector(({ auth }) => auth.token ?? '');
   const me = getMe.useQuery({ token });
+  const allPolicies = getPolicies({ onlyEnforced: false });
 
   const userAgreed = (me.data?.policyids ?? []).map((p) => {
     const [id, version] = p.id.split('.');
@@ -211,6 +211,7 @@ const PolicyCardContent = (props: {
           {props.isCurrent && (
             <Chip
               icon={<FontAwesomeIcon icon={faCheckCircle} />}
+              data-testid="current-chip"
               label="Current"
               color="info"
               size="small"
@@ -219,6 +220,7 @@ const PolicyCardContent = (props: {
           {!props.isCurrent && (
             <Chip
               icon={<FontAwesomeIcon icon={faTimesCircle} />}
+              data-testid="expired-chip"
               label="Expired"
               color="error"
               size="small"

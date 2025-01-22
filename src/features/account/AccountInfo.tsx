@@ -164,7 +164,7 @@ export const AccountInfo: FC = () => {
               variant={!form.formState.isValid ? 'outlined' : 'contained'}
               endIcon={
                 save.loading ? (
-                  <Loader loading={true} type="spinner" />
+                  <Loader data-testid="loader" loading={true} type="spinner" />
                 ) : save.complete ? (
                   <FontAwesomeIcon icon={faCheck} />
                 ) : save.error ? (
