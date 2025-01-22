@@ -22,6 +22,10 @@ interface AuthParams {
   getMe: {
     token: string;
   };
+  setMe: {
+    token: string;
+    meUpdate: Pick<Me, 'display' | 'email'>;
+  };
   getUsers: {
     token: string;
     users: string[];
@@ -41,10 +45,22 @@ interface AuthParams {
     linkall: false;
     policyids: string[];
   };
+  unlinkID: {
+    token: string;
+    id: string;
+  };
+  getLinkChoice: void;
+  postLinkPick: {
+    token: string;
+    id: string;
+  };
+  getTokens: string;
+  revokeToken: string;
 }
 
 interface AuthResults {
   getMe: Me;
+  setMe: void;
   getUsers: Record<string, string>;
   searchUsers: Record<string, string>;
   getLoginChoice: {
@@ -97,24 +113,74 @@ interface AuthResults {
   };
   loginUsernameSuggest: { availablename: string };
   loginCreate: AuthResults['postLoginPick'];
+  unlinkID: void;
+  getLinkChoice: {
+    pickurl: string;
+    expires: number;
+    provider: string;
+    haslinks: boolean;
+    user: string;
+    cancelurl: string;
+    idents: { provusername: string; id: string }[]; // if linkable
+    linked: { provusername: string; id: string; user: string }[]; // if already linked
+  };
+  postLinkPick: void;
+  getTokens: {
+    current: AuthResults['getTokens']['tokens'][number];
+    dev: boolean;
+    revokeurl: string;
+    service: boolean;
+    createurl: string;
+    tokens: {
+      type: string;
+      id: string;
+      expires: number;
+      created: number;
+      user: string;
+      custom: unknown;
+      os: string;
+      osver: string;
+      agent: string;
+      agentver: string;
+      device: string;
+      ip: string;
+    }[];
+    user: string;
+    revokeallurl: string;
+  };
+  revokeToken: boolean;
 }
 
 // Auth does not use JSONRpc, so we use queryFn to make custom queries
-export const authApi = baseApi.injectEndpoints({
-  endpoints: (builder) => ({
-    authFromToken: builder.query<TokenResponse, string>({
-      query: (token) =>
-        authService({
-          url: '/api/V2/token',
-          method: 'GET',
-          headers: {
-            Authorization: token || '',
-          },
-        }),
-    }),
-    getMe: builder.query<AuthResults['getMe'], AuthParams['getMe']>({
-      query: ({ token }) => {
-        /* I want to do
+export const authApi = baseApi
+  .enhanceEndpoints({ addTagTypes: ['AccountMe', 'AccountTokens'] })
+  .injectEndpoints({
+    endpoints: (builder) => ({
+      authFromToken: builder.query<TokenResponse, string>({
+        query: (token) =>
+          authService({
+            url: '/api/V2/token',
+            method: 'GET',
+            headers: {
+              Authorization: token || '',
+            },
+          }),
+      }),
+      getMe: builder.query<AuthResults['getMe'], AuthParams['getMe']>({
+        query: ({ token }) => {
+          return authService({
+            headers: {
+              Authorization: token,
+            },
+            method: 'GET',
+            url: '/api/V2/me',
+          });
+        },
+        providesTags: ['AccountMe'],
+      }),
+      setMe: builder.mutation<AuthResults['setMe'], AuthParams['setMe']>({
+        query: ({ token, meUpdate }) => {
+          /* I want to do
         const token = store.getState().auth.token;
         but authSlice imports revokeToken defined here,
         so this becomes a circular depenency.
@@ -123,112 +189,182 @@ export const authApi = baseApi.injectEndpoints({
           type annotation and is referenced directly or indirectly in its own
           initializer.
         */
-        return authService({
-          headers: {
-            Authorization: token,
-          },
-          method: 'GET',
-          url: '/api/V2/me',
-        });
-      },
+          return authService({
+            headers: {
+              Authorization: token,
+            },
+            method: 'PUT',
+            url: '/me',
+            body: meUpdate,
+          });
+        },
+        invalidatesTags: ['AccountMe'],
+      }),
+      getUsers: builder.query<AuthResults['getUsers'], AuthParams['getUsers']>({
+        query: ({ token, users }) =>
+          authService({
+            headers: {
+              Authorization: token,
+            },
+            method: 'GET',
+            params: { list: users.join(',') },
+            url: '/api/V2/users',
+          }),
+      }),
+      searchUsers: builder.query<
+        AuthResults['searchUsers'],
+        AuthParams['searchUsers']
+      >({
+        query: ({ search, token }) =>
+          authService({
+            headers: {
+              Authorization: token,
+            },
+            method: 'GET',
+            url: `/api/V2/users/search/${search}`,
+          }),
+      }),
+      getTokens: builder.query<
+        AuthResults['getTokens'],
+        AuthParams['getTokens']
+      >({
+        query: (token) =>
+          authService({
+            headers: {
+              accept: 'application/json',
+              Authorization: token,
+            },
+            url: encode`/tokens/`,
+            method: 'GET',
+          }),
+        providesTags: ['AccountTokens'],
+      }),
+      revokeToken: builder.mutation<
+        AuthResults['revokeToken'],
+        AuthParams['revokeToken']
+      >({
+        query: (tokenId) =>
+          authService({
+            url: encode`/tokens/revoke/${tokenId}`,
+            method: 'DELETE',
+          }),
+        invalidatesTags: ['AccountTokens'],
+      }),
+      getLoginChoice: builder.query<
+        AuthResults['getLoginChoice'],
+        AuthParams['getLoginChoice']
+      >({
+        query: () =>
+          // MUST have an in-process-login-token cookie
+          authService({
+            headers: {
+              accept: 'application/json',
+            },
+            method: 'GET',
+            url: '/login/choice',
+          }),
+      }),
+      postLoginPick: builder.mutation<
+        AuthResults['postLoginPick'],
+        AuthParams['postLoginPick']
+      >({
+        query: (pickedChoice) =>
+          authService({
+            url: encode`/login/pick`,
+            body: pickedChoice,
+            method: 'POST',
+          }),
+      }),
+      loginUsernameSuggest: builder.query<
+        AuthResults['loginUsernameSuggest'],
+        AuthParams['loginUsernameSuggest']
+      >({
+        query: (username) =>
+          // MUST have an in-process-login-token cookie
+          authService({
+            headers: {
+              accept: 'application/json',
+            },
+            method: 'GET',
+            url: `/login/suggestname/${encodeURIComponent(username)}`,
+          }),
+      }),
+      loginCreate: builder.mutation<
+        AuthResults['loginCreate'],
+        AuthParams['loginCreate']
+      >({
+        query: (params) =>
+          // MUST have an in-process-login-token cookie
+          authService({
+            headers: {
+              accept: 'application/json',
+            },
+            method: 'POST',
+            body: params,
+            url: `/login/create/`,
+          }),
+      }),
+      unlinkID: builder.mutation<
+        AuthResults['unlinkID'],
+        AuthParams['unlinkID']
+      >({
+        query: ({ token, id }) =>
+          authService({
+            headers: {
+              Authorization: token,
+            },
+            method: 'POST',
+            url: `/me/unlink/${id}`,
+          }),
+        invalidatesTags: ['AccountMe'],
+      }),
+
+      getLinkChoice: builder.query<
+        AuthResults['getLinkChoice'],
+        AuthParams['getLinkChoice']
+      >({
+        query: () =>
+          // MUST have an in-process-link-token cookie
+          authService({
+            headers: {
+              accept: 'application/json',
+            },
+            method: 'GET',
+            url: '/link/choice',
+          }),
+      }),
+      postLinkPick: builder.mutation<
+        AuthResults['postLinkPick'],
+        AuthParams['postLinkPick']
+      >({
+        query: ({ token, id }) =>
+          authService({
+            headers: {
+              Authorization: token,
+            },
+            url: encode`/link/pick`,
+            body: { id },
+            method: 'POST',
+          }),
+        invalidatesTags: ['AccountMe'],
+      }),
     }),
-    getUsers: builder.query<AuthResults['getUsers'], AuthParams['getUsers']>({
-      query: ({ token, users }) =>
-        authService({
-          headers: {
-            Authorization: token,
-          },
-          method: 'GET',
-          params: { list: users.join(',') },
-          url: '/api/V2/users',
-        }),
-    }),
-    searchUsers: builder.query<
-      AuthResults['searchUsers'],
-      AuthParams['searchUsers']
-    >({
-      query: ({ search, token }) =>
-        authService({
-          headers: {
-            Authorization: token,
-          },
-          method: 'GET',
-          url: `/api/V2/users/search/${search}`,
-        }),
-    }),
-    revokeToken: builder.mutation<boolean, string>({
-      query: (tokenId) =>
-        authService({
-          url: encode`/tokens/revoke/${tokenId}`,
-          method: 'DELETE',
-        }),
-    }),
-    getLoginChoice: builder.query<
-      AuthResults['getLoginChoice'],
-      AuthParams['getLoginChoice']
-    >({
-      query: () =>
-        // MUST have an in-process-login-token cookie
-        authService({
-          headers: {
-            accept: 'application/json',
-          },
-          method: 'GET',
-          url: '/login/choice',
-        }),
-    }),
-    postLoginPick: builder.mutation<
-      AuthResults['postLoginPick'],
-      AuthParams['postLoginPick']
-    >({
-      query: (pickedChoice) =>
-        authService({
-          url: encode`/login/pick`,
-          body: pickedChoice,
-          method: 'POST',
-        }),
-    }),
-    loginUsernameSuggest: builder.query<
-      AuthResults['loginUsernameSuggest'],
-      AuthParams['loginUsernameSuggest']
-    >({
-      query: (username) =>
-        // MUST have an in-process-login-token cookie
-        authService({
-          headers: {
-            accept: 'application/json',
-          },
-          method: 'GET',
-          url: `/login/suggestname/${encodeURIComponent(username)}`,
-        }),
-    }),
-    loginCreate: builder.mutation<
-      AuthResults['loginCreate'],
-      AuthParams['loginCreate']
-    >({
-      query: (params) =>
-        // MUST have an in-process-login-token cookie
-        authService({
-          headers: {
-            accept: 'application/json',
-          },
-          method: 'POST',
-          body: params,
-          url: `/login/create/`,
-        }),
-    }),
-  }),
-});
+  });
 
 export const {
   authFromToken,
   getMe,
+  setMe,
   getUsers,
   searchUsers,
+  getTokens,
   revokeToken,
   getLoginChoice,
   postLoginPick,
   loginUsernameSuggest,
   loginCreate,
+  unlinkID,
+  getLinkChoice,
+  postLinkPick,
 } = authApi.endpoints;
 export type GetLoginChoiceResult = AuthResults['getLoginChoice'];

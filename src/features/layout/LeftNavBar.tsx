@@ -36,7 +36,7 @@ const LeftNavBar: FC = () => {
         <NavItem path="/legacy/catalog/apps" desc="Catalog" icon={faBook} />
         <NavItem path="/legacy/search" desc="Search" icon={faSearch} />
         <NavItem path="/legacy/jobbrowser" desc="Jobs" icon={faSuitcase} />
-        <NavItem path="/legacy/account" desc="Account" icon={faIdCard} />
+        <NavItem path="/account" desc="Account" icon={faIdCard} />
         <NavItem
           path="/legacy/feeds"
           desc="Feeds"
