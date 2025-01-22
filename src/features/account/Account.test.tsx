@@ -1,6 +1,8 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { useEffect } from 'react';
+import { Provider } from 'react-redux';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
+import { createTestStore } from '../../app/store';
 import { Account } from './Account';
 
 // Mock component for the Outlet
@@ -23,13 +25,15 @@ describe('Account Component', () => {
 
   it('renders all tabs', () => {
     render(
-      <MemoryRouter initialEntries={['/account/info']}>
-        <Routes>
-          <Route path="/account/*" element={<Account />}>
-            <Route path="*" element={<MockOutlet />} />
-          </Route>
-        </Routes>
-      </MemoryRouter>
+      <Provider store={createTestStore()}>
+        <MemoryRouter initialEntries={['/account/info']}>
+          <Routes>
+            <Route path="/account/*" element={<Account />}>
+              <Route path="*" element={<MockOutlet />} />
+            </Route>
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     expect(screen.getByText('Account')).toBeInTheDocument();
@@ -40,13 +44,15 @@ describe('Account Component', () => {
 
   it('navigates to correct route when tab is clicked', () => {
     render(
-      <MemoryRouter initialEntries={['/account/info']}>
-        <Routes>
-          <Route path="/account/*" element={<Account />}>
-            <Route path="*" element={<MockOutlet />} />
-          </Route>
-        </Routes>
-      </MemoryRouter>
+      <Provider store={createTestStore()}>
+        <MemoryRouter initialEntries={['/account/info']}>
+          <Routes>
+            <Route path="/account/*" element={<Account />}>
+              <Route path="*" element={<MockOutlet />} />
+            </Route>
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     fireEvent.click(screen.getByText('Linked Providers'));
@@ -58,13 +64,15 @@ describe('Account Component', () => {
 
   it('scrolls to top when tab changes', () => {
     render(
-      <MemoryRouter initialEntries={['/account/info']}>
-        <Routes>
-          <Route path="/account/*" element={<Account />}>
-            <Route path="*" element={<MockOutlet />} />
-          </Route>
-        </Routes>
-      </MemoryRouter>
+      <Provider store={createTestStore()}>
+        <MemoryRouter initialEntries={['/account/info']}>
+          <Routes>
+            <Route path="/account/*" element={<Account />}>
+              <Route path="*" element={<MockOutlet />} />
+            </Route>
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     const my_element = document.querySelector('main');
@@ -77,13 +85,15 @@ describe('Account Component', () => {
 
   it('sets correct active tab based on current route', () => {
     render(
-      <MemoryRouter initialEntries={['/account/providers']}>
-        <Routes>
-          <Route path="/account/*" element={<Account />}>
-            <Route path="*" element={<MockOutlet />} />
-          </Route>
-        </Routes>
-      </MemoryRouter>
+      <Provider store={createTestStore()}>
+        <MemoryRouter initialEntries={['/account/providers']}>
+          <Routes>
+            <Route path="/account/*" element={<Account />}>
+              <Route path="*" element={<MockOutlet />} />
+            </Route>
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     const providersTab = screen.getByRole('tab', { name: 'Linked Providers' });
@@ -92,13 +102,15 @@ describe('Account Component', () => {
 
   it('navigates to correct routes when tabs are clicked', () => {
     render(
-      <MemoryRouter initialEntries={['/account']}>
-        <Routes>
-          <Route path="/account/*" element={<Account />}>
-            <Route path="*" element={<MockOutlet />} />
-          </Route>
-        </Routes>
-      </MemoryRouter>
+      <Provider store={createTestStore()}>
+        <MemoryRouter initialEntries={['/account']}>
+          <Routes>
+            <Route path="/account/*" element={<Account />}>
+              <Route path="*" element={<MockOutlet />} />
+            </Route>
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     // Test Account tab navigation
@@ -120,13 +132,15 @@ describe('Account Component', () => {
 
   it('handles tab clicks with correct aria controls', () => {
     render(
-      <MemoryRouter initialEntries={['/account']}>
-        <Routes>
-          <Route path="/account/*" element={<Account />}>
-            <Route path="*" element={<MockOutlet />} />
-          </Route>
-        </Routes>
-      </MemoryRouter>
+      <Provider store={createTestStore()}>
+        <MemoryRouter initialEntries={['/account']}>
+          <Routes>
+            <Route path="/account/*" element={<Account />}>
+              <Route path="*" element={<MockOutlet />} />
+            </Route>
+          </Routes>
+        </MemoryRouter>
+      </Provider>
     );
 
     const accountTab = screen.getByRole('tab', { name: 'Account' });
