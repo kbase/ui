@@ -1,11 +1,13 @@
 import { Container, Stack, Tab, Tabs } from '@mui/material';
 import { FC, useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { usePageTitle } from '../layout/layoutSlice';
 
 /**
  * Main Account page with four subpages represented as tabs.
  */
 export const Account: FC = () => {
+  usePageTitle('Account');
   const navigate = useNavigate();
   const location = useLocation();
   const tabs = [

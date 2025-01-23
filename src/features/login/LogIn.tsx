@@ -19,6 +19,7 @@ import { toast } from 'react-hot-toast';
 import { revokeToken } from '../../common/api/authService';
 import { noOp } from '../common';
 import { useCookie } from '../../common/cookie';
+import { usePageTitle } from '../layout/layoutSlice';
 import { ProviderButtons } from '../auth/providers';
 
 export const useCheckLoggedIn = (nextRequest: string | undefined) => {
@@ -73,9 +74,9 @@ export const LogIn: FC = () => {
   useCheckLoggedIn(nextRequest);
   const { loginActionUrl, loginRedirectUrl, loginOrigin } =
     makeLoginURLs(nextRequest);
-
+  usePageTitle('Log In');
   return (
-    <Container maxWidth="sm">
+    <Container className={classes['login']} maxWidth="sm">
       <form
         action={loginActionUrl.toString()}
         method="post"

@@ -14,6 +14,8 @@ import { useAppSelector } from '../../common/hooks';
 import { useTryAuthFromToken } from '../auth/hooks';
 import { AccountInformation } from './AccountInformation';
 import { ProviderSelect } from './ProviderSelect';
+import { usePageTitle } from '../layout/layoutSlice';
+import classes from './SignUp.module.scss';
 import { KBasePolicies } from './SignupPolicies';
 import { md5 } from 'js-md5';
 import { ROOT_REDIRECT_ROUTE } from '../../app/Routes';
@@ -29,6 +31,7 @@ const signUpSteps = [
  * and accepting the KBase use policies.
  */
 export const SignUp: FC = () => {
+  usePageTitle('Sign Up');
   const navigate = useNavigate();
 
   const { step = '1' } = useParams();
@@ -43,7 +46,7 @@ export const SignUp: FC = () => {
   }, [activeStep]);
 
   return (
-    <Container maxWidth="lg">
+    <Container className={classes['signup']} maxWidth="lg">
       <Stack spacing={4}>
         <Typography variant="h1">Sign up for KBase</Typography>
         <Stepper activeStep={activeStep}>
