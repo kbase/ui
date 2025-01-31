@@ -26,13 +26,16 @@
  *
  * // Trigger the mocked mutation
  * await trigger({ name: 'John' });
- * ```
  */
 
 import {
   ApiEndpointMutation,
   ApiEndpointQuery,
 } from '@reduxjs/toolkit/dist/query/core/module';
+// import {
+//   UseQuery,
+//   UseMutation,
+// } from '@reduxjs/toolkit/dist/query/react/buildHooks';
 import type {
   QueryDefinition,
   MutationDefinition,
@@ -40,19 +43,16 @@ import type {
 import { act } from '@testing-library/react';
 import * as React from 'react';
 
-/** Extracts return type from an RTK Query endpoint */
-type ExtractQueryData<Endpoint> = Endpoint extends ApiEndpointQuery<
-  QueryDefinition<any, any, any, infer ResultType>,
-  any
->
-  ? ResultType
-  : never;
-
-/** Extracts return type from an RTK Mutation endpoint */
-type ExtractMutationData<Endpoint> = Endpoint extends ApiEndpointMutation<
+/** Extracts return data type from an RTK Query or Mutation endpoint */
+type EndpointData<Endpoint> = Endpoint extends ApiEndpointMutation<
   MutationDefinition<any, any, any, infer ResultType>,
   any
 >
+  ? ResultType
+  : Endpoint extends ApiEndpointQuery<
+      QueryDefinition<any, any, any, infer ResultType>,
+      any
+    >
   ? ResultType
   : never;
 
@@ -78,8 +78,8 @@ type QueryHookResult<TData> = {
   currentData?: TData;
 };
 
-/** Configuration options for mocking a query */
-type MockQueryOptions<TData> = {
+/** Configuration state for mocking a query */
+type MockQueryState<TData> = {
   data?: RecursivePartial<TData>;
   error?: { message: string };
   isLoading?: boolean;
@@ -87,8 +87,8 @@ type MockQueryOptions<TData> = {
   isSuccess?: boolean;
 };
 
-/** Configuration options for mocking a mutation */
-type MockMutationOptions<TData> = {
+/** Configuration state for mocking a mutation */
+type MockMutationState<TData> = {
   data?: RecursivePartial<TData>;
   error?: { message: string };
 };
@@ -113,28 +113,37 @@ type MutationHookResult<TData> = [
   }
 ];
 
+// /** Extracts the useQuery hook type from an RTK Query endpoint */
+// type QueryHook<E> = E extends ApiEndpointQuery<infer QueryDefinition, any>
+//   ? UseQuery<QueryDefinition>
+//   : never;
+
+// /** Extracts the useMutation hook type from an RTK Query endpoint */
+// type MutationHook<E> = E extends ApiEndpointMutation<
+//   infer MutationDefinition,
+//   any
+// >
+//   ? UseMutation<MutationDefinition>
+//   : never;
+
 // Cache to store subscribers for each endpoint
 // Allows triggering re-renders when mock data changes
-const subscriberCache = new Map<
-  ApiEndpointQuery<any, any> | ApiEndpointMutation<any, any>,
-  Set<(data: any) => void>
->();
+const subscriberCache = new Map<string, Set<(data: any) => void>>();
 
 /** Mocks an RTK Query endpoint for testing */
 export function mockQuery<E extends ApiEndpointQuery<any, any>>(
   endpoint: E,
-  options: MockQueryOptions<ExtractQueryData<E>> = {}
+  state: MockQueryState<EndpointData<E>> = {}
 ) {
-  type DataType = ExtractQueryData<E>;
   const {
     data = undefined,
     error = undefined,
     isLoading = false,
     isError = !!error,
     isSuccess = !!data,
-  } = options;
+  } = state;
 
-  const mockResult: QueryHookResult<DataType> = {
+  const mockResult: QueryHookResult<EndpointData<E>> = {
     data,
     error,
     isLoading,
@@ -143,16 +152,16 @@ export function mockQuery<E extends ApiEndpointQuery<any, any>>(
     isUninitialized: false,
     isFetching: isLoading,
     refetch: jest.fn(),
-    currentData: data as DataType,
+    currentData: data as EndpointData<E>,
   };
 
-  if (!subscriberCache.has(endpoint)) {
-    subscriberCache.set(endpoint, new Set());
+  if (!subscriberCache.has(endpoint.name)) {
+    subscriberCache.set(endpoint.name, new Set());
   }
-  const subscribers = subscriberCache.get(endpoint);
+  const subscribers = subscriberCache.get(endpoint.name);
   if (!subscribers) throw new Error('Subscriber cache error');
 
-  const mockFn = jest.fn().mockImplementation(() => {
+  const hookMock = jest.fn().mockImplementation(() => {
     const [result, setResult] = React.useState(mockResult);
 
     React.useEffect(() => {
@@ -175,30 +184,29 @@ export function mockQuery<E extends ApiEndpointQuery<any, any>>(
     });
   }
 
-  jest.spyOn(endpoint, 'useQuery' as any).mockImplementation(mockFn as any);
-  return mockFn;
+  jest.spyOn(endpoint, 'useQuery' as any).mockImplementation(hookMock as any);
+  return hookMock;
 }
 
 /** Mocks an RTK Mutation endpoint for testing */
 export function mockMutation<E extends ApiEndpointMutation<any, any>>(
   endpoint: E,
-  options: MockMutationOptions<ExtractMutationData<E>> = {}
+  state: MockMutationState<EndpointData<E>> = {}
 ) {
-  type DataType = ExtractQueryData<E>;
-  const { data = undefined, error = undefined } = options;
+  const { data = undefined, error = undefined } = state;
 
-  if (!subscriberCache.has(endpoint)) {
-    subscriberCache.set(endpoint, new Set());
+  if (!subscriberCache.has(endpoint.name)) {
+    subscriberCache.set(endpoint.name, new Set());
   }
-  const subscribers = subscriberCache.get(endpoint);
+  const subscribers = subscriberCache.get(endpoint.name);
   if (!subscribers) throw new Error('Subscriber cache error');
 
   const trigger = jest.fn().mockResolvedValue({ data, error });
 
-  const hookResult: MutationHookResult<DataType> = [
-    trigger as MutationTrigger<DataType>,
+  const hookResult: MutationHookResult<EndpointData<E>> = [
+    trigger as MutationTrigger<EndpointData<E>>,
     {
-      data: data as DataType,
+      data: data as EndpointData<E>,
       error,
       isLoading: false,
       isError: !!error,
@@ -208,7 +216,7 @@ export function mockMutation<E extends ApiEndpointMutation<any, any>>(
     },
   ];
 
-  const mockFn = jest.fn().mockImplementation(() => {
+  const hookMock = jest.fn().mockImplementation(() => {
     const [result, setResult] = React.useState(hookResult);
 
     React.useEffect(() => {
@@ -231,6 +239,8 @@ export function mockMutation<E extends ApiEndpointMutation<any, any>>(
     });
   }
 
-  jest.spyOn(endpoint, 'useMutation' as any).mockImplementation(mockFn as any);
-  return { mockFn, trigger };
+  jest
+    .spyOn(endpoint, 'useMutation' as any)
+    .mockImplementation(hookMock as any);
+  return { mockFn: hookMock, trigger };
 }
