@@ -70,9 +70,9 @@ describe('RTK Query Mocking Tests', () => {
   test('mockQuery handles successful query responses', async () => {
     const mockData = { user: 'testUser', id: 1 };
 
-    mockQuery(getMe, {
+    mockQuery(getMe, () => ({
       data: mockData,
-    });
+    }));
 
     TestWrapper(<TestQueryComponent />);
 
@@ -85,10 +85,10 @@ describe('RTK Query Mocking Tests', () => {
   test('mockQuery handles error responses', async () => {
     const errorMessage = 'Not authorized';
 
-    mockQuery(getMe, {
+    mockQuery(getMe, () => ({
       error: { message: errorMessage },
       isError: true,
-    });
+    }));
 
     TestWrapper(<TestQueryComponent />);
 
@@ -99,9 +99,9 @@ describe('RTK Query Mocking Tests', () => {
   });
 
   test('mockQuery handles loading state', () => {
-    mockQuery(getMe, {
+    mockQuery(getMe, () => ({
       isLoading: true,
-    });
+    }));
 
     TestWrapper(<TestQueryComponent />);
 
@@ -112,95 +112,166 @@ describe('RTK Query Mocking Tests', () => {
 
   test('mockMutation handles successful mutation', async () => {
     const mockData = { token: { token: 'test-token' } };
-    mockMutation(loginCreate, {
-      data: mockData,
-    });
 
-    TestWrapper(<TestMutationComponent />);
-
-    const triggerButton = screen.getByTestId('trigger-button');
-    fireEvent.click(triggerButton);
-
-    await waitFor(() => {
-      const dataElement = screen.getByTestId('mutation-data');
-      expect(dataElement).toHaveTextContent(JSON.stringify(mockData));
-    });
-    expect(screen.queryByTestId('mutation-error')).not.toBeInTheDocument();
-  });
-
-  test('mockMutation handles error responses', async () => {
-    const errorMessage = 'Invalid credentials';
-    mockMutation(loginCreate, {
-      error: { message: errorMessage },
-    });
-
-    TestWrapper(<TestMutationComponent />);
-
-    const triggerButton = screen.getByTestId('trigger-button');
-    fireEvent.click(triggerButton);
-
-    await waitFor(() => {
-      const errorElement = screen.getByTestId('mutation-error');
-      expect(errorElement).toHaveTextContent(errorMessage);
-    });
-    expect(screen.queryByTestId('mutation-data')).not.toBeInTheDocument();
-  });
-
-  test('mockQuery updates subscribers when called multiple times', async () => {
-    const initialData = { user: 'initial', id: 1 };
-    mockQuery(getMe, { data: initialData });
-
-    TestWrapper(<TestQueryComponent />);
-
-    expect(screen.getByTestId('data')).toHaveTextContent(
-      JSON.stringify(initialData)
+    // Simplified mock setup
+    mockMutation(
+      loginCreate,
+      { isLoading: false }, // initial state
+      () => {
+        return { data: mockData, isSuccess: true };
+      } // callback state
     );
 
-    // Update with new data
-    const updatedData = { user: 'updated', id: 2 };
-    mockQuery(getMe, { data: updatedData });
+    TestWrapper(<TestMutationComponent />);
 
-    // Should automatically update subscribers
+    const triggerButton = screen.getByTestId('trigger-button');
+    fireEvent.click(triggerButton);
+
     await waitFor(() => {
-      expect(screen.getByTestId('data')).toHaveTextContent(
-        JSON.stringify(updatedData)
+      expect(screen.getByTestId('mutation-data')).toHaveTextContent(
+        JSON.stringify(mockData)
       );
     });
   });
+  test('mockMutation handles loading state', async () => {
+    mockMutation(loginCreate, { isLoading: false }, () => ({
+      isLoading: true,
+    }));
 
-  test('mockQuery refetch functionality', async () => {
-    const initialData = { user: 'initial', id: 1 };
-    const mockFn = mockQuery(getMe, { data: initialData });
+    TestWrapper(<TestMutationComponent />);
 
-    TestWrapper(<TestQueryComponent />);
+    const triggerButton = screen.getByTestId('trigger-button');
+    fireEvent.click(triggerButton);
 
-    expect(screen.getByTestId('data')).toHaveTextContent(
-      JSON.stringify(initialData)
+    await waitFor(() => {
+      expect(screen.queryByTestId('mutation-data')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('mutation-error')).not.toBeInTheDocument();
+    });
+  });
+
+  test('mockMutation handles error state', async () => {
+    const errorMessage = 'Authentication failed';
+
+    mockMutation(loginCreate, { isLoading: false }, () => ({
+      error: { message: errorMessage },
+      isError: true,
+    }));
+
+    TestWrapper(<TestMutationComponent />);
+
+    const triggerButton = screen.getByTestId('trigger-button');
+    fireEvent.click(triggerButton);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('mutation-error')).toHaveTextContent(
+        errorMessage
+      );
+      expect(screen.queryByTestId('mutation-data')).not.toBeInTheDocument();
+    });
+  });
+
+  test('mockMutation handles state transitions', async () => {
+    let currentState = { isLoading: false };
+
+    mockMutation(loginCreate, currentState, () => {
+      currentState = { isLoading: true };
+      return currentState;
+    });
+
+    TestWrapper(<TestMutationComponent />);
+
+    const triggerButton = screen.getByTestId('trigger-button');
+    fireEvent.click(triggerButton);
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('mutation-data')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('mutation-error')).not.toBeInTheDocument();
+    });
+  });
+
+  test('mockMutation reset functionality', async () => {
+    const mockData = { token: { token: 'test-token' } };
+
+    const { resetFromTest } = mockMutation(
+      loginCreate,
+      { isLoading: false },
+      () => ({
+        data: mockData,
+        isSuccess: true,
+      })
     );
 
-    // Verify mock function was called
-    expect(mockFn).toHaveBeenCalled();
+    TestWrapper(<TestMutationComponent />);
+
+    // Trigger the mutation by clicking the button
+    const triggerButton = screen.getByTestId('trigger-button');
+    fireEvent.click(triggerButton);
+
+    // Wait for the mutation data to appear
+    await waitFor(() => {
+      expect(screen.getByTestId('mutation-data')).toHaveTextContent(
+        JSON.stringify(mockData)
+      );
+    });
+
+    // Call reset
+    resetFromTest();
+
+    // Verify the mutation state has been cleared
+    await waitFor(() => {
+      expect(screen.queryByTestId('mutation-data')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('mutation-error')).not.toBeInTheDocument();
+    });
   });
 
-  test('mockMutation trigger returns expected data', async () => {
+  test('mockMutation cleanup on unmount', async () => {
     const mockData = { token: { token: 'test-token' } };
-    const { trigger } = mockMutation(loginCreate, {
+
+    mockMutation(loginCreate, { isLoading: false }, () => ({
       data: mockData,
+      isSuccess: true,
+    }));
+
+    const { unmount } = TestWrapper(<TestMutationComponent />);
+
+    // Trigger the mutation
+    const triggerButton = screen.getByTestId('trigger-button');
+    fireEvent.click(triggerButton);
+
+    // Wait for the data to appear
+    await waitFor(() => {
+      expect(screen.getByTestId('mutation-data')).toBeInTheDocument();
     });
 
-    // Test the trigger function directly
-    const response = await trigger({ user: 'test', password: 'test' });
-    expect(response.data).toEqual(mockData);
+    // Unmount the component
+    unmount();
+
+    // Verify cleanup (this is mostly for coverage as the effects are internal)
+    expect(screen.queryByTestId('mutation-data')).not.toBeInTheDocument();
   });
 
-  test('mockMutation trigger handles errors', async () => {
-    const errorMessage = 'Invalid credentials';
-    const { trigger } = mockMutation(loginCreate, {
-      error: { message: errorMessage },
-    });
+  test('mockMutation can be triggered from within a test', async () => {
+    const mockData = { token: { token: 'test-token' } };
 
-    // Test the trigger function directly
-    const response = await trigger({ user: 'test', password: 'test' });
-    expect(response.error).toEqual({ message: errorMessage });
+    const { triggerFromTest } = mockMutation(
+      loginCreate,
+      { isLoading: false },
+      () => ({
+        data: mockData,
+        isSuccess: true,
+      })
+    );
+
+    TestWrapper(<TestMutationComponent />);
+
+    // Trigger the mutation directly from the test
+    await triggerFromTest({ display: 'test-user' });
+
+    // Verify the component updated with the mock data
+    await waitFor(() => {
+      expect(screen.getByTestId('mutation-data')).toHaveTextContent(
+        JSON.stringify(mockData)
+      );
+    });
   });
 });
