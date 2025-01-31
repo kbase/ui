@@ -239,10 +239,7 @@ export function mockMutation<E extends ApiEndpointMutation<any, any>>(
 
     const newState = mutateCallback(...args);
     mutateCallbackResult = newState;
-
-    if (hookUpdateResult) {
-      if (hookUpdateResult) hookUpdateResult(getState());
-    }
+    if (hookUpdateResult) hookUpdateResult(getState());
 
     return getState();
   };
