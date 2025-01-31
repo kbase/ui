@@ -60,8 +60,8 @@ const orcidlinkApi = baseApi.injectEndpoints({
     >({
       query: ({ username, auth_username }) =>
         orcidlinkService({
-          method: 'create_linking_session',
-          params: [username, auth_username],
+          method: 'create-linking-session',
+          params: { username, auth_username },
         }),
     }),
 
@@ -71,8 +71,8 @@ const orcidlinkApi = baseApi.injectEndpoints({
     >({
       query: ({ username }) =>
         orcidlinkService({
-          method: 'delete_link',
-          params: [username],
+          method: 'delete-link',
+          params: { username },
         }),
     }),
 
@@ -82,8 +82,8 @@ const orcidlinkApi = baseApi.injectEndpoints({
     >({
       query: ({ username, owner_username }) =>
         orcidlinkService({
-          method: 'delete_own_link',
-          params: [username, owner_username],
+          method: 'delete-own-link',
+          params: { username, owner_username },
         }),
     }),
 
@@ -93,8 +93,8 @@ const orcidlinkApi = baseApi.injectEndpoints({
     >({
       query: ({ query }) =>
         orcidlinkService({
-          method: 'find_links',
-          params: [query],
+          method: 'find-links',
+          params: { query },
         }),
     }),
 
@@ -104,8 +104,8 @@ const orcidlinkApi = baseApi.injectEndpoints({
     >({
       query: ({ username }) =>
         orcidlinkService({
-          method: 'get_link',
-          params: [username],
+          method: 'get-link',
+          params: { username },
         }),
     }),
 
@@ -115,8 +115,8 @@ const orcidlinkApi = baseApi.injectEndpoints({
     >({
       query: ({ session_id, auth_username }) =>
         orcidlinkService({
-          method: 'get_linking_session',
-          params: [session_id, auth_username],
+          method: 'get-linking-session',
+          params: { session_id, auth_username },
         }),
     }),
 
@@ -126,8 +126,8 @@ const orcidlinkApi = baseApi.injectEndpoints({
     >({
       query: ({ username, auth_username }) =>
         orcidlinkService({
-          method: 'get_profile',
-          params: [username, auth_username],
+          method: 'get-profile',
+          params: { username, auth_username },
         }),
     }),
 
@@ -137,8 +137,8 @@ const orcidlinkApi = baseApi.injectEndpoints({
     >({
       query: ({ username, put_code }) =>
         orcidlinkService({
-          method: 'get_work',
-          params: [username, put_code],
+          method: 'get-work',
+          params: { username, put_code },
         }),
     }),
 
@@ -148,8 +148,8 @@ const orcidlinkApi = baseApi.injectEndpoints({
     >({
       query: ({ username }) =>
         orcidlinkService({
-          method: 'get_works',
-          params: [username],
+          method: 'get-works',
+          params: { username },
         }),
     }),
 
@@ -159,8 +159,8 @@ const orcidlinkApi = baseApi.injectEndpoints({
     >({
       query: ({ username, auth_username }) =>
         orcidlinkService({
-          method: 'is_linked',
-          params: [username, auth_username],
+          method: 'is-linked',
+          params: { username, auth_username },
         }),
     }),
 
@@ -170,8 +170,8 @@ const orcidlinkApi = baseApi.injectEndpoints({
     >({
       query: ({ username }) =>
         orcidlinkService({
-          method: 'other_link',
-          params: [username],
+          method: 'other-link',
+          params: { username },
         }),
     }),
 
@@ -181,8 +181,8 @@ const orcidlinkApi = baseApi.injectEndpoints({
     >({
       query: ({ username, owner_username }) =>
         orcidlinkService({
-          method: 'owner_link',
-          params: [username, owner_username],
+          method: 'owner-link',
+          params: { username, owner_username },
         }),
     }),
 
@@ -192,8 +192,8 @@ const orcidlinkApi = baseApi.injectEndpoints({
     >({
       query: ({ username, new_work }) =>
         orcidlinkService({
-          method: 'create_work',
-          params: [username, new_work],
+          method: 'create-work',
+          params: { username, new_work },
         }),
     }),
 
@@ -203,8 +203,8 @@ const orcidlinkApi = baseApi.injectEndpoints({
     >({
       query: ({ username, work_update }) =>
         orcidlinkService({
-          method: 'save_work',
-          params: [username, work_update],
+          method: 'save-work',
+          params: { username, work_update },
         }),
     }),
 
@@ -214,8 +214,8 @@ const orcidlinkApi = baseApi.injectEndpoints({
     >({
       query: ({ username, put_code }) =>
         orcidlinkService({
-          method: 'delete_work',
-          params: [username, put_code],
+          method: 'delete-work',
+          params: { username, put_code },
         }),
     }),
   }),

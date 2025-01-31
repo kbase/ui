@@ -15,6 +15,7 @@ export const Account: FC = () => {
     '/account/providers',
     '/account/logins',
     '/account/use-agreements',
+    '/account/orcidlink',
   ];
   const defaultTab = tabs.findIndex((tabPath) =>
     location.pathname.startsWith(tabPath)
@@ -62,6 +63,13 @@ export const Account: FC = () => {
             id="use-agreements-tab"
             aria-controls="use-agreements-tabpanel"
             onClick={() => navigate('use-agreements')}
+          />
+          <Tab
+            component="a"
+            label="OrcID Linking"
+            id="orcidlink"
+            aria-controls="orcidlink-tabpanel"
+            onClick={() => navigate('orcidlink')}
           />
         </Tabs>
         <Outlet />
