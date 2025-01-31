@@ -19,8 +19,10 @@ const orcidlinkService = jsonRpcService({
 interface orcidlinkParams {
   createLinkingSession: { username: string; auth_username: string };
   deleteLink: { username: string };
+  deleteLinkingSession: { session_id: string; auth_username: string };
   deleteOwnLink: { username: string; owner_username: string };
   findLinks: { query?: SearchQuery };
+  finishLinkingSession: { session_id: string; auth_username: string };
   getLink: { username: string };
   getLinkingSession: { session_id: string; auth_username: string };
   getProfile: { username: string; auth_username: string };
@@ -37,10 +39,12 @@ interface orcidlinkParams {
 interface orcidlinkResults {
   createLinkingSession: { session_id: string };
   deleteLink: void;
+  deleteLinkingSession: void;
   deleteOwnLink: void;
   findLinks: { links: LinkRecordPublic[] };
+  finishLinkingSession: void;
   getLink: { link: LinkRecordPublic };
-  getLinkingSession: { session: LinkRecordPublic };
+  getLinkingSession: LinkRecordPublic;
   getProfile: ORCIDProfile;
   getWork: { work: Work };
   getWorks: ORCIDWorkGroup[];
@@ -76,6 +80,17 @@ const orcidlinkApi = baseApi.injectEndpoints({
         }),
     }),
 
+    deleteLinkingSession: builder.mutation<
+      orcidlinkResults['deleteLinkingSession'],
+      orcidlinkParams['deleteLinkingSession']
+    >({
+      query: ({ session_id, auth_username }) =>
+        orcidlinkService({
+          method: 'delete-linking-session',
+          params: { session_id, auth_username },
+        }),
+    }),
+
     deleteOwnLink: builder.mutation<
       orcidlinkResults['deleteOwnLink'],
       orcidlinkParams['deleteOwnLink']
@@ -95,6 +110,17 @@ const orcidlinkApi = baseApi.injectEndpoints({
         orcidlinkService({
           method: 'find-links',
           params: { query },
+        }),
+    }),
+
+    finishLinkingSession: builder.mutation<
+      orcidlinkResults['finishLinkingSession'],
+      orcidlinkParams['finishLinkingSession']
+    >({
+      query: ({ session_id, auth_username }) =>
+        orcidlinkService({
+          method: 'finish-linking-session',
+          params: { session_id, auth_username },
         }),
     }),
 
@@ -224,8 +250,10 @@ const orcidlinkApi = baseApi.injectEndpoints({
 export const {
   createLinkingSession,
   deleteLink,
+  deleteLinkingSession,
   deleteOwnLink,
   findLinks,
+  finishLinkingSession,
   getLink,
   getLinkingSession,
   getProfile,
