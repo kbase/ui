@@ -38,7 +38,11 @@ import { UseAgreements } from '../features/account/UseAgreements';
 import { skipToken } from '@reduxjs/toolkit/dist/query';
 import { getMe } from '../common/api/authService';
 import { CDMRedirect } from '../features/cdm/CDMRedirect';
-import { OrcidLink } from '../features/account/OrcidLink';
+import {
+  OrcidLink,
+  OrcidLinkContinue,
+  OrcidLinkStatus,
+} from '../features/account/OrcidLink';
 
 export const LOGIN_ROUTE = '/login';
 export const SIGNUP_ROUTE = '/signup';
@@ -94,7 +98,11 @@ const Routes: FC = () => {
           path="use-agreements"
           element={<Authed element={<UseAgreements />} />}
         />
-        <Route path="orcidlink" element={<Authed element={<OrcidLink />} />} />
+        <Route path="orcidlink" element={<Authed element={<OrcidLink />} />}>
+          <Route index element={<OrcidLinkStatus />} />
+          <Route path="continue/:sessionId" element={<OrcidLinkContinue />} />
+          <Route path="orcidlink/error" element={<></>} />
+        </Route>
       </Route>
 
       {/* Navigator */}
