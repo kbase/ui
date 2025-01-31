@@ -14,6 +14,8 @@ class ParamsClass {
     readonly view: string | null = 'data',
     // Matching
     readonly match: string | null = null,
+    // Orcidlink
+    readonly sessionId: string | null = null,
     //
     // Search parameter whitelist for kbase-ui and plugins. If one encounters a
     // search parameter which is mysteriously disappearing or causing a route to
