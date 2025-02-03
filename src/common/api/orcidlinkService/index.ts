@@ -56,196 +56,215 @@ interface orcidlinkResults {
   deleteWork: void;
 }
 
-const orcidlinkApi = baseApi.injectEndpoints({
-  endpoints: (builder) => ({
-    createLinkingSession: builder.mutation<
-      orcidlinkResults['createLinkingSession'],
-      orcidlinkParams['createLinkingSession']
-    >({
-      query: ({ username, auth_username }) =>
-        orcidlinkService({
-          method: 'create-linking-session',
-          params: { username, auth_username },
-        }),
-    }),
+const orcidlinkApi = baseApi
+  .enhanceEndpoints({ addTagTypes: ['OrcidLink'] })
+  .injectEndpoints({
+    endpoints: (builder) => ({
+      createLinkingSession: builder.mutation<
+        orcidlinkResults['createLinkingSession'],
+        orcidlinkParams['createLinkingSession']
+      >({
+        query: ({ username, auth_username }) =>
+          orcidlinkService({
+            method: 'create-linking-session',
+            params: { username, auth_username },
+          }),
+        invalidatesTags: ['OrcidLink'],
+      }),
 
-    deleteLink: builder.mutation<
-      orcidlinkResults['deleteLink'],
-      orcidlinkParams['deleteLink']
-    >({
-      query: ({ username }) =>
-        orcidlinkService({
-          method: 'delete-link',
-          params: { username },
-        }),
-    }),
+      deleteLink: builder.mutation<
+        orcidlinkResults['deleteLink'],
+        orcidlinkParams['deleteLink']
+      >({
+        query: ({ username }) =>
+          orcidlinkService({
+            method: 'delete-link',
+            params: { username },
+          }),
+        invalidatesTags: ['OrcidLink'],
+      }),
 
-    deleteLinkingSession: builder.mutation<
-      orcidlinkResults['deleteLinkingSession'],
-      orcidlinkParams['deleteLinkingSession']
-    >({
-      query: ({ session_id, auth_username }) =>
-        orcidlinkService({
-          method: 'delete-linking-session',
-          params: { session_id, auth_username },
-        }),
-    }),
+      deleteLinkingSession: builder.mutation<
+        orcidlinkResults['deleteLinkingSession'],
+        orcidlinkParams['deleteLinkingSession']
+      >({
+        query: ({ session_id, auth_username }) =>
+          orcidlinkService({
+            method: 'delete-linking-session',
+            params: { session_id, auth_username },
+          }),
+        invalidatesTags: ['OrcidLink'],
+      }),
 
-    deleteOwnLink: builder.mutation<
-      orcidlinkResults['deleteOwnLink'],
-      orcidlinkParams['deleteOwnLink']
-    >({
-      query: ({ username, owner_username }) =>
-        orcidlinkService({
-          method: 'delete-own-link',
-          params: { username, owner_username },
-        }),
-    }),
+      deleteOwnLink: builder.mutation<
+        orcidlinkResults['deleteOwnLink'],
+        orcidlinkParams['deleteOwnLink']
+      >({
+        query: ({ username, owner_username }) =>
+          orcidlinkService({
+            method: 'delete-own-link',
+            params: { username, owner_username },
+          }),
+        invalidatesTags: ['OrcidLink'],
+      }),
 
-    findLinks: builder.query<
-      orcidlinkResults['findLinks'],
-      orcidlinkParams['findLinks']
-    >({
-      query: ({ query }) =>
-        orcidlinkService({
-          method: 'find-links',
-          params: { query },
-        }),
-    }),
+      findLinks: builder.query<
+        orcidlinkResults['findLinks'],
+        orcidlinkParams['findLinks']
+      >({
+        query: ({ query }) =>
+          orcidlinkService({
+            method: 'find-links',
+            params: { query },
+          }),
+        providesTags: ['OrcidLink'],
+      }),
 
-    finishLinkingSession: builder.mutation<
-      orcidlinkResults['finishLinkingSession'],
-      orcidlinkParams['finishLinkingSession']
-    >({
-      query: ({ session_id, auth_username }) =>
-        orcidlinkService({
-          method: 'finish-linking-session',
-          params: { session_id, auth_username },
-        }),
-    }),
+      finishLinkingSession: builder.mutation<
+        orcidlinkResults['finishLinkingSession'],
+        orcidlinkParams['finishLinkingSession']
+      >({
+        query: ({ session_id, auth_username }) =>
+          orcidlinkService({
+            method: 'finish-linking-session',
+            params: { session_id, auth_username },
+          }),
+        invalidatesTags: ['OrcidLink'],
+      }),
 
-    getLink: builder.query<
-      orcidlinkResults['getLink'],
-      orcidlinkParams['getLink']
-    >({
-      query: ({ username }) =>
-        orcidlinkService({
-          method: 'get-link',
-          params: { username },
-        }),
-    }),
+      getLink: builder.query<
+        orcidlinkResults['getLink'],
+        orcidlinkParams['getLink']
+      >({
+        query: ({ username }) =>
+          orcidlinkService({
+            method: 'get-link',
+            params: { username },
+          }),
+        providesTags: ['OrcidLink'],
+      }),
 
-    getLinkingSession: builder.query<
-      orcidlinkResults['getLinkingSession'],
-      orcidlinkParams['getLinkingSession']
-    >({
-      query: ({ session_id, auth_username }) =>
-        orcidlinkService({
-          method: 'get-linking-session',
-          params: { session_id, auth_username },
-        }),
-    }),
+      getLinkingSession: builder.query<
+        orcidlinkResults['getLinkingSession'],
+        orcidlinkParams['getLinkingSession']
+      >({
+        query: ({ session_id, auth_username }) =>
+          orcidlinkService({
+            method: 'get-linking-session',
+            params: { session_id, auth_username },
+          }),
+        providesTags: ['OrcidLink'],
+      }),
 
-    getProfile: builder.query<
-      orcidlinkResults['getProfile'],
-      orcidlinkParams['getProfile']
-    >({
-      query: ({ username, auth_username }) =>
-        orcidlinkService({
-          method: 'get-profile',
-          params: { username, auth_username },
-        }),
-    }),
+      getProfile: builder.query<
+        orcidlinkResults['getProfile'],
+        orcidlinkParams['getProfile']
+      >({
+        query: ({ username, auth_username }) =>
+          orcidlinkService({
+            method: 'get-profile',
+            params: { username, auth_username },
+          }),
+        providesTags: ['OrcidLink'],
+      }),
 
-    getWork: builder.query<
-      orcidlinkResults['getWork'],
-      orcidlinkParams['getWork']
-    >({
-      query: ({ username, put_code }) =>
-        orcidlinkService({
-          method: 'get-work',
-          params: { username, put_code },
-        }),
-    }),
+      getWork: builder.query<
+        orcidlinkResults['getWork'],
+        orcidlinkParams['getWork']
+      >({
+        query: ({ username, put_code }) =>
+          orcidlinkService({
+            method: 'get-work',
+            params: { username, put_code },
+          }),
+        providesTags: ['OrcidLink'],
+      }),
 
-    getWorks: builder.query<
-      orcidlinkResults['getWorks'],
-      orcidlinkParams['getWorks']
-    >({
-      query: ({ username }) =>
-        orcidlinkService({
-          method: 'get-works',
-          params: { username },
-        }),
-    }),
+      getWorks: builder.query<
+        orcidlinkResults['getWorks'],
+        orcidlinkParams['getWorks']
+      >({
+        query: ({ username }) =>
+          orcidlinkService({
+            method: 'get-works',
+            params: { username },
+          }),
+        providesTags: ['OrcidLink'],
+      }),
 
-    isLinked: builder.query<
-      orcidlinkResults['isLinked'],
-      orcidlinkParams['isLinked']
-    >({
-      query: ({ username, auth_username }) =>
-        orcidlinkService({
-          method: 'is-linked',
-          params: { username, auth_username },
-        }),
-    }),
+      isLinked: builder.query<
+        orcidlinkResults['isLinked'],
+        orcidlinkParams['isLinked']
+      >({
+        query: ({ username, auth_username }) =>
+          orcidlinkService({
+            method: 'is-linked',
+            params: { username, auth_username },
+          }),
+        providesTags: ['OrcidLink'],
+      }),
 
-    otherLink: builder.query<
-      orcidlinkResults['otherLink'],
-      orcidlinkParams['otherLink']
-    >({
-      query: ({ username }) =>
-        orcidlinkService({
-          method: 'other-link',
-          params: { username },
-        }),
-    }),
+      otherLink: builder.query<
+        orcidlinkResults['otherLink'],
+        orcidlinkParams['otherLink']
+      >({
+        query: ({ username }) =>
+          orcidlinkService({
+            method: 'other-link',
+            params: { username },
+          }),
+        providesTags: ['OrcidLink'],
+      }),
 
-    ownerLink: builder.query<
-      orcidlinkResults['ownerLink'],
-      orcidlinkParams['ownerLink']
-    >({
-      query: ({ username, owner_username }) =>
-        orcidlinkService({
-          method: 'owner-link',
-          params: { username, owner_username },
-        }),
-    }),
+      ownerLink: builder.query<
+        orcidlinkResults['ownerLink'],
+        orcidlinkParams['ownerLink']
+      >({
+        query: ({ username, owner_username }) =>
+          orcidlinkService({
+            method: 'owner-link',
+            params: { username, owner_username },
+          }),
+        providesTags: ['OrcidLink'],
+      }),
 
-    createWork: builder.mutation<
-      orcidlinkResults['createWork'],
-      orcidlinkParams['createWork']
-    >({
-      query: ({ username, new_work }) =>
-        orcidlinkService({
-          method: 'create-work',
-          params: { username, new_work },
-        }),
-    }),
+      createWork: builder.mutation<
+        orcidlinkResults['createWork'],
+        orcidlinkParams['createWork']
+      >({
+        query: ({ username, new_work }) =>
+          orcidlinkService({
+            method: 'create-work',
+            params: { username, new_work },
+          }),
+        invalidatesTags: ['OrcidLink'],
+      }),
 
-    saveWork: builder.mutation<
-      orcidlinkResults['saveWork'],
-      orcidlinkParams['saveWork']
-    >({
-      query: ({ username, work_update }) =>
-        orcidlinkService({
-          method: 'save-work',
-          params: { username, work_update },
-        }),
-    }),
+      saveWork: builder.mutation<
+        orcidlinkResults['saveWork'],
+        orcidlinkParams['saveWork']
+      >({
+        query: ({ username, work_update }) =>
+          orcidlinkService({
+            method: 'save-work',
+            params: { username, work_update },
+          }),
+        invalidatesTags: ['OrcidLink'],
+      }),
 
-    deleteWork: builder.mutation<
-      orcidlinkResults['deleteWork'],
-      orcidlinkParams['deleteWork']
-    >({
-      query: ({ username, put_code }) =>
-        orcidlinkService({
-          method: 'delete-work',
-          params: { username, put_code },
-        }),
+      deleteWork: builder.mutation<
+        orcidlinkResults['deleteWork'],
+        orcidlinkParams['deleteWork']
+      >({
+        query: ({ username, put_code }) =>
+          orcidlinkService({
+            method: 'delete-work',
+            params: { username, put_code },
+          }),
+        invalidatesTags: ['OrcidLink'],
+      }),
     }),
-  }),
-});
+  });
 
 export const {
   createLinkingSession,

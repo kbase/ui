@@ -1,4 +1,4 @@
-import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
+import { faInfoCircle, faX } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   isLinked,
@@ -6,6 +6,7 @@ import {
   getLinkingSession,
   deleteLinkingSession,
   finishLinkingSession,
+  deleteOwnLink,
 } from '../../common/api/orcidlinkService';
 import { Button, Stack, Tooltip, Typography } from '@mui/material';
 import { useCallback } from 'react';
@@ -14,11 +15,12 @@ import { skipToken } from '@reduxjs/toolkit/dist/query';
 import { Outlet, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { parseError } from '../../common/api/utils/parseError';
+import { Loader } from '../../common/components';
 
 /**
  * Content for the Log In Sessions tab in the Account page
  */
-export const OrcidLink = ({ error = false }: { error?: boolean }) => {
+export const OrcidLink = () => {
   const username = useAppSelector((s) => s.auth.username);
 
   return (
@@ -75,29 +77,72 @@ export const OrcidLinkStatus = () => {
 
   const [triggerCreate, createResult] = createLinkingSession.useMutation();
 
-  const doCreate = useCallback(() => {
+  const doCreate = useCallback(async () => {
     if (!username) return;
-    triggerCreate({ username: username, auth_username: username });
+    const result = await triggerCreate({
+      username: username,
+      auth_username: username,
+    });
+    if ('data' in result) {
+      const { session_id } = result.data;
+      window.location.href = createStartUrl(session_id, window.location.href);
+    } else {
+      toast(parseError(result.error).message);
+    }
   }, [triggerCreate, username]);
 
-  const sessionId = createResult.data?.session_id;
+  const [triggerDelete, deleteResult] = deleteOwnLink.useMutation();
+
+  const doDelete = useCallback(async () => {
+    if (!username) return;
+    const result = await triggerDelete({
+      username: username,
+      owner_username: username,
+    });
+    if ('error' in result) {
+      toast(parseError(result.error).message);
+    }
+  }, [triggerDelete, username]);
 
   return (
     <Typography>
       {hasLink ? (
-        <Button color="success" variant="outlined">
-          Already Linked
-        </Button>
+        <>
+          <Button color="success" variant="outlined">
+            Already Linked
+          </Button>
+          <Button
+            color="error"
+            variant="contained"
+            onClick={doDelete}
+            endIcon={
+              deleteResult.isLoading ? (
+                <Loader />
+              ) : deleteResult.error ? (
+                <FontAwesomeIcon icon={faX} />
+              ) : null
+            }
+            disabled={deleteResult.isLoading}
+          >
+            Remove Link
+          </Button>
+        </>
       ) : (
         <>
-          <Button variant="contained" onClick={doCreate}>
+          <Button
+            variant="contained"
+            onClick={doCreate}
+            endIcon={
+              createResult.isLoading ? (
+                <Loader />
+              ) : createResult.error ? (
+                <FontAwesomeIcon icon={faX} />
+              ) : null
+            }
+            disabled={createResult.isLoading}
+          >
             Create Link
           </Button>
-          {sessionId ? (
-            <a href={createStartUrl(sessionId, window.location.href)}>
-              Do Link
-            </a>
-          ) : null}
         </>
       )}
     </Typography>
