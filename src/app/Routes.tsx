@@ -42,6 +42,7 @@ import {
   OrcidLink,
   OrcidLinkContinue,
   OrcidLinkStatus,
+  OrcidLinkError,
 } from '../features/account/OrcidLink';
 
 export const LOGIN_ROUTE = '/login';
@@ -100,8 +101,8 @@ const Routes: FC = () => {
         />
         <Route path="orcidlink" element={<Authed element={<OrcidLink />} />}>
           <Route index element={<OrcidLinkStatus />} />
+          <Route path="continue/error" element={<OrcidLinkError />} />
           <Route path="continue/:sessionId" element={<OrcidLinkContinue />} />
-          <Route path="orcidlink/error" element={<></>} />
         </Route>
       </Route>
 
