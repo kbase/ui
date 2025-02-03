@@ -38,6 +38,8 @@ class ParamsClass {
     // for landing pages
     readonly sub: string | null = null,
     readonly subid: string | null = null,
+    // Orcidlink
+    readonly sessionId: string | null = null,
     // orcidlink linking params
     readonly skip_prompt: string | null = null,
     readonly ui_options: string | null = null,
