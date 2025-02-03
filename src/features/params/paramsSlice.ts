@@ -14,8 +14,6 @@ class ParamsClass {
     readonly view: string | null = 'data',
     // Matching
     readonly match: string | null = null,
-    // Orcidlink
-    readonly sessionId: string | null = null,
     //
     // Search parameter whitelist for kbase-ui and plugins. If one encounters a
     // search parameter which is mysteriously disappearing or causing a route to
@@ -40,6 +38,8 @@ class ParamsClass {
     // for landing pages
     readonly sub: string | null = null,
     readonly subid: string | null = null,
+    // Orcidlink
+    readonly sessionId: string | null = null,
     // orcidlink linking params
     readonly skip_prompt: string | null = null,
     readonly ui_options: string | null = null,
