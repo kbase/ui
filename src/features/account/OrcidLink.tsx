@@ -16,6 +16,7 @@ import { Outlet, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { parseError } from '../../common/api/utils/parseError';
 import { Loader } from '../../common/components';
+import { useAppParam } from '../params/hooks';
 
 /**
  * Content for the Log In Sessions tab in the Account page
@@ -210,6 +211,28 @@ export const OrcidLinkContinue = () => {
         </Button>
         <Button variant="outlined" color="error" onClick={doCancelSession}>
           Cancel Link
+        </Button>
+      </Stack>
+    </Stack>
+  );
+};
+
+export const OrcidLinkError = () => {
+  const code = useAppParam('code');
+  const message = useAppParam('message');
+  const navigate = useNavigate();
+  return (
+    <Stack>
+      <Typography>Something went wrong.</Typography>
+      <Typography>Code: {code}</Typography>
+      <Typography>Message: {message}</Typography>
+      <Stack direction="row" spacing={2}>
+        <Button
+          variant="contained"
+          color="warning"
+          onClick={() => navigate('/account/orcidlink')}
+        >
+          Try again
         </Button>
       </Stack>
     </Stack>
