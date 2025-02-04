@@ -14,16 +14,18 @@ import {
   faQuestionCircle,
   faServer,
   faNoteSticky,
+  faDatabase,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
 import { FC, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { getFeedsUnseenCount } from '../../common/api/feedsService';
 import { useAppSelector } from '../../common/hooks';
-import { authMe, authToken } from '../auth/authSlice';
-import { useAuthMe } from '../auth/hooks';
+import { authToken } from '../auth/authSlice';
 import classes from './LeftNavBar.module.scss';
 import { Button, Menu, MenuItem } from '@mui/material';
+import { getMe } from '../../common/api/authService';
+import { skipToken } from '@reduxjs/toolkit/dist/query';
 
 const LeftNavBar: FC = () => {
   const token = useAppSelector(authToken);
@@ -64,7 +66,14 @@ const LeftNavBar: FC = () => {
           badge={'beta'}
           badgeColor={'primary'}
         />
-        <DevNav />
+        <NavItem
+          path="/cdm"
+          desc="CDM"
+          icon={faDatabase}
+          badge={'alpha'}
+          badgeColor={'warning'}
+          requiredRole="CDM_JUPYTERHUB_ADMIN"
+        />
       </ul>
       <ul className={classes.nav_list}>
         <Button
@@ -144,44 +153,26 @@ const LeftNavBar: FC = () => {
   );
 };
 
-const devDomains = new Set(['', 'ci-europa.kbase.us']);
-
-/** Hidden navigation items for devs */
-const DevNav: FC = () => {
-  const me = useAppSelector(authMe);
-  useAuthMe();
-  // Show DevNav if the devDomains set contains the REACT_APP_KBASE_DOMAIN.
-  const devDomain = devDomains.has(process.env.REACT_APP_KBASE_DOMAIN || '');
-  const customroles = me && new Set(me.customroles);
-  const devRole = customroles && customroles.has('UI_COLLECTIONS');
-  const dev = devDomain || devRole;
-  if (!me || !dev) return <></>;
-  return (
-    <>
-      {/* Nothing here now, heres an example:
-      <NavItem
-        path="/collections"
-        desc="Collections"
-        icon={faLayerGroup}
-        badge={'beta'}
-        badgeColor={'primary'}
-      /> */}
-    </>
-  );
-};
-
 const NavItem: FC<{
   path: string;
   desc: string;
   icon: IconDefinition;
   badge?: number | string;
   badgeColor?: string;
-}> = ({ path, desc, icon, badge, badgeColor }) => {
+  requiredRole?: string;
+}> = ({ path, desc, icon, badge, badgeColor, requiredRole }) => {
   const location = useLocation();
+  const token = useAppSelector(authToken);
+  const { data: me } = getMe.useQuery(token ? { token } : skipToken);
+  const myRoles = new Set([
+    ...(me?.roles.map((r) => r.id) || []),
+    ...(me?.customroles || []),
+  ]);
   let itemClasses = classes.nav_item;
   if (location.pathname === path) {
     itemClasses += ` ${classes.active}`;
   }
+  if (requiredRole && !myRoles.has(requiredRole)) return <></>;
   return (
     <li className={itemClasses} key={path}>
       <Link to={path}>
