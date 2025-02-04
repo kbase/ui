@@ -37,6 +37,9 @@ import { AccountInfo } from '../features/account/AccountInfo';
 import { LinkedProviders } from '../features/account/LinkedProviders';
 import { LogInSessions } from '../features/account/LogInSessions';
 import { UseAgreements } from '../features/account/UseAgreements';
+import { CDMRedirectPage } from '../features/cdm/CDMRedirectPage';
+import { skipToken } from '@reduxjs/toolkit/dist/query';
+import { getMe } from '../common/api/authService';
 
 export const LOGIN_ROUTE = '/login';
 export const SIGNUP_ROUTE = '/signup';
@@ -131,6 +134,17 @@ const Routes: FC = () => {
         <Route index element={<Authed element={<ORCIDLinkCreateLink />} />} />
       </Route>
 
+      {/* CDM */}
+      <Route
+        path="cdm"
+        element={
+          <Authed
+            roles={['CDM_JUPYTERHUB_ADMIN']}
+            element={<CDMRedirectPage />}
+          />
+        }
+      />
+
       {/* IFrame Fallback Routes */}
       <Route path="/fallback">
         <Route
@@ -155,9 +169,21 @@ const Routes: FC = () => {
   );
 };
 
-export const Authed: FC<{ element: ReactElement }> = ({ element }) => {
+export const Authed: FC<{ element: ReactElement; roles?: string[] }> = ({
+  element,
+  roles,
+}) => {
   const token = useAppSelector((state) => state.auth.token);
   const location = useLocation();
+
+  const { data: me } = getMe.useQuery(token ? { token } : skipToken);
+  const myRoles = new Set([
+    ...(me?.roles.map((r) => r.id) || []),
+    ...(me?.customroles || []),
+  ]);
+  const specifiedRolesPresent =
+    roles?.length && roles.every((role) => myRoles.has(role));
+
   if (!token) {
     return (
       <Navigate
@@ -170,6 +196,10 @@ export const Authed: FC<{ element: ReactElement }> = ({ element }) => {
         replace
       />
     );
+  }
+
+  if (roles && !specifiedRolesPresent) {
+    return <PageNotFound />;
   }
 
   return <>{element}</>;
