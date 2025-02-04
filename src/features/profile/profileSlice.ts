@@ -48,13 +48,14 @@ export const useLoggedInProfileUser = (username?: string) => {
 
   useEffect(() => {
     if (query.isSuccess) {
-      // App should crash if profile DNE
-      if (!(query.data && query.data[0][0])) {
-        throw query.error;
-      }
       // Set the logged in profile once it loads
-      if (query.isSuccess && query.data[0][0].user.username !== profileUser) {
+      // If profile DNE, (eg auth service local user), set profile to undefined
+      if (!query.data[0][0]) {
+        dispatch(setLoggedInProfile(undefined));
+      } else if (query.data[0][0].user.username !== profileUser) {
         dispatch(setLoggedInProfile(query.data[0][0]));
+      } else {
+        throw new Error('loading profile failed');
       }
     }
   }, [dispatch, profileUser, query.data, query.error, query.isSuccess]);
