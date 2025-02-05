@@ -17,7 +17,7 @@ import {
   faDatabase,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
-import { FC, useRef, useState } from 'react';
+import { FC, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { getFeedsUnseenCount } from '../../common/api/feedsService';
 import { useAppSelector } from '../../common/hooks';
@@ -26,7 +26,6 @@ import classes from './LeftNavBar.module.scss';
 import { Button, Menu, MenuItem } from '@mui/material';
 import { getMe } from '../../common/api/authService';
 import { skipToken } from '@reduxjs/toolkit/dist/query';
-import { CDMRedirectForm } from '../cdm/CDMRedirectForm';
 
 const LeftNavBar: FC = () => {
   const token = useAppSelector(authToken);
@@ -44,7 +43,6 @@ const LeftNavBar: FC = () => {
   const handleCloseMoreMenu = () => {
     setAnchorEl(null);
   };
-  const CDMRedirectFormSubmit = useRef<() => void>();
 
   return (
     <nav>
@@ -69,10 +67,7 @@ const LeftNavBar: FC = () => {
           badgeColor={'primary'}
         />
         <NavItem
-          path=""
-          onClick={() => {
-            if (CDMRedirectFormSubmit.current) CDMRedirectFormSubmit.current();
-          }}
+          path={'/cdm/redirect'}
           desc="CDM"
           icon={faDatabase}
           badge={'alpha'}
@@ -154,11 +149,6 @@ const LeftNavBar: FC = () => {
           </MenuItem>
         </Menu>
       </ul>
-      <CDMRedirectForm
-        ready={(submit) => {
-          CDMRedirectFormSubmit.current = submit;
-        }}
-      />
     </nav>
   );
 };

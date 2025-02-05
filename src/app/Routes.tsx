@@ -39,6 +39,7 @@ import { LogInSessions } from '../features/account/LogInSessions';
 import { UseAgreements } from '../features/account/UseAgreements';
 import { skipToken } from '@reduxjs/toolkit/dist/query';
 import { getMe } from '../common/api/authService';
+import { CDMRedirect } from '../features/cdm/CDMRedirect';
 
 export const LOGIN_ROUTE = '/login';
 export const SIGNUP_ROUTE = '/signup';
@@ -131,6 +132,11 @@ const Routes: FC = () => {
       </Route>
       <Route path="/orcidlink/link">
         <Route index element={<Authed element={<ORCIDLinkCreateLink />} />} />
+      </Route>
+
+      {/* CDM */}
+      <Route path="/cdm">
+        <Route path="redirect" element={<Authed element={<CDMRedirect />} />} />
       </Route>
 
       {/* IFrame Fallback Routes */}
