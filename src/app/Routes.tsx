@@ -37,7 +37,6 @@ import { AccountInfo } from '../features/account/AccountInfo';
 import { LinkedProviders } from '../features/account/LinkedProviders';
 import { LogInSessions } from '../features/account/LogInSessions';
 import { UseAgreements } from '../features/account/UseAgreements';
-import { CDMRedirectPage } from '../features/cdm/CDMRedirectPage';
 import { skipToken } from '@reduxjs/toolkit/dist/query';
 import { getMe } from '../common/api/authService';
 
@@ -133,17 +132,6 @@ const Routes: FC = () => {
       <Route path="/orcidlink/link">
         <Route index element={<Authed element={<ORCIDLinkCreateLink />} />} />
       </Route>
-
-      {/* CDM */}
-      <Route
-        path="cdm"
-        element={
-          <Authed
-            roles={['CDM_JUPYTERHUB_ADMIN']}
-            element={<CDMRedirectPage />}
-          />
-        }
-      />
 
       {/* IFrame Fallback Routes */}
       <Route path="/fallback">

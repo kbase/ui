@@ -17,7 +17,7 @@ import {
   faDatabase,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon as FAIcon } from '@fortawesome/react-fontawesome';
-import { FC, useState } from 'react';
+import { FC, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { getFeedsUnseenCount } from '../../common/api/feedsService';
 import { useAppSelector } from '../../common/hooks';
@@ -26,6 +26,7 @@ import classes from './LeftNavBar.module.scss';
 import { Button, Menu, MenuItem } from '@mui/material';
 import { getMe } from '../../common/api/authService';
 import { skipToken } from '@reduxjs/toolkit/dist/query';
+import { CDMRedirectForm } from '../cdm/CDMRedirectForm';
 
 const LeftNavBar: FC = () => {
   const token = useAppSelector(authToken);
@@ -43,6 +44,7 @@ const LeftNavBar: FC = () => {
   const handleCloseMoreMenu = () => {
     setAnchorEl(null);
   };
+  const CDMRedirectFormSubmit = useRef<() => void>();
 
   return (
     <nav>
@@ -67,7 +69,10 @@ const LeftNavBar: FC = () => {
           badgeColor={'primary'}
         />
         <NavItem
-          path="/cdm"
+          path=""
+          onClick={() => {
+            if (CDMRedirectFormSubmit.current) CDMRedirectFormSubmit.current();
+          }}
           desc="CDM"
           icon={faDatabase}
           badge={'alpha'}
@@ -149,18 +154,24 @@ const LeftNavBar: FC = () => {
           </MenuItem>
         </Menu>
       </ul>
+      <CDMRedirectForm
+        ready={(submit) => {
+          CDMRedirectFormSubmit.current = submit;
+        }}
+      />
     </nav>
   );
 };
 
 const NavItem: FC<{
   path: string;
+  onClick?: () => void;
   desc: string;
   icon: IconDefinition;
   badge?: number | string;
   badgeColor?: string;
   requiredRole?: string;
-}> = ({ path, desc, icon, badge, badgeColor, requiredRole }) => {
+}> = ({ path, onClick, desc, icon, badge, badgeColor, requiredRole }) => {
   const location = useLocation();
   const token = useAppSelector(authToken);
   const { data: me } = getMe.useQuery(token ? { token } : skipToken);
@@ -175,7 +186,7 @@ const NavItem: FC<{
   if (requiredRole && !myRoles.has(requiredRole)) return <></>;
   return (
     <li className={itemClasses} key={path}>
-      <Link to={path}>
+      <Link to={path} onClick={onClick}>
         <FAIcon className={classes.nav_icon} icon={icon} />
         <span className={classes.nav_desc}>{desc}</span>
         {badge ? (
