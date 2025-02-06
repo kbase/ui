@@ -47,18 +47,28 @@ export const useLoggedInProfileUser = (username?: string) => {
   );
 
   useEffect(() => {
-    if (query.isSuccess) {
+    if (query.isSuccess && query.data) {
       // Set the logged in profile once it loads
       // If profile DNE, (eg auth service local user), set profile to undefined
-      if (!query.data[0][0]) {
-        dispatch(setLoggedInProfile(undefined));
-      } else if (query.data[0][0].user.username !== profileUser) {
+      const queryUsername = query.data?.[0]?.[0]?.user?.username;
+      if (query.data[0][0] && queryUsername === username) {
         dispatch(setLoggedInProfile(query.data[0][0]));
-      } else {
-        throw new Error('loading profile failed');
+      } else if (!query.data[0][0]) {
+        // likely a local user, no profile!
+        setLoggedInProfile(undefined);
       }
     }
-  }, [dispatch, profileUser, query.data, query.error, query.isSuccess]);
+    if (query.error) {
+      throw query.error;
+    }
+  }, [
+    dispatch,
+    profileUser,
+    query.data,
+    query.error,
+    query.isSuccess,
+    username,
+  ]);
 
   return query;
 };
