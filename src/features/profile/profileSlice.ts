@@ -49,7 +49,6 @@ export const useLoggedInProfileUser = (username?: string) => {
   useEffect(() => {
     if (query.isSuccess && query.data) {
       // Set the logged in profile once it loads
-      // If profile DNE, (eg auth service local user), set profile to undefined
       const queryUsername = query.data?.[0]?.[0]?.user?.username;
       if (query.data[0][0] && queryUsername === username) {
         dispatch(setLoggedInProfile(query.data[0][0]));
