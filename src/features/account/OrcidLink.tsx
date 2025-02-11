@@ -1,4 +1,4 @@
-import { faInfoCircle, faX } from '@fortawesome/free-solid-svg-icons';
+import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   isLinked,
@@ -7,8 +7,19 @@ import {
   deleteLinkingSession,
   finishLinkingSession,
   deleteOwnLink,
+  ownerLink,
 } from '../../common/api/orcidlinkService';
-import { Button, Stack, Tooltip, Typography } from '@mui/material';
+import {
+  Button,
+  Card,
+  CardActions,
+  CardContent,
+  Grid,
+  Link,
+  Stack,
+  Tooltip,
+  Typography,
+} from '@mui/material';
 import { useCallback } from 'react';
 import { useAppSelector } from '../../common/hooks';
 import { skipToken } from '@reduxjs/toolkit/dist/query';
@@ -17,13 +28,12 @@ import { toast } from 'react-hot-toast';
 import { parseError } from '../../common/api/utils/parseError';
 import { Loader } from '../../common/components';
 import { useAppParam } from '../params/hooks';
+import { LabelValueTable } from '../../common/components/LabelValueTable';
 
 /**
  * Content for the Log In Sessions tab in the Account page
  */
 export const OrcidLink = () => {
-  const username = useAppSelector((s) => s.auth.username);
-
   return (
     <Stack
       spacing={4}
@@ -45,29 +55,15 @@ export const OrcidLink = () => {
           </Button>
         </Tooltip>
       </Stack>
-      <Typography variant="h2">Link Info</Typography>
-      <Stack spacing={2}>
-        <Stack>
-          <Typography fontWeight="bold">KBase Username</Typography>
-          <Typography>{username}</Typography>
-          <Typography fontWeight="bold">OrcID Link Status</Typography>
-          <Outlet />
-        </Stack>
-      </Stack>
+      <Outlet />
     </Stack>
   );
 };
 
-const createStartUrl = (session_id: string, return_link: string) =>
-  `/services/orcidlink/linking-sessions/${session_id}/oauth/start?skip_prompt=false&return_link=${encodeURIComponent(
-    return_link
-  )}`;
-
 export const OrcidLinkStatus = () => {
   const username = useAppSelector((s) => s.auth.username);
 
-  // Link Start (createLinkingSession)
-  const { data: hasLink } = isLinked.useQuery(
+  const { data: hasLink, isLoading } = isLinked.useQuery(
     username
       ? {
           username: username,
@@ -75,6 +71,92 @@ export const OrcidLinkStatus = () => {
         }
       : skipToken
   );
+
+  return (
+    <Grid container spacing={2}>
+      <Grid item sm={6}>
+        {isLoading ? <Loader /> : hasLink ? <OrcidLinked /> : <OrcidUnlinked />}
+      </Grid>
+    </Grid>
+  );
+};
+
+const OrcidLinked = () => {
+  const username = useAppSelector((s) => s.auth.username);
+  const { data: linkInfo } = ownerLink.useQuery(
+    username ? { username, owner_username: username } : skipToken
+  );
+
+  const [triggerDelete, deleteResult] = deleteOwnLink.useMutation();
+  const doDelete = useCallback(async () => {
+    if (!username) return;
+    const result = await triggerDelete({
+      username: username,
+      owner_username: username,
+    });
+    if ('error' in result) {
+      toast(parseError(result.error).message);
+    }
+  }, [triggerDelete, username]);
+
+  return (
+    <Card>
+      <CardContent>
+        <Stack spacing={2}>
+          <Typography variant="h5" component="div">
+            Your KBase ORCID Link
+          </Typography>
+          {linkInfo ? (
+            <LabelValueTable
+              data={[
+                {
+                  label: 'ORCID ID',
+                  value: (
+                    <Link href={linkFromOrcid(linkInfo.orcid_auth.orcid)}>
+                      {linkFromOrcid(linkInfo.orcid_auth.orcid)}
+                    </Link>
+                  ),
+                },
+                { label: 'ORCID Name', value: linkInfo.orcid_auth.name || '' },
+                {
+                  label: 'Link Created',
+                  value: linkInfo.created_at
+                    ? new Date(linkInfo.created_at).toLocaleString()
+                    : '',
+                },
+                {
+                  label: 'Link Expires',
+                  value: linkInfo.expires_at
+                    ? new Date(linkInfo.expires_at).toLocaleString()
+                    : '',
+                },
+                {
+                  label: 'Permissions',
+                  value: linkInfo.orcid_auth.scope ?? '',
+                },
+              ]}
+            />
+          ) : (
+            <Loader />
+          )}
+        </Stack>
+      </CardContent>
+      <CardActions>
+        <Button
+          color="error"
+          variant="outlined"
+          onClick={doDelete}
+          endIcon={deleteResult.isLoading ? <Loader /> : undefined}
+        >
+          Remove ORCID Link
+        </Button>
+      </CardActions>
+    </Card>
+  );
+};
+
+const OrcidUnlinked = () => {
+  const username = useAppSelector((s) => s.auth.username);
 
   const [triggerCreate, createResult] = createLinkingSession.useMutation();
 
@@ -92,61 +174,31 @@ export const OrcidLinkStatus = () => {
     }
   }, [triggerCreate, username]);
 
-  const [triggerDelete, deleteResult] = deleteOwnLink.useMutation();
-
-  const doDelete = useCallback(async () => {
-    if (!username) return;
-    const result = await triggerDelete({
-      username: username,
-      owner_username: username,
-    });
-    if ('error' in result) {
-      toast(parseError(result.error).message);
-    }
-  }, [triggerDelete, username]);
-
   return (
-    <Typography>
-      {hasLink ? (
-        <>
-          <Button color="success" variant="outlined">
-            Already Linked
-          </Button>
-          <Button
-            color="error"
-            variant="contained"
-            onClick={doDelete}
-            endIcon={
-              deleteResult.isLoading ? (
-                <Loader />
-              ) : deleteResult.error ? (
-                <FontAwesomeIcon icon={faX} />
-              ) : null
-            }
-            disabled={deleteResult.isLoading}
-          >
-            Remove Link
-          </Button>
-        </>
-      ) : (
-        <>
-          <Button
-            variant="contained"
-            onClick={doCreate}
-            endIcon={
-              createResult.isLoading ? (
-                <Loader />
-              ) : createResult.error ? (
-                <FontAwesomeIcon icon={faX} />
-              ) : null
-            }
-            disabled={createResult.isLoading}
-          >
-            Create Link
-          </Button>
-        </>
-      )}
-    </Typography>
+    <Card>
+      <CardContent>
+        <Stack spacing={2}>
+          <Typography variant="h5" component="div">
+            Create Your KBase ORCID Link
+          </Typography>
+          <Typography variant="body1" component="div">
+            You do not currently have a link from your KBase account to an ORCID
+            account. Click the button below to being the KBase ORCID Link
+            process.
+          </Typography>
+        </Stack>
+      </CardContent>
+      <CardActions>
+        <Button
+          color="primary"
+          variant="contained"
+          onClick={doCreate}
+          endIcon={createResult.isLoading ? <Loader /> : undefined}
+        >
+          Create ORCID Link
+        </Button>
+      </CardActions>
+    </Card>
   );
 };
 
@@ -199,21 +251,54 @@ export const OrcidLinkContinue = () => {
       doCancelSession();
     }
   }
-
   return (
-    <Stack>
-      <Typography>Pending Link to KBase username "{username}"</Typography>
-      <Typography>OrcID: {continueSession?.orcid_auth.orcid}</Typography>
-      <Typography>Name: {continueSession?.orcid_auth.name}</Typography>
-      <Stack direction="row" spacing={2}>
-        <Button variant="contained" onClick={doConfirmLink}>
-          Confirm Link
-        </Button>
-        <Button variant="outlined" color="error" onClick={doCancelSession}>
-          Cancel Link
-        </Button>
-      </Stack>
-    </Stack>
+    <Grid container spacing={2}>
+      <Grid item sm={6}>
+        <Card>
+          <CardContent>
+            <Stack spacing={2}>
+              <Typography variant="h5" component="div">
+                Confirm Pending Link
+              </Typography>
+              {continueSession ? (
+                <LabelValueTable
+                  data={[
+                    {
+                      label: 'ORCID ID',
+                      value: (
+                        <Link
+                          href={linkFromOrcid(
+                            continueSession.orcid_auth.orcid ?? ''
+                          )}
+                        >
+                          {linkFromOrcid(
+                            continueSession.orcid_auth.orcid ?? ''
+                          )}
+                        </Link>
+                      ),
+                    },
+                    {
+                      label: 'ORCID Name',
+                      value: continueSession.orcid_auth.name || '',
+                    },
+                  ]}
+                />
+              ) : (
+                <Loader />
+              )}
+            </Stack>
+          </CardContent>
+          <CardActions>
+            <Button color="success" variant="contained" onClick={doConfirmLink}>
+              Confirm ORCID Link
+            </Button>
+            <Button variant="outlined" color="error" onClick={doCancelSession}>
+              Cancel Link
+            </Button>
+          </CardActions>
+        </Card>
+      </Grid>
+    </Grid>
   );
 };
 
@@ -222,19 +307,45 @@ export const OrcidLinkError = () => {
   const message = useAppParam('message');
   const navigate = useNavigate();
   return (
-    <Stack>
-      <Typography>Something went wrong.</Typography>
-      <Typography>Code: {code}</Typography>
-      <Typography>Message: {message}</Typography>
-      <Stack direction="row" spacing={2}>
-        <Button
-          variant="contained"
-          color="warning"
-          onClick={() => navigate('/account/orcidlink')}
-        >
-          Try again
-        </Button>
-      </Stack>
-    </Stack>
+    <Grid container spacing={2}>
+      <Grid item sm={6}>
+        <Card>
+          <CardContent>
+            <Stack spacing={2}>
+              <Typography variant="h5" component="div">
+                An Error Occured During Linking
+              </Typography>
+              <LabelValueTable
+                data={[
+                  {
+                    label: 'Code',
+                    value: code ?? '',
+                  },
+                  {
+                    label: 'Message',
+                    value: message ?? '',
+                  },
+                ]}
+              />
+            </Stack>
+          </CardContent>
+          <CardActions>
+            <Button
+              color="error"
+              variant="contained"
+              onClick={() => navigate('/account/orcidlink')}
+            >
+              Return to OrcID Home
+            </Button>
+          </CardActions>
+        </Card>
+      </Grid>
+    </Grid>
   );
 };
+
+const linkFromOrcid = (orcid: string) => `https://orcid.org/${orcid}`;
+const createStartUrl = (session_id: string, return_link: string) =>
+  `/services/orcidlink/linking-sessions/${session_id}/oauth/start?skip_prompt=false&return_link=${encodeURIComponent(
+    return_link
+  )}`;
