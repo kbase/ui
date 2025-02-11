@@ -94,7 +94,7 @@ const OrcidLinked = () => {
       username: username,
       owner_username: username,
     });
-    if ('error' in result) {
+    if ('error' in result && result.error) {
       toast(parseError(result.error).message);
     }
   }, [triggerDelete, username]);
