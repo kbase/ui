@@ -80,6 +80,11 @@ export const theme = createTheme({
         },
       },
     },
+    MuiStack: {
+      defaultProps: {
+        useFlexGap: true,
+      },
+    },
     MuiTab: {
       styleOverrides: {
         root: {
