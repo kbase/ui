@@ -42,7 +42,7 @@ export const OrcidLink = () => {
       aria-labelledby="account-tab"
     >
       <Stack direction="row" justifyContent="space-between">
-        <Typography variant="h2">OrcID Works Linking</Typography>
+        <Typography variant="h2">OrcID Linking</Typography>
         <Tooltip
           title={
             <Typography variant="body2">
@@ -264,6 +264,10 @@ export const OrcidLinkContinue = () => {
                 <LabelValueTable
                   data={[
                     {
+                      label: 'KBase Username',
+                      value: username ?? '',
+                    },
+                    {
                       label: 'ORCID ID',
                       value: (
                         <Link
@@ -280,6 +284,10 @@ export const OrcidLinkContinue = () => {
                     {
                       label: 'ORCID Name',
                       value: continueSession.orcid_auth.name || '',
+                    },
+                    {
+                      label: 'Permissions',
+                      value: continueSession.orcid_auth.scope || '',
                     },
                   ]}
                 />
