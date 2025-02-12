@@ -9,9 +9,10 @@
 
 .label-value-table th {
   font-weight: bold;
-  text-align: left;
+  max-width: 12rem;
+  padding-right: 2em;
+  text-align: right;
   vertical-align: top;
-  width: 10rem;
 }
 
 .label-value-table tr:not(:last-child) td {

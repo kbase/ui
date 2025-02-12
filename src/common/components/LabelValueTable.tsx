@@ -3,7 +3,7 @@ import { ComponentProps, ReactElement, FC } from 'react';
 import classes from './LabelValueTable.module.scss';
 
 interface LabelValuePair {
-  label: string;
+  label: string | number | ReactElement;
   value: string | number | ReactElement;
 }
 
@@ -22,7 +22,7 @@ export const LabelValueTable: FC<LabelValueTableProps> = (props) => {
     <table className={`${classes['label-value-table']} ${className || ''}`}>
       <tbody>
         {data?.map((row, i) => (
-          <tr key={row.label}>
+          <tr key={String(row.label) + i}>
             <th>{row.label}</th>
             <td>{row.value}</td>
           </tr>
