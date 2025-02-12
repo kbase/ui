@@ -1,6 +1,9 @@
 import { Container, Stack, Tab, Tabs } from '@mui/material';
+import { skipToken } from '@reduxjs/toolkit/dist/query';
 import { FC, useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { getMe } from '../../common/api/authService';
+import { useAppSelector } from '../../common/hooks';
 import { usePageTitle } from '../layout/layoutSlice';
 
 /**
@@ -10,12 +13,17 @@ export const Account: FC = () => {
   usePageTitle('Account');
   const navigate = useNavigate();
   const location = useLocation();
+  const token = useAppSelector((s) => s.auth.token);
+  const { data: me } = getMe.useQuery(token ? { token } : skipToken);
   const tabs = [
     '/account/info',
     '/account/providers',
     '/account/logins',
     '/account/use-agreements',
     '/account/orcidlink',
+    // Optional Tabs
+    '/account/dev-tokens',
+    '/account/service-tokens',
   ];
   const defaultTab = tabs.findIndex((tabPath) =>
     location.pathname.startsWith(tabPath)
@@ -71,6 +79,28 @@ export const Account: FC = () => {
             aria-controls="orcidlink-tabpanel"
             onClick={() => navigate('orcidlink')}
           />
+          {me?.roles.some((r) => r.id === 'ServToken') ? (
+            <Tab
+              component="a"
+              label="Service Tokens"
+              id="service-tokens"
+              aria-controls="service-tokens-tabpanel"
+              onClick={() => navigate('service-tokens')}
+            />
+          ) : (
+            <></>
+          )}
+          {me?.roles.some((r) => r.id === 'DevToken') ? (
+            <Tab
+              component="a"
+              label="Developer Tokens"
+              id="dev-tokens"
+              aria-controls="dev-tokens-tabpanel"
+              onClick={() => navigate('dev-tokens')}
+            />
+          ) : (
+            <></>
+          )}
         </Tabs>
         <Outlet />
       </Stack>

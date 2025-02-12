@@ -56,6 +56,10 @@ interface AuthParams {
   };
   getTokens: string;
   revokeToken: string;
+  createToken: {
+    name: string;
+    type: 'service' | 'developer';
+  };
 }
 
 interface AuthResults {
@@ -144,11 +148,28 @@ interface AuthResults {
       agentver: string;
       device: string;
       ip: string;
+      name?: string;
     }[];
     user: string;
     revokeallurl: string;
   };
   revokeToken: boolean;
+  createToken: {
+    type: string;
+    id: string;
+    expires: number;
+    created: number;
+    user: string;
+    custom: unknown;
+    os: string;
+    osver: string;
+    agent: string;
+    agentver: string;
+    device: string;
+    ip: string;
+    name?: string;
+    token: string;
+  };
 }
 
 // Auth does not use JSONRpc, so we use queryFn to make custom queries
@@ -247,6 +268,21 @@ export const authApi = baseApi
           authService({
             url: encode`/tokens/revoke/${tokenId}`,
             method: 'DELETE',
+          }),
+        invalidatesTags: ['AccountTokens'],
+      }),
+      createToken: builder.mutation<
+        AuthResults['createToken'],
+        AuthParams['createToken']
+      >({
+        query: ({ type, name }) =>
+          authService({
+            url: encode`/tokens/`,
+            method: 'POST',
+            body: {
+              type,
+              name,
+            },
           }),
         invalidatesTags: ['AccountTokens'],
       }),
@@ -359,6 +395,7 @@ export const {
   searchUsers,
   getTokens,
   revokeToken,
+  createToken,
   getLoginChoice,
   postLoginPick,
   loginUsernameSuggest,
