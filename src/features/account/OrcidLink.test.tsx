@@ -32,14 +32,12 @@ const TestWrapper = ({ children }: { children: React.ReactNode }) => {
 };
 
 describe('OrcidLink', () => {
-  it('renders main layout with title and info button', () => {
+  it('renders main layout and info button', () => {
     render(
       <TestWrapper>
         <OrcidLink />
       </TestWrapper>
     );
-
-    expect(screen.getByText('OrcID Linking')).toBeInTheDocument();
     expect(screen.getByText('About this tab')).toBeInTheDocument();
   });
 });
@@ -47,6 +45,22 @@ describe('OrcidLink', () => {
 describe('OrcidLinkStatus', () => {
   afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('Renders when username is not available', () => {
+    const store = createTestStore({
+      auth: { username: undefined, initialized: true },
+    });
+
+    render(
+      <Provider store={store}>
+        <ThemeProvider theme={theme}>
+          <MemoryRouter>
+            <OrcidLinkStatus />
+          </MemoryRouter>
+        </ThemeProvider>
+      </Provider>
+    );
   });
 
   it('shows loader while checking link status', () => {
@@ -74,9 +88,7 @@ describe('OrcidLinkStatus', () => {
       </TestWrapper>
     );
 
-    expect(
-      screen.getByText('Create Your KBase ORCID Link')
-    ).toBeInTheDocument();
+    expect(screen.getByText('Create ORCID Record Link')).toBeInTheDocument();
   });
 
   it('shows linked state with link info', () => {
@@ -102,7 +114,6 @@ describe('OrcidLinkStatus', () => {
       </TestWrapper>
     );
 
-    expect(screen.getByText('Your KBase ORCID Link')).toBeInTheDocument();
     expect(
       screen.getByText('https://orcid.org/0000-0002-1234-5678')
     ).toBeInTheDocument();
@@ -135,7 +146,9 @@ describe('OrcidLinkStatus', () => {
       </TestWrapper>
     );
 
-    await act(() => userEvent.click(screen.getByText('Remove ORCID Link')));
+    await act(() =>
+      userEvent.click(screen.getByText('Remove ORCID Record Link'))
+    );
     await waitFor(() =>
       expect(triggerMock).toBeCalledWith({
         username: 'foo',
@@ -164,7 +177,7 @@ describe('OrcidLinkContinue', () => {
       </TestWrapper>
     );
 
-    expect(screen.getByText('Confirm Pending Link')).toBeInTheDocument();
+    expect(screen.getByText('Confirm ORCID Record Link')).toBeInTheDocument();
     expect(
       screen.getByText('https://orcid.org/0000-0002-1234-5678')
     ).toBeInTheDocument();
@@ -182,6 +195,6 @@ describe('OrcidLinkError', () => {
     expect(
       screen.getByText('An Error Occured During Linking')
     ).toBeInTheDocument();
-    expect(screen.getByText('Return to OrcID Home')).toBeInTheDocument();
+    expect(screen.getByText('Try Again')).toBeInTheDocument();
   });
 });

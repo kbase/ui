@@ -18,13 +18,15 @@ const orcidlinkService = jsonRpcService({
 
 interface orcidlinkParams {
   createLinkingSession: { username: string; auth_username: string };
+  deleteExpiredLinkingSessions: void;
   deleteLink: { username: string };
   deleteLinkingSession: { session_id: string; auth_username: string };
   deleteOwnLink: { username: string; owner_username: string };
-  findLinks: { query?: SearchQuery };
+  findLinks: { query: SearchQuery };
   finishLinkingSession: { session_id: string; auth_username: string };
   getLink: { username: string };
   getLinkingSession: { session_id: string; auth_username: string };
+  getLinkingSessions: void;
   getProfile: { username: string; auth_username: string };
   getWork: { username: string; put_code: number };
   getWorks: { username: string };
@@ -38,6 +40,7 @@ interface orcidlinkParams {
 
 interface orcidlinkResults {
   createLinkingSession: { session_id: string };
+  deleteExpiredLinkingSessions: void;
   deleteLink: void;
   deleteLinkingSession: void;
   deleteOwnLink: void;
@@ -45,6 +48,11 @@ interface orcidlinkResults {
   finishLinkingSession: void;
   getLink: { link: LinkRecordPublic };
   getLinkingSession: LinkRecordPublic;
+  getLinkingSessions: {
+    initial_linking_sessions: LinkRecordPublic[];
+    started_linking_sessions: LinkRecordPublic[];
+    completed_linking_sessions: LinkRecordPublic[];
+  };
   getProfile: ORCIDProfile;
   getWork: { work: Work };
   getWorks: ORCIDWorkGroup[];
@@ -68,6 +76,18 @@ const orcidlinkApi = baseApi
           orcidlinkService({
             method: 'create-linking-session',
             params: { username, auth_username },
+          }),
+        invalidatesTags: ['OrcidLink'],
+      }),
+
+      deleteExpiredLinkingSessions: builder.mutation<
+        orcidlinkResults['deleteExpiredLinkingSessions'],
+        orcidlinkParams['deleteExpiredLinkingSessions']
+      >({
+        query: () =>
+          orcidlinkService({
+            method: 'delete-expired-linking-sessions',
+            params: {},
           }),
         invalidatesTags: ['OrcidLink'],
       }),
@@ -152,6 +172,18 @@ const orcidlinkApi = baseApi
           orcidlinkService({
             method: 'get-linking-session',
             params: { session_id, auth_username },
+          }),
+        providesTags: ['OrcidLink'],
+      }),
+
+      getLinkingSessions: builder.query<
+        orcidlinkResults['getLinkingSessions'],
+        orcidlinkParams['getLinkingSessions']
+      >({
+        query: () =>
+          orcidlinkService({
+            method: 'get-linking-sessions',
+            params: {},
           }),
         providesTags: ['OrcidLink'],
       }),
@@ -268,6 +300,7 @@ const orcidlinkApi = baseApi
 
 export const {
   createLinkingSession,
+  deleteExpiredLinkingSessions,
   deleteLink,
   deleteLinkingSession,
   deleteOwnLink,
@@ -275,6 +308,7 @@ export const {
   finishLinkingSession,
   getLink,
   getLinkingSession,
+  getLinkingSessions,
   getProfile,
   getWork,
   getWorks,

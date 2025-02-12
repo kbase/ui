@@ -66,7 +66,7 @@ export const Account: FC = () => {
           />
           <Tab
             component="a"
-            label="OrcID Linking"
+            label="ORCID Record Link"
             id="orcidlink"
             aria-controls="orcidlink-tabpanel"
             onClick={() => navigate('orcidlink')}

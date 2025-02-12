@@ -3,6 +3,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   Alert,
   Button,
+  Card,
+  CardContent,
   Paper,
   Stack,
   Table,
@@ -85,41 +87,45 @@ export const LinkedProviders: FC<{ isContinueRoute?: boolean }> = ({
           </Button>
         </Tooltip>
       </Stack>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>Provider</TableCell>
-            <TableCell>Username</TableCell>
-            <TableCell>Action</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {identities?.map(({ provider, provusername, id }, i) => (
-            <TableRow key={`${provider}-${i}`}>
-              <TableCell>{provider}</TableCell>
-              <TableCell>{provusername}</TableCell>
-              <TableCell>
-                <UnlinkButton id={id} unklinkOk={unklinkOk} />
-              </TableCell>
-            </TableRow>
-          ))}
-          {linkPending ? (
-            <TableRow>
-              <TableCell>{targetLinkProvider}</TableCell>
-              <TableCell>{targetLink?.provusername}</TableCell>
-              <TableCell>
-                <Button
-                  variant="contained"
-                  color="info"
-                  endIcon={<Loader loading={true} type="spinner" />}
-                >
-                  Linking
-                </Button>
-              </TableCell>
-            </TableRow>
-          ) : undefined}
-        </TableBody>
-      </Table>
+      <Card>
+        <CardContent>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Provider</TableCell>
+                <TableCell>Username</TableCell>
+                <TableCell>Action</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {identities?.map(({ provider, provusername, id }, i) => (
+                <TableRow key={`${provider}-${i}`}>
+                  <TableCell>{provider}</TableCell>
+                  <TableCell>{provusername}</TableCell>
+                  <TableCell>
+                    <UnlinkButton id={id} unklinkOk={unklinkOk} />
+                  </TableCell>
+                </TableRow>
+              ))}
+              {linkPending ? (
+                <TableRow>
+                  <TableCell>{targetLinkProvider}</TableCell>
+                  <TableCell>{targetLink?.provusername}</TableCell>
+                  <TableCell>
+                    <Button
+                      variant="contained"
+                      color="info"
+                      endIcon={<Loader loading={true} type="spinner" />}
+                    >
+                      Linking
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ) : undefined}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
       <Typography variant="h2">
         Link an additional sign-in account to this KBase account
       </Typography>

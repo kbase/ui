@@ -1,11 +1,21 @@
-import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
+import {
+  faCheck,
+  faInfoCircle,
+  faLock,
+  faPlus,
+  faX,
+} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   isLinked,
   createLinkingSession,
+  deleteExpiredLinkingSessions,
   getLinkingSession,
+  getLinkingSessions,
   deleteLinkingSession,
+  findLinks,
   finishLinkingSession,
+  deleteLink,
   deleteOwnLink,
   ownerLink,
 } from '../../common/api/orcidlinkService';
@@ -17,6 +27,11 @@ import {
   Grid,
   Link,
   Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
   Tooltip,
   Typography,
 } from '@mui/material';
@@ -29,6 +44,7 @@ import { parseError } from '../../common/api/utils/parseError';
 import { Loader } from '../../common/components';
 import { useAppParam } from '../params/hooks';
 import { LabelValueTable } from '../../common/components/LabelValueTable';
+import { getMe } from '../../common/api/authService';
 
 /**
  * Content for the Log In Sessions tab in the Account page
@@ -42,11 +58,18 @@ export const OrcidLink = () => {
       aria-labelledby="account-tab"
     >
       <Stack direction="row" justifyContent="space-between">
-        <Typography variant="h2">OrcID Linking</Typography>
+        {/* ORCID® as requested by https://info.orcid.org/brand-guidelines/ */}
+        <Typography variant="h2">
+          ORCID<sup>®</sup> Record Link
+        </Typography>
         <Tooltip
           title={
             <Typography variant="body2">
-              Some information about orcid linking
+              ORCID® is a registered trademark and the ORCID logo and iD icon
+              are trademarks of{' '}
+              <Link color={'inherit'} href={'https://orcid.org/'}>
+                ORCID, Inc.
+              </Link>
             </Typography>
           }
         >
@@ -61,7 +84,7 @@ export const OrcidLink = () => {
 };
 
 export const OrcidLinkStatus = () => {
-  const username = useAppSelector((s) => s.auth.username);
+  const { token, username } = useAppSelector((s) => s.auth);
 
   const { data: hasLink, isLoading } = isLinked.useQuery(
     username
@@ -72,12 +95,175 @@ export const OrcidLinkStatus = () => {
       : skipToken
   );
 
+  const { data: me } = getMe.useQuery(token ? { token } : skipToken);
+
   return (
     <Grid container spacing={2}>
       <Grid item sm={6}>
         {isLoading ? <Loader /> : hasLink ? <OrcidLinked /> : <OrcidUnlinked />}
       </Grid>
+      <Grid item sm={6}>
+        <Card>
+          <CardContent>
+            <Stack spacing={2}>
+              <Typography variant="body1" component="div">
+                About KBase ORCID Record Links
+              </Typography>
+            </Stack>
+          </CardContent>
+        </Card>
+      </Grid>
+      {me?.customroles?.includes('ORCIDLINK_MANAGER') ? (
+        <Grid item sm={12}>
+          <OrcidManage />
+        </Grid>
+      ) : (
+        <></>
+      )}
     </Grid>
+  );
+};
+
+const OrcidManage = () => {
+  // Might need work in the future when works-linking is acutally added
+  // Super bare-bones right now.
+  const linkSearch = findLinks.useQuery({ query: {} });
+
+  const [triggerDelete, deleteResult] = deleteLink.useMutation();
+
+  const doDelete = useCallback(
+    async (username: string) => {
+      const result = await triggerDelete({
+        username: username,
+      });
+      if ('error' in result && result.error) {
+        toast(parseError(result.error).message);
+      }
+    },
+    [triggerDelete]
+  );
+
+  const linkingSessions = getLinkingSessions.useQuery();
+  const [clearExpired, clearExpiredResult] =
+    deleteExpiredLinkingSessions.useMutation();
+
+  const now = Date.now();
+
+  return (
+    <Card>
+      <CardContent>
+        <Stack spacing={2}>
+          <Typography variant="h5" component="div">
+            <FontAwesomeIcon icon={faLock} /> ORCID Record Link Management Panel
+          </Typography>
+          <Typography variant="h6" component="div">
+            Linking Sessions
+          </Typography>
+
+          <Stack width={'20em'}>
+            <LabelValueTable
+              data={[
+                {
+                  label: 'initialized',
+                  value: linkingSessions.data?.initial_linking_sessions
+                    ?.length ?? <Loader></Loader>,
+                },
+                {
+                  label: 'started',
+                  value: linkingSessions.data?.started_linking_sessions
+                    ?.length ?? <Loader></Loader>,
+                },
+                {
+                  label: 'completed',
+                  value: linkingSessions.data?.completed_linking_sessions
+                    ?.length ?? <Loader></Loader>,
+                },
+                {
+                  label: 'expired',
+                  value: [
+                    ...(linkingSessions.data?.completed_linking_sessions ?? []),
+                    ...(linkingSessions.data?.started_linking_sessions ?? []),
+                    ...(linkingSessions.data?.initial_linking_sessions ?? []),
+                  ].filter((s) => s.expires_at < now)?.length ?? (
+                    <Loader></Loader>
+                  ),
+                },
+              ]}
+            />
+            <Button
+              color="primary"
+              variant="outlined"
+              onClick={() => clearExpired()}
+              endIcon={
+                clearExpiredResult.isLoading ? (
+                  <Loader />
+                ) : clearExpiredResult.isSuccess ? (
+                  <FontAwesomeIcon icon={faCheck} />
+                ) : clearExpiredResult.isError ? (
+                  <FontAwesomeIcon icon={faX} />
+                ) : undefined
+              }
+            >
+              Remove Expired Linking Sessions
+            </Button>
+          </Stack>
+
+          <Typography variant="h6" component="div">
+            Links
+          </Typography>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>User</TableCell>
+                <TableCell>ORCID ID</TableCell>
+                <TableCell>Created</TableCell>
+                <TableCell>Retires</TableCell>
+                <TableCell>Expires</TableCell>
+                <TableCell></TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {(linkSearch.data?.links || []).map((link) => {
+                return (
+                  <TableRow>
+                    <TableCell>{link.username}</TableCell>
+                    <TableCell>
+                      <Link href={linkFromOrcid(link.orcid_auth.orcid)}>
+                        {link.orcid_auth.orcid}
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      {new Date(link.created_at).toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                      {new Date(link.retires_at).toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                      {new Date(link.expires_at).toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        color="error"
+                        variant="outlined"
+                        onClick={() => doDelete(link.username)}
+                        endIcon={
+                          deleteResult.originalArgs?.username ===
+                            link.username && deleteResult.isLoading ? (
+                            <Loader />
+                          ) : undefined
+                        }
+                      >
+                        Remove
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </Stack>
+      </CardContent>
+    </Card>
   );
 };
 
@@ -103,54 +289,49 @@ const OrcidLinked = () => {
     <Card>
       <CardContent>
         <Stack spacing={2}>
-          <Typography variant="h5" component="div">
-            Your KBase ORCID Link
-          </Typography>
           {linkInfo ? (
             <LabelValueTable
               data={[
                 {
-                  label: 'ORCID ID',
+                  label: (
+                    <Stack direction={'row'} gap={1} justifyContent={'end'}>
+                      ORCID <OrcidIdIcon size={20} />
+                    </Stack>
+                  ),
                   value: (
                     <Link href={linkFromOrcid(linkInfo.orcid_auth.orcid)}>
                       {linkFromOrcid(linkInfo.orcid_auth.orcid)}
                     </Link>
                   ),
                 },
-                { label: 'ORCID Name', value: linkInfo.orcid_auth.name || '' },
+                { label: 'ORCID Name', value: linkInfo.orcid_auth.name },
                 {
                   label: 'Link Created',
-                  value: linkInfo.created_at
-                    ? new Date(linkInfo.created_at).toLocaleString()
-                    : '',
+                  value: new Date(linkInfo.created_at).toLocaleString(),
                 },
                 {
                   label: 'Link Expires',
-                  value: linkInfo.expires_at
-                    ? new Date(linkInfo.expires_at).toLocaleString()
-                    : '',
+                  value: new Date(linkInfo.expires_at).toLocaleString(),
                 },
                 {
                   label: 'Permissions',
-                  value: linkInfo.orcid_auth.scope ?? '',
+                  value: linkInfo.orcid_auth.scope,
                 },
               ]}
             />
           ) : (
             <Loader />
           )}
+          <Button
+            color="error"
+            variant="outlined"
+            onClick={doDelete}
+            endIcon={deleteResult.isLoading ? <Loader /> : undefined}
+          >
+            Remove ORCID Record Link
+          </Button>
         </Stack>
       </CardContent>
-      <CardActions>
-        <Button
-          color="error"
-          variant="outlined"
-          onClick={doDelete}
-          endIcon={deleteResult.isLoading ? <Loader /> : undefined}
-        >
-          Remove ORCID Link
-        </Button>
-      </CardActions>
     </Card>
   );
 };
@@ -178,26 +359,22 @@ const OrcidUnlinked = () => {
     <Card>
       <CardContent>
         <Stack spacing={2}>
-          <Typography variant="h5" component="div">
-            Create Your KBase ORCID Link
-          </Typography>
           <Typography variant="body1" component="div">
             You do not currently have a link from your KBase account to an ORCID
-            account. Click the button below to being the KBase ORCID Link
-            process.
+            account for the purposes of saving records. Click the button below
+            to begin the KBase ORCID Record Link process.
           </Typography>
+          <Button
+            color="primary"
+            variant="contained"
+            onClick={doCreate}
+            endIcon={createResult.isLoading ? <Loader /> : undefined}
+            startIcon={<FontAwesomeIcon icon={faPlus} />}
+          >
+            Create ORCID Record Link
+          </Button>
         </Stack>
       </CardContent>
-      <CardActions>
-        <Button
-          color="primary"
-          variant="contained"
-          onClick={doCreate}
-          endIcon={createResult.isLoading ? <Loader /> : undefined}
-        >
-          Create ORCID Link
-        </Button>
-      </CardActions>
     </Card>
   );
 };
@@ -258,7 +435,7 @@ export const OrcidLinkContinue = () => {
           <CardContent>
             <Stack spacing={2}>
               <Typography variant="h5" component="div">
-                Confirm Pending Link
+                Confirm Pending ORCID Record Link
               </Typography>
               {continueSession ? (
                 <LabelValueTable
@@ -268,42 +445,50 @@ export const OrcidLinkContinue = () => {
                       value: username ?? '',
                     },
                     {
-                      label: 'ORCID ID',
+                      label: (
+                        <Stack direction={'row'} gap={1} justifyContent={'end'}>
+                          ORCID <OrcidIdIcon size={20} />
+                        </Stack>
+                      ),
                       value: (
                         <Link
-                          href={linkFromOrcid(
-                            continueSession.orcid_auth.orcid ?? ''
-                          )}
+                          href={linkFromOrcid(continueSession.orcid_auth.orcid)}
                         >
-                          {linkFromOrcid(
-                            continueSession.orcid_auth.orcid ?? ''
-                          )}
+                          {linkFromOrcid(continueSession.orcid_auth.orcid)}
                         </Link>
                       ),
                     },
                     {
                       label: 'ORCID Name',
-                      value: continueSession.orcid_auth.name || '',
+                      value: continueSession.orcid_auth.name,
                     },
                     {
                       label: 'Permissions',
-                      value: continueSession.orcid_auth.scope || '',
+                      value: continueSession.orcid_auth.scope,
                     },
                   ]}
                 />
               ) : (
                 <Loader />
               )}
+              <Stack direction={'row'} spacing={2}>
+                <Button
+                  color="success"
+                  variant="contained"
+                  onClick={doConfirmLink}
+                >
+                  Confirm ORCID Record Link
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={doCancelSession}
+                >
+                  Cancel Link
+                </Button>
+              </Stack>
             </Stack>
           </CardContent>
-          <CardActions>
-            <Button color="success" variant="contained" onClick={doConfirmLink}>
-              Confirm ORCID Link
-            </Button>
-            <Button variant="outlined" color="error" onClick={doCancelSession}>
-              Cancel Link
-            </Button>
-          </CardActions>
         </Card>
       </Grid>
     </Grid>
@@ -343,7 +528,7 @@ export const OrcidLinkError = () => {
               variant="contained"
               onClick={() => navigate('/account/orcidlink')}
             >
-              Return to OrcID Home
+              Try Again
             </Button>
           </CardActions>
         </Card>
@@ -357,3 +542,15 @@ const createStartUrl = (session_id: string, return_link: string) =>
   `/services/orcidlink/linking-sessions/${session_id}/oauth/start?skip_prompt=false&return_link=${encodeURIComponent(
     return_link
   )}`;
+
+const OrcidIdIcon = ({ size }: { size: number }) => {
+  return (
+    <svg width={size.toString()} height={size.toString()}>
+      <image
+        href={process.env.PUBLIC_URL + '/assets/orcidIdIcon.svg'}
+        width={size.toString()}
+        height={size.toString()}
+      />
+    </svg>
+  );
+};

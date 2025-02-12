@@ -2,6 +2,8 @@ import { faCheck, faInfoCircle, faX } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   Button,
+  Card,
+  CardContent,
   Stack,
   Table,
   TableBody,
@@ -54,75 +56,81 @@ export const LogInSessions: FC = () => {
           </Button>
         </Tooltip>
       </Stack>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>Created</TableCell>
-            <TableCell>Expires</TableCell>
-            <TableCell>Browser</TableCell>
-            <TableCell>Operating System</TableCell>
-            <TableCell>IP Address</TableCell>
-            <TableCell>Action</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          <TableRow>
-            <TableCell>
-              {new Date(currentToken?.created ?? 0).toLocaleString()}
-            </TableCell>
-            <TableCell>
-              {new Date(currentToken?.expires ?? 0).toLocaleString()}
-            </TableCell>
-            <TableCell>
-              {currentToken?.agent} {currentToken?.agentver}
-            </TableCell>
-            <TableCell>
-              {currentToken?.os} {currentToken?.osver}
-            </TableCell>
-            <TableCell>{currentToken?.ip}</TableCell>
-            <TableCell>
-              <LogOutButton tokenId={currentToken?.id} />
-            </TableCell>
-          </TableRow>
-        </TableBody>
-      </Table>
-      <Typography variant="h2">Other Log In Sessions</Typography>
-      {otherTokens && otherTokens.length > 0 && (
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Created</TableCell>
-              <TableCell>Expires</TableCell>
-              <TableCell>Browser</TableCell>
-              <TableCell>Operating System</TableCell>
-              <TableCell>IP Address</TableCell>
-              <TableCell>Action</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {otherTokens.map((otherToken, i) => (
-              <TableRow key={`${otherToken.id}-${i}`}>
+      <Card>
+        <CardContent>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Created</TableCell>
+                <TableCell>Expires</TableCell>
+                <TableCell>Browser</TableCell>
+                <TableCell>Operating System</TableCell>
+                <TableCell>IP Address</TableCell>
+                <TableCell>Action</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              <TableRow>
                 <TableCell>
-                  {new Date(otherToken.created ?? 0).toLocaleString()}
+                  {new Date(currentToken?.created ?? 0).toLocaleString()}
                 </TableCell>
                 <TableCell>
-                  {new Date(otherToken.expires ?? 0).toLocaleString()}
+                  {new Date(currentToken?.expires ?? 0).toLocaleString()}
                 </TableCell>
                 <TableCell>
-                  {otherToken.agent} {otherToken.agentver}
+                  {currentToken?.agent} {currentToken?.agentver}
                 </TableCell>
                 <TableCell>
-                  {otherToken.os} {otherToken.osver}
+                  {currentToken?.os} {currentToken?.osver}
                 </TableCell>
-                <TableCell>{otherToken.ip}</TableCell>
+                <TableCell>{currentToken?.ip}</TableCell>
                 <TableCell>
-                  <LogOutButton tokenId={otherToken.id} />
+                  <LogOutButton tokenId={currentToken?.id} />
                 </TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+      <Typography variant="h2">Other Log In Sessions</Typography>
+      <Card>
+        <CardContent>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Created</TableCell>
+                <TableCell>Expires</TableCell>
+                <TableCell>Browser</TableCell>
+                <TableCell>Operating System</TableCell>
+                <TableCell>IP Address</TableCell>
+                <TableCell>Action</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {otherTokens?.map((otherToken, i) => (
+                <TableRow key={`${otherToken.id}-${i}`}>
+                  <TableCell>
+                    {new Date(otherToken.created ?? 0).toLocaleString()}
+                  </TableCell>
+                  <TableCell>
+                    {new Date(otherToken.expires ?? 0).toLocaleString()}
+                  </TableCell>
+                  <TableCell>
+                    {otherToken.agent} {otherToken.agentver}
+                  </TableCell>
+                  <TableCell>
+                    {otherToken.os} {otherToken.osver}
+                  </TableCell>
+                  <TableCell>{otherToken.ip}</TableCell>
+                  <TableCell>
+                    <LogOutButton tokenId={otherToken.id} />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
       {(!otherTokens || otherTokens.length === 0) && (
         <i>No additional active log in sessions.</i>
       )}
