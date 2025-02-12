@@ -44,6 +44,7 @@ import {
   OrcidLinkStatus,
   OrcidLinkError,
 } from '../features/account/OrcidLink';
+import { ManageTokens } from '../features/account/ManageTokens';
 
 export const LOGIN_ROUTE = '/login';
 export const SIGNUP_ROUTE = '/signup';
@@ -104,6 +105,14 @@ const Routes: FC = () => {
           <Route path="continue/error" element={<OrcidLinkError />} />
           <Route path="continue/:sessionId" element={<OrcidLinkContinue />} />
         </Route>
+        <Route
+          path="service-tokens"
+          element={<Authed element={<ManageTokens type={'service'} />} />}
+        />
+        <Route
+          path="dev-tokens"
+          element={<Authed element={<ManageTokens type={'developer'} />} />}
+        />
       </Route>
 
       {/* Navigator */}

@@ -27,7 +27,9 @@ export const LogInSessions: FC = () => {
   const tokenSessions = getTokens.useQuery(token, { skip: !token });
 
   const currentToken = tokenSessions.data?.current;
-  const otherTokens = tokenSessions.data?.tokens;
+  const otherTokens = tokenSessions.data?.tokens.filter(
+    (token) => token.type === 'Login'
+  );
 
   return (
     <Stack
@@ -129,11 +131,11 @@ export const LogInSessions: FC = () => {
               ))}
             </TableBody>
           </Table>
+          {(!otherTokens || otherTokens.length === 0) && (
+            <i>No additional active log in sessions.</i>
+          )}
         </CardContent>
       </Card>
-      {(!otherTokens || otherTokens.length === 0) && (
-        <i>No additional active log in sessions.</i>
-      )}
     </Stack>
   );
 };
