@@ -46,6 +46,7 @@ describe('LogInSessions Component', () => {
     os: 'Windows',
     osver: '10',
     ip: '127.0.0.1',
+    type: 'Login',
   };
 
   const mockOtherTokens = [
@@ -58,6 +59,7 @@ describe('LogInSessions Component', () => {
       os: 'MacOS',
       osver: '12',
       ip: '192.168.1.1',
+      type: 'Login',
     },
   ];
 
