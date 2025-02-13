@@ -1,6 +1,6 @@
 import { Container, Stack, Tab, Tabs } from '@mui/material';
 import { skipToken } from '@reduxjs/toolkit/dist/query';
-import { FC, useEffect, useState } from 'react';
+import { FC } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { getMe } from '../../common/api/authService';
 import { useAppSelector } from '../../common/hooks';
@@ -15,92 +15,66 @@ export const Account: FC = () => {
   const location = useLocation();
   const token = useAppSelector((s) => s.auth.token);
   const { data: me } = getMe.useQuery(token ? { token } : skipToken);
-  const tabs = [
-    '/account/info',
-    '/account/providers',
-    '/account/logins',
-    '/account/use-agreements',
-    '/account/orcidlink',
-    // Optional Tabs
-    '/account/dev-tokens',
-    '/account/service-tokens',
-  ];
-  const defaultTab = tabs.findIndex((tabPath) =>
-    location.pathname.startsWith(tabPath)
-  );
-  const [activeTab, setActiveTab] = useState(
-    defaultTab === -1 ? 0 : defaultTab
-  );
 
-  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
-    setActiveTab(newValue);
-  };
-
-  useEffect(() => {
+  const handleChange = (event: React.SyntheticEvent, tabValue: string) => {
+    navigate(tabValue);
     document.querySelector('main')?.scrollTo(0, 0);
-  }, [activeTab]);
+  };
+  const currentTabValue = (location.pathname.match(/\/account\/[^/]*/) || [
+    undefined,
+  ])[0];
 
   return (
     <Container maxWidth="lg">
       <Stack spacing={4}>
-        <Tabs value={activeTab} onChange={handleChange}>
+        <Tabs value={currentTabValue} onChange={handleChange}>
           <Tab
+            value={'/account/info'}
             component="a"
             label="Account"
             id="account-tab"
             aria-controls="account-tabpanel"
-            onClick={() => navigate('info')}
           />
           <Tab
-            component="a"
+            value={'/account/providers'}
             label="Linked Providers"
             id="providers-tab"
             aria-controls="providers-tabpanel"
-            onClick={() => navigate('providers')}
           />
           <Tab
-            component="a"
+            value={'/account/sessions'}
             label="Log In Sessions"
             id="sessions-tab"
             aria-controls="sessions-tabpanel"
-            onClick={() => navigate('sessions')}
           />
           <Tab
-            component="a"
+            value={'/account/use-agreements'}
             label="Use Agreements"
             id="use-agreements-tab"
             aria-controls="use-agreements-tabpanel"
-            onClick={() => navigate('use-agreements')}
           />
           <Tab
-            component="a"
+            value={'/account/orcidlink'}
             label="ORCID Record Link"
             id="orcidlink"
             aria-controls="orcidlink-tabpanel"
-            onClick={() => navigate('orcidlink')}
           />
-          {me?.roles.some((r) => r.id === 'ServToken') ? (
-            <Tab
-              component="a"
-              label="Service Tokens"
-              id="service-tokens"
-              aria-controls="service-tokens-tabpanel"
-              onClick={() => navigate('service-tokens')}
-            />
-          ) : (
-            <></>
-          )}
           {me?.roles.some((r) => r.id === 'DevToken') ? (
             <Tab
-              component="a"
+              value={'/account/dev-tokens'}
               label="Developer Tokens"
               id="dev-tokens"
               aria-controls="dev-tokens-tabpanel"
-              onClick={() => navigate('dev-tokens')}
             />
-          ) : (
-            <></>
-          )}
+          ) : undefined}
+          {me?.roles.some((r) => r.id === 'ServToken') ? (
+            <Tab
+              value={'/account/service-tokens'}
+              label="Service Tokens"
+              id="service-tokens"
+              aria-controls="service-tokens-tabpanel"
+            />
+          ) : undefined}
         </Tabs>
         <Outlet />
       </Stack>
