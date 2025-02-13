@@ -25,7 +25,7 @@ import { FC, useEffect, useState } from 'react';
 import { getMe } from '../../common/api/authService';
 import { LabelValueTable } from '../../common/components/LabelValueTable';
 import { useAppSelector } from '../../common/hooks';
-import { getPolicies } from '../login/Policies';
+import { ENFORCED_POLICIES, getPolicies } from '../login/Policies';
 import classes from './Account.module.scss';
 import { Loader } from '../../common/components';
 
@@ -41,11 +41,12 @@ export const UseAgreements: FC = () => {
 
   const userAgreed = (me.data?.policyids ?? []).map((p) => {
     const [id, version] = p.id.split('.');
-    return { id, version, agreedon: p.agreedon };
+    return { id, version: Number(version), agreedon: p.agreedon };
   });
 
   const current = userAgreed.filter(({ id, version }) => {
     if (!(id in allPolicies)) return false;
+    if (!ENFORCED_POLICIES.includes(id)) return false;
     return (
       version === allPolicies[id].version ||
       allPolicies[id].equivalentVersions.includes(version)
@@ -65,7 +66,9 @@ export const UseAgreements: FC = () => {
 
   const [showExpired, setShowExpired] = useState(false);
   const [selectedPolicy, setSelectedPolicy] = useState<
-    typeof currentPolicies[number] | undefined
+    | typeof currentPolicies[number]
+    | typeof currentPolicies[number]['olderVersions'][number]
+    | undefined
   >(undefined);
 
   const handleChangeExpired = (
@@ -75,8 +78,15 @@ export const UseAgreements: FC = () => {
     setShowExpired(checked);
   };
 
-  const handleClickPolicy = (policy: typeof allPolicies[number]) => {
-    setSelectedPolicy(policy);
+  const handleClickPolicy = (id: string, version: number) => {
+    if (version === allPolicies[id].version) setSelectedPolicy(allPolicies[id]);
+    else {
+      const oldVersion = allPolicies[id].olderVersions.find(
+        (p) => p.version === version
+      );
+      if (!oldVersion) return;
+      setSelectedPolicy(oldVersion);
+    }
   };
 
   useEffect(() => {
@@ -132,7 +142,9 @@ export const UseAgreements: FC = () => {
                           ? classes['selected-card']
                           : ''
                       }`}
-                      onClick={() => handleClickPolicy(policy)}
+                      onClick={() =>
+                        handleClickPolicy(policy.id, policy.version)
+                      }
                     >
                       <PolicyCardContent
                         title={policy.title}
@@ -153,7 +165,15 @@ export const UseAgreements: FC = () => {
                     return (
                       <Card
                         key={policy.title}
-                        className={`${classes['policy-card']}`}
+                        className={`${classes['policy-card']} ${
+                          selectedPolicy?.id === policy.id &&
+                          selectedPolicy?.version === policy.version
+                            ? classes['selected-card']
+                            : ''
+                        }`}
+                        onClick={() =>
+                          handleClickPolicy(policy.id, policy.version)
+                        }
                       >
                         <PolicyCardContent
                           title={policy.title}
@@ -200,7 +220,7 @@ export const UseAgreements: FC = () => {
 const PolicyCardContent = (props: {
   title: string;
   isCurrent: boolean;
-  version: string;
+  version: number;
   agreedDate?: number;
 }) => {
   return (
