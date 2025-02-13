@@ -225,7 +225,7 @@ const OrcidManage = () => {
             <TableBody>
               {(linkSearch.data?.links || []).map((link) => {
                 return (
-                  <TableRow>
+                  <TableRow key={link.orcid_auth.orcid}>
                     <TableCell>{link.username}</TableCell>
                     <TableCell>
                       <Link href={linkFromOrcid(link.orcid_auth.orcid)}>
