@@ -21,7 +21,7 @@ export const Account: FC = () => {
     document.querySelector('main')?.scrollTo(0, 0);
   };
   const currentTabValue = (location.pathname.match(/\/account\/[^/]*/) || [
-    undefined,
+    '/account/info',
   ])[0];
 
   return (
