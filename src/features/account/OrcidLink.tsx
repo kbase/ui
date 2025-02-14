@@ -106,9 +106,39 @@ export const OrcidLinkStatus = () => {
         <Card>
           <CardContent>
             <Stack spacing={2}>
-              <Typography variant="body1" component="div">
+              <Typography variant="h5" component="div">
                 About KBase ORCID Record Links
               </Typography>
+              <Typography variant="body1" component="div">
+                This process adds KBase as a trusted organization with
+                permissions to: <br /> 1) read your information set to visible
+                to <i>trusted organizations</i>, and <br /> 2) add/update your
+                research activities by adding KBase static Narrative DOI records
+                to your ORCID account under the “Works” session.
+              </Typography>
+              <Typography variant="body1" component="div">
+                After linking, you will have the ability to remove the KBase
+                ORCID Record Link at any time. This is separate from using your
+                ORCID account to sign into KBase, because authentication with
+                ORCID and read/write with ORCID require different privileges.
+              </Typography>
+              <Stack spacing={1}>
+                <Typography variant="body1" component="div">
+                  Helpful links to learn more:
+                </Typography>
+                <Link href="https://support.orcid.org/hc/en-us/articles/360006897334-What-is-an-ORCID-iD-and-how-do-I-use-it">
+                  What is ORCID?
+                </Link>
+                <Link href="https://info.orcid.org/researcher-faq/">
+                  Why use ORCID?
+                </Link>
+                <Link href="https://support.orcid.org/hc/en-us/articles/360006973893-Trusted-organizations">
+                  What are ORCID trusted organizations?
+                </Link>
+                <Link href="https://docs.kbase.us/manage-account/link-accounts">
+                  Signing into KBase using your ORCID account
+                </Link>
+              </Stack>
             </Stack>
           </CardContent>
         </Card>
@@ -289,6 +319,9 @@ const OrcidLinked = () => {
     <Card>
       <CardContent>
         <Stack spacing={2}>
+          <Typography variant="h5" component="div">
+            Current KBase ORCID Record Link
+          </Typography>
           {linkInfo ? (
             <LabelValueTable
               data={[
@@ -359,10 +392,13 @@ const OrcidUnlinked = () => {
     <Card>
       <CardContent>
         <Stack spacing={2}>
+          <Typography variant="h5" component="div">
+            No Current ORCID Record Link
+          </Typography>
           <Typography variant="body1" component="div">
-            You do not currently have a link from your KBase account to an ORCID
-            account for the purposes of saving records. Click the button below
-            to begin the KBase ORCID Record Link process.
+            Your KBase account has not been linked to an ORCID account for the
+            purposes of adding works {'(e.g., static Narratives with DOIs)'}.
+            Click the button below to begin the KBase ORCID Record Link process.
           </Typography>
           <Button
             color="primary"
