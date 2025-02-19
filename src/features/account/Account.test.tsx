@@ -113,13 +113,13 @@ describe('Account Component', () => {
       </Provider>
     );
 
-    // Test Account tab navigation
-    fireEvent.click(screen.getByRole('tab', { name: 'Account' }));
-    expect(mockOutletLocation).toBe('/account/info');
-
     // Test Linked Providers tab navigation
     fireEvent.click(screen.getByRole('tab', { name: 'Linked Providers' }));
     expect(mockOutletLocation).toBe('/account/providers');
+
+    // Test Account tab navigation
+    fireEvent.click(screen.getByRole('tab', { name: 'Account' }));
+    expect(mockOutletLocation).toBe('/account/info');
 
     // Test Log In Sessions tab navigation
     fireEvent.click(screen.getByRole('tab', { name: 'Log In Sessions' }));
