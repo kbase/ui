@@ -106,24 +106,24 @@ export const OrcidLinkStatus = () => {
         <Card>
           <CardContent>
             <Stack spacing={2}>
-              <Typography variant="h5" component="div">
+              <Typography variant="h5">
                 About KBase ORCID Record Links
               </Typography>
-              <Typography variant="body1" component="div">
+              <Typography variant="body1">
                 This process adds KBase as a trusted organization with
                 permissions to: <br /> 1) read your information set to visible
                 to <i>trusted organizations</i>, and <br /> 2) add/update your
                 research activities by adding KBase static Narrative DOI records
                 to your ORCID account under the “Works” session.
               </Typography>
-              <Typography variant="body1" component="div">
+              <Typography variant="body1">
                 After linking, you will have the ability to remove the KBase
                 ORCID Record Link at any time. This is separate from using your
                 ORCID account to sign into KBase, because authentication with
                 ORCID and read/write with ORCID require different privileges.
               </Typography>
               <Stack spacing={1}>
-                <Typography variant="body1" component="div">
+                <Typography variant="body1">
                   Helpful links to learn more:
                 </Typography>
                 <Link href="https://support.orcid.org/hc/en-us/articles/360006897334-What-is-an-ORCID-iD-and-how-do-I-use-it">
@@ -183,12 +183,10 @@ const OrcidManage = () => {
     <Card>
       <CardContent>
         <Stack spacing={2}>
-          <Typography variant="h5" component="div">
+          <Typography variant="h5">
             <FontAwesomeIcon icon={faLock} /> ORCID Record Link Management Panel
           </Typography>
-          <Typography variant="h6" component="div">
-            Linking Sessions
-          </Typography>
+          <Typography variant="h6">Linking Sessions</Typography>
 
           <Stack width={'20em'}>
             <LabelValueTable
@@ -238,9 +236,7 @@ const OrcidManage = () => {
             </Button>
           </Stack>
 
-          <Typography variant="h6" component="div">
-            Links
-          </Typography>
+          <Typography variant="h6">Links</Typography>
           <Table>
             <TableHead>
               <TableRow>
@@ -319,9 +315,7 @@ const OrcidLinked = () => {
     <Card>
       <CardContent>
         <Stack spacing={2}>
-          <Typography variant="h5" component="div">
-            Current KBase ORCID Record Link
-          </Typography>
+          <Typography variant="h5">Current KBase ORCID Record Link</Typography>
           {linkInfo ? (
             <LabelValueTable
               data={[
@@ -392,10 +386,8 @@ const OrcidUnlinked = () => {
     <Card>
       <CardContent>
         <Stack spacing={2}>
-          <Typography variant="h5" component="div">
-            No Current ORCID Record Link
-          </Typography>
-          <Typography variant="body1" component="div">
+          <Typography variant="h5">No Current ORCID Record Link</Typography>
+          <Typography variant="body1">
             Your KBase account has not been linked to an ORCID account for the
             purposes of adding works {'(e.g., static Narratives with DOIs)'}.
             Click the button below to begin the KBase ORCID Record Link process.
@@ -470,7 +462,7 @@ export const OrcidLinkContinue = () => {
         <Card>
           <CardContent>
             <Stack spacing={2}>
-              <Typography variant="h5" component="div">
+              <Typography variant="h5">
                 Confirm Pending ORCID Record Link
               </Typography>
               {continueSession ? (
@@ -541,7 +533,7 @@ export const OrcidLinkError = () => {
         <Card>
           <CardContent>
             <Stack spacing={2}>
-              <Typography variant="h5" component="div">
+              <Typography variant="h5">
                 An Error Occured During Linking
               </Typography>
               <LabelValueTable
