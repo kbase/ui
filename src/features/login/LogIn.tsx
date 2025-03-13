@@ -147,10 +147,13 @@ export const LogIn: FC = () => {
 };
 
 export const makeLoginURLs = (nextRequest?: string) => {
-  // OAuth Login wont work in dev mode, but send dev users to CI so they can grab their token
   const loginOrigin =
+    // OAuth Login wont work in dev mode, so send dev users to CI so they can grab their token
     process.env.NODE_ENV === 'development'
       ? 'https://ci.kbase.us'
+      : // In prod, auth redirects internally to kbase.us, not narrative.kbase.us
+      document.location.origin === 'https://narrative.kbase.us'
+      ? 'https://kbase.us'
       : document.location.origin;
 
   // Triggering login requires a form POST submission
