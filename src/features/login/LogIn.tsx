@@ -21,6 +21,7 @@ import { noOp } from '../common';
 import { useCookie } from '../../common/cookie';
 import { usePageTitle } from '../layout/layoutSlice';
 import { ProviderButtons } from '../auth/providers';
+import { makeAuthFlowURLs } from '../auth/utils';
 
 export const useCheckLoggedIn = (nextRequest: string | undefined) => {
   const { initialized, token } = useAppSelector((state) => state.auth);
@@ -72,21 +73,20 @@ export const useLogout = () => {
 export const LogIn: FC = () => {
   const nextRequest = useAppParam('nextRequest');
   useCheckLoggedIn(nextRequest);
-  const { loginActionUrl, loginRedirectUrl, loginOrigin } =
-    makeLoginURLs(nextRequest);
+  const { actionUrl, redirectUrl, loginOrigin } = makeAuthFlowURLs(
+    'login',
+    'login/continue',
+    nextRequest
+  );
   usePageTitle('Log In');
   return (
     <Container className={classes['login']} maxWidth="sm">
-      <form
-        action={loginActionUrl.toString()}
-        method="post"
-        data-testid="loginForm"
-      >
+      <form action={actionUrl.toString()} method="post" data-testid="loginForm">
         <input
           readOnly
           hidden
           name="redirecturl"
-          value={loginRedirectUrl.toString()}
+          value={redirectUrl.toString()}
           data-testid="redirecturl"
         />
         <Stack spacing={2} textAlign="center">
@@ -144,35 +144,4 @@ export const LogIn: FC = () => {
       </form>
     </Container>
   );
-};
-
-export const makeLoginURLs = (nextRequest?: string) => {
-  // OAuth Login wont work in dev mode, so send dev users to CI so they can grab their token
-  const loginOrigin =
-    process.env.NODE_ENV === 'development'
-      ? 'https://ci.kbase.us'
-      : document.location.origin;
-
-  // In prod, the canonical auth domain is kbase.us, not narrative.kbase.us
-  // navigating instead to narrative.kbase.us will set the internal cookie
-  // on the wrong domain.
-  const authOrigin =
-    loginOrigin === 'https://narrative.kbase.us'
-      ? 'https://kbase.us'
-      : loginOrigin;
-
-  // Triggering login requires a form POST submission
-  const loginActionUrl = new URL('/services/auth/login/start/', authOrigin);
-
-  // Redirect URL is used to pass state to login/continue
-  const loginRedirectUrl = new URL(`${loginOrigin}/login/continue`);
-  loginRedirectUrl.searchParams.set(
-    'state',
-    JSON.stringify({
-      nextRequest: nextRequest,
-      origin: loginOrigin,
-    })
-  );
-
-  return { loginOrigin, loginActionUrl, loginRedirectUrl };
 };
