@@ -26,7 +26,13 @@ import {
 import { Loader } from '../../common/components';
 import { useAppSelector } from '../../common/hooks';
 import { ProviderButtons } from '../auth/providers';
+import { makeAuthFlowURLs } from '../auth/utils';
 import classes from './Account.module.scss';
+
+const { actionUrl, redirectUrl, loginOrigin } = makeAuthFlowURLs(
+  'link',
+  'account/providers/link/continue'
+);
 
 /**
  * Content for the Linked Providers tab in the Account page
@@ -39,7 +45,6 @@ export const LinkedProviders: FC<{ isContinueRoute?: boolean }> = ({
 
   const identities = me?.idents;
 
-  const { loginOrigin, loginActionUrl, loginRedirectUrl } = makeLinkURLs();
   const { linkPending, targetLinkProvider, targetLink } =
     useManageLinkContinue(isContinueRoute);
   const unklinkOk = (identities?.length ?? 0) > 1;
@@ -138,7 +143,7 @@ export const LinkedProviders: FC<{ isContinueRoute?: boolean }> = ({
       )}
       <Paper className={classes['provider-link-panel']} elevation={0}>
         <form
-          action={loginActionUrl.toString()}
+          action={actionUrl.toString()}
           method="post"
           data-testid="linkForm"
         >
@@ -147,7 +152,7 @@ export const LinkedProviders: FC<{ isContinueRoute?: boolean }> = ({
             readOnly
             hidden
             name="redirecturl"
-            value={loginRedirectUrl.toString()}
+            value={redirectUrl.toString()}
             data-testid="redirecturl"
           />
         </form>
@@ -232,29 +237,4 @@ const useManageLinkContinue = (isContinueRoute = false) => {
     targetLinkProvider,
     targetLink,
   };
-};
-
-export const makeLinkURLs = (nextRequest?: string) => {
-  // OAuth Login wont work in dev mode, so redirect to ci
-  const loginOrigin =
-    process.env.NODE_ENV === 'development'
-      ? 'https://ci.kbase.us'
-      : document.location.origin;
-
-  // Triggering login requires a form POST submission
-  const loginActionUrl = new URL('/services/auth/link/start/', loginOrigin);
-
-  // Redirect URL is used to pass state to link/continue
-  const loginRedirectUrl = new URL(
-    `${loginOrigin}/account/providers/link/continue`
-  );
-  loginRedirectUrl.searchParams.set(
-    'state',
-    JSON.stringify({
-      nextRequest: nextRequest,
-      origin: loginOrigin,
-    })
-  );
-
-  return { loginOrigin, loginActionUrl, loginRedirectUrl };
 };
