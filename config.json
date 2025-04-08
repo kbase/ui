@@ -21,7 +21,7 @@
     "narrative-dev": {
       "domain": "narrative-dev.kbase.us",
       "legacy": "legacy.narrative-dev.kbase.us",
-      "public_url": "/"
+      "public_url": "/",
       "backup_cookie": { "name": "kbase_session_backup", "domain": ".kbase.us" }
     },
 
