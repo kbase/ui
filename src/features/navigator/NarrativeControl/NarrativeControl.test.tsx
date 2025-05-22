@@ -85,5 +85,8 @@ describe('The <Share /> component...', () => {
     expect(
       screen.getByText('Manage Sharing', { exact: false })
     ).toBeInTheDocument();
+    expect(
+      screen.getByText('engage@kbase.us', { exact: false })
+    ).toBeInTheDocument();
   });
 });
