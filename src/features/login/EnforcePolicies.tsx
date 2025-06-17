@@ -47,7 +47,7 @@ export const EnforcePolicies = ({
     )
   ) {
     message =
-      "KBase's recent renewal (Oct '2024) has prompted an update and version 2 release to our Terms and Conditions. Please review and agree to these policies changes to continue using this free resource.";
+      "KBase's recent renewal has prompted an update and version 2 release to our Terms and Conditions. Please review and agree to these policies changes to continue using this free resource.";
   }
 
   return (
