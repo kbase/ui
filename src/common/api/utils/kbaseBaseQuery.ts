@@ -20,6 +20,7 @@ export interface DynamicService {
 
 export interface StaticService {
   url: string;
+  domain?: string;
   version?: '1.1' | '2.0';
 }
 
@@ -159,6 +160,9 @@ export const kbaseBaseQuery: (
     async (kbQueryArgs, baseQueryAPI, extraOptions) => {
       // If this is a Http query, call rawBaseQuery directly, after prepending the service url
       if (kbQueryArgs.apiType === 'Http') {
+        const baseUrl =
+          kbQueryArgs.service.domain || fetchBaseQueryArgs.baseUrl || '';
+
         const fetchArgs = {
           ...kbQueryArgs,
           url: new URL(
@@ -166,7 +170,7 @@ export const kbaseBaseQuery: (
               (url, part) =>
                 (url.endsWith('/') ? url : url + '/') +
                 (part && part.startsWith('/') ? part.slice(1) : part),
-              fetchBaseQueryArgs.baseUrl || ''
+              baseUrl
             )
           ).toString(),
         };
@@ -221,11 +225,10 @@ export const kbaseBaseQuery: (
       }
 
       // generate request body
+      const baseUrl = kbQueryArgs.service.domain || fetchBaseQueryArgs.baseUrl;
+
       const fetchArgs = {
-        url: new URL(
-          kbQueryArgs.service.url,
-          fetchBaseQueryArgs.baseUrl
-        ).toString(),
+        url: new URL(kbQueryArgs.service.url, baseUrl).toString(),
         method: 'POST',
         body,
         ...kbQueryArgs.fetchArgs, // Allow overriding JsonRpc defaults
