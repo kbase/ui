@@ -36,7 +36,6 @@
     "front-matter": "^4.0.2",
     "jest-fetch-mock": "^3.0.3",
     "js-md5": "^0.8.3",
-    "kbase-policies": "github:kbase/policies",
     "leaflet": "^1.9.4",
     "marked": "^4.2.12",
     "node-sass": "^9.0.0",
