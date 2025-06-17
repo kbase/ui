@@ -6,6 +6,7 @@ import { httpService } from './utils/serviceHelpers';
 
 const authService = httpService({
   url: '/services/auth',
+  domain: 'https://kbase.us', // Auth service special-cased to use old kbase prod auth routes. (does NOT use the `narrative.` domain)
 });
 
 interface TokenResponse {
