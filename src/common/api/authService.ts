@@ -181,6 +181,7 @@ export const authApi = baseApi
       authFromToken: builder.query<TokenResponse, string>({
         query: (token) =>
           authService({
+            credentials: 'include',
             url: '/api/V2/token',
             method: 'GET',
             headers: {
@@ -191,6 +192,7 @@ export const authApi = baseApi
       getMe: builder.query<AuthResults['getMe'], AuthParams['getMe']>({
         query: ({ token }) => {
           return authService({
+            credentials: 'include',
             headers: {
               Authorization: token,
             },
@@ -212,6 +214,7 @@ export const authApi = baseApi
           initializer.
         */
           return authService({
+            credentials: 'include',
             headers: {
               Authorization: token,
             },
@@ -225,6 +228,7 @@ export const authApi = baseApi
       getUsers: builder.query<AuthResults['getUsers'], AuthParams['getUsers']>({
         query: ({ token, users }) =>
           authService({
+            credentials: 'include',
             headers: {
               Authorization: token,
             },
@@ -239,6 +243,7 @@ export const authApi = baseApi
       >({
         query: ({ search, token }) =>
           authService({
+            credentials: 'include',
             headers: {
               Authorization: token,
             },
@@ -252,6 +257,7 @@ export const authApi = baseApi
       >({
         query: (token) =>
           authService({
+            credentials: 'include',
             headers: {
               accept: 'application/json',
               Authorization: token,
@@ -267,6 +273,7 @@ export const authApi = baseApi
       >({
         query: (tokenId) =>
           authService({
+            credentials: 'include',
             url: encode`/tokens/revoke/${tokenId}`,
             method: 'DELETE',
           }),
@@ -278,6 +285,7 @@ export const authApi = baseApi
       >({
         query: ({ type, name }) =>
           authService({
+            credentials: 'include',
             url: encode`/tokens/`,
             method: 'POST',
             body: {
@@ -294,6 +302,7 @@ export const authApi = baseApi
         query: () =>
           // MUST have an in-process-login-token cookie
           authService({
+            credentials: 'include',
             headers: {
               accept: 'application/json',
             },
@@ -307,6 +316,7 @@ export const authApi = baseApi
       >({
         query: (pickedChoice) =>
           authService({
+            credentials: 'include',
             url: encode`/login/pick`,
             body: pickedChoice,
             method: 'POST',
@@ -319,6 +329,7 @@ export const authApi = baseApi
         query: (username) =>
           // MUST have an in-process-login-token cookie
           authService({
+            credentials: 'include',
             headers: {
               accept: 'application/json',
             },
@@ -333,6 +344,7 @@ export const authApi = baseApi
         query: (params) =>
           // MUST have an in-process-login-token cookie
           authService({
+            credentials: 'include',
             headers: {
               accept: 'application/json',
             },
@@ -347,6 +359,7 @@ export const authApi = baseApi
       >({
         query: ({ token, id }) =>
           authService({
+            credentials: 'include',
             headers: {
               Authorization: token,
             },
@@ -363,6 +376,7 @@ export const authApi = baseApi
         query: () =>
           // MUST have an in-process-link-token cookie
           authService({
+            credentials: 'include',
             headers: {
               accept: 'application/json',
             },
@@ -376,6 +390,7 @@ export const authApi = baseApi
       >({
         query: ({ token, id }) =>
           authService({
+            credentials: 'include',
             headers: {
               Authorization: token,
             },
