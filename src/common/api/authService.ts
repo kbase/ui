@@ -4,9 +4,22 @@ import { uriEncodeTemplateTag as encode } from '../utils/stringUtils';
 import { baseApi } from './index';
 import { httpService } from './utils/serviceHelpers';
 
+const loginOrigin =
+  process.env.NODE_ENV === 'development'
+    ? 'https://ci.kbase.us'
+    : document.location.origin;
+
+// In prod, the canonical auth domain is kbase.us, not narrative.kbase.us
+// navigating instead to narrative.kbase.us will set the internal cookie
+// on the wrong domain.
+const authOrigin =
+  loginOrigin === 'https://narrative.kbase.us'
+    ? 'https://kbase.us'
+    : loginOrigin;
+
 const authService = httpService({
   url: '/services/auth',
-  domain: 'https://kbase.us', // Auth service special-cased to use old kbase prod auth routes. (does NOT use the `narrative.` domain)
+  domain: authOrigin, // Auth service special-cased to use old kbase prod auth routes. (does NOT use the `narrative.` domain)
 });
 
 interface TokenResponse {
