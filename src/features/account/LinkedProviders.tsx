@@ -155,6 +155,13 @@ export const LinkedProviders: FC<{ isContinueRoute?: boolean }> = ({
             value={redirectUrl.toString()}
             data-testid="redirecturl"
           />
+          <input
+            readOnly
+            hidden
+            name="token"
+            value={token.toString()}
+            data-testid="token"
+          />
         </form>
       </Paper>
     </Stack>
