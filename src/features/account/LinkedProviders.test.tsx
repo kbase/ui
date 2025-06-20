@@ -144,6 +144,17 @@ describe('LinkedProviders Component', () => {
     expect(screen.getByTestId('linkForm')).toBeInTheDocument();
   });
 
+  it('includes token input field in the link form', () => {
+    render(<LinkedProviders />, { wrapper: TestWrapper });
+
+    const tokenInput = screen.getByTestId('token');
+    expect(tokenInput).toBeInTheDocument();
+    expect(tokenInput).toHaveAttribute('name', 'token');
+    expect(tokenInput).toHaveAttribute('value', 'test-token');
+    expect(tokenInput).toHaveAttribute('hidden');
+    expect(tokenInput).toHaveAttribute('readOnly');
+  });
+
   it('handles link provider continuation flow', async () => {
     const mockLinkChoice = {
       provider: 'Google',
