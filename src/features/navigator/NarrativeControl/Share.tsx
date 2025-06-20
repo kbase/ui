@@ -401,6 +401,10 @@ export const Share: FC<{
         userIsAdmin={userIsAdmin}
       />
       <p>{permissions[userPermission]}</p>
+      <p>
+        Please email <a href="mailto:engage@kbase.us">engage@kbase.us</a> for a
+        DOI prior to publishing.
+      </p>
       <SelectUser modalClose={modalClose} wsId={wsId} />
       <ul>
         {usernamePermissions.map(([username, permission]) => {
