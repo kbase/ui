@@ -21,7 +21,7 @@ import {
 } from '@mui/material';
 import { FC, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useGetOrganizationQuery } from '../../common/api/orgsApi';
+import { getOrganization } from '../../common/api/orgsApi';
 import { Loader } from '../../common/components';
 import { usePageTitle } from '../layout/layoutSlice';
 
@@ -52,7 +52,7 @@ export const OrganizationDetail: FC = () => {
   const navigate = useNavigate();
   const [tabValue, setTabValue] = useState(0);
 
-  const { data: org, isLoading, error } = useGetOrganizationQuery(orgId || '');
+  const { data: org, isLoading, error } = getOrganization.useQuery(orgId || '');
 
   usePageTitle(org?.name || 'Organization');
 

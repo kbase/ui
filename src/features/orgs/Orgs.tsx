@@ -29,7 +29,7 @@ import {
   BriefOrganization,
   Filter,
   OrganizationQuery,
-  useListOrganizationsQuery,
+  listOrganizations,
 } from '../../common/api/orgsApi';
 import { Loader } from '../../common/components';
 
@@ -56,7 +56,7 @@ export const Orgs: FC = () => {
     [searchText, sortBy, filter]
   );
 
-  const { data, isLoading, error } = useListOrganizationsQuery(query);
+  const { data, isLoading, error } = listOrganizations.useQuery(query);
 
   const handleSearchChange = useCallback((value: string) => {
     setSearchText(value);

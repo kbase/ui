@@ -406,26 +406,23 @@ export const orgsApi = baseApi
   });
 
 export const {
-  useListOrganizationsQuery,
-  useGetOrganizationQuery,
-  useCreateOrganizationMutation,
-  useUpdateOrganizationMutation,
-  useRequestMembershipMutation,
-  useInviteUserMutation,
-  useUpdateMemberMutation,
-  useRemoveMemberMutation,
-  useMemberToAdminMutation,
-  useAdminToMemberMutation,
-  useLinkNarrativeMutation,
-  useUnlinkNarrativeMutation,
-  useAddAppMutation,
-  useRemoveAppMutation,
-  useGetNarrativeOrgsQuery,
-  useGetUserOrgsQuery,
-} = orgsApi;
-
-export const { getNarrativeOrgs, getUserOrgs, linkNarrative } =
-  orgsApi.endpoints;
+  listOrganizations,
+  getOrganization,
+  createOrganization,
+  updateOrganization,
+  requestMembership,
+  inviteUser,
+  updateMember,
+  removeMember,
+  memberToAdmin,
+  adminToMember,
+  linkNarrative,
+  unlinkNarrative,
+  addApp,
+  removeApp,
+  getNarrativeOrgs,
+  getUserOrgs,
+} = orgsApi.endpoints;
 
 export const clearCacheAction = orgsApi.util.invalidateTags([
   'Organization',
