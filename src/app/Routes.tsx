@@ -45,6 +45,7 @@ import {
   OrcidLinkError,
 } from '../features/account/OrcidLink';
 import { ManageTokens } from '../features/account/ManageTokens';
+import { Orgs, OrganizationDetail, CreateOrganization } from '../features/orgs';
 
 export const LOGIN_ROUTE = '/login';
 export const SIGNUP_ROUTE = '/signup';
@@ -140,6 +141,20 @@ const Routes: FC = () => {
         <Route
           path={detailDataProductPath}
           element={<Authed element={<CollectionDetail />} />}
+        />
+        <Route path="*" element={<PageNotFound />} />
+      </Route>
+
+      {/* Organizations */}
+      <Route path="/orgs">
+        <Route index element={<Authed element={<Orgs />} />} />
+        <Route
+          path="new"
+          element={<Authed element={<CreateOrganization />} />}
+        />
+        <Route
+          path=":orgId"
+          element={<Authed element={<OrganizationDetail />} />}
         />
         <Route path="*" element={<PageNotFound />} />
       </Route>
