@@ -25,6 +25,7 @@ import { getOrganization } from '../../common/api/groupsApi';
 import { Loader } from '../../common/components';
 import { usePageTitle } from '../layout/layoutSlice';
 import { RequestsTab } from './components/RequestsTab';
+import { EditOrganizationDialog } from './components/EditOrganizationDialog';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -52,6 +53,7 @@ export const OrganizationDetail: FC = () => {
   const { orgId } = useParams<{ orgId: string }>();
   const navigate = useNavigate();
   const [tabValue, setTabValue] = useState(0);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const { data: org, isLoading, error } = getOrganization.useQuery(orgId || '');
 
@@ -144,7 +146,11 @@ export const OrganizationDetail: FC = () => {
             <Grid item>
               <Stack spacing={2}>
                 {['Admin', 'Owner'].includes(org.role) && (
-                  <Button variant="outlined" size="small">
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => setEditDialogOpen(true)}
+                  >
                     Edit Organization
                   </Button>
                 )}
@@ -345,6 +351,12 @@ export const OrganizationDetail: FC = () => {
           )}
         </Paper>
       </Stack>
+
+      <EditOrganizationDialog
+        open={editDialogOpen}
+        onClose={() => setEditDialogOpen(false)}
+        organization={org}
+      />
     </Container>
   );
 };
