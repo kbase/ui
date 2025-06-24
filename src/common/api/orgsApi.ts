@@ -9,6 +9,73 @@ const orgsService = httpService({
 
 export type Role = 'None' | 'Member' | 'Admin' | 'Owner';
 
+// Groups service raw response format (list view)
+interface GroupsServiceResponse {
+  id: string;
+  name: string;
+  private: boolean;
+  owner: string;
+  role: Role;
+  memcount: number;
+  createdate: number;
+  moddate: number;
+  lastvisit: number | null;
+  rescount?: {
+    workspace?: number;
+    catalogmethod?: number;
+  };
+  custom?: {
+    logourl?: string;
+    homeurl?: string;
+    researchinterests?: string;
+    relatedgroups?: string;
+    description?: string;
+  };
+}
+
+// Groups service User structure
+interface GroupsServiceUser {
+  name: string;
+  joined: number | null;
+  lastvisit: number | null;
+  custom: Record<string, unknown>;
+}
+
+// Groups service detailed group response format
+interface GroupsServiceDetailResponse {
+  id: string;
+  name: string;
+  private: boolean;
+  privatemembers: boolean;
+  owner: GroupsServiceUser;
+  role: Role;
+  memcount: number;
+  createdate: number;
+  moddate: number;
+  lastvisit: number | null;
+  admins: GroupsServiceUser[];
+  members: GroupsServiceUser[];
+  rescount?: {
+    workspace?: number;
+    catalogmethod?: number;
+  };
+  resources?: {
+    workspace?: Array<{
+      rid: string;
+      added: number | null;
+      [key: string]: unknown;
+    }>;
+    catalogmethod?: Array<{ rid: string; added: number | null }>;
+  };
+  custom?: {
+    logourl?: string;
+    homeurl?: string;
+    researchinterests?: string;
+    relatedgroups?: string;
+    description?: string;
+  };
+}
+
 // Legacy interface for backwards compatibility
 export interface OrgInfo {
   id: string;
@@ -179,12 +246,67 @@ export const orgsApi = baseApi
         OrgsResults['listOrganizations'],
         OrgsParams['listOrganizations']
       >({
-        query: (params) =>
-          orgsService({
-            method: 'POST',
-            url: '/organizations/query',
-            body: params,
-          }),
+        query: (params) => {
+          const searchParams = new URLSearchParams();
+
+          if (params.filter.roleType !== 'all') {
+            if (params.filter.roleType === 'myorgs') {
+              searchParams.append('role', 'Member');
+            } else if (params.filter.roles.length > 0) {
+              searchParams.append('role', params.filter.roles[0]);
+            }
+          }
+
+          if (params.sortDirection === 'descending') {
+            searchParams.append('order', 'desc');
+          } else {
+            searchParams.append('order', 'asc');
+          }
+
+          const queryString = searchParams.toString();
+          const url = queryString ? `/group?${queryString}` : '/group';
+
+          return orgsService({
+            method: 'GET',
+            url,
+          });
+        },
+        transformResponse: (
+          response: GroupsServiceResponse[]
+        ): OrgsResults['listOrganizations'] => {
+          const organizations = response.map((group) => ({
+            id: group.id,
+            name: group.name,
+            logoUrl: group.custom?.logourl || null,
+            isPrivate: group.private,
+            homeUrl: group.custom?.homeurl || null,
+            researchInterests: group.custom?.researchinterests || null,
+            owner: {
+              username: group.owner,
+              realname: group.owner,
+            },
+            relation: group.role,
+            isMember: ['Member', 'Admin', 'Owner'].includes(group.role),
+            isAdmin: ['Admin', 'Owner'].includes(group.role),
+            isOwner: group.role === 'Owner',
+            createdAt: new Date(group.createdate).toISOString(),
+            modifiedAt: new Date(group.moddate).toISOString(),
+            lastVisitedAt: group.lastvisit
+              ? new Date(group.lastvisit).toISOString()
+              : null,
+            memberCount: group.memcount,
+            narrativeCount: group.rescount?.workspace || 0,
+            appCount: group.rescount?.catalogmethod || 0,
+            relatedOrganizations: group.custom?.relatedgroups
+              ? group.custom.relatedgroups.split(',')
+              : [],
+          }));
+
+          return {
+            organizations,
+            total: organizations.length,
+          };
+        },
         providesTags: ['OrganizationList'],
       }),
       getOrganization: builder.query<
@@ -196,6 +318,96 @@ export const orgsApi = baseApi
             method: 'GET',
             url: encode`/group/${id}`,
           }),
+        transformResponse: (
+          response: GroupsServiceDetailResponse
+        ): Organization => {
+          // Convert Groups service users to our Member format
+          const convertUser = (
+            user: GroupsServiceUser,
+            type: 'member' | 'admin' | 'owner'
+          ): Member => ({
+            username: user.name,
+            realname: user.name, // Groups service doesn't provide real names
+            joinedAt: user.joined
+              ? new Date(user.joined).toISOString()
+              : new Date().toISOString(),
+            lastVisitedAt: user.lastvisit
+              ? new Date(user.lastvisit).toISOString()
+              : null,
+            type,
+            title: (user.custom?.title as string) || null,
+            isVisible: true,
+          });
+
+          // Combine all members (owner, admins, members)
+          const allMembers: Member[] = [
+            convertUser(response.owner, 'owner'),
+            ...response.admins.map((user) => convertUser(user, 'admin')),
+            ...response.members.map((user) => convertUser(user, 'member')),
+          ];
+
+          // Convert workspace resources to narratives
+          const narratives: NarrativeResource[] = (
+            response.resources?.workspace || []
+          ).map((ws) => ({
+            workspaceId: parseInt(ws.rid),
+            title: (ws.name as string) || `Workspace ${ws.rid}`,
+            permission:
+              (ws.perm as 'view' | 'edit' | 'admin' | 'owner') || 'view',
+            isPublic: (ws.public as boolean) || false,
+            createdAt: ws.createdate
+              ? new Date(ws.createdate as number).toISOString()
+              : new Date().toISOString(),
+            updatedAt: ws.moddate
+              ? new Date(ws.moddate as number).toISOString()
+              : new Date().toISOString(),
+            addedAt: ws.added ? new Date(ws.added).toISOString() : null,
+            description: (ws.description as string) || '',
+            isVisible: true,
+          }));
+
+          // Convert catalogmethod resources to apps
+          const apps: AppResource[] = (
+            response.resources?.catalogmethod || []
+          ).map((method) => ({
+            appId: method.rid,
+            addedAt: method.added ? new Date(method.added).toISOString() : null,
+            isVisible: true,
+          }));
+
+          return {
+            id: response.id,
+            name: response.name,
+            logoUrl: response.custom?.logourl || null,
+            isPrivate: response.private,
+            homeUrl: response.custom?.homeurl || null,
+            researchInterests: response.custom?.researchinterests || null,
+            owner: {
+              username: response.owner.name,
+              realname: response.owner.name,
+            },
+            relation: response.role,
+            isMember: ['Member', 'Admin', 'Owner'].includes(response.role),
+            isAdmin: ['Admin', 'Owner'].includes(response.role),
+            isOwner: response.role === 'Owner',
+            createdAt: new Date(response.createdate).toISOString(),
+            modifiedAt: new Date(response.moddate).toISOString(),
+            lastVisitedAt: response.lastvisit
+              ? new Date(response.lastvisit).toISOString()
+              : null,
+            memberCount: response.memcount,
+            narrativeCount: response.rescount?.workspace || 0,
+            appCount: response.rescount?.catalogmethod || 0,
+            relatedOrganizations: response.custom?.relatedgroups
+              ? response.custom.relatedgroups.split(',')
+              : [],
+            description: response.custom?.description || '',
+            areMembersPrivate: response.privatemembers,
+            members: allMembers,
+            narratives,
+            apps,
+          };
+        },
         providesTags: (result, error, id) => [{ type: 'Organization', id }],
       }),
       createOrganization: builder.mutation<
