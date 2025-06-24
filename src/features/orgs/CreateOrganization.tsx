@@ -17,7 +17,7 @@ import { usePageTitle } from '../layout/layoutSlice';
 import {
   createOrganization,
   CreateOrganizationInput,
-} from '../../common/api/orgsApi';
+} from '../../common/api/groupsApi';
 
 const defaultValues: CreateOrganizationInput = {
   id: '',

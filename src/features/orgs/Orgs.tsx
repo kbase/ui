@@ -26,11 +26,11 @@ import { FC, useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePageTitle } from '../layout/layoutSlice';
 import {
-  BriefOrganization,
+  GroupsServiceResponse,
   Filter,
   OrganizationQuery,
   listOrganizations,
-} from '../../common/api/orgsApi';
+} from '../../common/api/groupsApi';
 import { Loader } from '../../common/components';
 
 export const Orgs: FC = () => {
@@ -140,17 +140,13 @@ export const Orgs: FC = () => {
                     color="text.secondary"
                     sx={{ minWidth: 'max-content' }}
                   >
-                    {data?.organizations.length === data?.total
-                      ? `${data?.total || 0} orgs`
-                      : `${data?.organizations.length || 0}/${
-                          data?.total || 0
-                        } orgs`}
+                    {`${data?.length || 0} orgs`}
                   </Typography>
                 </Stack>
               </Paper>
 
               <Grid container spacing={2}>
-                {data?.organizations.map((org) => (
+                {data?.map((org) => (
                   <Grid key={org.id} item xs={12} sm={6} md={4}>
                     <OrganizationCard
                       org={org}
@@ -160,7 +156,7 @@ export const Orgs: FC = () => {
                 ))}
               </Grid>
 
-              {data?.organizations.length === 0 && (
+              {data?.length === 0 && (
                 <Paper sx={{ p: 4, textAlign: 'center' }}>
                   <Typography variant="h6" gutterBottom>
                     No organizations found
@@ -320,7 +316,7 @@ export const Orgs: FC = () => {
 };
 
 const OrganizationCard: FC<{
-  org: BriefOrganization;
+  org: GroupsServiceResponse;
   onClick: () => void;
 }> = ({ org, onClick }) => {
   return (
@@ -328,9 +324,9 @@ const OrganizationCard: FC<{
       <CardContent>
         <Stack spacing={2}>
           <Box display="flex" alignItems="center" gap={1}>
-            {org.logoUrl && (
+            {org.custom?.logourl && (
               <img
-                src={org.logoUrl}
+                src={org.custom.logourl}
                 alt={`${org.name} logo`}
                 style={{ width: 40, height: 40, objectFit: 'contain' }}
               />
@@ -341,10 +337,10 @@ const OrganizationCard: FC<{
           </Box>
 
           <Typography variant="body2" color="text.secondary" noWrap>
-            Owner: {org.owner.realname || org.owner.username}
+            Owner: {org.owner}
           </Typography>
 
-          {org.researchInterests && (
+          {org.custom?.researchinterests && (
             <Typography
               variant="body2"
               color="text.secondary"
@@ -356,29 +352,29 @@ const OrganizationCard: FC<{
                 WebkitBoxOrient: 'vertical',
               }}
             >
-              {org.researchInterests}
+              {org.custom.researchinterests}
             </Typography>
           )}
 
           <Stack direction="row" spacing={1} flexWrap="wrap">
             <Chip
-              label={`${org.memberCount} members`}
+              label={`${org.memcount} members`}
               size="small"
               variant="outlined"
             />
             <Chip
-              label={`${org.narrativeCount} narratives`}
+              label={`${org.rescount?.workspace || 0} narratives`}
               size="small"
               variant="outlined"
             />
-            {org.isPrivate && (
+            {org.private && (
               <Chip label="Private" size="small" color="secondary" />
             )}
           </Stack>
 
-          {org.relation !== 'None' && (
+          {org.role !== 'None' && (
             <Chip
-              label={org.relation}
+              label={org.role}
               size="small"
               color="primary"
               sx={{ alignSelf: 'flex-start' }}
