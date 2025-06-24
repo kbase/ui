@@ -26,6 +26,8 @@ import { Loader } from '../../common/components';
 import { usePageTitle } from '../layout/layoutSlice';
 import { RequestsTab } from './components/RequestsTab';
 import { EditOrganizationDialog } from './components/EditOrganizationDialog';
+import { InviteMemberDialog } from './components/InviteMemberDialog';
+import { MemberManagementActions } from './components/MemberManagementActions';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -54,6 +56,7 @@ export const OrganizationDetail: FC = () => {
   const navigate = useNavigate();
   const [tabValue, setTabValue] = useState(0);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
 
   const { data: org, isLoading, error } = getOrganization.useQuery(orgId || '');
 
@@ -160,7 +163,11 @@ export const OrganizationDetail: FC = () => {
                   </Button>
                 )}
                 {['Admin', 'Owner'].includes(org.role) && (
-                  <Button variant="outlined" size="small">
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => setInviteDialogOpen(true)}
+                  >
                     Invite Users
                   </Button>
                 )}
@@ -272,7 +279,20 @@ export const OrganizationDetail: FC = () => {
                 ...org.members.map((user) => ({ user, type: 'member' })),
               ].map(({ user, type }, index) => (
                 <div key={`${user.name}-${index}`}>
-                  <ListItem>
+                  <ListItem
+                    secondaryAction={
+                      ['Admin', 'Owner'].includes(org.role) && (
+                        <MemberManagementActions
+                          organization={org}
+                          currentUserRole={org.role}
+                          targetMember={user}
+                          targetMemberRole={
+                            type as 'owner' | 'admin' | 'member'
+                          }
+                        />
+                      )
+                    }
+                  >
                     <ListItemAvatar>
                       <Avatar>{user.name.charAt(0)}</Avatar>
                     </ListItemAvatar>
@@ -355,6 +375,12 @@ export const OrganizationDetail: FC = () => {
       <EditOrganizationDialog
         open={editDialogOpen}
         onClose={() => setEditDialogOpen(false)}
+        organization={org}
+      />
+
+      <InviteMemberDialog
+        open={inviteDialogOpen}
+        onClose={() => setInviteDialogOpen(false)}
         organization={org}
       />
     </Container>
