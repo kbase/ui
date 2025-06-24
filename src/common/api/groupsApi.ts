@@ -152,6 +152,7 @@ export interface GroupsApiParams {
   addApp: { groupId: string; appId: string };
   removeApp: { groupId: string; appId: string };
   getRequests: string;
+  getUserOutgoingRequests: void;
   acceptRequest: string;
   denyRequest: string;
   cancelRequest: string;
@@ -176,6 +177,7 @@ export interface GroupsApiResults {
   addApp: unknown;
   removeApp: void;
   getRequests: GroupRequest[];
+  getUserOutgoingRequests: GroupRequest[];
   acceptRequest: GroupRequest;
   denyRequest: GroupRequest;
   cancelRequest: GroupRequest;
@@ -425,6 +427,63 @@ export const groupsApi = baseApi
           }),
         providesTags: ['GroupList'],
       }),
+      getRequests: builder.query<
+        GroupsApiResults['getRequests'],
+        GroupsApiParams['getRequests']
+      >({
+        query: (groupId) =>
+          groupsService({
+            method: 'GET',
+            url: encode`/group/${groupId}/requests`,
+          }),
+        providesTags: (result, error, groupId) => [
+          { type: 'Group', id: groupId },
+        ],
+      }),
+      getUserOutgoingRequests: builder.query<
+        GroupsApiResults['getUserOutgoingRequests'],
+        GroupsApiParams['getUserOutgoingRequests']
+      >({
+        query: () =>
+          groupsService({
+            method: 'GET',
+            url: '/request/created',
+          }),
+        providesTags: ['GroupList'],
+      }),
+      acceptRequest: builder.mutation<
+        GroupsApiResults['acceptRequest'],
+        GroupsApiParams['acceptRequest']
+      >({
+        query: (requestId) =>
+          groupsService({
+            method: 'PUT',
+            url: encode`/request/id/${requestId}/accept`,
+          }),
+        invalidatesTags: ['GroupList'],
+      }),
+      denyRequest: builder.mutation<
+        GroupsApiResults['denyRequest'],
+        GroupsApiParams['denyRequest']
+      >({
+        query: (requestId) =>
+          groupsService({
+            method: 'PUT',
+            url: encode`/request/id/${requestId}/deny`,
+          }),
+        invalidatesTags: ['GroupList'],
+      }),
+      cancelRequest: builder.mutation<
+        GroupsApiResults['cancelRequest'],
+        GroupsApiParams['cancelRequest']
+      >({
+        query: (requestId) =>
+          groupsService({
+            method: 'PUT',
+            url: encode`/request/id/${requestId}/cancel`,
+          }),
+        invalidatesTags: ['GroupList'],
+      }),
     }),
   });
 
@@ -445,6 +504,11 @@ export const {
   removeApp,
   getNarrativeOrgs,
   getUserGroups,
+  getRequests,
+  getUserOutgoingRequests,
+  acceptRequest,
+  denyRequest,
+  cancelRequest,
 } = groupsApi.endpoints;
 
 export const clearCacheAction = groupsApi.util.invalidateTags([

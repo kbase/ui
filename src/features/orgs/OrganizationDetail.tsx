@@ -24,6 +24,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getOrganization } from '../../common/api/groupsApi';
 import { Loader } from '../../common/components';
 import { usePageTitle } from '../layout/layoutSlice';
+import { RequestsTab } from './components/RequestsTab';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -339,12 +340,7 @@ export const OrganizationDetail: FC = () => {
 
           {['Admin', 'Owner'].includes(org.role) && (
             <TabPanel value={tabValue} index={4}>
-              <Typography variant="h6" gutterBottom>
-                Requests
-              </Typography>
-              <Typography color="text.secondary">
-                Request management functionality coming soon...
-              </Typography>
+              <RequestsTab groupId={org.id} />
             </TabPanel>
           )}
         </Paper>
