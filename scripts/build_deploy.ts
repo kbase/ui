@@ -18,6 +18,7 @@ interface EnvironmentConfig {
     name: string;
     domain: string;
   };
+  cdm_domain?: string;
 }
 
 interface BuildParameters {
@@ -52,6 +53,7 @@ const setEnvironment = (
     legacy,
     public_url: publicURL,
     backup_cookie: backupCookie,
+    cdm_domain: cdmDomain,
   } = environmentConfig;
 
   const envsNew: Record<string, string> = {
@@ -62,6 +64,7 @@ const setEnvironment = (
     REACT_APP_KBASE_LEGACY_DOMAIN: legacy,
     REACT_APP_KBASE_BACKUP_COOKIE_NAME: backupCookie?.name || '',
     REACT_APP_KBASE_BACKUP_COOKIE_DOMAIN: backupCookie?.domain || '',
+    REACT_APP_KBASE_CDM_DOMAIN: cdmDomain || '',
   };
   Object.assign(process.env, envsNew);
 };
