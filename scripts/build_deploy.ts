@@ -64,7 +64,7 @@ const setEnvironment = (
     REACT_APP_KBASE_LEGACY_DOMAIN: legacy,
     REACT_APP_KBASE_BACKUP_COOKIE_NAME: backupCookie?.name || '',
     REACT_APP_KBASE_BACKUP_COOKIE_DOMAIN: backupCookie?.domain || '',
-    REACT_APP_KBASE_CDM_DOMAIN: cdmDomain || '',
+    REACT_APP_KBASE_CDM_DOMAIN: cdmDomain || 'cdmhub.' + domain,
   };
   Object.assign(process.env, envsNew);
 };
