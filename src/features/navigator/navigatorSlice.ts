@@ -6,7 +6,7 @@ import {
   NarrativeDoc,
 } from '../../common/types/NarrativeDoc';
 import { SearchResults } from '../../common/api/searchApi';
-import { OrgInfo } from '../../common/api/orgsApi';
+import { OrgInfo } from '../../common/api/groupsApi';
 import { Category, UserPermission } from './common';
 
 // Define a type for the slice state

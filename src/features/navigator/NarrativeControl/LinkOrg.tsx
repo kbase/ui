@@ -10,7 +10,7 @@ import {
   getUserOrgs,
   linkNarrative,
   OrgInfo,
-} from '../../../common/api/orgsApi';
+} from '../../../common/api/groupsApi';
 import { Button, Select } from '../../../common/components';
 import { useAppDispatch, useAppSelector } from '../../../common/hooks';
 import { NarrativeDoc } from '../../../common/types/NarrativeDoc';
@@ -64,7 +64,7 @@ export const LinkOrg: FC<{
       dispatch(linkAction({ org: orgSelected, wsId }));
       try {
         await linkTrigger({
-          orgId: orgSelected,
+          groupId: orgSelected,
           wsId,
         }).unwrap();
         dispatch(setLoading(false));
