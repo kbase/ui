@@ -9,7 +9,8 @@
     "ci": {
       "domain": "ci.kbase.us",
       "legacy": "legacy.ci.kbase.us",
-      "public_url": "/"
+      "public_url": "/",
+      "cdm_domain": "cdmhub.ci.kbase.us"
     },
 
     "ci-europa": {
@@ -42,7 +43,11 @@
       "domain": "narrative.kbase.us",
       "legacy": "legacy.narrative.kbase.us",
       "public_url": "/",
-      "backup_cookie": { "name": "kbase_session_backup", "domain": ".kbase.us" }
+      "backup_cookie": {
+        "name": "kbase_session_backup",
+        "domain": ".kbase.us"
+      },
+      "cdm_domain": "hub.berdl.kbase.us"
     }
   }
 }
