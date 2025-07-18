@@ -19,6 +19,28 @@ import { Loader } from '../../common/components';
 import { useAppSelector } from '../../common/hooks';
 import { useLogout } from '../login/LogIn';
 
+const MfaStatusIndicator: FC<{ mfaAuthenticated: boolean | null }> = ({ mfaAuthenticated }) => {
+  if (mfaAuthenticated === true) {
+    return (
+      <Tooltip title="MFA used">
+        <FontAwesomeIcon icon={faCheck} style={{ color: 'green' }} />
+      </Tooltip>
+    );
+  } else if (mfaAuthenticated === false) {
+    return (
+      <Tooltip title="Single factor">
+        <FontAwesomeIcon icon={faCheck} style={{ color: 'red' }} />
+      </Tooltip>
+    );
+  } else {
+    return (
+      <Tooltip title="MFA not supported">
+        <FontAwesomeIcon icon={faCheck} style={{ color: 'grey' }} />
+      </Tooltip>
+    );
+  }
+};
+
 /**
  * Content for the Log In Sessions tab in the Account page
  */
@@ -68,6 +90,7 @@ export const LogInSessions: FC = () => {
                 <TableCell>Browser</TableCell>
                 <TableCell>Operating System</TableCell>
                 <TableCell>IP Address</TableCell>
+                <TableCell>MFA Status</TableCell>
                 <TableCell>Action</TableCell>
               </TableRow>
             </TableHead>
@@ -87,6 +110,9 @@ export const LogInSessions: FC = () => {
                 </TableCell>
                 <TableCell>{currentToken?.ip}</TableCell>
                 <TableCell>
+                  <MfaStatusIndicator mfaAuthenticated={currentToken?.mfaAuthenticated ?? null} />
+                </TableCell>
+                <TableCell>
                   <LogOutButton tokenId={currentToken?.id} />
                 </TableCell>
               </TableRow>
@@ -105,6 +131,7 @@ export const LogInSessions: FC = () => {
                 <TableCell>Browser</TableCell>
                 <TableCell>Operating System</TableCell>
                 <TableCell>IP Address</TableCell>
+                <TableCell>MFA Status</TableCell>
                 <TableCell>Action</TableCell>
               </TableRow>
             </TableHead>
@@ -124,6 +151,9 @@ export const LogInSessions: FC = () => {
                     {otherToken.os} {otherToken.osver}
                   </TableCell>
                   <TableCell>{otherToken.ip}</TableCell>
+                  <TableCell>
+                    <MfaStatusIndicator mfaAuthenticated={otherToken.mfaAuthenticated ?? null} />
+                  </TableCell>
                   <TableCell>
                     <LogOutButton tokenId={otherToken.id} />
                   </TableCell>
