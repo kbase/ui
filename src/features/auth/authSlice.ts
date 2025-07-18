@@ -11,6 +11,7 @@ export interface TokenInfo {
   type: string;
   user: string;
   cachefor: number;
+  mfaAuthenticated: boolean | null;
 }
 
 interface AuthState {
