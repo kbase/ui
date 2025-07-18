@@ -19,7 +19,9 @@ import { Loader } from '../../common/components';
 import { useAppSelector } from '../../common/hooks';
 import { useLogout } from '../login/LogIn';
 
-const MfaStatusIndicator: FC<{ mfaAuthenticated: boolean | null }> = ({ mfaAuthenticated }) => {
+const MfaStatusIndicator: FC<{ mfaAuthenticated: boolean | null }> = ({
+  mfaAuthenticated,
+}) => {
   if (mfaAuthenticated === true) {
     return (
       <Tooltip title="MFA used">
@@ -110,7 +112,9 @@ export const LogInSessions: FC = () => {
                 </TableCell>
                 <TableCell>{currentToken?.ip}</TableCell>
                 <TableCell>
-                  <MfaStatusIndicator mfaAuthenticated={currentToken?.mfaAuthenticated ?? null} />
+                  <MfaStatusIndicator
+                    mfaAuthenticated={currentToken?.mfaAuthenticated ?? null}
+                  />
                 </TableCell>
                 <TableCell>
                   <LogOutButton tokenId={currentToken?.id} />
@@ -152,7 +156,9 @@ export const LogInSessions: FC = () => {
                   </TableCell>
                   <TableCell>{otherToken.ip}</TableCell>
                   <TableCell>
-                    <MfaStatusIndicator mfaAuthenticated={otherToken.mfaAuthenticated ?? null} />
+                    <MfaStatusIndicator
+                      mfaAuthenticated={otherToken.mfaAuthenticated ?? null}
+                    />
                   </TableCell>
                   <TableCell>
                     <LogOutButton tokenId={otherToken.id} />
