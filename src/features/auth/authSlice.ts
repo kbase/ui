@@ -11,7 +11,7 @@ export interface TokenInfo {
   type: string;
   user: string;
   cachefor: number;
-  mfaAuthenticated: boolean | null;
+  mfa: 'USED' | 'NOT_USED' | 'UNKNOWN';
 }
 
 interface AuthState {

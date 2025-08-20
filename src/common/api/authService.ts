@@ -25,7 +25,7 @@ interface TokenResponse {
   type: string;
   user: string;
   cachefor: number;
-  mfaAuthenticated: boolean | null;
+  mfa: 'USED' | 'NOT_USED' | 'UNKNOWN';
 }
 
 interface AuthParams {
@@ -159,7 +159,7 @@ interface AuthResults {
       device: string;
       ip: string;
       name?: string;
-      mfaAuthenticated: boolean | null;
+      mfa: 'USED' | 'NOT_USED' | 'UNKNOWN';
     }[];
     user: string;
     revokeallurl: string;
