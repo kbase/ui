@@ -19,16 +19,16 @@ import { Loader } from '../../common/components';
 import { useAppSelector } from '../../common/hooks';
 import { useLogout } from '../login/LogIn';
 
-const MfaStatusIndicator: FC<{ mfaAuthenticated: boolean | null }> = ({
-  mfaAuthenticated,
+const MfaStatusIndicator: FC<{ mfa: 'USED' | 'NOT_USED' | 'UNKNOWN' }> = ({
+  mfa,
 }) => {
-  if (mfaAuthenticated === true) {
+  if (mfa === 'USED') {
     return (
       <Tooltip title="MFA used">
         <FontAwesomeIcon icon={faCheck} style={{ color: 'green' }} />
       </Tooltip>
     );
-  } else if (mfaAuthenticated === false) {
+  } else if (mfa === 'NOT_USED') {
     return (
       <Tooltip title="Single factor">
         <FontAwesomeIcon icon={faCheck} style={{ color: 'red' }} />
@@ -36,7 +36,7 @@ const MfaStatusIndicator: FC<{ mfaAuthenticated: boolean | null }> = ({
     );
   } else {
     return (
-      <Tooltip title="MFA not supported">
+      <Tooltip title="MFA status unknown">
         <FontAwesomeIcon icon={faCheck} style={{ color: 'grey' }} />
       </Tooltip>
     );
@@ -112,9 +112,9 @@ export const LogInSessions: FC = () => {
                 </TableCell>
                 <TableCell>{currentToken?.ip}</TableCell>
                 <TableCell>
-                  <MfaStatusIndicator
-                    mfaAuthenticated={currentToken?.mfaAuthenticated ?? null}
-                  />
+                  {currentToken?.mfa && (
+                    <MfaStatusIndicator mfa={currentToken.mfa} />
+                  )}
                 </TableCell>
                 <TableCell>
                   <LogOutButton tokenId={currentToken?.id} />
@@ -156,9 +156,9 @@ export const LogInSessions: FC = () => {
                   </TableCell>
                   <TableCell>{otherToken.ip}</TableCell>
                   <TableCell>
-                    <MfaStatusIndicator
-                      mfaAuthenticated={otherToken.mfaAuthenticated ?? null}
-                    />
+                    {otherToken.mfa && (
+                      <MfaStatusIndicator mfa={otherToken.mfa} />
+                    )}
                   </TableCell>
                   <TableCell>
                     <LogOutButton tokenId={otherToken.id} />
