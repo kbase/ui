@@ -25,19 +25,25 @@ const MfaStatusIndicator: FC<{ mfa: 'USED' | 'NOT_USED' | 'UNKNOWN' }> = ({
   if (mfa === 'USED') {
     return (
       <Tooltip title="MFA used">
-        <FontAwesomeIcon icon={faCheck} style={{ color: 'green' }} />
+        <span>
+          <FontAwesomeIcon icon={faCheck} style={{ color: 'green' }} />
+        </span>
       </Tooltip>
     );
   } else if (mfa === 'NOT_USED') {
     return (
       <Tooltip title="Single factor">
-        <FontAwesomeIcon icon={faCheck} style={{ color: 'red' }} />
+        <span>
+          <FontAwesomeIcon icon={faX} style={{ color: 'red' }} />
+        </span>
       </Tooltip>
     );
   } else {
     return (
       <Tooltip title="MFA status unknown">
-        <FontAwesomeIcon icon={faCheck} style={{ color: 'grey' }} />
+        <span>
+          <FontAwesomeIcon icon={faX} style={{ color: 'grey' }} />
+        </span>
       </Tooltip>
     );
   }
@@ -92,7 +98,7 @@ export const LogInSessions: FC = () => {
                 <TableCell>Browser</TableCell>
                 <TableCell>Operating System</TableCell>
                 <TableCell>IP Address</TableCell>
-                <TableCell>MFA Status</TableCell>
+                <TableCell>MFA</TableCell>
                 <TableCell>Action</TableCell>
               </TableRow>
             </TableHead>
@@ -135,7 +141,7 @@ export const LogInSessions: FC = () => {
                 <TableCell>Browser</TableCell>
                 <TableCell>Operating System</TableCell>
                 <TableCell>IP Address</TableCell>
-                <TableCell>MFA Status</TableCell>
+                <TableCell>MFA</TableCell>
                 <TableCell>Action</TableCell>
               </TableRow>
             </TableHead>
