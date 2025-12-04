@@ -2,10 +2,15 @@ import { RefObject, useEffect, useRef, useState } from 'react';
 import { createSearchParams, useLocation, useNavigate } from 'react-router-dom';
 import { usePageTitle } from '../layout/layoutSlice';
 import { useTryAuthFromToken } from '../auth/hooks';
-import { LOGIN_ROUTE } from '../../app/Routes';
+import { LOGIN_ROUTE, SIGNUP_ROUTE } from '../../app/Routes';
 import { useLogout } from '../login/LogIn';
 
 export const LEGACY_BASE_ROUTE = '/legacy';
+
+const LEGACY_REDIRECTS: Record<string, string> = {
+  login: LOGIN_ROUTE,
+  signup: SIGNUP_ROUTE,
+};
 
 export default function Legacy() {
   // TODO: external navigation and <base target="_top"> equivalent
@@ -25,6 +30,23 @@ export default function Legacy() {
   const expectedLegacyPath = getLegacyPart(
     location.pathname + location.search + location.hash
   );
+
+  // Handle redirects for obsolete legacy paths
+  useEffect(() => {
+    let current = expectedLegacyPath;
+    if (current[0] === '/' || current[0] === '#') {
+      current = current.slice(1);
+    }
+    const redirect = LEGACY_REDIRECTS[current];
+    if (redirect) {
+      navigate(redirect, {
+        replace: true,
+      });
+    }
+    // We only want to run this when expectedLegacyPath changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expectedLegacyPath]);
+
   // The actual current path, set by navigation events from kbase-ui
   const [legacyPath, setLegacyPath] = useState(expectedLegacyPath);
 
@@ -42,12 +64,16 @@ export default function Legacy() {
       if (path[0] === '/') path = path.slice(1);
       if (legacyPath !== path) {
         if (path === 'login') {
+          // Catches login redirects from legacy to pass nextRequest
           navigate({
             pathname: LOGIN_ROUTE,
             search: createSearchParams({
               nextRequest: JSON.stringify(location),
             }).toString(),
           });
+        } else if (Object.keys(LEGACY_REDIRECTS).includes(path)) {
+          // Handle other redirects
+          navigate(LEGACY_REDIRECTS[path]);
         } else {
           setLegacyPath(path);
           navigate(`./${path}`);

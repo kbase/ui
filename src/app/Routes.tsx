@@ -29,6 +29,7 @@ import {
 import { LogIn } from '../features/login/LogIn';
 import { LogInContinue } from '../features/login/LogInContinue';
 import { LoggedOut } from '../features/login/LoggedOut';
+import { Logout } from '../features/login/Logout';
 import { SignUp } from '../features/signup/SignUp';
 import { Account } from '../features/account/Account';
 import { AccountInfo } from '../features/account/AccountInfo';
@@ -75,6 +76,7 @@ const Routes: FC = () => {
       {/* Log In */}
       <Route path="/login" element={<LogIn />} />
       <Route path="/login/continue" element={<LogInContinue />} />
+      <Route path="/logout" element={<Logout />} />
       <Route path="/loggedout" element={<LoggedOut />} />
 
       {/* Sign Up */}
