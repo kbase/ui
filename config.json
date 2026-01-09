@@ -47,7 +47,8 @@
         "name": "kbase_session_backup",
         "domain": ".kbase.us"
       },
-      "cdm_domain": "hub.berdl.kbase.us"
+      "cdm_domain": "hub.berdl.kbase.us",
+      "redirect_whitelist": ["*.berdl.kbase.us"]
     }
   }
 }
