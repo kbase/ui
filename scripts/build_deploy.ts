@@ -19,6 +19,7 @@ interface EnvironmentConfig {
     domain: string;
   };
   cdm_domain?: string;
+  redirect_whitelist?: string[];
 }
 
 interface BuildParameters {
@@ -54,6 +55,7 @@ const setEnvironment = (
     public_url: publicURL,
     backup_cookie: backupCookie,
     cdm_domain: cdmDomain,
+    redirect_whitelist: redirectWhitelist,
   } = environmentConfig;
 
   const envsNew: Record<string, string> = {
@@ -65,6 +67,7 @@ const setEnvironment = (
     REACT_APP_KBASE_BACKUP_COOKIE_NAME: backupCookie?.name || '',
     REACT_APP_KBASE_BACKUP_COOKIE_DOMAIN: backupCookie?.domain || '',
     REACT_APP_KBASE_CDM_DOMAIN: cdmDomain || 'cdmhub.' + domain,
+    REACT_APP_REDIRECT_WHITELIST: redirectWhitelist?.join(',') || '',
   };
   Object.assign(process.env, envsNew);
 };
