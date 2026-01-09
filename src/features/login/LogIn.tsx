@@ -22,23 +22,40 @@ import { useCookie } from '../../common/cookie';
 import { usePageTitle } from '../layout/layoutSlice';
 import { ProviderButtons } from '../auth/providers';
 import { makeAuthFlowURLs } from '../auth/utils';
+import {
+  isExternalUrl,
+  isWhitelistedExternalUrl,
+} from '../../common/utils/redirectValidation';
 
 export const useCheckLoggedIn = (nextRequest: string | undefined) => {
   const { initialized, token } = useAppSelector((state) => state.auth);
-
   const navigate = useNavigate();
+
   useEffect(() => {
-    if (token && initialized) {
-      if (nextRequest) {
-        try {
-          const next = JSON.parse(nextRequest) as To;
-          navigate(next);
-        } catch {
-          throw TypeError('nextRequest param cannot be parsed');
-        }
+    if (!token || !initialized) return;
+
+    if (!nextRequest) {
+      navigate('/narratives');
+      return;
+    }
+
+    // External URLs must be validated against whitelist
+    if (isExternalUrl(nextRequest)) {
+      if (isWhitelistedExternalUrl(nextRequest)) {
+        window.location.href = nextRequest;
       } else {
+        console.error('External redirect blocked: URL not in whitelist'); // eslint-disable-line no-console
+        toast('Redirect blocked: destination not allowed');
         navigate('/narratives');
       }
+      return;
+    }
+
+    // Internal paths are JSON-encoded
+    try {
+      navigate(JSON.parse(nextRequest) as To);
+    } catch {
+      throw TypeError('nextRequest param cannot be parsed');
     }
   }, [initialized, navigate, nextRequest, token]);
 };
