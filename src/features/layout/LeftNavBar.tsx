@@ -60,6 +60,12 @@ const LeftNavBar: FC = () => {
           badge={feeds?.unseen.global}
         />
         <NavItem
+          path="/feeds"
+          desc="Feeds"
+          icon={faBullhorn}
+          badge={'not yet'}
+        />
+        <NavItem
           path="/collections"
           desc="Collections"
           icon={faLayerGroup}
