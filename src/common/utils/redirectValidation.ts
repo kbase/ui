@@ -66,5 +66,6 @@ export const isWhitelistedExternalUrl = (url: string): boolean => {
  * Checks if a string looks like an external URL (starts with http:// or https://)
  */
 export const isExternalUrl = (value: string): boolean => {
-  return value.startsWith('https://') || value.startsWith('http://');
+  const lower = value.toLowerCase();
+  return lower.startsWith('https://') || lower.startsWith('http://');
 };
