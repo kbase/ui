@@ -2,8 +2,7 @@
  * Utilities for validating external redirect URLs.
  *
  * External URLs must be HTTPS and match a whitelisted domain pattern.
- * Wildcards like *.berdl.kbase.us are supported, but TLD-only
- * wildcards (*.com, *.us) are rejected for security.
+ * Wildcards like *.berdl.kbase.us are supported. Literal "*" is rejected.
  */
 
 export const getRedirectWhitelist = (): string[] => {
@@ -12,18 +11,6 @@ export const getRedirectWhitelist = (): string[] => {
     .split(',')
     .map((d) => d.trim())
     .filter(Boolean);
-};
-
-/**
- * Validates that a wildcard pattern is not too broad.
- * Rejects patterns like *.com or *.co.uk that would match any domain.
- * Requires at least 2 domain parts after the wildcard.
- */
-export const isValidWildcardPattern = (pattern: string): boolean => {
-  if (!pattern.startsWith('*.')) return true; // exact domain, always valid
-  const withoutWildcard = pattern.slice(2);
-  const parts = withoutWildcard.split('.');
-  return parts.length >= 2; // e.g., *.berdl.kbase.us has 3 parts
 };
 
 /**
@@ -42,7 +29,7 @@ export const matchesWildcard = (hostname: string, pattern: string): boolean => {
  * Validates if a URL is whitelisted for external redirect.
  * - Must be HTTPS
  * - Must match a pattern in the whitelist
- * - Wildcard patterns must not be too broad
+ * - Rejects if whitelist contains literal "*"
  */
 export const isWhitelistedExternalUrl = (url: string): boolean => {
   try {
@@ -52,10 +39,11 @@ export const isWhitelistedExternalUrl = (url: string): boolean => {
     if (parsed.protocol !== 'https:') return false;
 
     const whitelist = getRedirectWhitelist();
-    return whitelist.some(
-      (pattern) =>
-        isValidWildcardPattern(pattern) &&
-        matchesWildcard(parsed.hostname, pattern)
+
+    if (whitelist.includes('*')) return false;
+
+    return whitelist.some((pattern) =>
+      matchesWildcard(parsed.hostname, pattern)
     );
   } catch {
     return false;

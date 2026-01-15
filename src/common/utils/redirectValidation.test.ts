@@ -1,6 +1,5 @@
 import {
   isExternalUrl,
-  isValidWildcardPattern,
   matchesWildcard,
   getRedirectWhitelist,
   isWhitelistedExternalUrl,
@@ -30,25 +29,6 @@ describe('isExternalUrl', () => {
   test('returns false for plain paths', () => {
     expect(isExternalUrl('/narratives')).toBe(false);
     expect(isExternalUrl('narratives')).toBe(false);
-  });
-});
-
-describe('isValidWildcardPattern', () => {
-  test('accepts exact domains', () => {
-    expect(isValidWildcardPattern('hub.berdl.kbase.us')).toBe(true);
-    expect(isValidWildcardPattern('example.com')).toBe(true);
-  });
-
-  test('accepts wildcards with 2+ domain parts', () => {
-    expect(isValidWildcardPattern('*.berdl.kbase.us')).toBe(true);
-    expect(isValidWildcardPattern('*.kbase.us')).toBe(true);
-    expect(isValidWildcardPattern('*.example.com')).toBe(true);
-  });
-
-  test('rejects TLD-only wildcards', () => {
-    expect(isValidWildcardPattern('*.com')).toBe(false);
-    expect(isValidWildcardPattern('*.us')).toBe(false);
-    expect(isValidWildcardPattern('*.org')).toBe(false);
   });
 });
 
@@ -174,9 +154,14 @@ describe('isWhitelistedExternalUrl', () => {
     expect(isWhitelistedExternalUrl('')).toBe(false);
   });
 
-  test('returns false when pattern is too broad', () => {
+  test('returns false when whitelist contains literal asterisk', () => {
+    process.env.REACT_APP_REDIRECT_WHITELIST = '*';
+    expect(isWhitelistedExternalUrl('https://anything.com')).toBe(false);
+  });
+
+  test('allows broad wildcards like *.com when explicitly configured', () => {
     process.env.REACT_APP_REDIRECT_WHITELIST = '*.com';
-    expect(isWhitelistedExternalUrl('https://evil.com')).toBe(false);
+    expect(isWhitelistedExternalUrl('https://anything.com')).toBe(true);
   });
 
   test('works with multiple whitelist entries', () => {
