@@ -16,6 +16,12 @@ describe('isExternalUrl', () => {
     expect(isExternalUrl('http://example.com')).toBe(true);
   });
 
+  test('handles case variations in protocol', () => {
+    expect(isExternalUrl('HTTPS://example.com')).toBe(true);
+    expect(isExternalUrl('HTTP://example.com')).toBe(true);
+    expect(isExternalUrl('Https://example.com')).toBe(true);
+  });
+
   test('returns false for JSON-encoded paths', () => {
     expect(isExternalUrl('{"pathname":"/narratives"}')).toBe(false);
     expect(isExternalUrl('"/profile"')).toBe(false);
