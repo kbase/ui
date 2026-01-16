@@ -1,4 +1,4 @@
-@import "../../common/colors";
+@use "../../common/colors" as *;
 
 $border: 1px solid use-color("silver");
 

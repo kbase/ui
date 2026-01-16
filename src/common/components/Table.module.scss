@@ -1,6 +1,6 @@
 /* stylelint-disable selector-max-compound-selectors -- Need to modify sort icon in table headers */
 
-@import "../colors";
+@use "../colors" as *;
 
 $border: 1px solid use-color("base-lighter");
 $header-height: 2em;

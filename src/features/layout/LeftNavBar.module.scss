@@ -1,4 +1,5 @@
-@import "../../common/colors";
+@use "sass:color";
+@use "../../common/colors" as *;
 
 ul.nav_list {
   align-items: stretch;
@@ -85,7 +86,7 @@ ul.nav_list {
   ul.nav_list li.nav_item .nav_notifs.nav_notifs-bg--#{$state} {
     background-color: use-color($state);
 
-    @if (lightness(use-color($state)) > 40) {
+    @if (color.channel(use-color($state), "lightness", $space: hsl) > 40) {
       color: use-color("black");
     } @else {
       color: use-color("white");

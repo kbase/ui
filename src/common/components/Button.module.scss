@@ -1,4 +1,6 @@
-@import "../colors";
+@use "sass:map";
+@use "sass:color";
+@use "../colors" as *;
 
 .button {
   border: 0;
@@ -45,13 +47,13 @@
   .contained.button--#{$state} {
     background-color: use-color($state);
 
-    @if (lightness(use-color($state)) > 40) {
+    @if (color.channel(use-color($state), "lightness", $space: hsl) > 40) {
       color: use-color("black");
     } @else {
       color: use-color("white");
     }
 
-    @if (map-has-key($palette, $state + "-dark")) {
+    @if (map.has-key($palette, $state + "-dark")) {
       &:hover {
         background-color: use-color($state + "-dark");
         color: use-color("white");
@@ -59,7 +61,7 @@
       }
     }
 
-    @if (map-has-key($palette, $state + "-darker")) {
+    @if (map.has-key($palette, $state + "-darker")) {
       &:focus {
         background-color: use-color($state + "-darker");
         color: use-color("white");
@@ -72,7 +74,7 @@
     color: use-color($state);
     font-weight: bold;
 
-    @if (map-has-key($palette, $state + "-dark")) {
+    @if (map.has-key($palette, $state + "-dark")) {
       &:hover {
         background-color: use-color("light-gray");
         color: use-color($state + "-dark");
@@ -80,7 +82,7 @@
       }
     }
 
-    @if (map-has-key($palette, $state + "-darker")) {
+    @if (map.has-key($palette, $state + "-darker")) {
       &:focus {
         color: use-color($state + "-darker");
       }

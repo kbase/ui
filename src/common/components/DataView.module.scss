@@ -1,4 +1,4 @@
-@import "../colors";
+@use "../colors" as *;
 
 .dataview_no_data {
   font-style: italic;

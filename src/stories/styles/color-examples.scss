@@ -1,4 +1,4 @@
-@import "../../common/colors";
+@use "../../common/colors" as *;
 
 @each $colorname, $_ in $palette {
   .example--#{$colorname} {
