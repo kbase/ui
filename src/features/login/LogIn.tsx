@@ -133,7 +133,7 @@ export const LogIn: FC = () => {
               <Typography variant="h4" component="h1">
                 Log in
               </Typography>
-              {process.env.NODE_ENV === 'development' ? (
+              {import.meta.env.MODE === 'development' ? (
                 <Alert severity="error">
                   DEV MODE: Login will occur on {loginOrigin}
                 </Alert>
