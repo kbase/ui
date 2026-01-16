@@ -934,7 +934,7 @@ export const collectionsApi = baseApi.injectEndpoints({
 });
 
 export type CollectionsReturnType =
-  typeof collectionsApi['endpoints'][keyof typeof collectionsApi['endpoints']]['initiate'];
+  (typeof collectionsApi)['endpoints'][keyof (typeof collectionsApi)['endpoints']]['initiate'];
 
 export const parseCollectionsError = (
   /**result.error object from any collections query.
