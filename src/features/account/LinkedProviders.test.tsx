@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { Mock } from 'vitest';
 import { Provider } from 'react-redux';
 import { ThemeProvider } from '@mui/material';
 import { MemoryRouter } from 'react-router-dom';
@@ -9,8 +10,8 @@ import { createTestStore } from '../../app/store';
 import { theme } from '../../theme';
 
 // Mock dependencies
-jest.mock('react-hot-toast');
-jest.mock('../../common/api/authService');
+vi.mock('react-hot-toast');
+vi.mock('../../common/api/authService');
 
 const createMockStore = () =>
   createTestStore({
@@ -47,21 +48,21 @@ describe('LinkedProviders Component', () => {
 
   beforeEach(() => {
     // Setup API mock returns
-    (authService.getMe.useQuery as jest.Mock).mockReturnValue({
+    (authService.getMe.useQuery as Mock).mockReturnValue({
       data: { idents: mockIdentities },
     });
 
-    (authService.unlinkID.useMutation as jest.Mock).mockReturnValue([
-      jest.fn(),
+    (authService.unlinkID.useMutation as Mock).mockReturnValue([
+      vi.fn(),
       { isLoading: false, isSuccess: false, isError: false },
     ]);
 
-    (authService.getLinkChoice.useQuery as jest.Mock).mockReturnValue({
+    (authService.getLinkChoice.useQuery as Mock).mockReturnValue({
       data: null,
     });
 
-    (authService.postLinkPick.useMutation as jest.Mock).mockReturnValue([
-      jest.fn(),
+    (authService.postLinkPick.useMutation as Mock).mockReturnValue([
+      vi.fn(),
       { isLoading: false },
     ]);
   });
@@ -93,8 +94,8 @@ describe('LinkedProviders Component', () => {
   });
 
   it('allows unlinking when multiple providers exist', async () => {
-    const unlinkMock = jest.fn();
-    (authService.unlinkID.useMutation as jest.Mock).mockReturnValue([
+    const unlinkMock = vi.fn();
+    (authService.unlinkID.useMutation as Mock).mockReturnValue([
       unlinkMock,
       { isLoading: false },
     ]);
@@ -111,7 +112,7 @@ describe('LinkedProviders Component', () => {
   });
 
   it('disables unlink button when only one provider exists', () => {
-    (authService.getMe.useQuery as jest.Mock).mockReturnValue({
+    (authService.getMe.useQuery as Mock).mockReturnValue({
       data: { idents: [mockIdentities[0]] },
     });
 
@@ -122,8 +123,8 @@ describe('LinkedProviders Component', () => {
   });
 
   it('shows loading state during unlink', () => {
-    (authService.unlinkID.useMutation as jest.Mock).mockReturnValue([
-      jest.fn(),
+    (authService.unlinkID.useMutation as Mock).mockReturnValue([
+      vi.fn(),
       { isLoading: true },
     ]);
 
@@ -162,12 +163,12 @@ describe('LinkedProviders Component', () => {
       linked: [],
     };
 
-    (authService.getLinkChoice.useQuery as jest.Mock).mockReturnValue({
+    (authService.getLinkChoice.useQuery as Mock).mockReturnValue({
       data: mockLinkChoice,
     });
 
-    const linkMock = jest.fn();
-    (authService.postLinkPick.useMutation as jest.Mock).mockReturnValue([
+    const linkMock = vi.fn();
+    (authService.postLinkPick.useMutation as Mock).mockReturnValue([
       linkMock,
       { isLoading: false },
     ]);
@@ -185,10 +186,10 @@ describe('LinkedProviders Component', () => {
   });
 
   it('shows error toast when provider is already linked', async () => {
-    const mockToast = jest.fn();
-    (toast as unknown as jest.Mock).mockImplementation(mockToast);
+    const mockToast = vi.fn();
+    (toast as unknown as Mock).mockImplementation(mockToast);
 
-    (authService.getLinkChoice.useQuery as jest.Mock).mockReturnValue({
+    (authService.getLinkChoice.useQuery as Mock).mockReturnValue({
       data: {
         provider: 'Google',
         idents: [{ id: '3', provusername: 'existing@gmail.com' }],

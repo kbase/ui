@@ -3,12 +3,13 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import classes from './Card.module.scss';
 import { Card, CardList } from './Card';
-import { act } from 'react-dom/test-utils';
+import { act } from 'react';
 import {
   createMemoryRouter,
   MemoryRouter,
   RouterProvider,
 } from 'react-router-dom';
+import { vi } from 'vitest';
 
 describe('Card', () => {
   test('renders Card with title', () => {
@@ -80,7 +81,7 @@ describe('Card', () => {
   });
 
   test('renders clickable button Card', async () => {
-    const clicked = jest.fn();
+    const clicked = vi.fn();
     render(
       <MemoryRouter>
         <Card title="Foo" onClick={clicked} />
@@ -107,7 +108,7 @@ describe('Card', () => {
   });
 
   test('renders clickable link Card', async () => {
-    const clicked = jest.fn();
+    const clicked = vi.fn();
     const router = createMemoryRouter(
       [
         {

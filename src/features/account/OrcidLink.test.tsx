@@ -18,6 +18,7 @@ import { ThemeProvider } from '@emotion/react';
 import { MemoryRouter } from 'react-router-dom';
 import { theme } from '../../theme';
 import { createTestStore } from '../../app/store';
+import { vi } from 'vitest';
 
 const TestWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -44,7 +45,7 @@ describe('OrcidLink', () => {
 
 describe('OrcidLinkStatus', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('Renders when username is not available', () => {

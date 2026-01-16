@@ -1,9 +1,10 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { Button } from './Button';
+import { vi } from 'vitest';
 
 test('renders Button', () => {
-  const onClickSpy = jest.fn();
+  const onClickSpy = vi.fn();
   render(
     <ul>
       <li>

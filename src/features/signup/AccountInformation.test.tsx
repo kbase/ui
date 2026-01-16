@@ -7,16 +7,17 @@ import { render } from '@testing-library/react';
 import { AccountInformation } from './AccountInformation';
 import { setLoginData } from './SignupSlice';
 import { theme } from '../../theme';
-import { act } from 'react-dom/test-utils';
+import { act } from 'react';
+import { vi, Mock } from 'vitest';
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useNavigate: jest.fn(),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
+  useNavigate: vi.fn(),
 }));
-jest.mock('../../common/api/authService', () => ({
-  ...jest.requireActual('../../common/api/authService'),
+vi.mock('../../common/api/authService', async () => ({
+  ...(await vi.importActual('../../common/api/authService')),
   loginUsernameSuggest: {
-    useQuery: jest.fn().mockReturnValue({
+    useQuery: vi.fn().mockReturnValue({
       currentData: { availablename: 'testuser' },
       isFetching: false,
     }),
@@ -39,14 +40,14 @@ const renderWithProviders = (
 };
 
 describe('AccountInformation', () => {
-  const mockNavigate = jest.fn();
+  const mockNavigate = vi.fn();
 
   beforeEach(() => {
-    (useNavigate as jest.Mock).mockImplementation(() => mockNavigate);
+    (useNavigate as Mock).mockImplementation(() => mockNavigate);
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test('redirects to step 1 if no login data', () => {

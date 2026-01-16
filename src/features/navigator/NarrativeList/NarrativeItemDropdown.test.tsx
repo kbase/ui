@@ -6,9 +6,10 @@ import { createTestStore } from '../../../app/store';
 import { DropdownProps } from '../../../common/components/Dropdown';
 import { SelectOption, OptionsArray } from '../../../common/components/Select';
 import NarrativeItemDropdown from './NarrativeItemDropdown';
+import { vi } from 'vitest';
 
 // mock react-select with regular HTML select
-jest.mock('../../../common/components/Dropdown', () => ({
+vi.mock('../../../common/components/Dropdown', () => ({
   __esModule: true,
   Dropdown: ({ options, onChange }: DropdownProps) => {
     function handleChange(event: SelectOption) {

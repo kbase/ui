@@ -1,10 +1,13 @@
 import { render, waitFor } from '@testing-library/react';
-import fetchMock from 'jest-fetch-mock';
-import { FetchMock } from 'jest-fetch-mock/types';
+import createFetchMock from 'vitest-fetch-mock';
+import type { FetchMock } from 'vitest-fetch-mock';
+import { vi } from 'vitest';
 import { Provider } from 'react-redux';
 import { createTestStore } from '../../app/store';
 import { makeKBaseServices } from '../../test/kbaseServiceMock';
 import { useLoggedInProfileUser } from './profileSlice';
+
+const fetchMock = createFetchMock(vi);
 
 let testStore = createTestStore({});
 

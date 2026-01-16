@@ -1,12 +1,15 @@
 /* Delete.test */
 import { act, render, screen } from '@testing-library/react';
-import fetchMock, {
-  disableFetchMocks,
-  enableFetchMocks,
-} from 'jest-fetch-mock';
+import createFetchMock from 'vitest-fetch-mock';
+import { vi } from 'vitest';
+import { Provider } from 'react-redux';
+import { MemoryRouter as Router } from 'react-router-dom';
+import { createTestStore } from '../../../app/store';
 import { noOp } from '../../common';
 import { testNarrativeDoc, testNarrativeDocFactory } from '../fixtures';
-import { DeleteTemplate } from './NarrativeControl.stories';
+import { Delete } from './Delete';
+
+const fetchMock = createFetchMock(vi);
 
 const wsIdError = 1111111;
 
@@ -37,19 +40,33 @@ const testResponseErrorFactory = ({
   { status: 500 },
 ];
 
-const consoleError = jest.spyOn(console, 'error');
+const consoleError = vi.spyOn(console, 'error');
 // This mockImplementation supresses console.error calls.
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 consoleError.mockImplementation(() => {});
 
+const DeleteWrapper = ({
+  narrativeDoc,
+  modalClose,
+}: {
+  narrativeDoc: typeof testNarrativeDoc;
+  modalClose: () => void;
+}) => (
+  <Provider store={createTestStore()}>
+    <Router>
+      <Delete narrativeDoc={narrativeDoc} modalClose={modalClose} />
+    </Router>
+  </Provider>
+);
+
 describe('The <Delete /> component...', () => {
   beforeAll(() => {
-    enableFetchMocks();
+    fetchMock.enableMocks();
   });
 
   afterAll(() => {
     consoleError.mockRestore();
-    disableFetchMocks();
+    fetchMock.disableMocks();
   });
 
   afterEach(() => {
@@ -63,7 +80,7 @@ describe('The <Delete /> component...', () => {
 
   test('renders.', () => {
     const { container } = render(
-      <DeleteTemplate modalClose={noOp} narrativeDoc={testNarrativeDoc} />
+      <DeleteWrapper modalClose={noOp} narrativeDoc={testNarrativeDoc} />
     );
     expect(container).toBeTruthy();
     expect(
@@ -73,7 +90,7 @@ describe('The <Delete /> component...', () => {
 
   test('attempts to delete a Narrative when confirmed by a user.', async () => {
     const { container } = render(
-      <DeleteTemplate modalClose={noOp} narrativeDoc={testNarrativeDoc} />
+      <DeleteWrapper modalClose={noOp} narrativeDoc={testNarrativeDoc} />
     );
     expect(container).toBeTruthy();
     const buttonDelete = container.querySelector('button');
@@ -84,10 +101,10 @@ describe('The <Delete /> component...', () => {
   });
 
   test('throws an error if the delete fails.', async () => {
-    fetchMock.mockImplementation(async (req) => {
+    fetchMock.mockImplementation(async (req: RequestInfo | URL) => {
+      const request = req as Request;
       const id =
-        req &&
-        JSON.parse((await (req as Request).body?.toString()) || 'null')?.id;
+        request && JSON.parse((await request.body?.toString()) || 'null')?.id;
       const testResponseError = testResponseErrorFactory({
         id,
         wsId: wsIdError,
@@ -96,7 +113,7 @@ describe('The <Delete /> component...', () => {
       return new Response(body, options);
     });
     const { container } = render(
-      <DeleteTemplate modalClose={noOp} narrativeDoc={testNarrativeDocError} />
+      <DeleteWrapper modalClose={noOp} narrativeDoc={testNarrativeDocError} />
     );
     expect(container).toBeTruthy();
     const buttonDelete = container.querySelector('button');
@@ -109,7 +126,7 @@ describe('The <Delete /> component...', () => {
   test('throws an error if the delete request fails.', async () => {
     fetchMock.mockRejectedValue(null);
     const { container } = render(
-      <DeleteTemplate modalClose={noOp} narrativeDoc={testNarrativeDocError} />
+      <DeleteWrapper modalClose={noOp} narrativeDoc={testNarrativeDocError} />
     );
     expect(container).toBeTruthy();
     const buttonDelete = container.querySelector('button');

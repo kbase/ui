@@ -16,11 +16,11 @@ const MockOutlet = () => {
 };
 
 // Mock scrollTo function since we're testing useEffect scroll behavior
-const mockScrollTo = jest.fn();
+const mockScrollTo = vi.fn();
 
 describe('Account Component', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('renders all tabs', () => {
@@ -77,7 +77,7 @@ describe('Account Component', () => {
 
     const my_element = document.querySelector('main');
     if (!my_element) return;
-    jest.spyOn(my_element, 'scrollTo').mockImplementation(mockScrollTo);
+    vi.spyOn(my_element, 'scrollTo').mockImplementation(mockScrollTo);
 
     fireEvent.click(screen.getByText('Linked Providers'));
     expect(mockScrollTo).toHaveBeenCalledWith(0, 0);
