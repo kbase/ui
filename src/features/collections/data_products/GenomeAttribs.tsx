@@ -36,7 +36,7 @@ import { formatNumber } from '../../../common/utils/stringUtils';
 import { Link } from 'react-router-dom';
 import { filterContextMode, useFilterContexts } from '../Filters';
 import { useProcessStatePolling, useTableViewParams } from '../hooks';
-import { skipToken } from '@reduxjs/toolkit/dist/query';
+import { skipToken } from '@reduxjs/toolkit/query';
 
 export const GenomeAttribs: FC<{
   collection_id: string;
@@ -217,7 +217,9 @@ export const GenomeAttribs: FC<{
                 const upa = (cell.getValue() as string).replace(/_/g, '/');
                 return (
                   <Link
-                    to={`https://${process.env.REACT_APP_KBASE_DOMAIN}/legacy/dataview/${upa}`}
+                    to={`https://${
+                      import.meta.env.VITE_KBASE_DOMAIN
+                    }/legacy/dataview/${upa}`}
                     target="_blank"
                   >
                     {upa}

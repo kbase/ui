@@ -40,9 +40,9 @@ export const useTokenCookie = (
 
   // Pull token from main cookie. If it exists, and differs from state, try it for auth.
   const cookieOptions = {
-    ...(process.env.NODE_ENV === 'development'
+    ...(import.meta.env.MODE === 'development'
       ? {}
-      : { domain: `.${process.env.REACT_APP_KBASE_DOMAIN}` }),
+      : { domain: `.${import.meta.env.VITE_KBASE_DOMAIN}` }),
     path: '/',
     secure: true,
   };

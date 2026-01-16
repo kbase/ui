@@ -60,14 +60,14 @@ const setEnvironment = (
 
   const envsNew: Record<string, string> = {
     BUILD_PATH: buildPath,
-    PUBLIC_URL: publicURL,
-    REACT_APP_KBASE_ENV: environment,
-    REACT_APP_KBASE_DOMAIN: domain,
-    REACT_APP_KBASE_LEGACY_DOMAIN: legacy,
-    REACT_APP_KBASE_BACKUP_COOKIE_NAME: backupCookie?.name || '',
-    REACT_APP_KBASE_BACKUP_COOKIE_DOMAIN: backupCookie?.domain || '',
-    REACT_APP_KBASE_CDM_DOMAIN: cdmDomain || 'cdmhub.' + domain,
-    REACT_APP_REDIRECT_WHITELIST: redirectWhitelist?.join(',') || '',
+    VITE_BASE_URL: publicURL,
+    VITE_KBASE_ENV: environment,
+    VITE_KBASE_DOMAIN: domain,
+    VITE_KBASE_LEGACY_DOMAIN: legacy,
+    VITE_KBASE_BACKUP_COOKIE_NAME: backupCookie?.name || '',
+    VITE_KBASE_BACKUP_COOKIE_DOMAIN: backupCookie?.domain || '',
+    VITE_KBASE_CDM_DOMAIN: cdmDomain || 'cdmhub.' + domain,
+    VITE_REDIRECT_WHITELIST: redirectWhitelist?.join(',') || '',
   };
   Object.assign(process.env, envsNew);
 };

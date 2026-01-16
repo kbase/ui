@@ -28,7 +28,7 @@ export const ProviderSelect: FC = () => {
         <Paper className={classes['signup-panel']} elevation={0}>
           <Stack spacing={2}>
             <Typography variant="h2">Choose a provider</Typography>
-            {process.env.NODE_ENV === 'development' ? (
+            {import.meta.env.MODE === 'development' ? (
               <Alert severity="error">
                 DEV MODE: Signup will occur on {loginOrigin}
               </Alert>

@@ -17,7 +17,7 @@ const Root: React.FC = () => (
   <React.StrictMode>
     <Provider store={store}>
       <ThemeProvider theme={theme}>
-        <Router basename={process.env.PUBLIC_URL}>
+        <Router basename={import.meta.env.BASE_URL}>
           <App />
         </Router>
       </ThemeProvider>
