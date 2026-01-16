@@ -1,4 +1,4 @@
-import { ComponentStory, ComponentMeta } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react';
 import { FunctionComponent as FC } from 'react';
 
 import { useForm } from 'react-hook-form';
@@ -10,10 +10,13 @@ import {
 } from '../../common/components/Input.common';
 import { Input } from '../../common/components/Input';
 
-export default {
+const meta: Meta<typeof Input> = {
   title: 'Components/Input',
   component: Input,
-} as ComponentMeta<typeof Input>;
+};
+
+export default meta;
+type Story = StoryObj<typeof meta>;
 
 const LabelExample: FC = () => (
   <>
@@ -40,7 +43,7 @@ interface StoryValues {
   storyToday: string;
 }
 
-const InputTemplate: ComponentStory<typeof Input> = (args) => {
+const InputFormDemo = () => {
   const { formState, register } = useForm<StoryValues>({
     defaultValues: {
       storyChange: '',
@@ -173,7 +176,7 @@ const InputTemplate: ComponentStory<typeof Input> = (args) => {
       </ul>
       {errorEntrys.length > 0 ? <h2>Errors</h2> : <></>}
       <ul>
-        {errorEntrys.map(([key, { message, type }]) => (
+        {errorEntrys.map(([key, { message }]) => (
           <li key={key}>{message}</li>
         ))}
       </ul>
@@ -181,5 +184,6 @@ const InputTemplate: ComponentStory<typeof Input> = (args) => {
   );
 };
 
-export const Default = InputTemplate.bind({});
-Default.args = {};
+export const Default: Story = {
+  render: () => <InputFormDemo />,
+};

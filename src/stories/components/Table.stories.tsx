@@ -1,4 +1,4 @@
-import { ComponentMeta } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react';
 import {
   createColumnHelper,
   getCoreRowModel,
@@ -16,7 +16,7 @@ import { snakeCaseToHumanReadable } from '../../common/utils/stringUtils';
 
 import rows from './tableData.json';
 
-export default {
+const meta: Meta<typeof Table> = {
   title: 'Components/Table',
   component: Table,
   decorators: [
@@ -26,10 +26,14 @@ export default {
       </div>
     ),
   ],
-} as ComponentMeta<typeof Table>;
+};
 
-export const Default = () => {
-  const columns = createColumnHelper<typeof rows[number]>();
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+// Exported for testing
+export const DefaultDemo = () => {
+  const columns = createColumnHelper<(typeof rows)[number]>();
   const table = useReactTable({
     data: rows,
     columns: Object.keys(rows[0]).map((k) =>
@@ -38,8 +42,6 @@ export const Default = () => {
         header: k,
       })
     ),
-    // These options enable certain features in the table,
-    // see the tanstack/table documentation
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -49,8 +51,13 @@ export const Default = () => {
   return <Table table={table} />;
 };
 
-export const CustomizedColumns = () => {
-  const columns = createColumnHelper<typeof rows[number]>();
+export const Default: Story = {
+  render: () => <DefaultDemo />,
+};
+
+// Exported for testing
+export const CustomizedColumnsDemo = () => {
+  const columns = createColumnHelper<(typeof rows)[number]>();
   const table = useReactTable({
     data: rows,
     columns: [
@@ -77,8 +84,6 @@ export const CustomizedColumns = () => {
         },
       }),
     ],
-    // These options enable certain features in the table,
-    // see the tanstack/table documentation
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -88,11 +93,15 @@ export const CustomizedColumns = () => {
   return <Table table={table} />;
 };
 
-export const Footer = () => {
-  const columns = createColumnHelper<typeof rows[number]>();
+export const CustomizedColumns: Story = {
+  render: () => <CustomizedColumnsDemo />,
+};
+
+export const FooterDemo = () => {
+  const columns = createColumnHelper<(typeof rows)[number]>();
   const table = useReactTable({
     data: rows,
-    columns: (Object.keys(rows[0]) as (keyof typeof rows[0])[])
+    columns: (Object.keys(rows[0]) as (keyof (typeof rows)[0])[])
       .slice(0, 6)
       .map((col) =>
         columns.accessor(col, {
@@ -101,8 +110,6 @@ export const Footer = () => {
           footer: col,
         })
       ),
-    // These options enable certain features in the table,
-    // see the tanstack/table documentation
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -112,8 +119,12 @@ export const Footer = () => {
   return <Table table={table} />;
 };
 
-export const ColumnGroup = () => {
-  const columns = createColumnHelper<typeof rows[number]>();
+export const Footer: Story = {
+  render: () => <FooterDemo />,
+};
+
+export const ColumnGroupDemo = () => {
+  const columns = createColumnHelper<(typeof rows)[number]>();
   const table = useReactTable({
     data: rows,
     columns: [
@@ -135,8 +146,6 @@ export const ColumnGroup = () => {
         ],
       }),
     ],
-    // These options enable certain features in the table,
-    // see the tanstack/table documentation
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -146,20 +155,21 @@ export const ColumnGroup = () => {
   return <Table table={table} />;
 };
 
-export const NoHeader = () => {
-  const columns = createColumnHelper<typeof rows[number]>();
+export const ColumnGroup: Story = {
+  render: () => <ColumnGroupDemo />,
+};
+
+export const NoHeaderDemo = () => {
+  const columns = createColumnHelper<(typeof rows)[number]>();
   const table = useReactTable({
     data: rows,
-    columns: (Object.keys(rows[0]) as (keyof typeof rows[0])[])
+    columns: (Object.keys(rows[0]) as (keyof (typeof rows)[0])[])
       .slice(0, 6)
       .map((col) =>
         columns.accessor(col, {
-          // removes the default column header
           header: undefined,
         })
       ),
-    // These options enable certain features in the table,
-    // see the tanstack/table documentation
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -169,27 +179,27 @@ export const NoHeader = () => {
   return <Table table={table} />;
 };
 
-export const PageSize = () => {
-  const columns = createColumnHelper<typeof rows[number]>();
+export const NoHeader: Story = {
+  render: () => <NoHeaderDemo />,
+};
+
+export const PageSizeDemo = () => {
+  const columns = createColumnHelper<(typeof rows)[number]>();
   const table = useReactTable({
     data: rows,
-    columns: (Object.keys(rows[0]) as (keyof typeof rows[0])[])
+    columns: (Object.keys(rows[0]) as (keyof (typeof rows)[0])[])
       .slice(0, 6)
       .map((col) =>
         columns.accessor(col, {
           header: col,
         })
       ),
-    // These options enable certain features in the table,
-    // see the tanstack/table documentation
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     enableRowSelection: false,
   });
 
-  // Sets tanstack/table page size without controlling pagination,
-  // see PaginatedWithQueriedData story for controlled behavior
   useEffect(() => {
     return table.setPageSize(6);
   }, [table]);
@@ -202,30 +212,34 @@ export const PageSize = () => {
   );
 };
 
-export const DisablePagination = () => {
-  const columns = createColumnHelper<typeof rows[number]>();
+export const PageSize: Story = {
+  render: () => <PageSizeDemo />,
+};
+
+const DisablePaginationDemo = () => {
+  const columns = createColumnHelper<(typeof rows)[number]>();
   const table = useReactTable({
     data: rows,
-    columns: (Object.keys(rows[0]) as (keyof typeof rows[0])[])
+    columns: (Object.keys(rows[0]) as (keyof (typeof rows)[0])[])
       .slice(0, 6)
       .map((col) =>
         columns.accessor(col, {
           header: col,
         })
       ),
-    // These options enable certain features in the table,
-    // see the tanstack/table documentation
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     enableRowSelection: false,
   });
 
-  // This is the best way to play friendly with tanstack/table at
-  // the moment while still disabling pagination
   useEffect(() => table.setPageSize(Number.MAX_SAFE_INTEGER), [table]);
 
   return <Table table={table} />;
+};
+
+export const DisablePagination: Story = {
+  render: () => <DisablePaginationDemo />,
 };
 
 const useMockDataQuery = (opts: {
@@ -246,8 +260,8 @@ const useMockDataQuery = (opts: {
         [...rows]
           .sort((a, b) =>
             opts.sortBy
-              ? a[opts.sortBy as keyof typeof rows[number]] >
-                b[opts.sortBy as keyof typeof rows[number]]
+              ? a[opts.sortBy as keyof (typeof rows)[number]] >
+                b[opts.sortBy as keyof (typeof rows)[number]]
                 ? 1 * sortOrder
                 : -1 * sortOrder
               : 0
@@ -263,7 +277,7 @@ const useMockDataQuery = (opts: {
   return { result: { rows: rowPart, rowCount }, fetching };
 };
 
-export const ManualPaginationWithQueriedData = () => {
+const ManualPaginationWithQueriedDataDemo = () => {
   const [paginationState, setPaginationState] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 6,
@@ -280,10 +294,10 @@ export const ManualPaginationWithQueriedData = () => {
     sortDesc: (sortingState[0] || {})?.desc,
   });
 
-  const columns = createColumnHelper<typeof rows[number]>();
+  const columns = createColumnHelper<(typeof rows)[number]>();
   const table = useReactTable({
     data: rows,
-    columns: (Object.keys(rows[0] || {}) as (keyof typeof rows[0])[])
+    columns: (Object.keys(rows[0] || {}) as (keyof (typeof rows)[0])[])
       .slice(0, 6)
       .map((col) =>
         columns.accessor(col, {
@@ -298,9 +312,6 @@ export const ManualPaginationWithQueriedData = () => {
       pagination: paginationState,
       sorting: sortingState,
     },
-
-    // These options enable certain features in the table,
-    // see the tanstack/table documentation
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -310,12 +321,14 @@ export const ManualPaginationWithQueriedData = () => {
   return <Table table={table} isLoading={fetching} />;
 };
 
-export const Empty = () => {
+export const ManualPaginationWithQueriedData: Story = {
+  render: () => <ManualPaginationWithQueriedDataDemo />,
+};
+
+const EmptyDemo = () => {
   const table = useReactTable({
     data: [],
     columns: [],
-    // These options enable certain features in the table,
-    // see the tanstack/table documentation
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -325,19 +338,21 @@ export const Empty = () => {
   return <Table table={table} />;
 };
 
-export const EmptyWithDefinedColumns = () => {
-  const columns = createColumnHelper<typeof rows[number]>();
+export const Empty: Story = {
+  render: () => <EmptyDemo />,
+};
+
+const EmptyWithDefinedColumnsDemo = () => {
+  const columns = createColumnHelper<(typeof rows)[number]>();
   const table = useReactTable({
     data: [],
-    columns: (Object.keys(rows[0] || []) as (keyof typeof rows[0])[])
+    columns: (Object.keys(rows[0] || []) as (keyof (typeof rows)[0])[])
       .slice(0, 6)
       .map((col) =>
         columns.accessor(col, {
           header: snakeCaseToHumanReadable(col),
         })
       ),
-    // These options enable certain features in the table,
-    // see the tanstack/table documentation
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -347,11 +362,15 @@ export const EmptyWithDefinedColumns = () => {
   return <Table table={table} />;
 };
 
-export const RowSelection = (testProps: {
+export const EmptyWithDefinedColumns: Story = {
+  render: () => <EmptyWithDefinedColumnsDemo />,
+};
+
+export const RowSelectionDemo = (testProps: {
   onSelectionChange?: (selection: string[]) => void;
 }) => {
   const [selection, setSelection] = useState<RowSelectionState>({});
-  const columns = createColumnHelper<typeof rows[number]>();
+  const columns = createColumnHelper<(typeof rows)[number]>();
   const table = useReactTable({
     data: rows,
     columns: Object.keys(rows[0]).map((k) =>
@@ -366,8 +385,6 @@ export const RowSelection = (testProps: {
       rowSelection: selection,
     },
 
-    // These options enable certain features in the table,
-    // see the tanstack/table documentation
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -375,7 +392,6 @@ export const RowSelection = (testProps: {
     onRowSelectionChange: setSelection,
   });
 
-  //for tests
   useEffect(() => {
     if (!testProps.onSelectionChange) return;
     testProps.onSelectionChange(
@@ -385,4 +401,15 @@ export const RowSelection = (testProps: {
   }, [selection]);
 
   return <Table table={table} />;
+};
+
+export const RowSelection: Story = {
+  render: (_, { args }) => (
+    <RowSelectionDemo
+      onSelectionChange={
+        (args as { onSelectionChange?: (selection: string[]) => void })
+          .onSelectionChange
+      }
+    />
+  ),
 };

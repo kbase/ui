@@ -1,9 +1,9 @@
-import { ComponentStory, ComponentMeta } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
 
 import { Card } from '../../common/components/Card';
 
-export default {
+const meta: Meta<typeof Card> = {
   title: 'Components/Card',
   component: Card,
   argTypes: {
@@ -15,69 +15,79 @@ export default {
       },
     },
     onClick: {
-      defaultValue: undefined,
       table: {
         disable: true,
       },
     },
   },
   parameters: { controls: { exclude: ['onClick'] } },
-} as ComponentMeta<typeof Card>;
-
-const CardTemplate: ComponentStory<typeof Card> = (args) => {
-  return <Card {...args} />;
 };
 
-export const Default = CardTemplate.bind({});
-Default.args = {
-  title: 'Some card title goes here',
-  subtitle: 'Imagine this is a very interesting subtitle',
-  image: <img src="https://picsum.photos/200/200" alt="img_desc" />,
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const Default: Story = {
+  args: {
+    title: 'Some card title goes here',
+    subtitle: 'Imagine this is a very interesting subtitle',
+    image: <img src="https://picsum.photos/200/200" alt="img_desc" />,
+  },
 };
 
-export const MinimalCard = CardTemplate.bind({});
-MinimalCard.args = {
-  title: 'Some card title goes here',
+export const MinimalCard: Story = {
+  args: {
+    title: 'Some card title goes here',
+  },
 };
 
-export const SubtitleCard = CardTemplate.bind({});
-SubtitleCard.args = {
-  title: 'Some card title goes here',
-  subtitle: 'Imagine this is a very interesting subtitle',
+export const SubtitleCard: Story = {
+  args: {
+    title: 'Some card title goes here',
+    subtitle: 'Imagine this is a very interesting subtitle',
+  },
 };
 
-export const ImageCard = CardTemplate.bind({});
-ImageCard.args = {
-  title: 'Some card title goes here',
-  image: <img src="https://picsum.photos/200/200" alt="img_desc" />,
+export const ImageCard: Story = {
+  args: {
+    title: 'Some card title goes here',
+    image: <img src="https://picsum.photos/200/200" alt="img_desc" />,
+  },
 };
 
-export const BlankImageCard = CardTemplate.bind({});
-BlankImageCard.args = {
-  title: 'Some card title goes here',
-  image: <></>,
+export const BlankImageCard: Story = {
+  args: {
+    title: 'Some card title goes here',
+    image: <></>,
+  },
 };
 
-export const ImageSubtitleCard = CardTemplate.bind({});
-ImageSubtitleCard.args = {
-  title: 'Some card title goes here',
-  subtitle: 'Imagine this is a very interesting subtitle',
-  image: <img src="https://picsum.photos/200/200" alt="img_desc" />,
+export const ImageSubtitleCard: Story = {
+  args: {
+    title: 'Some card title goes here',
+    subtitle: 'Imagine this is a very interesting subtitle',
+    image: <img src="https://picsum.photos/200/200" alt="img_desc" />,
+  },
 };
 
-export const LinkCard = CardTemplate.bind({});
-LinkCard.args = {
-  ...ImageSubtitleCard.args,
-  linkTo: './some/internal/link',
+export const LinkCard: Story = {
+  args: {
+    title: 'Some card title goes here',
+    subtitle: 'Imagine this is a very interesting subtitle',
+    image: <img src="https://picsum.photos/200/200" alt="img_desc" />,
+    linkTo: './some/internal/link',
+  },
 };
 
-export const ButtonCard = CardTemplate.bind({});
-ButtonCard.args = {
-  ...ImageSubtitleCard.args,
-  onClick: () => alert('You clicked the button!'),
+export const ButtonCard: Story = {
+  args: {
+    title: 'Some card title goes here',
+    subtitle: 'Imagine this is a very interesting subtitle',
+    image: <img src="https://picsum.photos/200/200" alt="img_desc" />,
+    onClick: () => alert('You clicked the button!'),
+  },
 };
 
-export const SelectableCard = () => {
+const SelectableCardDemo = () => {
   const [selected, setSelected] = useState(true);
   return (
     <Card
@@ -90,8 +100,12 @@ export const SelectableCard = () => {
   );
 };
 
-export const CardInContainer = () => {
-  return (
+export const SelectableCard: Story = {
+  render: () => <SelectableCardDemo />,
+};
+
+export const CardInContainer: Story = {
+  render: () => (
     <div style={{ width: '100px' }}>
       <Card
         title="Foo"
@@ -99,5 +113,5 @@ export const CardInContainer = () => {
         image={<img src="https://picsum.photos/128" alt="img_desc" />}
       />
     </div>
-  );
+  ),
 };

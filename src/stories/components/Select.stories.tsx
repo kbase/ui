@@ -1,14 +1,21 @@
-import { ComponentStory, ComponentMeta } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
 
 import { Select, SelectOption } from '../../common/components/Select';
 
-export default {
+const meta: Meta<typeof Select> = {
   title: 'Components/Select',
   component: Select,
-} as ComponentMeta<typeof Select>;
+};
 
-const SelectTemplate: ComponentStory<typeof Select> = (args) => {
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+const SelectDemo = (args: {
+  disabled?: boolean;
+  clearable?: boolean;
+  multiple?: boolean;
+}) => {
   const [value, setValue] = useState<SelectOption[] | undefined>();
   const handleChange = (selected: SelectOption[]) => {
     setValue(selected);
@@ -23,14 +30,20 @@ const SelectTemplate: ComponentStory<typeof Select> = (args) => {
   );
 };
 
-export const Default = SelectTemplate.bind({});
-Default.args = {
-  disabled: false,
-  clearable: true,
-  multiple: false,
+export const Default: Story = {
+  render: (args) => <SelectDemo {...args} />,
+  args: {
+    disabled: false,
+    clearable: true,
+    multiple: false,
+  },
 };
 
-const SelectAsyncTemplate: ComponentStory<typeof Select> = (args) => {
+const SelectAsyncDemo = (args: {
+  disabled?: boolean;
+  clearable?: boolean;
+  multiple?: boolean;
+}) => {
   const [value, setValue] = useState<SelectOption[] | undefined>();
   const handleChange = (selected: SelectOption[]) => {
     setValue(selected);
@@ -63,9 +76,11 @@ const SelectAsyncTemplate: ComponentStory<typeof Select> = (args) => {
   );
 };
 
-export const Async = SelectAsyncTemplate.bind({});
-Async.args = {
-  disabled: false,
-  clearable: true,
-  multiple: false,
+export const Async: Story = {
+  render: (args) => <SelectAsyncDemo {...args} />,
+  args: {
+    disabled: false,
+    clearable: true,
+    multiple: false,
+  },
 };
