@@ -38,7 +38,7 @@ export const KBasePolicies: FC<{}> = () => {
     );
   });
   const [accepted, setAccepted] = useState<{
-    [k in typeof signupPolicies[number]]?: boolean;
+    [k in (typeof signupPolicies)[number]]?: boolean;
   }>({});
   const allAccepted = signupPolicies.every(
     (policyId) => accepted[policyId] === true

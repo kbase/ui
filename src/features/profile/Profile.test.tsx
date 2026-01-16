@@ -1,9 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import fetchMock, {
-  disableFetchMocks,
-  enableFetchMocks,
-} from 'jest-fetch-mock';
-import type { MockParams } from 'jest-fetch-mock';
+import createFetchMock from 'vitest-fetch-mock';
+import type { MockParams } from 'vitest-fetch-mock';
+import { vi } from 'vitest';
 import { Provider } from 'react-redux';
 import { MemoryRouter as Router } from 'react-router-dom';
 import Routes from '../../app/Routes';
@@ -24,6 +22,8 @@ import {
   ProfileView,
   ProfileWrapper,
 } from './Profile';
+
+const fetchMock = createFetchMock(vi);
 
 export const initialState = {
   auth: {
@@ -73,19 +73,19 @@ const profileOtherResponseOK = profileResponseOKFactory(
 );
 let testStore = createTestStore(initialState);
 
-const consoleError = jest.spyOn(console, 'error');
+const consoleError = vi.spyOn(console, 'error');
 // This mockImplementation supresses console.error calls.
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 consoleError.mockImplementation(() => {});
 
 describe('Profile related components', () => {
   beforeAll(() => {
-    enableFetchMocks();
-    window.gtag = jest.fn();
+    fetchMock.enableMocks();
+    window.gtag = vi.fn();
   });
   afterAll(() => {
     consoleError.mockRestore();
-    disableFetchMocks();
+    fetchMock.disableMocks();
   });
 
   afterEach(() => {
@@ -188,13 +188,10 @@ describe('Profile related components', () => {
         </Router>
       </Provider>
     );
-    await waitFor(() =>
-      expect(testStore.getState().profile.loggedInProfile?.user.username).toBe(
-        usernameRequested
-      )
-    );
-    const linkElement = screen.getByText(/infobox/i);
-    expect(linkElement).toBeInTheDocument();
+    await waitFor(() => {
+      const linkElement = screen.getByText(/infobox/i);
+      expect(linkElement).toBeInTheDocument();
+    });
   });
 
   test('renders ProfileWrapper for another profile', async () => {

@@ -5,22 +5,23 @@ import { configureStore } from '@reduxjs/toolkit';
 import { KBasePolicies } from './SignupPolicies';
 import { toast } from 'react-hot-toast';
 import * as SignUp from './SignUp';
+import { vi, Mock } from 'vitest';
 
-jest.mock('react-hot-toast');
-jest.mock('./AccountInformation', () => ({
-  useCheckLoginDataOk: jest.fn(),
+vi.mock('react-hot-toast');
+vi.mock('./AccountInformation', () => ({
+  useCheckLoginDataOk: vi.fn(),
 }));
-jest.mock('./SignUp', () => ({
-  useDoSignup: jest.fn(),
+vi.mock('./SignUp', () => ({
+  useDoSignup: vi.fn(),
 }));
 
-const mockNavigate = jest.fn();
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
+const mockNavigate = vi.fn();
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
   useNavigate: () => mockNavigate,
 }));
 
-jest.mock('../login/EnforcePolicies', () => ({
+vi.mock('../login/EnforcePolicies', () => ({
   PolicyViewer: ({
     policyId,
     accepted,
@@ -41,7 +42,7 @@ jest.mock('../login/EnforcePolicies', () => ({
   ),
 }));
 
-jest.mock('../login/Policies', () => ({
+vi.mock('../login/Policies', () => ({
   kbasePolicies: {
     termsOfService: {
       id: 'termsOfService',
@@ -58,7 +59,7 @@ jest.mock('../login/Policies', () => ({
   },
 }));
 
-const mockScrollTo = jest.fn();
+const mockScrollTo = vi.fn();
 Element.prototype.scrollTo = mockScrollTo;
 
 const createMockStore = (initialState = {}) => {
@@ -79,11 +80,11 @@ const createMockStore = (initialState = {}) => {
 };
 
 describe('Signup Policies', () => {
-  const mockDoSignup = jest.fn();
+  const mockDoSignup = vi.fn();
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    (SignUp.useDoSignup as jest.Mock).mockReturnValue([mockDoSignup, false]);
+    vi.clearAllMocks();
+    (SignUp.useDoSignup as Mock).mockReturnValue([mockDoSignup, false]);
   });
 
   const renderComponent = (store = createMockStore()) => {

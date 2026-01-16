@@ -4,7 +4,14 @@
     "react-app",
     "plugin:@typescript-eslint/recommended"
   ],
-  "ignorePatterns": ["package-lock.json", "!.stylelintrc.json", "*.mdx"],
+  "ignorePatterns": [
+    "package-lock.json",
+    "!.stylelintrc.json",
+    "*.mdx",
+    "node_modules",
+    "build",
+    "storybook-static"
+  ],
   "overrides": [
     {
       "files": ["package.json"],
@@ -16,6 +23,13 @@
     {
       "files": ["*.json"],
       "rules": { "no-unused-expressions": ["off"] }
+    },
+    {
+      "files": ["**/*.stories.tsx", "**/setupTests.ts"],
+      "rules": {
+        "@typescript-eslint/no-non-null-assertion": "off",
+        "no-console": "off"
+      }
     }
   ],
   "parser": "@typescript-eslint/parser",

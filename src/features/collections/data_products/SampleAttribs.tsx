@@ -251,7 +251,9 @@ export const SampleAttribs: FC<{
                 const sampleId = (value.getValue() as string) || '';
                 return (
                   <Link
-                    href={`https://${process.env.REACT_APP_KBASE_DOMAIN}/legacy/samples/view/${sampleId}`}
+                    href={`https://${
+                      import.meta.env.VITE_KBASE_DOMAIN
+                    }/legacy/samples/view/${sampleId}`}
                     target="_blank"
                   >
                     {sampleId.slice(0, 8)}...

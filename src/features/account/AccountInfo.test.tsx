@@ -8,11 +8,12 @@ import { MemoryRouter } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { createTestStore } from '../../app/store';
 import { theme } from '../../theme';
+import { vi, Mock } from 'vitest';
 
 // Mock dependencies
-jest.mock('react-hot-toast');
-jest.mock('../../common/api/userProfileApi');
-jest.mock('../../common/api/authService');
+vi.mock('react-hot-toast');
+vi.mock('../../common/api/userProfileApi');
+vi.mock('../../common/api/authService');
 
 // Create a mock store with specific test values
 const createMockStore = () =>
@@ -53,35 +54,35 @@ describe('AccountInfo Component', () => {
 
   beforeEach(() => {
     // Setup API mock returns
-    (userProfileApi.getUserProfile.useQuery as jest.Mock).mockReturnValue({
+    (userProfileApi.getUserProfile.useQuery as Mock).mockReturnValue({
       data: [[mockProfile]],
-      refetch: jest.fn(),
+      refetch: vi.fn(),
     });
 
-    (authService.getMe.useQuery as jest.Mock).mockReturnValue({
+    (authService.getMe.useQuery as Mock).mockReturnValue({
       data: mockAccountData,
-      refetch: jest.fn(),
+      refetch: vi.fn(),
     });
 
-    (userProfileApi.setUserProfile.useMutation as jest.Mock).mockReturnValue([
-      jest.fn(),
+    (userProfileApi.setUserProfile.useMutation as Mock).mockReturnValue([
+      vi.fn(),
       {
         isLoading: false,
         isSuccess: false,
         isError: false,
         isUninitialized: true,
-        reset: jest.fn(),
+        reset: vi.fn(),
       },
     ]);
 
-    (authService.setMe.useMutation as jest.Mock).mockReturnValue([
-      jest.fn(),
+    (authService.setMe.useMutation as Mock).mockReturnValue([
+      vi.fn(),
       {
         isLoading: false,
         isSuccess: false,
         isError: false,
         isUninitialized: true,
-        reset: jest.fn(),
+        reset: vi.fn(),
       },
     ]);
   });
@@ -108,8 +109,8 @@ describe('AccountInfo Component', () => {
   });
 
   it('validates email format', async () => {
-    const mockToast = jest.fn();
-    (toast as unknown as jest.Mock).mockImplementation(mockToast);
+    const mockToast = vi.fn();
+    (toast as unknown as Mock).mockImplementation(mockToast);
     render(<AccountInfo />, { wrapper: TestWrapper });
 
     const emailInput = screen.getByLabelText('Email');
@@ -132,28 +133,28 @@ describe('AccountInfo Component', () => {
   });
 
   it('handles successful form submission', async () => {
-    const setProfileMock = jest.fn();
-    const setMeMock = jest.fn();
+    const setProfileMock = vi.fn();
+    const setMeMock = vi.fn();
 
-    (userProfileApi.setUserProfile.useMutation as jest.Mock).mockReturnValue([
+    (userProfileApi.setUserProfile.useMutation as Mock).mockReturnValue([
       setProfileMock,
       {
         isLoading: false,
         isSuccess: true,
         isError: false,
         isUninitialized: false,
-        reset: jest.fn(),
+        reset: vi.fn(),
       },
     ]);
 
-    (authService.setMe.useMutation as jest.Mock).mockReturnValue([
+    (authService.setMe.useMutation as Mock).mockReturnValue([
       setMeMock,
       {
         isLoading: false,
         isSuccess: true,
         isError: false,
         isUninitialized: false,
-        reset: jest.fn(),
+        reset: vi.fn(),
       },
     ]);
 
@@ -197,27 +198,27 @@ describe('AccountInfo Component', () => {
   });
 
   it('handles form reset', () => {
-    const resetProfileMock = jest.fn();
-    const resetMeMock = jest.fn();
-    const refetchProfilesMock = jest.fn();
-    const refetchAccountMock = jest.fn();
+    const resetProfileMock = vi.fn();
+    const resetMeMock = vi.fn();
+    const refetchProfilesMock = vi.fn();
+    const refetchAccountMock = vi.fn();
 
-    (userProfileApi.setUserProfile.useMutation as jest.Mock).mockReturnValue([
-      jest.fn(),
+    (userProfileApi.setUserProfile.useMutation as Mock).mockReturnValue([
+      vi.fn(),
       { reset: resetProfileMock },
     ]);
 
-    (authService.setMe.useMutation as jest.Mock).mockReturnValue([
-      jest.fn(),
+    (authService.setMe.useMutation as Mock).mockReturnValue([
+      vi.fn(),
       { reset: resetMeMock },
     ]);
 
-    (userProfileApi.getUserProfile.useQuery as jest.Mock).mockReturnValue({
+    (userProfileApi.getUserProfile.useQuery as Mock).mockReturnValue({
       data: [[mockProfile]],
       refetch: refetchProfilesMock,
     });
 
-    (authService.getMe.useQuery as jest.Mock).mockReturnValue({
+    (authService.getMe.useQuery as Mock).mockReturnValue({
       data: mockAccountData,
       refetch: refetchAccountMock,
     });
@@ -234,13 +235,13 @@ describe('AccountInfo Component', () => {
   });
 
   it('shows loading state during submission', () => {
-    (userProfileApi.setUserProfile.useMutation as jest.Mock).mockReturnValue([
-      jest.fn(),
+    (userProfileApi.setUserProfile.useMutation as Mock).mockReturnValue([
+      vi.fn(),
       { isLoading: true },
     ]);
 
-    (authService.setMe.useMutation as jest.Mock).mockReturnValue([
-      jest.fn(),
+    (authService.setMe.useMutation as Mock).mockReturnValue([
+      vi.fn(),
       { isLoading: true },
     ]);
 
@@ -251,8 +252,8 @@ describe('AccountInfo Component', () => {
   });
 
   it('handles submission errors', async () => {
-    const mockToast = jest.fn();
-    (toast as unknown as jest.Mock).mockImplementation(mockToast);
+    const mockToast = vi.fn();
+    (toast as unknown as Mock).mockImplementation(mockToast);
 
     render(<AccountInfo />, { wrapper: TestWrapper });
 
@@ -268,8 +269,8 @@ describe('AccountInfo Component', () => {
   });
 
   it('displays success icon after successful submission', async () => {
-    (userProfileApi.setUserProfile.useMutation as jest.Mock).mockReturnValue([
-      jest.fn(),
+    (userProfileApi.setUserProfile.useMutation as Mock).mockReturnValue([
+      vi.fn(),
       {
         isLoading: false,
         isSuccess: true,
@@ -278,8 +279,8 @@ describe('AccountInfo Component', () => {
       },
     ]);
 
-    (authService.setMe.useMutation as jest.Mock).mockReturnValue([
-      jest.fn(),
+    (authService.setMe.useMutation as Mock).mockReturnValue([
+      vi.fn(),
       {
         isLoading: false,
         isSuccess: true,

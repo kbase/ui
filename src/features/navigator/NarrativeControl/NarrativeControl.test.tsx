@@ -1,22 +1,28 @@
 // Tests for <NarrativeControl />
 
 import { render, screen } from '@testing-library/react';
+import { Provider } from 'react-redux';
 import { MemoryRouter as Router } from 'react-router-dom';
+import { createTestStore } from '../../../app/store';
 import { noOp } from '../../common';
-import { testNarrativeDoc } from '../fixtures';
-import {
-  CopyTemplate,
-  LinkOrgTemplate,
-  NarrativeControlTemplate,
-  RenameTemplate,
-  RestoreTemplate,
-  ShareTemplate,
-} from './NarrativeControl.stories';
+import { ModalDialog } from '../../layout/Modal';
+import { testNarrativeDoc, initialTestState } from '../fixtures';
+import NarrativeControl from './';
+import { Copy } from './Copy';
+import { LinkOrg } from './LinkOrg';
+import { Rename } from './Rename';
+import { Restore } from './Restore';
+import { Share } from './Share';
 
 describe('The <NarrativeControl /> component...', () => {
   test('renders.', () => {
     const { container } = render(
-      <NarrativeControlTemplate narrativeDoc={testNarrativeDoc} />
+      <div style={{ textAlign: 'right' }}>
+        <Provider store={createTestStore({ navigator: initialTestState })}>
+          <NarrativeControl narrativeDoc={testNarrativeDoc} />
+          <ModalDialog />
+        </Provider>
+      </div>
     );
     expect(container).toBeTruthy();
     expect(screen.getByText('Latest', { exact: false })).toBeInTheDocument();
@@ -26,11 +32,9 @@ describe('The <NarrativeControl /> component...', () => {
 describe('The <Copy /> component...', () => {
   test('renders.', () => {
     const { container } = render(
-      <CopyTemplate
-        modalClose={noOp}
-        narrativeDoc={testNarrativeDoc}
-        version={1}
-      />
+      <Provider store={createTestStore()}>
+        <Copy modalClose={noOp} narrativeDoc={testNarrativeDoc} version={1} />
+      </Provider>
     );
     expect(container).toBeTruthy();
     expect(
@@ -42,7 +46,9 @@ describe('The <Copy /> component...', () => {
 describe('The <LinkOrg /> component...', () => {
   test('renders.', () => {
     const { container } = render(
-      <LinkOrgTemplate modalClose={noOp} narrativeDoc={testNarrativeDoc} />
+      <Provider store={createTestStore()}>
+        <LinkOrg modalClose={noOp} narrativeDoc={testNarrativeDoc} />
+      </Provider>
     );
     expect(container).toBeTruthy();
   });
@@ -51,7 +57,9 @@ describe('The <LinkOrg /> component...', () => {
 describe('The <Rename /> component...', () => {
   test('renders.', () => {
     const { container } = render(
-      <RenameTemplate modalClose={noOp} narrativeDoc={testNarrativeDoc} />
+      <Provider store={createTestStore()}>
+        <Rename modalClose={noOp} narrativeDoc={testNarrativeDoc} />
+      </Provider>
     );
     expect(container).toBeTruthy();
     expect(
@@ -63,13 +71,15 @@ describe('The <Rename /> component...', () => {
 describe('The <Restore /> component...', () => {
   test('renders.', () => {
     const { container } = render(
-      <Router>
-        <RestoreTemplate
-          modalClose={noOp}
-          narrativeDoc={testNarrativeDoc}
-          version={1}
-        />
-      </Router>
+      <Provider store={createTestStore()}>
+        <Router>
+          <Restore
+            modalClose={noOp}
+            narrativeDoc={testNarrativeDoc}
+            version={1}
+          />
+        </Router>
+      </Provider>
     );
     expect(container).toBeTruthy();
     expect(screen.getByText('Reverting', { exact: false })).toBeInTheDocument();
@@ -79,7 +89,9 @@ describe('The <Restore /> component...', () => {
 describe('The <Share /> component...', () => {
   test('renders.', () => {
     const { container } = render(
-      <ShareTemplate modalClose={noOp} narrativeDoc={testNarrativeDoc} />
+      <Provider store={createTestStore()}>
+        <Share modalClose={noOp} narrativeDoc={testNarrativeDoc} />
+      </Provider>
     );
     expect(container).toBeTruthy();
     expect(

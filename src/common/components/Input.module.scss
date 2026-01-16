@@ -1,4 +1,5 @@
-@import "../colors";
+@use "sass:color";
+@use "../colors" as *;
 
 .input-container {
   background-color: use-color("white");
@@ -53,7 +54,7 @@
 @each $state, $_ in $palette {
   .input--#{$state} {
     background-color: use-color($state);
-    @if (lightness(use-color($state)) > 33) {
+    @if (color.channel(use-color($state), "lightness", $space: hsl) > 33) {
       color: use-color("black");
     } @else {
       color: use-color("white");

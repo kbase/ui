@@ -1,4 +1,4 @@
-@import "../colors";
+@use "../colors" as *;
 
 .react-select {
   display: inline-block;

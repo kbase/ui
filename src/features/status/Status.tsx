@@ -6,7 +6,7 @@ export default function Status() {
     <section>
       <h2>Current Version / Commit SHA</h2>
       <p>
-        <code>{process.env.REACT_APP_COMMIT}</code>
+        <code>{import.meta.env.VITE_COMMIT}</code>
       </p>
     </section>
   );

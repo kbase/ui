@@ -4,7 +4,9 @@ import { Loader } from '../../common/components';
 
 export const CDMRedirect = () => {
   useEffect(() => {
-    window.location.href = `https://${process.env.REACT_APP_KBASE_CDM_DOMAIN}/hub`;
+    window.location.href = `https://${
+      import.meta.env.VITE_KBASE_CDM_DOMAIN
+    }/hub`;
   });
   return (
     <Container maxWidth="lg">

@@ -18,8 +18,8 @@ import { createTestStore } from './store';
 
 describe('Routing Utils', () => {
   test('Authed component redirects when user unauthed', () => {
-    const SomePageMock = jest.fn().mockImplementation(() => <div />);
-    const LoginPageMock = jest.fn().mockImplementation(() => <div />);
+    const SomePageMock = vi.fn().mockImplementation(() => <div />);
+    const LoginPageMock = vi.fn().mockImplementation(() => <div />);
     const somePagePath = `/some-path`;
     expect(LOGIN_ROUTE).not.toBe(somePagePath);
     render(
@@ -40,8 +40,8 @@ describe('Routing Utils', () => {
   });
 
   test('Authed component renders when user is authed', () => {
-    const SomePageMock = jest.fn().mockImplementation(() => <div />);
-    const LoginPageMock = jest.fn().mockImplementation(() => <div />);
+    const SomePageMock = vi.fn().mockImplementation(() => <div />);
+    const LoginPageMock = vi.fn().mockImplementation(() => <div />);
     const somePagePath = `/some-path`;
     const store = createTestStore({
       auth: {
@@ -70,8 +70,8 @@ describe('Routing Utils', () => {
   });
 
   test('HashRouteRedirect redirects properly for urls WITHOUT a fragment', () => {
-    const NarrativePageMock = jest.fn().mockImplementation(() => <div />);
-    const LegacyPageMock = jest.fn().mockImplementation(() => <div />);
+    const NarrativePageMock = vi.fn().mockImplementation(() => <div />);
+    const LegacyPageMock = vi.fn().mockImplementation(() => <div />);
     render(
       <Router initialEntries={['/']}>
         <RRRoutes>
@@ -86,8 +86,8 @@ describe('Routing Utils', () => {
   });
 
   test('HashRouteRedirect redirects properly for urls WITH a fragment', () => {
-    const NarrativePageMock = jest.fn().mockImplementation(() => <div />);
-    const LegacyPageMock = jest.fn().mockImplementation(() => <div />);
+    const NarrativePageMock = vi.fn().mockImplementation(() => <div />);
+    const LegacyPageMock = vi.fn().mockImplementation(() => <div />);
     render(
       <Router initialEntries={['/#some-fragment/like/this']}>
         <RRRoutes>

@@ -1,26 +1,23 @@
-import { ComponentMeta, ComponentStory } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react';
 import DataView from '../../common/components/DataView';
 import { testDataObjects } from '../../common/components/DataView.fixture';
 
-export default {
+const meta: Meta<typeof DataView> = {
   title: 'Components/DataView',
   component: DataView,
-} as ComponentMeta<typeof DataView>;
-
-// Using a template allows the component to be rendered with dynamic storybook
-// controls (args) these can be used to dynamically change the props of the
-// component e.g. `<Component {...args} />`
-const DataViewTemplate: ComponentStory<typeof DataView> = (args) => {
-  return (
-    <div style={{ height: '70px', width: '100%', position: 'relative' }}>
-      <DataView {...args}></DataView>
-    </div>
-  );
 };
 
-export const Default = DataViewTemplate.bind({});
+export default meta;
+type Story = StoryObj<typeof meta>;
 
-Default.args = {
-  wsId: 42,
-  dataObjects: testDataObjects,
+export const Default: Story = {
+  render: (args) => (
+    <div style={{ height: '70px', width: '100%', position: 'relative' }}>
+      <DataView wsId={args.wsId!} dataObjects={args.dataObjects!} />
+    </div>
+  ),
+  args: {
+    wsId: 42,
+    dataObjects: testDataObjects,
+  },
 };

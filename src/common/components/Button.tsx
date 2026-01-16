@@ -3,7 +3,7 @@ import classes from './Button.module.scss';
 
 const colorClasses = Object.keys(classes).filter((d) => d !== 'button');
 const colors = [...colorClasses] as const;
-type Color = typeof colors[number];
+type Color = (typeof colors)[number];
 
 export interface CommonButtonProps {
   variant?: 'contained' | 'outlined' | 'text';

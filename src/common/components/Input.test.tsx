@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { FunctionComponent as FC } from 'react';
-import { act } from 'react-dom/test-utils';
-import { useForm, RegisterOptions } from 'react-hook-form';
+import { act } from 'react';
+import { useForm, RegisterOptions, Path } from 'react-hook-form';
 import { Input } from './Input';
 import {
   _randomBackground,
@@ -11,12 +11,12 @@ import {
 } from './Input.common';
 import classes from './Input.module.scss';
 
-interface TestProps {
-  options?: RegisterOptions;
-}
-
 interface TestValues {
   testValue: string;
+}
+
+interface TestProps {
+  options?: RegisterOptions<TestValues, Path<TestValues>>;
 }
 
 const TestInput: FC<TestProps> = ({ options }) => {

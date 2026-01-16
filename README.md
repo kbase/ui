@@ -5,22 +5,18 @@
 This project manages the User Interface (UI) for KBase tools, not including the
 narrative interface or documentation site [kbase.us](https://kbase.us).
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app)
-using the command `npx create-react-app ui-refresh-test --template typescript`.
+## Tech Stack
 
-It also includes the following:
-
-- Redux (`@reduxjs/toolkit`) for state management
-- `react-router-dom` for routing
-- `prettier` for code formatting
-- extended eslint configuration and eslint/prettier integration
-- npm linting scripts (`lint`, `lint:fix`, `lint:strict`)
-- `husky` to enable a `lint:strict` precommit hook
-- `.nvmrc` specifying the node version
-- `.editorconfig` for cross-editor config defaults. See
-      [editorconfig.org](https://editorconfig.org) for compatability
-- Storybook (`npm run storybook`) for dev docs, style examples, and component
-    examples.
+- **Build Tool**: [Vite](https://vitejs.dev/) - Fast, modern build tool with
+  native ES modules
+- **Framework**: [React 18](https://react.dev/) with TypeScript
+- **State Management**: [Redux Toolkit](https://redux-toolkit.js.org/) with
+  RTK Query
+- **Routing**: [React Router v6](https://reactrouter.com/)
+- **Styling**: [Sass](https://sass-lang.com/) modules with [Material-UI](https://mui.com/)
+- **Testing**: [Vitest](https://vitest.dev/) with React Testing Library
+- **Component Docs**: [Storybook 8](https://storybook.js.org/)
+- **Code Quality**: ESLint, Prettier, Husky pre-commit hooks
 
 ## Architectural Decision Records
 
@@ -53,65 +49,105 @@ Start the app:
 npm start
 ```
 
-### Troubleshooting
-
-- If you receive the following error message after running `npm start`:
-`Invalid options object. Dev Server has been initialized using an options object that does not match the API schema.`
-then you may need to set the following environment variable:
-`DANGEROUSLY_DISABLE_HOST_CHECK=true`
-- If you are using a Mac with an M1 or M2 chip, you may run into an
-error caused by `canvas` and `node-gyp` after running `npm install`.
-
-    - First, make sure your global python version (`python --version`)
-    is under 3.12.
-    - If the install step still isn't working, try to install node-canvas
-    from source by following the Installation: Mac OS X, HomeBrew steps below
-    or on [this page](https://github.com/Automattic/node-canvas/wiki/Installation:-Mac-OS-X).
-
-        - `brew install pkg-config cairo pango libpng jpeg giflib librsvg`
-    - This python aspect of this issue may become obsolete once
-    the `node-gyp` peer dependency is able to upgrade to v10+.
+Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
 ## Available Scripts
 
-In the project directory, you can run:
-
 ### `npm start`
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
-
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+Runs the app in development mode with hot module replacement (HMR).
+The page will reload instantly when you make edits.
 
 ### `npm test`
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests][running-tests]  for more information.
+Launches Vitest in watch mode. Press `a` to run all tests, `f` to run only
+failed tests, or `q` to quit.
 
-[running-tests]: https://facebook.github.io/create-react-app/docs/running-tests
+```sh
+npm test              # Watch mode
+npm run test:ui       # Vitest UI (browser-based test runner)
+npm run test:coverage # Run with coverage report
+```
 
 ### `npm run build`
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the
-best performance.
+Builds the app for production to the `build` folder. The build is minified
+and optimized for best performance.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### `npm run lint`
 
-See the section about
-[deployment](https://facebook.github.io/create-react-app/docs/deployment) for
-more information.
+Runs ESLint, Prettier, Stylelint, and TypeScript checks.
 
-### `npm run lint`, `npm run lint:fix`, `npm run lint:strict`
-
-Runs eslint/prettier and shows errors/warnings. `npm run lint:fix` will fix
-files in-place where possible. `npm run lint:strict` will fail with any
-errors/warnings and is used as a pre-commit hook.
+```sh
+npm run lint        # Show errors/warnings
+npm run lint:fix    # Auto-fix where possible
+npm run lint:strict # Fail on any errors/warnings (used in pre-commit hook)
+```
 
 ### `npm run storybook`
 
-Opens storybook locally. Builds and watches `*.stories.[tsx|mdx]` files and
-launches a local storybook server. The storybook contains component examples
-and other dev documentation.
+Opens Storybook locally for component development and documentation.
+Watches `*.stories.tsx` files and launches a local server at
+[http://localhost:6006](http://localhost:6006).
+
+```sh
+npm run storybook       # Start dev server
+npm run build-storybook # Build static storybook
+```
+
+## Development
+
+### Environment Variables
+
+Environment variables are prefixed with `VITE_` and accessed via `import.meta.env`:
+
+```typescript
+const domain = import.meta.env.VITE_KBASE_DOMAIN;
+const isDev = import.meta.env.MODE === 'development';
+```
+
+See `.env` files for available variables.
+
+### API Proxy
+
+In development, requests to `/services/*` are proxied to the KBase API
+(configured in `vite.config.ts`). This avoids CORS issues during local
+development.
+
+### Network Access
+
+To access the dev server from other devices on your network
+(e.g., mobile testing):
+
+```sh
+npm start -- --host
+```
+
+Then access via your machine's IP address or hostname.
+
+## Project Structure
+
+```
+src/
+├── app/              # App setup, routes, store
+├── common/           # Shared components, hooks, utilities
+│   ├── api/          # RTK Query API definitions
+│   └── components/   # Reusable UI components
+├── features/         # Feature-based modules
+│   ├── auth/         # Authentication
+│   ├── collections/  # Data collections
+│   ├── navigator/    # Narrative browser
+│   └── ...
+├── stories/          # Storybook stories
+└── test/             # Test utilities and mocks
+```
+
+## Contributing
+
+1. Create a feature branch from `main`
+2. Make your changes
+3. Ensure tests pass: `npm test`
+4. Ensure linting passes: `npm run lint:strict`
+5. Submit a pull request
+
+The pre-commit hook will run `lint:strict` automatically.

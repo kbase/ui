@@ -1,14 +1,15 @@
 import { render, waitFor } from '@testing-library/react';
 import { clearCookie, getCookie, setCookie, useCookie } from './cookie';
+import { vi, MockInstance } from 'vitest';
 
 describe('Cookie Utils', () => {
-  let setCookieSpy: jest.SpyInstance<void, [string]>;
-  let getCookieSpy: jest.SpyInstance<string, []>;
+  let setCookieSpy: MockInstance;
+  let getCookieSpy: MockInstance;
   let mockCookieString = '';
 
   beforeAll(() => {
-    setCookieSpy = jest.spyOn(document, 'cookie', 'set');
-    getCookieSpy = jest.spyOn(document, 'cookie', 'get');
+    setCookieSpy = vi.spyOn(document, 'cookie', 'set');
+    getCookieSpy = vi.spyOn(document, 'cookie', 'get');
     getCookieSpy.mockImplementation(() => {
       return mockCookieString;
     });

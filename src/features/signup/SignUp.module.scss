@@ -1,6 +1,6 @@
 /* stylelint-disable selector-class-pattern */
 
-@import "../../common/colors";
+@use "../../common/colors" as *;
 
 .signup {
   padding-bottom: 1rem;

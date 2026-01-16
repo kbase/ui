@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { act } from 'react-dom/test-utils';
+import { act } from 'react';
 import { gravatarHash, SignUp, useDoSignup } from './SignUp';
 import { loginCreate } from '../../common/api/authService';
 import { setUserProfile } from '../../common/api/userProfileApi';
@@ -9,15 +9,16 @@ import { Provider } from 'react-redux';
 import { createTestStore } from '../../app/store';
 import { ThemeProvider } from '@mui/material';
 import { theme } from '../../theme';
+import { vi, Mock } from 'vitest';
 
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useNavigate: jest.fn(),
-  useParams: jest.fn(),
+vi.mock('react-router-dom', async () => ({
+  ...(await vi.importActual('react-router-dom')),
+  useNavigate: vi.fn(),
+  useParams: vi.fn(),
 }));
 
-const mockNavigate = jest.fn();
-const mockScrollTo = jest.fn();
+const mockNavigate = vi.fn();
+const mockScrollTo = vi.fn();
 
 const renderWithProviders = (
   ui: React.ReactElement,
@@ -36,8 +37,8 @@ const renderWithProviders = (
 
 describe('SignUp', () => {
   beforeEach(() => {
-    (useNavigate as jest.Mock).mockReturnValue(mockNavigate);
-    (useParams as jest.Mock).mockReturnValue({ step: '1' });
+    (useNavigate as Mock).mockReturnValue(mockNavigate);
+    (useParams as Mock).mockReturnValue({ step: '1' });
     Element.prototype.scrollTo = mockScrollTo;
   });
 
@@ -52,7 +53,7 @@ describe('SignUp', () => {
   });
 
   it('navigates between steps when clicking previous steps', async () => {
-    (useParams as jest.Mock).mockReturnValue({ step: '3' });
+    (useParams as Mock).mockReturnValue({ step: '3' });
     renderWithProviders(<SignUp />);
 
     const step1 = screen.getByText('Sign up with a supported provider');
@@ -63,11 +64,11 @@ describe('SignUp', () => {
 });
 
 describe('useDoSignup', () => {
-  const mockLoginCreateMutation = jest.fn();
-  const mockSetUserProfileMutation = jest.fn();
+  const mockLoginCreateMutation = vi.fn();
+  const mockSetUserProfileMutation = vi.fn();
 
   beforeEach(() => {
-    jest.spyOn(loginCreate, 'useMutation').mockReturnValue([
+    vi.spyOn(loginCreate, 'useMutation').mockReturnValue([
       mockLoginCreateMutation,
       {
         isUninitialized: false,
@@ -76,12 +77,12 @@ describe('useDoSignup', () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any,
     ]);
-    jest.spyOn(setUserProfile, 'useMutation').mockReturnValue([
+    vi.spyOn(setUserProfile, 'useMutation').mockReturnValue([
       mockSetUserProfileMutation,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       { isUninitialized: true } as any,
     ]);
-    (useNavigate as jest.Mock).mockReturnValue(mockNavigate);
+    (useNavigate as Mock).mockReturnValue(mockNavigate);
   });
 
   it('calls login create and set user profile mutations', async () => {

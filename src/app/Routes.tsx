@@ -12,7 +12,7 @@ import {
   detailPath,
   detailDataProductPath,
 } from '../features/collections/Collections';
-import Legacy, { LEGACY_BASE_ROUTE } from '../features/legacy/Legacy';
+import Legacy from '../features/legacy/Legacy';
 import { Fallback } from '../features/legacy/IFrameFallback';
 import Navigator, {
   navigatorPath,
@@ -36,7 +36,7 @@ import { AccountInfo } from '../features/account/AccountInfo';
 import { LinkedProviders } from '../features/account/LinkedProviders';
 import { LogInSessions } from '../features/account/LogInSessions';
 import { UseAgreements } from '../features/account/UseAgreements';
-import { skipToken } from '@reduxjs/toolkit/dist/query';
+import { skipToken } from '@reduxjs/toolkit/query';
 import { getMe } from '../common/api/authService';
 import { CDMRedirect } from '../features/cdm/CDMRedirect';
 import {
@@ -46,10 +46,19 @@ import {
   OrcidLinkError,
 } from '../features/account/OrcidLink';
 import { ManageTokens } from '../features/account/ManageTokens';
+import {
+  LOGIN_ROUTE,
+  SIGNUP_ROUTE,
+  ROOT_REDIRECT_ROUTE,
+  LEGACY_BASE_ROUTE,
+} from './routes.constants';
 
-export const LOGIN_ROUTE = '/login';
-export const SIGNUP_ROUTE = '/signup';
-export const ROOT_REDIRECT_ROUTE = '/narratives';
+// Re-export for backwards compatibility
+export {
+  LOGIN_ROUTE,
+  SIGNUP_ROUTE,
+  ROOT_REDIRECT_ROUTE,
+} from './routes.constants';
 
 const Routes: FC = () => {
   useFilteredParams();

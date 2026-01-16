@@ -25,7 +25,7 @@ import { authToken } from '../auth/authSlice';
 import classes from './LeftNavBar.module.scss';
 import { Button, Menu, MenuItem } from '@mui/material';
 import { getMe } from '../../common/api/authService';
-import { skipToken } from '@reduxjs/toolkit/dist/query';
+import { skipToken } from '@reduxjs/toolkit/query';
 
 const LeftNavBar: FC = () => {
   const token = useAppSelector(authToken);

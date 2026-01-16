@@ -5,13 +5,16 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { createTestStore } from '../../app/store';
 import { theme } from '../../theme';
 import { LogInContinue } from './LogInContinue';
-import fetchMock from 'jest-fetch-mock';
+import createFetchMock from 'vitest-fetch-mock';
+import { vi } from 'vitest';
 import { toast } from 'react-hot-toast';
 import { noOp } from '../common';
 import { kbasePolicies } from './Policies';
 
-jest.mock('react-hot-toast', () => ({
-  toast: jest.fn(),
+const fetchMock = createFetchMock(vi);
+
+vi.mock('react-hot-toast', () => ({
+  toast: vi.fn(),
 }));
 
 describe('Login Continue', () => {
@@ -51,7 +54,7 @@ describe('Login Continue', () => {
     );
 
     const store = createTestStore();
-    const Narratives = jest.fn(() => <></>);
+    const Narratives = vi.fn(() => <></>);
     const { container } = render(
       <Provider store={store}>
         <ThemeProvider theme={theme}>
@@ -106,7 +109,7 @@ describe('Login Continue', () => {
     );
 
     const store = createTestStore();
-    const SomeRedirect = jest.fn(() => <></>);
+    const SomeRedirect = vi.fn(() => <></>);
     const { container } = render(
       <Provider store={store}>
         <ThemeProvider theme={theme}>
@@ -129,11 +132,11 @@ describe('Login Continue', () => {
   });
 
   it('getLoginChoice fails gracefully', async () => {
-    const consoleError = jest.spyOn(console, 'error');
+    const consoleError = vi.spyOn(console, 'error');
     consoleError.mockImplementation(noOp);
     // getLoginChoice
     fetchMock.mockResponseOnce('', { status: 500 });
-    const Login = jest.fn(() => <></>);
+    const Login = vi.fn(() => <></>);
     const store = createTestStore();
     render(
       <Provider store={store}>
@@ -156,7 +159,7 @@ describe('Login Continue', () => {
   });
 
   it('postLoginPick fails gracefully', async () => {
-    const consoleError = jest.spyOn(console, 'error');
+    const consoleError = vi.spyOn(console, 'error');
     consoleError.mockImplementation(noOp);
     // getLoginChoice
     fetchMock.mockResponseOnce(
@@ -175,7 +178,7 @@ describe('Login Continue', () => {
     // postLoginPick
     fetchMock.mockResponseOnce('', { status: 500 });
 
-    const Login = jest.fn(() => <></>);
+    const Login = vi.fn(() => <></>);
     const store = createTestStore();
     render(
       <Provider store={store}>
@@ -198,7 +201,7 @@ describe('Login Continue', () => {
   });
 
   it('authFromToken fails gracefully', async () => {
-    const consoleError = jest.spyOn(console, 'error');
+    const consoleError = vi.spyOn(console, 'error');
     consoleError.mockImplementation(noOp);
     // getLoginChoice
     fetchMock.mockResponseOnce(
@@ -224,7 +227,7 @@ describe('Login Continue', () => {
     );
     // authFromToken
     fetchMock.mockResponseOnce('', { status: 500 });
-    const Login = jest.fn(() => <></>);
+    const Login = vi.fn(() => <></>);
     const store = createTestStore();
     render(
       <Provider store={store}>
@@ -261,7 +264,7 @@ describe('Login Continue', () => {
       })
     );
 
-    const Signup = jest.fn(() => <></>);
+    const Signup = vi.fn(() => <></>);
     const store = createTestStore();
     render(
       <Provider store={store}>

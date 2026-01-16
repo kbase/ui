@@ -7,6 +7,7 @@ import {
   Routes as RRRoutes,
   useLocation,
 } from 'react-router-dom';
+import { vi } from 'vitest';
 import { createTestStore } from '../../app/store';
 import * as authHooks from '../auth/hooks';
 import * as layoutSlice from '../layout/layoutSlice';
@@ -22,7 +23,7 @@ import Legacy, {
 } from './Legacy';
 
 const setupMessageListener = () => {
-  const spy = jest.fn();
+  const spy = vi.fn();
   const Component = () => {
     const ref = useRef<HTMLIFrameElement>(null);
     useMessageListener(ref, spy);
@@ -59,15 +60,15 @@ describe('Legacy', () => {
     });
   });
 
-  test('useMessageListener ignores non-target source when NODE_ENV is production', async () => {
-    const processEnv = process.env;
-    process.env = { ...processEnv, NODE_ENV: 'development' };
+  test('useMessageListener ignores non-target source when MODE is development', async () => {
+    const originalMode = import.meta.env.MODE;
+    (import.meta.env as Record<string, string>).MODE = 'development';
     const spy = setupMessageListener();
     window.postMessage('foo', '*');
     await waitFor(() => {
       expect(spy).not.toHaveBeenCalled();
     });
-    process.env = processEnv;
+    (import.meta.env as Record<string, string>).MODE = originalMode;
   });
 
   test('isTitleMessage', () => {
@@ -111,15 +112,15 @@ describe('Legacy', () => {
 
   test('formatLegacyUrl', () => {
     expect(formatLegacyUrl('foo/bar/')).toBe(
-      `https://${process.env.REACT_APP_KBASE_LEGACY_DOMAIN}/#foo/bar/`
+      `https://${import.meta.env.VITE_KBASE_LEGACY_DOMAIN}/#foo/bar/`
     );
     expect(formatLegacyUrl('/foo/bar/')).toBe(
-      `https://${process.env.REACT_APP_KBASE_LEGACY_DOMAIN}/#/foo/bar/`
+      `https://${import.meta.env.VITE_KBASE_LEGACY_DOMAIN}/#/foo/bar/`
     );
   });
 
   test('Legacy page component renders and navigates', async () => {
-    const locationSpy = jest.fn();
+    const locationSpy = vi.fn();
     const TestWrapper = () => {
       const location = useLocation();
       useEffect(() => locationSpy(location), [location]);
@@ -168,7 +169,7 @@ describe('Legacy', () => {
   });
 
   test('Legacy page component sets title from message', async () => {
-    const titleSpy = jest.spyOn(layoutSlice, 'usePageTitle');
+    const titleSpy = vi.spyOn(layoutSlice, 'usePageTitle');
 
     render(
       <Provider store={createTestStore()}>
@@ -193,7 +194,7 @@ describe('Legacy', () => {
   });
 
   test('Legacy page component trys auth from token message', async () => {
-    const authSpy = jest.spyOn(authHooks, 'useTryAuthFromToken');
+    const authSpy = vi.spyOn(authHooks, 'useTryAuthFromToken');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     authSpy.mockImplementation((...args) => undefined as any);
 

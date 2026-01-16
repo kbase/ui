@@ -7,9 +7,10 @@ import { createTestStore } from '../../app/store';
 import { theme } from '../../theme';
 import { noOp } from '../common';
 import { EnforcePolicies } from './EnforcePolicies';
+import { vi } from 'vitest';
 
-jest.mock('./Policies', () => ({
-  ...jest.requireActual('./Policies'),
+vi.mock('./Policies', async () => ({
+  ...(await vi.importActual('./Policies')),
   kbasePolicies: {
     'kbase-user': {
       raw: '---\ntitle: KBase Terms and Conditions\nid: kbase-user\nversion: 1\nequivalentVersions: []\n---\nsome content',
@@ -69,7 +70,7 @@ describe('EnforcePolicies', () => {
   });
 
   it('disables accept button until all policies are accepted', async () => {
-    const mockAccept = jest.fn();
+    const mockAccept = vi.fn();
     renderWithProviders(
       <EnforcePolicies policyIds={['kbase-user']} onAccept={mockAccept} />
     );
@@ -86,7 +87,7 @@ describe('EnforcePolicies', () => {
   });
 
   it('calls onAccept when accept button clicked', async () => {
-    const mockAccept = jest.fn();
+    const mockAccept = vi.fn();
     renderWithProviders(
       <EnforcePolicies policyIds={['kbase-user']} onAccept={mockAccept} />
     );

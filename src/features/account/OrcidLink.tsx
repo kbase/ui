@@ -37,7 +37,7 @@ import {
 } from '@mui/material';
 import { useCallback } from 'react';
 import { useAppSelector } from '../../common/hooks';
-import { skipToken } from '@reduxjs/toolkit/dist/query';
+import { skipToken } from '@reduxjs/toolkit/query';
 import { Outlet, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { parseError } from '../../common/api/utils/parseError';
@@ -374,7 +374,7 @@ const OrcidUnlinked = () => {
       username: username,
       auth_username: username,
     });
-    if ('data' in result) {
+    if ('data' in result && result.data) {
       const { session_id } = result.data;
       window.location.href = createStartUrl(session_id, window.location.href);
     } else {
@@ -575,7 +575,7 @@ const OrcidIdIcon = ({ size }: { size: number }) => {
   return (
     <svg width={size.toString()} height={size.toString()}>
       <image
-        href={process.env.PUBLIC_URL + '/assets/orcidIdIcon.svg'}
+        href={import.meta.env.BASE_URL + 'assets/orcidIdIcon.svg'}
         width={size.toString()}
         height={size.toString()}
       />

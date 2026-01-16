@@ -1,13 +1,8 @@
+import type { Meta, StoryObj } from '@storybook/react';
 import { MouseEvent } from 'react';
-import { ComponentStory, ComponentMeta } from '@storybook/react';
 
 import { Button } from '../../common/components';
 import classes from '../../common/components/Button.module.scss';
-
-export default {
-  title: 'Components/Button',
-  component: Button,
-} as ComponentMeta<typeof Button>;
 
 const randomBackground = (evt: MouseEvent<HTMLButtonElement>) => {
   const classNames = Object.keys(classes);
@@ -18,19 +13,26 @@ const randomBackground = (evt: MouseEvent<HTMLButtonElement>) => {
   currentClasses.add(randomClass);
 };
 
-const ButtonTemplate: ComponentStory<typeof Button> = (args) => (
-  <ul>
-    <li>
-      <Button>A button to click.</Button>
-    </li>
-    <li>
-      <Button onClick={randomBackground}>Randomize background color.</Button>
-    </li>
-    <li>
-      <Button disabled={true}>This button is disabled.</Button>
-    </li>
-  </ul>
-);
+const meta: Meta<typeof Button> = {
+  title: 'Components/Button',
+  component: Button,
+};
 
-export const Default = ButtonTemplate.bind({});
-Default.args = {};
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const Default: Story = {
+  render: () => (
+    <ul>
+      <li>
+        <Button>A button to click.</Button>
+      </li>
+      <li>
+        <Button onClick={randomBackground}>Randomize background color.</Button>
+      </li>
+      <li>
+        <Button disabled={true}>This button is disabled.</Button>
+      </li>
+    </ul>
+  ),
+};

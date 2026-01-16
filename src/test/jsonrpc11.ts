@@ -7,7 +7,9 @@
  * additional use cases.
  */
 
-import { MockResponseInit } from 'jest-fetch-mock/types';
+import type { MockResponse } from 'vitest-fetch-mock';
+
+type MockResponseInit = MockResponse;
 
 export type JSONRPC11Id = string;
 

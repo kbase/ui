@@ -7,10 +7,11 @@ import { createTestStore } from '../../app/store';
 import { useFilteredParams } from '../../common/hooks';
 import { theme } from '../../theme';
 import { LogIn } from './LogIn';
+import { vi } from 'vitest';
 
 describe('Login', () => {
   beforeEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   it('renders', () => {
@@ -102,7 +103,7 @@ describe('Login', () => {
     const button = within(baseElement).getByTestId(
       'loginORCID'
     ) as HTMLButtonElement;
-    const submit = jest.fn((e: SubmitEvent) => {
+    const submit = vi.fn((e: SubmitEvent) => {
       e.preventDefault();
     });
     form.onsubmit = submit;
@@ -112,7 +113,7 @@ describe('Login', () => {
   });
 
   it('redirect if logged in', () => {
-    const Narratives = jest.fn(() => <></>);
+    const Narratives = vi.fn(() => <></>);
     render(
       <Provider
         store={createTestStore({
@@ -143,7 +144,7 @@ describe('Login', () => {
         pathname: '/someRedirect',
       })
     );
-    const redirectSpy = jest.fn();
+    const redirectSpy = vi.fn();
     const Redirect = () => {
       redirectSpy();
       return <></>;

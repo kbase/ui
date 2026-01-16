@@ -4,10 +4,12 @@ import { createTestStore } from '../../app/store';
 import { AUTOMATIC_REFRESH_DELAY } from './common';
 import { initialTestStateFactory } from './fixtures';
 import RefreshButton from './RefreshButton';
+import { vi } from 'vitest';
 
 // IT'S DANGEROUS TO GO ALONE! TAKE THIS.
-// https://jestjs.io/docs/timer-mocks
-jest.useFakeTimers();
+// https://vitest.dev/guide/mocking.html#timers
+// Use shouldAdvanceTime to allow waitFor's internal polling to work
+vi.useFakeTimers({ shouldAdvanceTime: true });
 
 const initialStateOutOfSync = initialTestStateFactory({ synchronized: false });
 const initialStateStale = initialTestStateFactory({
@@ -48,6 +50,6 @@ test('RefreshButton refreshes automatically.', async () => {
   expect(container).toBeTruthy();
   expect(container.querySelector('.button.refresh')).toBeInTheDocument();
   await act(async () => {
-    await jest.runAllTimers();
+    await vi.runAllTimers();
   });
 });

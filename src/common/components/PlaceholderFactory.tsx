@@ -16,8 +16,8 @@ export const PlaceholderFactory = (name: string) => {
       'narrative-dev.kbase.us',
     ]);
     const invalidEnvironment =
-      process.env.NODE_ENV === 'production' &&
-      !previewDomains.has(process.env.REACT_APP_KBASE_DOMAIN || '');
+      import.meta.env.MODE === 'production' &&
+      !previewDomains.has(import.meta.env.VITE_KBASE_DOMAIN || '');
     if (invalidEnvironment) {
       throw new Error('Placeholder components may not be used in production.');
     }

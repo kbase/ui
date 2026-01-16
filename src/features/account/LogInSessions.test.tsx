@@ -7,13 +7,14 @@ import * as authService from '../../common/api/authService';
 import { createTestStore } from '../../app/store';
 import { theme } from '../../theme';
 import { TokenInfo } from '../auth/authSlice';
+import { vi, Mock } from 'vitest';
 
 // Mock dependencies
-jest.mock('../../common/api/authService');
+vi.mock('../../common/api/authService');
 
-const mockLogout = jest.fn();
-jest.mock('../login/LogIn', () => ({
-  useLogout: jest.fn(() => mockLogout),
+const mockLogout = vi.fn();
+vi.mock('../login/LogIn', () => ({
+  useLogout: vi.fn(() => mockLogout),
 }));
 
 const createMockStore = () =>
@@ -65,15 +66,15 @@ describe('LogInSessions Component', () => {
 
   beforeEach(() => {
     // Setup API mock returns
-    (authService.getTokens.useQuery as jest.Mock).mockReturnValue({
+    (authService.getTokens.useQuery as Mock).mockReturnValue({
       data: {
         current: mockCurrentToken,
         tokens: mockOtherTokens,
       },
     });
 
-    (authService.revokeToken.useMutation as jest.Mock).mockReturnValue([
-      jest.fn(),
+    (authService.revokeToken.useMutation as Mock).mockReturnValue([
+      vi.fn(),
       { isLoading: false, isSuccess: false, isError: false },
     ]);
   });
@@ -123,8 +124,8 @@ describe('LogInSessions Component', () => {
   });
 
   it('handles logout for current session', async () => {
-    const revokeMock = jest.fn();
-    (authService.revokeToken.useMutation as jest.Mock).mockReturnValue([
+    const revokeMock = vi.fn();
+    (authService.revokeToken.useMutation as Mock).mockReturnValue([
       revokeMock,
       { isLoading: false, isSuccess: false, isError: false },
     ]);
@@ -136,8 +137,8 @@ describe('LogInSessions Component', () => {
   });
 
   it('handles logout for other sessions', async () => {
-    const revokeMock = jest.fn();
-    (authService.revokeToken.useMutation as jest.Mock).mockReturnValue([
+    const revokeMock = vi.fn();
+    (authService.revokeToken.useMutation as Mock).mockReturnValue([
       revokeMock,
       { isLoading: false, isSuccess: false, isError: false },
     ]);
@@ -151,8 +152,8 @@ describe('LogInSessions Component', () => {
   });
 
   it('shows loading state during revocation', () => {
-    (authService.revokeToken.useMutation as jest.Mock).mockReturnValue([
-      jest.fn(),
+    (authService.revokeToken.useMutation as Mock).mockReturnValue([
+      vi.fn(),
       { isLoading: true },
     ]);
 
@@ -163,8 +164,8 @@ describe('LogInSessions Component', () => {
   });
 
   it('shows success state after revocation', () => {
-    (authService.revokeToken.useMutation as jest.Mock).mockReturnValue([
-      jest.fn(),
+    (authService.revokeToken.useMutation as Mock).mockReturnValue([
+      vi.fn(),
       { isSuccess: true },
     ]);
 
@@ -175,8 +176,8 @@ describe('LogInSessions Component', () => {
   });
 
   it('shows error state on revocation failure', () => {
-    (authService.revokeToken.useMutation as jest.Mock).mockReturnValue([
-      jest.fn(),
+    (authService.revokeToken.useMutation as Mock).mockReturnValue([
+      vi.fn(),
       { isError: true },
     ]);
 
@@ -187,7 +188,7 @@ describe('LogInSessions Component', () => {
   });
 
   it('displays message when no other sessions exist', () => {
-    (authService.getTokens.useQuery as jest.Mock).mockReturnValue({
+    (authService.getTokens.useQuery as Mock).mockReturnValue({
       data: {
         current: mockCurrentToken,
         tokens: [],

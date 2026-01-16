@@ -34,9 +34,9 @@ jobs:
           password: '${{ secrets.GHCR_TOKEN }}'
 
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Install app
         run: npm ci
@@ -45,7 +45,7 @@ jobs:
         run: npm run lint:strict
 
       - name: Run tests
-        run: npm test . -- --coverage --verbose
+        run: npm test -- --run --coverage
 
       - name: Run multi-enviroment build
         run: ./scripts/build_deploy.sh

@@ -1,7 +1,13 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import classes from './Table.module.scss';
 import { Pagination, Table, useTableColumns } from './Table';
-import * as Stories from '../../stories/components/Table.stories';
+import {
+  NoHeaderDemo,
+  FooterDemo,
+  ColumnGroupDemo,
+  PageSizeDemo,
+  RowSelectionDemo,
+} from '../../stories/components/Table.stories';
 import {
   createColumnHelper,
   getCoreRowModel,
@@ -10,6 +16,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { useEffect, useMemo } from 'react';
+import { vi } from 'vitest';
 
 describe('Table', () => {
   test('renders Table', () => {
@@ -21,11 +28,11 @@ describe('Table', () => {
         ],
         []
       );
-      const helper = createColumnHelper<typeof data[number]>();
+      const helper = createColumnHelper<(typeof data)[number]>();
       const table = useReactTable({
         data,
         columns: Object.keys(data[0]).map((k) =>
-          helper.accessor(k as keyof typeof data[number], {
+          helper.accessor(k as keyof (typeof data)[number], {
             header: k,
           })
         ),
@@ -44,21 +51,21 @@ describe('Table', () => {
   });
 
   test('renders header-less Table', () => {
-    render(<Stories.NoHeader />);
+    render(<NoHeaderDemo />);
     const table = screen.getByTestId('table');
     expect(table).toHaveClass(classes['table-container']);
     expect(table.querySelector('thead')).not.toBeInTheDocument();
   });
 
   test('renders Table with footer', () => {
-    render(<Stories.Footer />);
+    render(<FooterDemo />);
     const table = screen.getByTestId('table');
     expect(table).toHaveClass(classes['table-container']);
     expect(table.querySelector('tfoot')).toBeInTheDocument();
   });
 
   test('renders Table with header group', () => {
-    render(<Stories.ColumnGroup />);
+    render(<ColumnGroupDemo />);
     const table = screen.getByTestId('table');
     expect(table).toHaveClass(classes['table-container']);
     expect(table.querySelectorAll('thead tr').length).toBe(2);
@@ -84,7 +91,7 @@ describe('Table', () => {
         []
       );
 
-      const helper = createColumnHelper<typeof data[number]>();
+      const helper = createColumnHelper<(typeof data)[number]>();
       const table = useReactTable({
         data,
         columns: data[0].map((v, i) =>
@@ -124,7 +131,7 @@ describe('Table', () => {
         []
       );
 
-      const helper = createColumnHelper<typeof data[number]>();
+      const helper = createColumnHelper<(typeof data)[number]>();
       const table = useReactTable({
         data,
         columns: data[0].map((v, i) =>
@@ -161,7 +168,7 @@ describe('Table', () => {
         []
       );
 
-      const helper = createColumnHelper<typeof data[number]>();
+      const helper = createColumnHelper<(typeof data)[number]>();
       const table = useReactTable({
         data,
         columns: data[0].map((v, i) =>
@@ -238,7 +245,7 @@ describe('Table', () => {
   });
 
   test('Table pagination buttons act as expected', () => {
-    const { getByTestId } = render(<Stories.PageSize />);
+    const { getByTestId } = render(<PageSizeDemo />);
     const table = getByTestId('table');
     const pagination = getByTestId('pagination');
     // Test helpers
@@ -307,7 +314,7 @@ describe('Table', () => {
     const Wrapper = () => {
       const data: unknown[][] = useMemo(() => [], []);
 
-      const helper = createColumnHelper<typeof data[number]>();
+      const helper = createColumnHelper<(typeof data)[number]>();
       const table = useReactTable({
         data,
         columns: (data[0] ?? []).map((v, i) =>
@@ -328,8 +335,8 @@ describe('Table', () => {
 });
 
 test('row selection behaves as expected', () => {
-  const selectionSpy = jest.fn();
-  render(<Stories.RowSelection onSelectionChange={selectionSpy} />);
+  const selectionSpy = vi.fn();
+  render(<RowSelectionDemo onSelectionChange={selectionSpy} />);
   const table = screen.getByTestId('table');
   const allBox = () =>
     within(table).getAllByTitle('Select all items on this page')[0];
@@ -381,7 +388,7 @@ test('row selection behaves as expected', () => {
 });
 
 test('useTableColumns hook makes appropriate headers from string lists', () => {
-  const colSpy = jest.fn();
+  const colSpy = vi.fn();
   const Wrapper = () => {
     const cols = useTableColumns({
       fields: ['a', 'b', 'c', 'd', 'q', 'x'].map((id) => ({ id })),
@@ -410,7 +417,7 @@ test('useTableColumns hook makes appropriate headers from string lists', () => {
 });
 
 test('Empty useTableColumns hook returns empty column list', () => {
-  const colSpy = jest.fn();
+  const colSpy = vi.fn();
   const Wrapper = () => {
     const cols = useTableColumns({});
     useEffect(() => colSpy(cols.columnDefs), [cols.columnDefs]);
@@ -423,7 +430,7 @@ test('Empty useTableColumns hook returns empty column list', () => {
 });
 
 test('throws error for bad pagination button number', () => {
-  const consoleError = jest.spyOn(console, 'error');
+  const consoleError = vi.spyOn(console, 'error');
   // This mockImplementation supresses console.error calls.
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   consoleError.mockImplementation(() => {});
@@ -438,7 +445,7 @@ test('throws error for bad pagination button number', () => {
       []
     );
 
-    const helper = createColumnHelper<typeof data[number]>();
+    const helper = createColumnHelper<(typeof data)[number]>();
     const table = useReactTable({
       data,
       columns: data[0].map((v, i) =>

@@ -1,10 +1,16 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import {
+  test,
+  expect,
+  vi,
+  describe,
+  beforeAll,
+  afterAll,
+  beforeEach,
+  afterEach,
+} from 'vitest';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import fetchMock, {
-  MockParams,
-  disableFetchMocks,
-  enableFetchMocks,
-} from 'jest-fetch-mock';
+import type { MockParams } from 'vitest-fetch-mock';
 import { FC } from 'react';
 import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
 import { Provider } from 'react-redux';
@@ -33,8 +39,7 @@ import Navigator, {
 
 let testStore = createTestStore({ navigator: initialTestState });
 
-const consoleError = jest.spyOn(console, 'error');
-// This mockImplementation supresses console.error calls.
+const consoleError = vi.spyOn(console, 'error');
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 consoleError.mockImplementation(() => {});
 
@@ -58,29 +63,22 @@ const testNarrativeDocResponseOK: [string, MockParams] = [
   { status: 200 },
 ];
 
-const TestingError: FC<FallbackProps> = ({ error }) => {
-  return <>Error: {JSON.stringify(error)}</>;
-};
+const TestingError: FC<FallbackProps> = ({ error }) => (
+  <>Error: {JSON.stringify(error)}</>
+);
 
-const logError = (error: Error, info: { componentStack: string }) => {
+const logError = (error: Error, info: { componentStack?: string | null }) => {
   console.log({ error }); // eslint-disable-line no-console
   console.log(info.componentStack); // eslint-disable-line no-console
-  screen.debug();
 };
 
 describe('The <Navigator /> component...', () => {
   beforeAll(() => {
-    enableFetchMocks();
-    window.gtag = jest.fn();
+    window.gtag = vi.fn();
   });
 
   afterAll(() => {
     consoleError.mockRestore();
-    disableFetchMocks();
-  });
-
-  afterEach(() => {
-    consoleError.mockClear();
   });
 
   beforeEach(() => {
@@ -88,6 +86,10 @@ describe('The <Navigator /> component...', () => {
     consoleError.mockClear();
     testStore = createTestStore({ navigator: initialTestState });
     testStore.dispatch(baseApi.util.resetApiState());
+  });
+
+  afterEach(() => {
+    consoleError.mockClear();
   });
 
   test('renders.', async () => {
@@ -212,10 +214,7 @@ describe('The <Navigator /> component...', () => {
             <Route
               path={navigatorPathWithCategory}
               element={
-                <ErrorBoundary
-                  FallbackComponent={TestingError}
-                  onError={logError}
-                >
+                <ErrorBoundary FallbackComponent={TestingError}>
                   <Navigator />
                 </ErrorBoundary>
               }
@@ -225,14 +224,25 @@ describe('The <Navigator /> component...', () => {
       </Provider>
     );
     expect(container).toBeTruthy();
-    const consoleLog = jest.spyOn(console, 'log');
+    const consoleLog = vi.spyOn(console, 'log');
     consoleLog.mockImplementation(() => undefined);
-    const control = container
-      .getElementsByClassName(classes.version_dropdown)[0]
-      .querySelector('.react-select__control');
-    control && (await userEvent.click(control));
-    const v2 = await screen.findByText('v2', { exact: false });
-    v2 && (await userEvent.click(v2));
+    const dropdown = container.getElementsByClassName(
+      classes.version_dropdown
+    )[0];
+    expect(dropdown).toBeInTheDocument();
+    const control = dropdown?.querySelector('.react-select__control');
+    expect(control).toBeInTheDocument();
+    if (control) {
+      // Use fireEvent (synchronous) instead of userEvent to avoid React 18 scheduler issues
+      fireEvent.mouseDown(control);
+      // Wait for menu to appear
+      const v2 = await screen.findByText(
+        'v2',
+        { exact: false },
+        { timeout: 2000 }
+      );
+      fireEvent.click(v2);
+    }
   });
 
   test('refuses to guess in the face of ambiguity.', () => {
@@ -259,7 +269,7 @@ describe('The <Navigator /> component...', () => {
   });
 
   test('ignores hooey search parameters.', () => {
-    const consoleLog = jest.spyOn(console, 'log');
+    const consoleLog = vi.spyOn(console, 'log');
     consoleLog.mockImplementation(() => undefined);
     const { container } = render(
       <Provider store={createTestStore()}>

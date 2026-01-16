@@ -5,7 +5,7 @@ export const makeAuthFlowURLs = (
 ) => {
   // OAuth Login wont work in dev mode, so send dev users to CI so they can grab their token
   const loginOrigin =
-    process.env.NODE_ENV === 'development'
+    import.meta.env.MODE === 'development'
       ? 'https://ci.kbase.us'
       : document.location.origin;
 

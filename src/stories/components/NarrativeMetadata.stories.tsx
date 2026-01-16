@@ -1,39 +1,39 @@
-import { ComponentMeta, ComponentStory } from '@storybook/react';
-import { FC } from 'react';
+import type { Meta, StoryObj } from '@storybook/react';
 import { Provider } from 'react-redux';
 import { createTestStore, RootState } from '../../app/store';
 import NarrativeMetadata from '../../features/navigator/NarrativeMetadata';
-import type { NarrativeMetadataProps } from '../../features/navigator/NarrativeMetadata';
 import {
   testNarrativeDoc,
   initialTestState,
 } from '../../features/navigator/fixtures';
 
-interface StoryProps extends NarrativeMetadataProps {
+const meta: Meta<typeof NarrativeMetadata> = {
+  title: 'Components/NarrativeMetadata',
+  component: NarrativeMetadata,
+};
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+interface DecoratorProps {
   initialState?: Partial<RootState>;
 }
 
-export const NarrativeMetadataTemplate: ComponentStory<FC<StoryProps>> = ({
-  initialState,
-  ...args
-}) => {
-  return (
-    <Provider store={createTestStore(initialState)}>
-      <NarrativeMetadata {...args} />
-    </Provider>
-  );
+export const Default: Story = {
+  render: (args) => {
+    const decoratorArgs = args as typeof args & DecoratorProps;
+    return (
+      <Provider store={createTestStore(decoratorArgs.initialState)}>
+        <NarrativeMetadata
+          cells={args.cells!}
+          narrativeDoc={args.narrativeDoc!}
+        />
+      </Provider>
+    );
+  },
+  args: {
+    cells: testNarrativeDoc.cells,
+    narrativeDoc: testNarrativeDoc,
+    initialState: { navigator: initialTestState },
+  } as React.ComponentProps<typeof NarrativeMetadata> & DecoratorProps,
 };
-
-export const Default = NarrativeMetadataTemplate.bind({});
-
-Default.args = {
-  cells: testNarrativeDoc.cells,
-  narrativeDoc: testNarrativeDoc,
-  initialState: { navigator: initialTestState },
-};
-
-export default {
-  title: 'Components/NarrativeMetadata',
-  component: NarrativeMetadata,
-  excludeStories: /NarrativeMetadataTemplate/,
-} as ComponentMeta<typeof NarrativeMetadata>;

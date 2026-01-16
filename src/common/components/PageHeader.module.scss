@@ -1,4 +1,4 @@
-@import "../../common/colors";
+@use "../../common/colors" as *;
 
 .page-header {
   background-color: use-color("white");

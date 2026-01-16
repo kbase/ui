@@ -1,8 +1,8 @@
-import { BaseQueryApi } from '@reduxjs/toolkit/dist/query/baseQueryTypes';
-import { FetchBaseQueryArgs } from '@reduxjs/toolkit/dist/query/fetchBaseQuery';
 import {
+  BaseQueryApi,
   BaseQueryFn,
   FetchArgs,
+  FetchBaseQueryArgs,
   fetchBaseQuery,
 } from '@reduxjs/toolkit/query/react';
 import { RootState } from '../../../app/store';
@@ -71,7 +71,7 @@ export const isDynamic = (
 const consumedServices: { serviceWizardApi?: typeof serviceWizardApi } = {};
 export const setConsumedService = <T extends keyof typeof consumedServices>(
   k: T,
-  v: typeof consumedServices[T]
+  v: (typeof consumedServices)[T]
 ) => {
   consumedServices[k] = v;
 };
@@ -81,7 +81,7 @@ export const getConsumedService = <T extends keyof typeof consumedServices>(
   if (!consumedServices[k]) {
     throw new Error(`Consumed service ${k} was not set prior to use.`);
   }
-  return consumedServices[k] as NonNullable<typeof consumedServices[T]>;
+  return consumedServices[k] as NonNullable<(typeof consumedServices)[T]>;
 };
 
 const getServiceUrl = async (
@@ -156,153 +156,156 @@ export const kbaseBaseQuery: (
   const rawBaseQuery = fetchBaseQuery(modifiedArgs);
 
   // wrap base query to add error handling and return
-  const kbQuery: BaseQueryFn<KbQueryArgs, unknown, KBaseBaseQueryError> =
-    async (kbQueryArgs, baseQueryAPI, extraOptions) => {
-      // If this is a Http query, call rawBaseQuery directly, after prepending the service url
-      if (kbQueryArgs.apiType === 'Http') {
-        const baseUrl =
-          kbQueryArgs.service.domain || fetchBaseQueryArgs.baseUrl || '';
-
-        const fetchArgs = {
-          ...kbQueryArgs,
-          url: new URL(
-            [kbQueryArgs.service.url, kbQueryArgs.url].reduce<string>(
-              (url, part) =>
-                (url.endsWith('/') ? url : url + '/') +
-                (part && part.startsWith('/') ? part.slice(1) : part),
-              baseUrl
-            )
-          ).toString(),
-        };
-        return rawBaseQuery(fetchArgs, baseQueryAPI, extraOptions);
-      }
-      // Otherwise, this is a JSON-RPC query
-      // If this is a dynamic query, call service_wizard and transform it into a static one
-      if (isDynamic(kbQueryArgs.service)) {
-        // call service wizard to get the URL
-        const serviceUrl = await getServiceUrl(
-          kbQueryArgs.service.name,
-          kbQueryArgs.service.release,
-          baseQueryAPI
-        );
-        if (serviceUrl.error) return { error: serviceUrl.error };
-        // Now that we have a URL we can re-run the kbQuery as a static service
-        return kbQuery(
-          {
-            ...kbQueryArgs,
-            service: {
-              ...kbQueryArgs.service,
-              url: serviceUrl.url,
-            },
-          },
-          baseQueryAPI,
-          extraOptions
-        );
-      }
-
-      // Generate JsonRpc request id
-      const reqId = Math.random().toString();
-
-      const body = ((): JSONRPCBody => {
-        switch (kbQueryArgs.service.version || '1.1') {
-          case '1.1':
-            return {
-              version: '1.1',
-              id: reqId,
-              method: kbQueryArgs.method,
-            };
-          case '2.0':
-            return {
-              jsonrpc: '2.0',
-              id: reqId,
-              method: kbQueryArgs.method,
-            };
-        }
-      })();
-
-      if (kbQueryArgs.params) {
-        body.params = kbQueryArgs.params;
-      }
-
-      // generate request body
-      const baseUrl = kbQueryArgs.service.domain || fetchBaseQueryArgs.baseUrl;
+  const kbQuery: BaseQueryFn<
+    KbQueryArgs,
+    unknown,
+    KBaseBaseQueryError
+  > = async (kbQueryArgs, baseQueryAPI, extraOptions) => {
+    // If this is a Http query, call rawBaseQuery directly, after prepending the service url
+    if (kbQueryArgs.apiType === 'Http') {
+      const baseUrl =
+        kbQueryArgs.service.domain || fetchBaseQueryArgs.baseUrl || '';
 
       const fetchArgs = {
-        url: new URL(kbQueryArgs.service.url, baseUrl).toString(),
-        method: 'POST',
-        body,
-        ...kbQueryArgs.fetchArgs, // Allow overriding JsonRpc defaults
+        ...kbQueryArgs,
+        url: new URL(
+          [kbQueryArgs.service.url, kbQueryArgs.url].reduce<string>(
+            (url, part) =>
+              (url.endsWith('/') ? url : url + '/') +
+              (part && part.startsWith('/') ? part.slice(1) : part),
+            baseUrl
+          )
+        ).toString(),
       };
+      return rawBaseQuery(fetchArgs, baseQueryAPI, extraOptions);
+    }
+    // Otherwise, this is a JSON-RPC query
+    // If this is a dynamic query, call service_wizard and transform it into a static one
+    if (isDynamic(kbQueryArgs.service)) {
+      // call service wizard to get the URL
+      const serviceUrl = await getServiceUrl(
+        kbQueryArgs.service.name,
+        kbQueryArgs.service.release,
+        baseQueryAPI
+      );
+      if (serviceUrl.error) return { error: serviceUrl.error };
+      // Now that we have a URL we can re-run the kbQuery as a static service
+      return kbQuery(
+        {
+          ...kbQueryArgs,
+          service: {
+            ...kbQueryArgs.service,
+            url: serviceUrl.url,
+          },
+        },
+        baseQueryAPI,
+        extraOptions
+      );
+    }
 
-      // make request
-      const request = rawBaseQuery(fetchArgs, baseQueryAPI, extraOptions);
-      const response = await request;
+    // Generate JsonRpc request id
+    const reqId = Math.random().toString();
 
-      // identify and better differentiate jsonRpc errors
-      // This is for KBase's version of JSON-RPC 1.1
-      if (response.error && response.error.status === 500) {
-        if (isJsonRpcError(response.error.data)) {
-          if (response.error.data.id && response.error.data.id !== reqId) {
-            return {
-              error: {
-                status: 'CUSTOM_ERROR',
-                error: 'JsonRpcProtocolError',
-                data: `Response ID "${response.error.data.id}" !== Request ID "${reqId}"`,
-              },
-            };
-          }
+    const body = ((): JSONRPCBody => {
+      switch (kbQueryArgs.service.version || '1.1') {
+        case '1.1':
           return {
-            error: {
-              status: 'JSONRPC_ERROR',
-              data: response.error.data,
-            },
+            version: '1.1',
+            id: reqId,
+            method: kbQueryArgs.method,
           };
-        }
+        case '2.0':
+          return {
+            jsonrpc: '2.0',
+            id: reqId,
+            method: kbQueryArgs.method,
+          };
       }
-      if (isJsonRpc20Error(response.data)) {
-        if (response.data.id && response.data.id !== reqId) {
+    })();
+
+    if (kbQueryArgs.params) {
+      body.params = kbQueryArgs.params;
+    }
+
+    // generate request body
+    const baseUrl = kbQueryArgs.service.domain || fetchBaseQueryArgs.baseUrl;
+
+    const fetchArgs = {
+      url: new URL(kbQueryArgs.service.url, baseUrl).toString(),
+      method: 'POST',
+      body,
+      ...kbQueryArgs.fetchArgs, // Allow overriding JsonRpc defaults
+    };
+
+    // make request
+    const request = rawBaseQuery(fetchArgs, baseQueryAPI, extraOptions);
+    const response = await request;
+
+    // identify and better differentiate jsonRpc errors
+    // This is for KBase's version of JSON-RPC 1.1
+    if (response.error && response.error.status === 500) {
+      if (isJsonRpcError(response.error.data)) {
+        if (response.error.data.id && response.error.data.id !== reqId) {
           return {
             error: {
               status: 'CUSTOM_ERROR',
               error: 'JsonRpcProtocolError',
-              data: `Response ID "${response.data.id}" !== Request ID "${reqId}"`,
+              data: `Response ID "${response.error.data.id}" !== Request ID "${reqId}"`,
             },
           };
         }
         return {
           error: {
             status: 'JSONRPC_ERROR',
-            data: response.data,
+            data: response.error.data,
           },
         };
       }
-
-      // If another error has occurred preventing a response, return default rtk-query response.
-      // This appropriately handles rtk-query internal errors
-      if (!response.data) return request;
-
-      // From here, assume we have a jsonRpc response
-      const data = response.data as {
-        error?: unknown;
-        id?: string;
-        result?: unknown;
-        version: string;
-      };
-
-      // If the IDs don't match, fail
-      // TODO: find out if this is the idiomatic way to do this
-      if (data.id && data.id !== reqId) {
+    }
+    if (isJsonRpc20Error(response.data)) {
+      if (response.data.id && response.data.id !== reqId) {
         return {
           error: {
             status: 'CUSTOM_ERROR',
             error: 'JsonRpcProtocolError',
-            data: `Response ID "${data.id}" !== Request ID "${reqId}"`,
+            data: `Response ID "${response.data.id}" !== Request ID "${reqId}"`,
           },
         };
       }
+      return {
+        error: {
+          status: 'JSONRPC_ERROR',
+          data: response.data,
+        },
+      };
+    }
 
-      // All went well, return the JsonRpc result
-      return { data: data.result };
+    // If another error has occurred preventing a response, return default rtk-query response.
+    // This appropriately handles rtk-query internal errors
+    if (!response.data) return request;
+
+    // From here, assume we have a jsonRpc response
+    const data = response.data as {
+      error?: unknown;
+      id?: string;
+      result?: unknown;
+      version: string;
     };
+
+    // If the IDs don't match, fail
+    // TODO: find out if this is the idiomatic way to do this
+    if (data.id && data.id !== reqId) {
+      return {
+        error: {
+          status: 'CUSTOM_ERROR',
+          error: 'JsonRpcProtocolError',
+          data: `Response ID "${data.id}" !== Request ID "${reqId}"`,
+        },
+      };
+    }
+
+    // All went well, return the JsonRpc result
+    return { data: data.result };
+  };
   return kbQuery;
 };

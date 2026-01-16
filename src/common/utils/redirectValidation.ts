@@ -6,10 +6,10 @@
  */
 
 export const getRedirectWhitelist = (): string[] => {
-  const whitelist = process.env.REACT_APP_REDIRECT_WHITELIST || '';
+  const whitelist = import.meta.env.VITE_REDIRECT_WHITELIST || '';
   return whitelist
     .split(',')
-    .map((d) => d.trim())
+    .map((d: string) => d.trim())
     .filter(Boolean);
 };
 

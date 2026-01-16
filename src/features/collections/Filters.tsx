@@ -141,8 +141,8 @@ export const useContextFilterQueryManagement = (
     triggerBiolog,
   ];
   const results = [genomeResult, sampleResult, microtraitResult, biologResult];
-  type CommonTriggerReturn = ReturnType<typeof triggers[number]>;
-  type CommonResult = typeof results[number];
+  type CommonTriggerReturn = ReturnType<(typeof triggers)[number]>;
+  type CommonResult = (typeof results)[number];
 
   const handleResult = useCallback(
     <T extends CommonResult>(

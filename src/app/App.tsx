@@ -24,8 +24,8 @@ const useInitApp = () => {
   // Pulls token from cookie, syncs cookie to auth state
   useTokenCookie(
     'kbase_session',
-    process.env.REACT_APP_KBASE_BACKUP_COOKIE_NAME,
-    process.env.REACT_APP_KBASE_BACKUP_COOKIE_DOMAIN
+    import.meta.env.VITE_KBASE_BACKUP_COOKIE_NAME,
+    import.meta.env.VITE_KBASE_BACKUP_COOKIE_DOMAIN
   );
 
   // Use authenticated username to load user's profile
@@ -36,8 +36,8 @@ const useInitApp = () => {
 
   useEffect(() => {
     // eslint-disable-next-line no-console
-    console.info('Static Deploy Domain:', process.env.REACT_APP_KBASE_DOMAIN);
-    dispatch(setEnvironment(process.env.REACT_APP_KBASE_ENV ?? 'unknown'));
+    console.info('Static Deploy Domain:', import.meta.env.VITE_KBASE_DOMAIN);
+    dispatch(setEnvironment(import.meta.env.VITE_KBASE_ENV ?? 'unknown'));
   }, [dispatch, environment]);
 
   return { isLoading: !initialized };

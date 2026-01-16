@@ -5,19 +5,37 @@ import {
   // screen
   waitFor,
 } from '@testing-library/react';
-import fetchMock, {
-  disableFetchMocks,
-  enableFetchMocks,
-} from 'jest-fetch-mock';
-import { NarrativeMetadataTemplate } from '../../stories/components/NarrativeMetadata.stories';
+import createFetchMock from 'vitest-fetch-mock';
+import { vi } from 'vitest';
+import { Provider } from 'react-redux';
+import { createTestStore, RootState } from '../../app/store';
+import NarrativeMetadata from './NarrativeMetadata';
 import { usernameRequested, usernameOtherRequested } from '../common';
 import { testNarrativeDoc, testResponseOKFactory } from './fixtures';
 import classes from './Navigator.module.scss';
 
-const consoleError = jest.spyOn(console, 'error');
+const fetchMock = createFetchMock(vi);
+
+const consoleError = vi.spyOn(console, 'error');
 // This mockImplementation supresses console.error calls.
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 consoleError.mockImplementation(() => {});
+
+interface MetadataWrapperProps {
+  cells: typeof testNarrativeDoc.cells;
+  narrativeDoc: typeof testNarrativeDoc;
+  initialState?: Partial<RootState>;
+}
+
+const NarrativeMetadataWrapper = ({
+  cells,
+  narrativeDoc,
+  initialState,
+}: MetadataWrapperProps) => (
+  <Provider store={createTestStore(initialState)}>
+    <NarrativeMetadata cells={cells} narrativeDoc={narrativeDoc} />
+  </Provider>
+);
 
 describe('The <NarrativeMetadata /> component...', () => {
   afterAll(() => {
@@ -34,7 +52,7 @@ describe('The <NarrativeMetadata /> component...', () => {
 
   test('renders.', () => {
     const { container } = render(
-      <NarrativeMetadataTemplate
+      <NarrativeMetadataWrapper
         cells={testNarrativeDoc.cells}
         narrativeDoc={testNarrativeDoc}
       />
@@ -46,7 +64,7 @@ describe('The <NarrativeMetadata /> component...', () => {
   });
 
   test('renders shared users.', async () => {
-    enableFetchMocks();
+    fetchMock.enableMocks();
     const resp = testResponseOKFactory(testNarrativeDoc);
     fetchMock.mockResponses(resp, resp, resp);
     /* The last shared user is weird, but included in some
@@ -62,7 +80,7 @@ describe('The <NarrativeMetadata /> component...', () => {
     };
     const { container } = await waitFor(() =>
       render(
-        <NarrativeMetadataTemplate
+        <NarrativeMetadataWrapper
           cells={testNarrativeDoc.cells}
           narrativeDoc={testNarrativeDoc}
           initialState={initialState}
@@ -73,7 +91,7 @@ describe('The <NarrativeMetadata /> component...', () => {
     expect(
       container.querySelector(`div.${classes.metadata}`)
     ).toBeInTheDocument();
-    disableFetchMocks();
+    fetchMock.disableMocks();
   });
 
   test('gives the option to show more shared users if they exist', () => {
@@ -85,7 +103,7 @@ describe('The <NarrativeMetadata /> component...', () => {
     );
 
     const { container } = render(
-      <NarrativeMetadataTemplate
+      <NarrativeMetadataWrapper
         cells={testNarrativeDoc.cells}
         narrativeDoc={testNarrativeDoc}
       />

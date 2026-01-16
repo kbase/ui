@@ -2,6 +2,7 @@ import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { Select, handleChangeFactory, SelectOption } from './Select';
+import { vi } from 'vitest';
 
 test('The change handler does nothing when passed null.', () => {
   // This test is (currently) required for 100% coverage.
@@ -45,7 +46,7 @@ test('Select Renders with icons', async () => {
 });
 
 test('Single select onchange', async () => {
-  const onChange = jest.fn();
+  const onChange = vi.fn();
   const options = [
     { value: 'chocolate', label: 'Chocolate' },
     { value: 'strawberry', label: 'Strawberry' },
@@ -82,7 +83,7 @@ test('Single select onchange', async () => {
 });
 
 test('Multi select onchange and remove', async () => {
-  const onChange = jest.fn();
+  const onChange = vi.fn();
   const options = [
     { value: 'chocolate', label: 'Chocolate' },
     { value: 'strawberry', label: 'Strawberry' },
@@ -133,19 +134,17 @@ test('Multi select onchange and remove', async () => {
 });
 
 test('Async option loading and selection', async () => {
-  const onChange = jest.fn();
+  const onChange = vi.fn();
   const Parent = () => {
     const [options, setOptions] = useState<SelectOption[]>([]);
     const handleSuggest = async (inputValue: string) => {
       await new Promise<void>((r) => setTimeout(r, 100));
-      act(() => {
-        setOptions([
-          { value: 'chocolate', label: 'Chocolate' },
-          { value: 'strawberry', label: 'Strawberry' },
-          { value: 'vanilla', label: 'Vanilla' },
-          { value: 'test-value', label: inputValue },
-        ]);
-      });
+      setOptions([
+        { value: 'chocolate', label: 'Chocolate' },
+        { value: 'strawberry', label: 'Strawberry' },
+        { value: 'vanilla', label: 'Vanilla' },
+        { value: 'test-value', label: inputValue },
+      ]);
     };
     return (
       <Select onChange={onChange} onSearch={handleSuggest} options={options} />

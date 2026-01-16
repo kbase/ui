@@ -1,14 +1,11 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import fetchMock, {
-  MockParams,
-  disableFetchMocks,
-  enableFetchMocks,
-} from 'jest-fetch-mock';
+import createFetchMock from 'vitest-fetch-mock';
+import type { MockParams } from 'vitest-fetch-mock';
+import { vi } from 'vitest';
 import { Provider } from 'react-redux';
 import { MemoryRouter as Router } from 'react-router-dom';
 import { createTestStore } from '../../app/store';
 import { noOp } from '../common';
-import { NarrativePreviewTemplate } from '../../stories/components/NarrativePreview.stories';
 import {
   initialTestState,
   testNarrativeDoc,
@@ -16,9 +13,12 @@ import {
   testResponseOKFactory,
 } from './fixtures';
 import NarrativeView, {
+  NarrativePreview,
   noPreviewMessage,
   noWorkspaceCellsMessage,
 } from './NarrativeView';
+
+const fetchMock = createFetchMock(vi);
 
 const testResponseError: [string, MockParams] = [
   JSON.stringify({
@@ -38,20 +38,20 @@ const testResponseError: [string, MockParams] = [
 ];
 
 // NOTE: In this suite we supresses console error, log and warn calls.
-const consoleError = jest.spyOn(console, 'error');
-const consoleLog = jest.spyOn(console, 'log');
-const consoleWarn = jest.spyOn(console, 'warn');
+const consoleError = vi.spyOn(console, 'error');
+const consoleLog = vi.spyOn(console, 'log');
+const consoleWarn = vi.spyOn(console, 'warn');
 consoleError.mockImplementation(noOp);
 consoleLog.mockImplementation(noOp);
 consoleWarn.mockImplementation(noOp);
 
 describe('The <NarrativeView /> component...', () => {
   beforeAll(() => {
-    enableFetchMocks();
+    fetchMock.enableMocks();
   });
 
   afterAll(() => {
-    disableFetchMocks();
+    fetchMock.disableMocks();
   });
 
   beforeEach(() => {
@@ -116,17 +116,17 @@ describe('The <NarrativeView /> component...', () => {
     fetchMock.mockResponses(testResponseOKFactory(narrativeDoc));
     const wsId = narrativeDoc.access_group;
     const testStore = createTestStore({ navigator: initialTestState });
-    const { container } = await waitFor(() =>
-      render(
-        <Provider store={testStore}>
-          <Router>
-            <NarrativeView narrativeUPA={`${wsId}/2/3`} view={'preview'} />
-          </Router>
-        </Provider>
-      )
+    const { container } = render(
+      <Provider store={testStore}>
+        <Router>
+          <NarrativeView narrativeUPA={`${wsId}/2/3`} view={'preview'} />
+        </Router>
+      </Provider>
     );
     expect(container).toBeTruthy();
-    expect(container.querySelector('section.preview')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(container.querySelector('section.preview')).toBeInTheDocument();
+    });
     expect(
       screen.getByText(noPreviewMessage, {
         exact: false,
@@ -154,13 +154,15 @@ describe('The <NarrativePreview /> component...', () => {
 
   test('renders.', () => {
     const { container } = render(
-      <Router>
-        <NarrativePreviewTemplate
-          cells={testNarrativeDoc.cells.slice(0, 16)}
-          narrativeDoc={testNarrativeDoc}
-          wsId={1}
-        />
-      </Router>
+      <Provider store={createTestStore()}>
+        <Router>
+          <NarrativePreview
+            cells={testNarrativeDoc.cells.slice(0, 16)}
+            narrativeDoc={testNarrativeDoc}
+            wsId={1}
+          />
+        </Router>
+      </Provider>
     );
     expect(container).toBeTruthy();
     expect(container.querySelector('section.preview')).toBeInTheDocument();
@@ -168,13 +170,15 @@ describe('The <NarrativePreview /> component...', () => {
 
   test('renders with no cells.', () => {
     const { container } = render(
-      <Router>
-        <NarrativePreviewTemplate
-          cells={[]}
-          narrativeDoc={testNarrativeDoc}
-          wsId={1}
-        />
-      </Router>
+      <Provider store={createTestStore()}>
+        <Router>
+          <NarrativePreview
+            cells={[]}
+            narrativeDoc={testNarrativeDoc}
+            wsId={1}
+          />
+        </Router>
+      </Provider>
     );
     expect(container).toBeTruthy();
     expect(container.querySelector('section.preview')).toBeInTheDocument();
@@ -182,13 +186,15 @@ describe('The <NarrativePreview /> component...', () => {
 
   test('renders with one more cell.', () => {
     const { container } = render(
-      <Router>
-        <NarrativePreviewTemplate
-          cells={testNarrativeDoc.cells.slice(0, 17)}
-          narrativeDoc={testNarrativeDoc}
-          wsId={1}
-        />
-      </Router>
+      <Provider store={createTestStore()}>
+        <Router>
+          <NarrativePreview
+            cells={testNarrativeDoc.cells.slice(0, 17)}
+            narrativeDoc={testNarrativeDoc}
+            wsId={1}
+          />
+        </Router>
+      </Provider>
     );
     expect(container).toBeTruthy();
     expect(container.querySelector('section.preview')).toBeInTheDocument();
@@ -196,13 +202,15 @@ describe('The <NarrativePreview /> component...', () => {
 
   test('renders with more cells.', () => {
     const { container } = render(
-      <Router>
-        <NarrativePreviewTemplate
-          narrativeDoc={testNarrativeDoc}
-          cells={testNarrativeDoc.cells}
-          wsId={1}
-        />
-      </Router>
+      <Provider store={createTestStore()}>
+        <Router>
+          <NarrativePreview
+            narrativeDoc={testNarrativeDoc}
+            cells={testNarrativeDoc.cells}
+            wsId={1}
+          />
+        </Router>
+      </Provider>
     );
     expect(container).toBeTruthy();
     expect(container.querySelector('section.preview')).toBeInTheDocument();

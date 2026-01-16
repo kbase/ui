@@ -1,4 +1,4 @@
-@import "../../../common/colors";
+@use "../../../common/colors" as *;
 
 .narrative_item_outer {
   border-bottom: 1px solid #ccc;

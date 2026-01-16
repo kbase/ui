@@ -1,12 +1,14 @@
 import { act, render, screen } from '@testing-library/react';
 import React from 'react';
 import { MemoryRouter as Router } from 'react-router-dom';
+import { ThemeProvider } from '@mui/material';
 import App from './App';
 
 import { Provider } from 'react-redux';
 import { createTestStore } from './store';
+import { theme } from '../theme';
 
-const consoleInfo = jest.spyOn(console, 'info');
+const consoleInfo = vi.spyOn(console, 'info');
 // This mockImplementation supresses console.info calls.
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 consoleInfo.mockImplementation(() => {});
@@ -27,9 +29,11 @@ describe('The main UI for Europa...', () => {
   test('renders a Navigator page link', () => {
     render(
       <Provider store={createTestStore()}>
-        <Router>
-          <App />
-        </Router>
+        <ThemeProvider theme={theme}>
+          <Router>
+            <App />
+          </Router>
+        </ThemeProvider>
       </Provider>
     );
     const linkElement = screen.getByText(/Navigator/, { exact: false });
@@ -39,9 +43,11 @@ describe('The main UI for Europa...', () => {
   test('contains a working link to the Navigator', async () => {
     const { container } = render(
       <Provider store={createTestStore()}>
-        <Router>
-          <App />
-        </Router>
+        <ThemeProvider theme={theme}>
+          <Router>
+            <App />
+          </Router>
+        </ThemeProvider>
       </Provider>
     );
     const linkElement = screen.getByText(/Navigator/, { exact: false });
