@@ -54,12 +54,9 @@
  * ```
  */
 
-import {
+import type {
   ApiEndpointMutation,
   ApiEndpointQuery,
-} from '@reduxjs/toolkit/dist/query/core/module';
-import { UseQuery } from '@reduxjs/toolkit/dist/query/react/buildHooks';
-import type {
   QueryDefinition,
   MutationDefinition,
 } from '@reduxjs/toolkit/query';
@@ -139,17 +136,13 @@ type MutationHookResult<TData> = [
   }
 ];
 
-/** Extracts the useQuery hook type from an RTK Query endpoint */
-type QueryHook<E> = Exclude<
-  E extends ApiEndpointQuery<infer QueryDefinition, any>
-    ? UseQuery<QueryDefinition>
-    : never,
-  symbol
->;
-type QueryHookParams<E> = [
-  Exclude<Parameters<QueryHook<E>>[0], symbol>,
-  ...Omit<Parameters<QueryHook<E>>, 0>
-];
+/** Query hook parameters - simplified for RTK 2.x compatibility */
+type QueryHookParams<E> = E extends ApiEndpointQuery<
+  QueryDefinition<infer QueryArg, any, any, any>,
+  any
+>
+  ? [QueryArg, ...any[]]
+  : never;
 
 /** Mocks an RTK Query endpoint for testing */
 export function mockQuery<E extends ApiEndpointQuery<any, any>>(
@@ -175,19 +168,17 @@ export function mockQuery<E extends ApiEndpointQuery<any, any>>(
       isSuccess,
       isUninitialized: false,
       isFetching: isLoading && !data,
-      refetch: jest.fn(),
+      refetch: vi.fn(),
       currentData: data as EndpointData<E>,
     };
     return mockResult;
   };
 
-  const hookMock = jest
-    .fn()
-    .mockImplementation((...args: QueryHookParams<E>) => {
-      return getState(...args);
-    });
+  const hookMock = vi.fn().mockImplementation((...args: QueryHookParams<E>) => {
+    return getState(...args);
+  });
 
-  jest.spyOn(endpoint, 'useQuery' as any).mockImplementation(hookMock as any);
+  vi.spyOn(endpoint, 'useQuery' as any).mockImplementation(hookMock as any);
   return hookMock;
 }
 
@@ -227,7 +218,7 @@ export function mockMutation<E extends ApiEndpointMutation<any, any>>(
     };
   };
 
-  const mockReset = jest.fn().mockImplementation(() => {
+  const mockReset = vi.fn().mockImplementation(() => {
     mutateCallbackResult = undefined;
     if (hookUpdateResult) hookUpdateResult(getState());
   });
@@ -244,11 +235,11 @@ export function mockMutation<E extends ApiEndpointMutation<any, any>>(
     return getState();
   };
 
-  const trigger: MutationTrigger<EndpointData<E>> = jest
+  const trigger: MutationTrigger<EndpointData<E>> = vi
     .fn()
     .mockImplementation(mockTrigger);
 
-  const hookMock = jest.fn().mockImplementation(() => {
+  const hookMock = vi.fn().mockImplementation(() => {
     const [result, updateResult] =
       React.useState<MutationHookResult<EndpointData<E>>[1]>(getState);
 
@@ -275,9 +266,7 @@ export function mockMutation<E extends ApiEndpointMutation<any, any>>(
     });
   };
 
-  jest
-    .spyOn(endpoint, 'useMutation' as any)
-    .mockImplementation(hookMock as any);
+  vi.spyOn(endpoint, 'useMutation' as any).mockImplementation(hookMock as any);
   return {
     hookMock,
     triggerMock: trigger,

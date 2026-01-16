@@ -15,13 +15,15 @@
  * Note too that the host origin is 'http://localhost'. See
  * `src/common/api/index.ts` which defines baseUrl for the test environment.
  */
-import { MockResponseInit } from 'jest-fetch-mock/types';
+import type { MockResponse } from 'vitest-fetch-mock';
 import {
   STATUS_1,
   VIEW_ASSEMBLY_BRIEF_INFO_1,
 } from './data/narrative_method_store';
 import { KBASEUITEST_PROFILE } from './data/user_profile';
 import { jsonrpc11_resultResponse } from './jsonrpc11';
+
+type MockResponseInit = MockResponse;
 
 /**
  * Creates response for fetch mock supplied by jest-fetch-mock.
@@ -31,7 +33,7 @@ import { jsonrpc11_resultResponse } from './jsonrpc11';
  */
 export function makeKBaseServices() {
   return fetchMock.mockResponse(
-    async (request): Promise<MockResponseInit | string> => {
+    async (request: Request): Promise<MockResponseInit | string> => {
       const { pathname } = new URL(request.url);
       // put a little delay in here so that we have a better
       // chance of catching temporary conditions, like loading.
