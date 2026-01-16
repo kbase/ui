@@ -101,13 +101,16 @@ const HeaderNavigationContainer: FC<{ category: string }> = ({ category }) => (
   </nav>
 );
 
-const HeaderContainer: FC<{ category: string; search: string; sort: string }> =
-  ({ category, search, sort }) => (
-    <header className={classes.header}>
-      <HeaderNavigationContainer category={category} />
-      <FilterContainer search={search} sort={sort} />
-    </header>
-  );
+const HeaderContainer: FC<{
+  category: string;
+  search: string;
+  sort: string;
+}> = ({ category, search, sort }) => (
+  <header className={classes.header}>
+    <HeaderNavigationContainer category={category} />
+    <FilterContainer search={search} sort={sort} />
+  </header>
+);
 
 const FilterContainer: FC<{ search: string; sort: string }> = ({
   search,

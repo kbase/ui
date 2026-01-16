@@ -32,7 +32,7 @@ export const EnforcePolicies = ({
     return kbasePolicies[id];
   });
   const [accepted, setAccepted] = useState<{
-    [k in typeof targetPolicies[number]['id']]?: boolean;
+    [k in (typeof targetPolicies)[number]['id']]?: boolean;
   }>({});
   const allAccepted = targetPolicies.every((policy) => {
     return accepted[policy.id] === true;
@@ -60,6 +60,7 @@ export const EnforcePolicies = ({
           {targetPolicies.map((policy) => {
             return (
               <PolicyViewer
+                key={policy.id}
                 policyId={policy.id}
                 accepted={accepted[policy.id] ?? false}
                 setAccept={(val: boolean) =>

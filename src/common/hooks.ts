@@ -1,5 +1,5 @@
-import { QueryDefinition } from '@reduxjs/toolkit/dist/query';
-import { UseQueryHookResult } from '@reduxjs/toolkit/dist/query/react/buildHooks';
+import type { BaseQueryFn } from '@reduxjs/toolkit/query';
+import type { TypedUseQueryHookResult } from '@reduxjs/toolkit/query/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -23,7 +23,7 @@ export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
 const pollLock: Set<string> = new Set();
 export const useBackoffPolling = <
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  R extends UseQueryHookResult<QueryDefinition<unknown, any, any, unknown>>
+  R extends TypedUseQueryHookResult<unknown, unknown, BaseQueryFn>
 >(
   result: R,
   pollCondition: (result: R, count: number) => boolean,

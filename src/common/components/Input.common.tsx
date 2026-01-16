@@ -30,7 +30,7 @@ export const inputRegisterFactory = <T extends FieldValues>({
   register: UseFormRegister<T>;
 }) => {
   const { errors, dirtyFields } = formState;
-  return (name: Path<T>, options?: RegisterOptions) => {
+  return (name: Path<T>, options?: RegisterOptions<T, Path<T>>) => {
     if (options && Object.keys(options).length > 0) {
       return {
         errors: errors && name in errors,

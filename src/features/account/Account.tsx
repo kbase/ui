@@ -1,5 +1,5 @@
 import { Container, Stack, Tab, Tabs } from '@mui/material';
-import { skipToken } from '@reduxjs/toolkit/dist/query';
+import { skipToken } from '@reduxjs/toolkit/query';
 import { FC } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { getMe } from '../../common/api/authService';

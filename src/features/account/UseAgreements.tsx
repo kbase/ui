@@ -66,8 +66,8 @@ export const UseAgreements: FC = () => {
 
   const [showExpired, setShowExpired] = useState(false);
   const [selectedPolicy, setSelectedPolicy] = useState<
-    | typeof currentPolicies[number]
-    | typeof currentPolicies[number]['olderVersions'][number]
+    | (typeof currentPolicies)[number]
+    | (typeof currentPolicies)[number]['olderVersions'][number]
     | undefined
   >(undefined);
 

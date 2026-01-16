@@ -1,4 +1,4 @@
-import { MockParams } from 'jest-fetch-mock';
+import type { MockParams } from 'vitest-fetch-mock';
 import { usernameRequested } from '../common';
 import { testDataObjects } from '../../common/components/DataView.fixture';
 import {

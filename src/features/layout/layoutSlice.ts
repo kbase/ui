@@ -14,7 +14,7 @@ const environments = [
 ] as const;
 
 interface PageState {
-  environment: typeof environments[number];
+  environment: (typeof environments)[number];
   pageTitle: string;
   modalDialogId?: string;
 }
@@ -30,8 +30,8 @@ export const pageSlice = createSlice({
   reducers: {
     setEnvironment: (state, action: PayloadAction<string>) => {
       const env = action.payload.toLowerCase();
-      if (environments.includes(env as typeof environments[number])) {
-        state.environment = env as typeof environments[number];
+      if (environments.includes(env as (typeof environments)[number])) {
+        state.environment = env as (typeof environments)[number];
       } else {
         state.environment = 'unknown';
       }

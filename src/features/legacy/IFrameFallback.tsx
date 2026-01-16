@@ -21,7 +21,7 @@ export const Fallback = ({
 
   if (window.top && isInsideIframe(window)) {
     // Not in top window, redirect top window to current location
-    window.top.location = window.location;
+    window.top.location.href = window.location.href;
     return <p>Redirecting...</p>;
   } else if (to) {
     if (reload) {

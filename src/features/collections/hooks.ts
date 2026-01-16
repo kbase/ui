@@ -1,5 +1,5 @@
-import { QueryDefinition } from '@reduxjs/toolkit/dist/query';
-import { UseQueryHookResult } from '@reduxjs/toolkit/dist/query/react/buildHooks';
+import type { BaseQueryFn } from '@reduxjs/toolkit/query';
+import type { TypedUseQueryHookResult } from '@reduxjs/toolkit/query/react';
 import { useMemo } from 'react';
 import { toast } from 'react-hot-toast';
 import { ProcessState } from '../../common/api/collectionsApi';
@@ -99,7 +99,7 @@ export const useProcessStatePolling = <
   StateKey extends string,
   Result extends { [processStateKey in StateKey]: ProcessState },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  R extends UseQueryHookResult<QueryDefinition<unknown, any, any, Result>>
+  R extends TypedUseQueryHookResult<Result, unknown, BaseQueryFn>
 >(
   result: R,
   processStateKeys: StateKey[],

@@ -231,7 +231,7 @@ export const Pagination = <Datum,>({
         {button + 1}
       </Button>
     ) : (
-      <div key={button && button.key}>{button}</div>
+      <div key={(button as React.ReactElement)?.key ?? ix}>{button}</div>
     )
   );
   return (
