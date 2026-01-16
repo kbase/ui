@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import {
   isExternalUrl,
   matchesWildcard,
@@ -65,30 +66,27 @@ describe('matchesWildcard', () => {
 });
 
 describe('getRedirectWhitelist', () => {
-  const originalEnv = process.env.REACT_APP_REDIRECT_WHITELIST;
-
   afterEach(() => {
-    process.env.REACT_APP_REDIRECT_WHITELIST = originalEnv;
+    vi.unstubAllEnvs();
   });
 
   test('returns empty array when not set', () => {
-    delete process.env.REACT_APP_REDIRECT_WHITELIST;
+    vi.stubEnv('VITE_REDIRECT_WHITELIST', '');
     expect(getRedirectWhitelist()).toEqual([]);
   });
 
   test('returns empty array for empty string', () => {
-    process.env.REACT_APP_REDIRECT_WHITELIST = '';
+    vi.stubEnv('VITE_REDIRECT_WHITELIST', '');
     expect(getRedirectWhitelist()).toEqual([]);
   });
 
   test('parses single domain', () => {
-    process.env.REACT_APP_REDIRECT_WHITELIST = '*.berdl.kbase.us';
+    vi.stubEnv('VITE_REDIRECT_WHITELIST', '*.berdl.kbase.us');
     expect(getRedirectWhitelist()).toEqual(['*.berdl.kbase.us']);
   });
 
   test('parses comma-separated domains', () => {
-    process.env.REACT_APP_REDIRECT_WHITELIST =
-      '*.berdl.kbase.us,*.other.kbase.us';
+    vi.stubEnv('VITE_REDIRECT_WHITELIST', '*.berdl.kbase.us,*.other.kbase.us');
     expect(getRedirectWhitelist()).toEqual([
       '*.berdl.kbase.us',
       '*.other.kbase.us',
@@ -96,8 +94,10 @@ describe('getRedirectWhitelist', () => {
   });
 
   test('trims whitespace', () => {
-    process.env.REACT_APP_REDIRECT_WHITELIST =
-      '  *.berdl.kbase.us  ,  *.other.kbase.us  ';
+    vi.stubEnv(
+      'VITE_REDIRECT_WHITELIST',
+      '  *.berdl.kbase.us  ,  *.other.kbase.us  '
+    );
     expect(getRedirectWhitelist()).toEqual([
       '*.berdl.kbase.us',
       '*.other.kbase.us',
@@ -105,8 +105,10 @@ describe('getRedirectWhitelist', () => {
   });
 
   test('filters empty entries', () => {
-    process.env.REACT_APP_REDIRECT_WHITELIST =
-      '*.berdl.kbase.us,,*.other.kbase.us,';
+    vi.stubEnv(
+      'VITE_REDIRECT_WHITELIST',
+      '*.berdl.kbase.us,,*.other.kbase.us,'
+    );
     expect(getRedirectWhitelist()).toEqual([
       '*.berdl.kbase.us',
       '*.other.kbase.us',
@@ -115,19 +117,17 @@ describe('getRedirectWhitelist', () => {
 });
 
 describe('isWhitelistedExternalUrl', () => {
-  const originalEnv = process.env.REACT_APP_REDIRECT_WHITELIST;
-
   afterEach(() => {
-    process.env.REACT_APP_REDIRECT_WHITELIST = originalEnv;
+    vi.unstubAllEnvs();
   });
 
   test('returns false when whitelist is empty', () => {
-    process.env.REACT_APP_REDIRECT_WHITELIST = '';
+    vi.stubEnv('VITE_REDIRECT_WHITELIST', '');
     expect(isWhitelistedExternalUrl('https://hub.berdl.kbase.us')).toBe(false);
   });
 
   test('returns true for whitelisted domain', () => {
-    process.env.REACT_APP_REDIRECT_WHITELIST = '*.berdl.kbase.us';
+    vi.stubEnv('VITE_REDIRECT_WHITELIST', '*.berdl.kbase.us');
     expect(isWhitelistedExternalUrl('https://hub.berdl.kbase.us')).toBe(true);
     expect(isWhitelistedExternalUrl('https://hub.berdl.kbase.us/path')).toBe(
       true
@@ -138,35 +138,34 @@ describe('isWhitelistedExternalUrl', () => {
   });
 
   test('returns false for non-whitelisted domain', () => {
-    process.env.REACT_APP_REDIRECT_WHITELIST = '*.berdl.kbase.us';
+    vi.stubEnv('VITE_REDIRECT_WHITELIST', '*.berdl.kbase.us');
     expect(isWhitelistedExternalUrl('https://evil.com')).toBe(false);
     expect(isWhitelistedExternalUrl('https://other.kbase.us')).toBe(false);
   });
 
   test('returns false for HTTP URLs', () => {
-    process.env.REACT_APP_REDIRECT_WHITELIST = '*.berdl.kbase.us';
+    vi.stubEnv('VITE_REDIRECT_WHITELIST', '*.berdl.kbase.us');
     expect(isWhitelistedExternalUrl('http://hub.berdl.kbase.us')).toBe(false);
   });
 
   test('returns false for invalid URLs', () => {
-    process.env.REACT_APP_REDIRECT_WHITELIST = '*.berdl.kbase.us';
+    vi.stubEnv('VITE_REDIRECT_WHITELIST', '*.berdl.kbase.us');
     expect(isWhitelistedExternalUrl('not-a-url')).toBe(false);
     expect(isWhitelistedExternalUrl('')).toBe(false);
   });
 
   test('returns false when whitelist contains literal asterisk', () => {
-    process.env.REACT_APP_REDIRECT_WHITELIST = '*';
+    vi.stubEnv('VITE_REDIRECT_WHITELIST', '*');
     expect(isWhitelistedExternalUrl('https://anything.com')).toBe(false);
   });
 
   test('allows broad wildcards like *.com when explicitly configured', () => {
-    process.env.REACT_APP_REDIRECT_WHITELIST = '*.com';
+    vi.stubEnv('VITE_REDIRECT_WHITELIST', '*.com');
     expect(isWhitelistedExternalUrl('https://anything.com')).toBe(true);
   });
 
   test('works with multiple whitelist entries', () => {
-    process.env.REACT_APP_REDIRECT_WHITELIST =
-      '*.berdl.kbase.us,exact.example.com';
+    vi.stubEnv('VITE_REDIRECT_WHITELIST', '*.berdl.kbase.us,exact.example.com');
     expect(isWhitelistedExternalUrl('https://hub.berdl.kbase.us')).toBe(true);
     expect(isWhitelistedExternalUrl('https://exact.example.com')).toBe(true);
     expect(isWhitelistedExternalUrl('https://other.example.com')).toBe(false);
