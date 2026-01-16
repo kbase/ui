@@ -2,10 +2,15 @@ import { RefObject, useEffect, useRef, useState } from 'react';
 import { createSearchParams, useLocation, useNavigate } from 'react-router-dom';
 import { usePageTitle } from '../layout/layoutSlice';
 import { useTryAuthFromToken } from '../auth/hooks';
-import { LOGIN_ROUTE, SIGNUP_ROUTE } from '../../app/Routes';
+import {
+  LOGIN_ROUTE,
+  SIGNUP_ROUTE,
+  LEGACY_BASE_ROUTE,
+} from '../../app/routes.constants';
 import { useLogout } from '../login/LogIn';
 
-export const LEGACY_BASE_ROUTE = '/legacy';
+// Re-export for backwards compatibility
+export { LEGACY_BASE_ROUTE } from '../../app/routes.constants';
 
 const LEGACY_REDIRECTS: Record<string, string> = {
   login: LOGIN_ROUTE,
@@ -101,7 +106,7 @@ export default function Legacy() {
           source: 'europa.identify',
           payload: window.location.origin,
         },
-        `https://${process.env.REACT_APP_KBASE_LEGACY_DOMAIN}` || '*'
+        `https://${import.meta.env.VITE_KBASE_LEGACY_DOMAIN}` || '*'
       );
     }
   });
@@ -124,7 +129,7 @@ export default function Legacy() {
           source: 'europa.navigate',
           payload: { path: expectedLegacyPath },
         },
-        `https://${process.env.REACT_APP_KBASE_LEGACY_DOMAIN}` || '*'
+        `https://${import.meta.env.VITE_KBASE_LEGACY_DOMAIN}` || '*'
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -159,7 +164,7 @@ export const getLegacyPart = (path: string) =>
   path.match(legacyRegex)?.[1] || '/';
 
 export const formatLegacyUrl = (path: string) =>
-  `https://${process.env.REACT_APP_KBASE_LEGACY_DOMAIN}/#${path}`;
+  `https://${import.meta.env.VITE_KBASE_LEGACY_DOMAIN}/#${path}`;
 
 export const useMessageListener = function <T = unknown>(
   target: RefObject<HTMLIFrameElement>,
@@ -170,7 +175,7 @@ export const useMessageListener = function <T = unknown>(
       // When deployed we only want to listen to messages from the iframe itself
       // but we want to allow other sources for dev/test.
       if (
-        process.env.NODE_ENV === 'production' &&
+        import.meta.env.MODE === 'production' &&
         ev.source !== target.current?.contentWindow
       )
         return;
