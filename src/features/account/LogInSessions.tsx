@@ -19,34 +19,21 @@ import { Loader } from '../../common/components';
 import { useAppSelector } from '../../common/hooks';
 import { useLogout } from '../login/LogIn';
 
-const MfaStatusIndicator: FC<{ mfa: 'USED' | 'NOT_USED' | 'UNKNOWN' }> = ({
-  mfa,
-}) => {
-  if (mfa === 'USED') {
-    return (
-      <Tooltip title="MFA used">
-        <span>
-          <FontAwesomeIcon icon={faCheck} style={{ color: 'green' }} />
-        </span>
-      </Tooltip>
-    );
-  } else if (mfa === 'NOT_USED') {
-    return (
-      <Tooltip title="Single factor">
-        <span>
-          <FontAwesomeIcon icon={faX} style={{ color: 'red' }} />
-        </span>
-      </Tooltip>
-    );
-  } else {
-    return (
-      <Tooltip title="MFA status unknown">
-        <span>
-          <FontAwesomeIcon icon={faX} style={{ color: 'grey' }} />
-        </span>
-      </Tooltip>
-    );
-  }
+export const MfaStatusIndicator: FC<{
+  mfa: 'USED' | 'NOT_USED' | 'UNKNOWN';
+}> = ({ mfa }) => {
+  const config = {
+    USED: { label: 'Y', tooltip: 'MFA used', color: 'green' },
+    NOT_USED: { label: 'N', tooltip: 'Single factor', color: 'red' },
+    UNKNOWN: { label: '?', tooltip: 'MFA status unknown', color: 'grey' },
+  }[mfa];
+  return (
+    <Tooltip title={config.tooltip}>
+      <span style={{ color: config.color, fontWeight: 'bold' }}>
+        {config.label}
+      </span>
+    </Tooltip>
+  );
 };
 
 /**

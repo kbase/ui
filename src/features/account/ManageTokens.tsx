@@ -26,6 +26,7 @@ import { Loader } from '../../common/components';
 import { LabelValueTable } from '../../common/components/LabelValueTable';
 import { useAppSelector } from '../../common/hooks';
 import { useLogout } from '../login/LogIn';
+import { MfaStatusIndicator } from './LogInSessions';
 
 /**
  * Content for the Log In Sessions tab in the Account page
@@ -136,6 +137,7 @@ export const ManageTokens: FC<{
                 <TableCell>Created</TableCell>
                 <TableCell>Expires</TableCell>
                 <TableCell>Name</TableCell>
+                <TableCell>MFA</TableCell>
                 <TableCell></TableCell>
               </TableRow>
             </TableHead>
@@ -149,6 +151,9 @@ export const ManageTokens: FC<{
                     {new Date(token.expires ?? 0).toLocaleString()}
                   </TableCell>
                   <TableCell>{token.name}</TableCell>
+                  <TableCell>
+                    {token.mfa && <MfaStatusIndicator mfa={token.mfa} />}
+                  </TableCell>
                   <TableCell>
                     <RevokeButton tokenId={token.id} />
                   </TableCell>
