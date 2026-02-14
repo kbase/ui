@@ -1,4 +1,6 @@
 /* types/auth */
+export type MfaStatus = 'Used' | 'NotUsed' | 'Unknown';
+
 export interface Me {
   anonid: string;
   created: number;

@@ -15,18 +15,24 @@ import {
 } from '@mui/material';
 import { FC } from 'react';
 import { getTokens, revokeToken } from '../../common/api/authService';
+import { MfaStatus } from '../../common/types/auth';
 import { Loader } from '../../common/components';
 import { useAppSelector } from '../../common/hooks';
 import { useLogout } from '../login/LogIn';
 
+const mfaConfig: Record<
+  MfaStatus,
+  { label: string; tooltip: string; color: string }
+> = {
+  Used: { label: 'Y', tooltip: 'MFA used', color: 'green' },
+  NotUsed: { label: 'N', tooltip: 'Single factor', color: 'red' },
+  Unknown: { label: '?', tooltip: 'MFA status unknown', color: 'grey' },
+};
+
 export const MfaStatusIndicator: FC<{
-  mfa: 'USED' | 'NOT_USED' | 'UNKNOWN';
+  mfa: MfaStatus;
 }> = ({ mfa }) => {
-  const config = {
-    USED: { label: 'Y', tooltip: 'MFA used', color: 'green' },
-    NOT_USED: { label: 'N', tooltip: 'Single factor', color: 'red' },
-    UNKNOWN: { label: '?', tooltip: 'MFA status unknown', color: 'grey' },
-  }[mfa];
+  const config = mfaConfig[mfa];
   return (
     <Tooltip title={config.tooltip}>
       <span style={{ color: config.color, fontWeight: 'bold' }}>

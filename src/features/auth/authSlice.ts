@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
 import { revokeToken } from '../../common/api/authService';
-import { Me } from '../../common/types/auth';
+import { Me, MfaStatus } from '../../common/types/auth';
 
 export interface TokenInfo {
   created: number;
@@ -11,7 +11,7 @@ export interface TokenInfo {
   type: string;
   user: string;
   cachefor: number;
-  mfa: 'USED' | 'NOT_USED' | 'UNKNOWN';
+  mfa: MfaStatus;
 }
 
 interface AuthState {
