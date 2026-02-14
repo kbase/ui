@@ -1,5 +1,5 @@
 // import { store } from '../../app/store';
-import { Me } from '../types/auth';
+import { Me, MfaStatus } from '../types/auth';
 import { uriEncodeTemplateTag as encode } from '../utils/stringUtils';
 import { baseApi } from './index';
 import { httpService } from './utils/serviceHelpers';
@@ -25,7 +25,7 @@ interface TokenResponse {
   type: string;
   user: string;
   cachefor: number;
-  mfa: 'USED' | 'NOT_USED' | 'UNKNOWN';
+  mfa: MfaStatus;
 }
 
 interface AuthParams {
@@ -159,7 +159,7 @@ interface AuthResults {
       device: string;
       ip: string;
       name?: string;
-      mfa: 'USED' | 'NOT_USED' | 'UNKNOWN';
+      mfa: MfaStatus;
     }[];
     user: string;
     revokeallurl: string;
