@@ -26,17 +26,9 @@ import { authUsername } from '../auth/authSlice';
 import { usePageTitle } from '../layout/layoutSlice';
 import PageNotFound from '../layout/PageNotFound';
 import NarrativeList from '../navigator/NarrativeList/NarrativeList';
+import { ProfileEditForm } from './ProfileEditForm';
 import classes from './Profile.module.scss';
 import { Affiliation, ProfileData } from './profileTypes';
-
-/*
- * The following components are stubs due to be written in the future.
- * NarrativesView
- * ProfileInfobox
- * ProfileNarrativesMessage
- * ProfileResume
- * ProfileView
- */
 
 export const ProfileNarrativesMessage: FC<{
   realname: string;
@@ -48,10 +40,6 @@ export const ProfileNarrativesMessage: FC<{
   return (
     <span>Narratives owned by {realname} which are also accessible to me.</span>
   );
-};
-
-export const ProfileResume: FC = () => {
-  return <div>Profile Resume</div>;
 };
 
 export const NarrativesView: FC<{ realname: string; yours: boolean }> = ({
@@ -79,16 +67,14 @@ export const NarrativesView: FC<{ realname: string; yours: boolean }> = ({
   );
 };
 
-export const ProfileInfobox: FC<{ realname: string }> = ({ realname }) => {
-  return <div>Profile Infobox for {realname}.</div>;
-};
-
 export const ProfileView: FC<{
   realname: string;
   username: string;
   profileData: ProfileData;
   viewMine: boolean;
 }> = ({ realname, username, profileData, viewMine }) => {
+  const [isEditing, setIsEditing] = useState(false);
+
   const gravatarHash = profileData?.synced?.gravatarHash ?? '';
   const gravatarDefault = profileData?.userdata?.gravatarDefault ?? 'identicon';
   const avatarOption = profileData?.userdata?.avatarOption ?? 'gravatar';
@@ -111,6 +97,20 @@ export const ProfileView: FC<{
   const locationParts = [city, state, country].filter(Boolean);
   const location = locationParts.join(', ');
   const researchStatement = profileData?.userdata?.researchStatement ?? '';
+
+  if (isEditing) {
+    return (
+      <div role="tabpanel" id="profile-tabpanel" aria-labelledby="profile-tab">
+        <ProfileEditForm
+          profileData={profileData}
+          username={username}
+          realname={realname}
+          onCancel={() => setIsEditing(false)}
+          onSaved={() => setIsEditing(false)}
+        />
+      </div>
+    );
+  }
 
   return (
     <div role="tabpanel" id="profile-tabpanel" aria-labelledby="profile-tab">
@@ -150,6 +150,7 @@ export const ProfileView: FC<{
               <Button
                 variant="contained"
                 startIcon={<FontAwesomeIcon icon={faEdit} />}
+                onClick={() => setIsEditing(true)}
               >
                 Edit Profile
               </Button>
