@@ -1,14 +1,16 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import fetchMock, {
   disableFetchMocks,
   enableFetchMocks,
 } from 'jest-fetch-mock';
 import type { MockParams } from 'jest-fetch-mock';
+import { ThemeProvider } from '@mui/material';
 import { Provider } from 'react-redux';
 import { MemoryRouter as Router } from 'react-router-dom';
 import Routes from '../../app/Routes';
 import { createTestStore } from '../../app/store';
 import { baseApi } from '../../common/api';
+import { theme } from '../../theme';
 import { setAuth, TokenInfo } from '../auth/authSlice';
 import {
   realname,
@@ -18,12 +20,34 @@ import {
 } from '../common';
 import {
   Profile,
-  ProfileInfobox,
   ProfileNarrativesMessage,
-  ProfileResume,
   ProfileView,
   ProfileWrapper,
 } from './Profile';
+import { ProfileData } from './profileTypes';
+
+const EMPTY_PROFILE_DATA: ProfileData = {
+  metadata: { createdBy: 'test', created: new Date().toISOString() },
+  preferences: {},
+  userdata: {
+    organization: '',
+    department: '',
+    city: '',
+    state: '',
+    postalCode: '',
+    country: '',
+    researchStatement: '',
+    gravatarDefault: 'identicon',
+    avatarOption: 'gravatar',
+    researchInterests: [],
+    researchInterestsOther: null,
+    jobTitle: '',
+    jobTitleOther: '',
+    fundingSource: '',
+    affiliations: [],
+  },
+  synced: { gravatarHash: '' },
+};
 
 export const initialState = {
   auth: {
@@ -37,7 +61,7 @@ export const initialState = {
         username: usernameRequested,
         realname: realname,
       },
-      profile: {},
+      profile: EMPTY_PROFILE_DATA,
     },
   },
 };
@@ -55,7 +79,7 @@ export const profileResponseOKFactory = (
             username: username,
             realname: realname,
           },
-          profile: {},
+          profile: EMPTY_PROFILE_DATA,
         },
       ],
     ],
@@ -107,7 +131,7 @@ describe('Profile related components', () => {
             narrativesLink={''}
             pageTitle={''}
             profileLink={''}
-            profileData={{}}
+            profileData={EMPTY_PROFILE_DATA}
             realname={''}
             username={''}
             viewMine={true}
@@ -118,25 +142,22 @@ describe('Profile related components', () => {
     );
   });
 
-  test('renders ProfileInfobox', () => {
-    render(<ProfileInfobox realname={realname} />);
-  });
-
   test('renders ProfileNarrativesMessage for another user', () => {
     render(<ProfileNarrativesMessage realname={realname} yours={false} />);
   });
 
-  test('renders ProfileResume', () => {
-    render(<ProfileResume />);
-  });
-
   test('renders ProfileView', () => {
     render(
-      <ProfileView
-        realname={realname}
-        username={''}
-        profileData={initialState.profile.loggedInProfile.profile}
-      />
+      <Provider store={createTestStore()}>
+        <Router>
+          <ProfileView
+            realname={realname}
+            username={''}
+            profileData={EMPTY_PROFILE_DATA}
+            viewMine={false}
+          />
+        </Router>
+      </Provider>
     );
   });
 
@@ -200,7 +221,8 @@ describe('Profile related components', () => {
         usernameRequested
       )
     );
-    const linkElement = screen.getByText(/infobox/i);
+    // With no realname, profile still renders with username visible
+    const linkElement = screen.getByText(usernameRequested);
     expect(linkElement).toBeInTheDocument();
   });
 
@@ -224,7 +246,9 @@ describe('Profile related components', () => {
     );
 
     await waitFor(() => {
-      const linkElement = screen.getByText(realnameOther, { exact: false });
+      const linkElement = screen.getByText(realnameOther, {
+        exact: false,
+      });
       expect(linkElement).toBeInTheDocument();
     });
   });
@@ -248,5 +272,57 @@ describe('Profile related components', () => {
         status: 500,
       });
     });
+  });
+
+  test('shows Edit button when viewing own profile', () => {
+    render(
+      <Provider store={createTestStore()}>
+        <Router>
+          <ProfileView
+            realname="Test"
+            username="test"
+            profileData={EMPTY_PROFILE_DATA}
+            viewMine={true}
+          />
+        </Router>
+      </Provider>
+    );
+    expect(screen.getByText('Edit Profile')).toBeInTheDocument();
+  });
+
+  test('hides Edit button when viewing another profile', () => {
+    render(
+      <Provider store={createTestStore()}>
+        <Router>
+          <ProfileView
+            realname="Test"
+            username="test"
+            profileData={EMPTY_PROFILE_DATA}
+            viewMine={false}
+          />
+        </Router>
+      </Provider>
+    );
+    expect(screen.queryByText('Edit Profile')).not.toBeInTheDocument();
+  });
+
+  test('clicking Edit Profile shows edit form', () => {
+    render(
+      <Provider store={createTestStore(initialState)}>
+        <ThemeProvider theme={theme}>
+          <Router>
+            <ProfileView
+              realname="Test"
+              username="test"
+              profileData={EMPTY_PROFILE_DATA}
+              viewMine={true}
+            />
+          </Router>
+        </ThemeProvider>
+      </Provider>
+    );
+    fireEvent.click(screen.getByText('Edit Profile'));
+    expect(screen.getByText('Save')).toBeInTheDocument();
+    expect(screen.getByText('Cancel')).toBeInTheDocument();
   });
 });
