@@ -18,7 +18,7 @@ import { usePageTitle } from '../layout/layoutSlice';
 import classes from './SignUp.module.scss';
 import { KBasePolicies } from './SignupPolicies';
 import { md5 } from 'js-md5';
-import { ROOT_REDIRECT_ROUTE } from '../../app/Routes';
+import { ROOT_REDIRECT_ROUTE } from '../../app/routeConstants';
 
 const signUpSteps = [
   'Sign up with a supported provider',

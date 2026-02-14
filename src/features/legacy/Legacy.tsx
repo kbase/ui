@@ -2,7 +2,7 @@ import { RefObject, useEffect, useRef, useState } from 'react';
 import { createSearchParams, useLocation, useNavigate } from 'react-router-dom';
 import { usePageTitle } from '../layout/layoutSlice';
 import { useTryAuthFromToken } from '../auth/hooks';
-import { LOGIN_ROUTE, SIGNUP_ROUTE } from '../../app/Routes';
+import { LOGIN_ROUTE, SIGNUP_ROUTE } from '../../app/routeConstants';
 import { useLogout } from '../login/LogIn';
 
 export const LEGACY_BASE_ROUTE = '/legacy';

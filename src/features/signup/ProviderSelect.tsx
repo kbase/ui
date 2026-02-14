@@ -8,7 +8,7 @@ import {
   Typography,
 } from '@mui/material';
 import { FC } from 'react';
-import { LOGIN_ROUTE } from '../../app/Routes';
+import { LOGIN_ROUTE } from '../../app/routeConstants';
 import { ProviderButtons } from '../auth/providers';
 import { makeAuthFlowURLs } from '../auth/utils';
 import classes from './SignUp.module.scss';
