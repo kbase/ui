@@ -1,6 +1,7 @@
 import { ComponentStory, ComponentMeta } from '@storybook/react';
 
 import { Profile, ProfileParams } from '../../features/profile/Profile';
+import { KBASEUITEST_PROFILE } from '../../test/data/user_profile';
 
 export default {
   title: 'Components/Profile',
@@ -15,6 +16,7 @@ const ProfileTemplate: ComponentStory<typeof Profile> = (args) => {
     narrativesLink,
     pageTitle,
     profileLink,
+    profileData,
     realname,
     username,
     viewMine,
@@ -25,6 +27,7 @@ const ProfileTemplate: ComponentStory<typeof Profile> = (args) => {
       narrativesLink={narrativesLink}
       pageTitle={pageTitle}
       profileLink={profileLink}
+      profileData={profileData}
       realname={realname}
       username={username}
       viewMine={viewMine}
@@ -40,8 +43,9 @@ Default.args = {
   narrativesLink: '/profile/narratives',
   pageTitle: 'Some profile',
   profileLink: '/profile',
-  realname: 'Some Realname',
-  username: 'someusername',
+  profileData: KBASEUITEST_PROFILE.profile,
+  realname: KBASEUITEST_PROFILE.user.realname,
+  username: KBASEUITEST_PROFILE.user.username,
   viewMine: true,
   viewNarratives: false,
 };
