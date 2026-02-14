@@ -46,10 +46,11 @@ import {
   OrcidLinkError,
 } from '../features/account/OrcidLink';
 import { ManageTokens } from '../features/account/ManageTokens';
-
-export const LOGIN_ROUTE = '/login';
-export const SIGNUP_ROUTE = '/signup';
-export const ROOT_REDIRECT_ROUTE = '/narratives';
+import {
+  LOGIN_ROUTE,
+  SIGNUP_ROUTE,
+  ROOT_REDIRECT_ROUTE,
+} from './routeConstants';
 
 const Routes: FC = () => {
   useFilteredParams();

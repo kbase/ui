@@ -8,12 +8,8 @@ import {
 } from 'react-router-dom';
 import { TokenInfo } from '../features/auth/authSlice';
 import { LEGACY_BASE_ROUTE } from '../features/legacy/Legacy';
-import {
-  Authed,
-  HashRouteRedirect,
-  LOGIN_ROUTE,
-  ROOT_REDIRECT_ROUTE,
-} from './Routes';
+import { Authed, HashRouteRedirect } from './Routes';
+import { LOGIN_ROUTE, ROOT_REDIRECT_ROUTE } from './routeConstants';
 import { createTestStore } from './store';
 
 describe('Routing Utils', () => {

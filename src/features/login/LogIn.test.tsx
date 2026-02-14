@@ -2,7 +2,7 @@ import { ThemeProvider } from '@mui/material';
 import { fireEvent, render, within } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { LOGIN_ROUTE } from '../../app/Routes';
+import { LOGIN_ROUTE } from '../../app/routeConstants';
 import { createTestStore } from '../../app/store';
 import { useFilteredParams } from '../../common/hooks';
 import { theme } from '../../theme';

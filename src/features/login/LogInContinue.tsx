@@ -8,7 +8,7 @@ import { useTryAuthFromToken } from '../auth/hooks';
 import { useCheckLoggedIn } from './LogIn';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
-import { LOGIN_ROUTE } from '../../app/Routes';
+import { LOGIN_ROUTE } from '../../app/routeConstants';
 import { useAppDispatch } from '../../common/hooks';
 import { setLoginData } from '../signup/SignupSlice';
 import { kbasePolicies } from './Policies';
