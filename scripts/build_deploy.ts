@@ -90,7 +90,7 @@ const build = (buildParameters: BuildParameters) => {
    */
   return new Promise((resolve) => {
     /* Run npm run build for these parameters. */
-    const proc = spawn('npm', ['run', 'build'], { timeout: 60000 });
+    const proc = spawn('npm', ['run', 'build'], { timeout: 300000 });
 
     /* Print stdout. This is not necessary, strictly speaking, but is a good
      * place to start if something goes wrong.
@@ -126,7 +126,7 @@ const main = async () => {
   const hash = process.env.HASH || '';
   const tag = process.env.TAG || '';
   const keysSort = Object.keys(envs).sort();
-  const maxWorkers = 4;
+  const maxWorkers = 2;
   /* Run at most maxWorkers builds at a time: */
   const envGroups = chunk(keysSort, maxWorkers);
   /* Wait for each group of builds to run for each environment in the group. */
