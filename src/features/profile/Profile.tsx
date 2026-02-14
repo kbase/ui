@@ -27,6 +27,7 @@ import { usePageTitle } from '../layout/layoutSlice';
 import PageNotFound from '../layout/PageNotFound';
 import NarrativeList from '../navigator/NarrativeList/NarrativeList';
 import classes from './Profile.module.scss';
+import { Affiliation, ProfileData } from './profileTypes';
 
 /*
  * The following components are stubs due to be written in the future.
@@ -58,7 +59,12 @@ export const NarrativesView: FC<{ realname: string; yours: boolean }> = ({
   yours,
 }) => {
   return (
-    <div className={classes.narratives}>
+    <div
+      className={classes.narratives}
+      role="tabpanel"
+      id="narratives-tabpanel"
+      aria-labelledby="narratives-tab"
+    >
       <ProfileNarrativesMessage realname={realname} yours={yours} />
       <NarrativeList
         hasMoreItems={false}
@@ -80,34 +86,34 @@ export const ProfileInfobox: FC<{ realname: string }> = ({ realname }) => {
 export const ProfileView: FC<{
   realname: string;
   username: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  profileData: any;
-}> = ({ realname, username, profileData }) => {
-  const gravatarHash = profileData.synced.gravatarHash;
-  const avatarSrc = gravatarHash
-    ? `https://www.gravatar.com/avatar/${gravatarHash}?s=300&amp;r=pg&d=identicon`
-    : '';
-  // Placeholder data for research interests
-  const researchInterests = [
-    'Biology',
-    'Genomics',
-    'Data Management',
-    'Scientific Communication',
-  ];
-  // Placeholder data for organizations
-  const organizations = [
-    'Eiusmod sit est aute aliqua nostrud sint eu ex tempor.',
-    'Sint non cupidatat reprehenderit proident deserunt esse Lorem.',
-    'Tempor reprehenderit commodo voluptate fugiat aliqua.',
-    'Reprehenderit dolore aute proident et.',
-  ];
+  profileData: ProfileData;
+  viewMine: boolean;
+}> = ({ realname, username, profileData, viewMine }) => {
+  const gravatarHash = profileData?.synced?.gravatarHash ?? '';
+  const gravatarDefault = profileData?.userdata?.gravatarDefault ?? 'identicon';
+  const avatarOption = profileData?.userdata?.avatarOption ?? 'gravatar';
+  const avatarSrc =
+    avatarOption === 'gravatar' && gravatarHash
+      ? `https://www.gravatar.com/avatar/${gravatarHash}?s=300&r=pg&d=${gravatarDefault}`
+      : '';
+  const researchInterests = profileData?.userdata?.researchInterests ?? [];
+  const affiliations = profileData?.userdata?.affiliations ?? [];
+  const jobTitle = profileData?.userdata?.jobTitle ?? '';
+  const jobTitleDisplay =
+    jobTitle === 'Other'
+      ? profileData?.userdata?.jobTitleOther ?? ''
+      : jobTitle;
+  const department = profileData?.userdata?.department ?? '';
+  const organization = profileData?.userdata?.organization ?? '';
+  const city = profileData?.userdata?.city ?? '';
+  const state = profileData?.userdata?.state ?? '';
+  const country = profileData?.userdata?.country ?? '';
+  const locationParts = [city, state, country].filter(Boolean);
+  const location = locationParts.join(', ');
+  const researchStatement = profileData?.userdata?.researchStatement ?? '';
+
   return (
-    <div
-      className={classes.profile}
-      role="tabpanel"
-      id="profile-tabpanel"
-      aria-labelledby="profile-tab"
-    >
+    <div role="tabpanel" id="profile-tabpanel" aria-labelledby="profile-tab">
       <Grid container spacing={2}>
         <Grid item md={3}>
           <Stack spacing={2}>
@@ -124,28 +130,30 @@ export const ProfileView: FC<{
               <Stack spacing={2}>
                 <Stack spacing={1}>
                   <Typography fontWeight="bold">Position</Typography>
-                  <Typography>Consectetur culpa commodo</Typography>
+                  <Typography>{jobTitleDisplay || '\u2014'}</Typography>
                 </Stack>
                 <Stack spacing={1}>
                   <Typography fontWeight="bold">Department</Typography>
-                  <Typography>Consectetur culpa commodo</Typography>
+                  <Typography>{department || '\u2014'}</Typography>
                 </Stack>
                 <Stack spacing={1}>
                   <Typography fontWeight="bold">Organization</Typography>
-                  <Typography>Consectetur culpa commodo</Typography>
+                  <Typography>{organization || '\u2014'}</Typography>
                 </Stack>
                 <Stack spacing={1}>
                   <Typography fontWeight="bold">Location</Typography>
-                  <Typography>Consectetur culpa commodo</Typography>
+                  <Typography>{location || '\u2014'}</Typography>
                 </Stack>
               </Stack>
             </Paper>
-            <Button
-              variant="contained"
-              startIcon={<FontAwesomeIcon icon={faEdit} />}
-            >
-              Edit Profile
-            </Button>
+            {viewMine && (
+              <Button
+                variant="contained"
+                startIcon={<FontAwesomeIcon icon={faEdit} />}
+              >
+                Edit Profile
+              </Button>
+            )}
           </Stack>
         </Grid>
         <Grid item md={9}>
@@ -155,27 +163,15 @@ export const ProfileView: FC<{
                 <Typography variant="h5" fontWeight="bold">
                   Research or Personal Statement
                 </Typography>
-                <Typography>
-                  {profileData.userdata.researchStatement}
-                </Typography>
+                <Typography>{researchStatement}</Typography>
               </Stack>
               <Stack spacing={1}>
                 <Typography variant="h5" fontWeight="bold">
                   Research Interests
                 </Typography>
                 <Stack direction="row" spacing={1} flexWrap="wrap" rowGap={1}>
-                  {researchInterests.map((interest, i) => (
+                  {researchInterests.map((interest) => (
                     <Chip key={interest} label={interest} />
-                  ))}
-                </Stack>
-              </Stack>
-              <Stack spacing={1}>
-                <Typography variant="h5" fontWeight="bold">
-                  Organizations
-                </Typography>
-                <Stack spacing={1}>
-                  {organizations.map((org) => (
-                    <Typography key={org}>{org}</Typography>
                   ))}
                 </Stack>
               </Stack>
@@ -192,22 +188,18 @@ export const ProfileView: FC<{
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {/* eslint-disable @typescript-eslint/no-explicit-any */}
-                    {profileData.userdata.affiliations.map(
-                      (affiliation: any) => (
-                        <TableRow
-                          key={`${affiliation.title}-${affiliation.organization}`}
-                        >
-                          <TableCell>{affiliation.title}</TableCell>
-                          <TableCell>{affiliation.organization}</TableCell>
-                          <TableCell>
-                            {affiliation.started} -{' '}
-                            {affiliation.ended || 'Present'}
-                          </TableCell>
-                        </TableRow>
-                      )
-                    )}
-                    {/* eslint-enable @typescript-eslint/no-explicit-any */}
+                    {affiliations.map((affiliation: Affiliation) => (
+                      <TableRow
+                        key={`${affiliation.title}-${affiliation.organization}`}
+                      >
+                        <TableCell>{affiliation.title}</TableCell>
+                        <TableCell>{affiliation.organization}</TableCell>
+                        <TableCell>
+                          {affiliation.started} -{' '}
+                          {affiliation.ended || 'Present'}
+                        </TableCell>
+                      </TableRow>
+                    ))}
                   </TableBody>
                 </Table>
               </Stack>
@@ -223,7 +215,7 @@ export interface ProfileParams {
   narrativesLink: string;
   pageTitle: string;
   profileLink: string;
-  profileData: unknown;
+  profileData: ProfileData;
   realname: string;
   username: string;
   viewMine: boolean;
@@ -289,6 +281,7 @@ export const Profile: FC<ProfileParams> = ({
               realname={realname}
               username={username}
               profileData={profileData}
+              viewMine={viewMine}
             />
           )}
         </section>
@@ -359,7 +352,7 @@ export const ProfileWrapper: FC = () => {
         narrativesLink={narrativesLink}
         pageTitle={pageTitle}
         profileLink={profileLink}
-        profileData={profile.profile}
+        profileData={profile.profile as ProfileData}
         realname={realname}
         username={viewUsername}
         viewMine={viewMine}
