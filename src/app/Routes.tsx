@@ -14,6 +14,7 @@ import {
 } from '../features/collections/Collections';
 import Legacy, { LEGACY_BASE_ROUTE } from '../features/legacy/Legacy';
 import { Fallback } from '../features/legacy/IFrameFallback';
+import Feeds, { feedsPath } from '../features/feeds/Feeds';
 import Navigator, {
   navigatorPath,
   navigatorPathWithCategory,
@@ -132,6 +133,9 @@ const Routes: FC = () => {
         element={<Authed element={<Navigator />} />}
       />
       <Route path="/narratives" element={<Authed element={<Navigator />} />} />
+
+      {/* Feeds */}
+      <Route path={feedsPath} element={<Authed element={<Feeds />} />} />
 
       {/* Collections */}
       <Route path="/collections">
