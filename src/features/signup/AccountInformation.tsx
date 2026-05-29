@@ -58,8 +58,14 @@ export const AccountInformation: FC<{}> = () => {
   const [username, setUsername] = useState(account.username ?? '');
   const userAvail = loginUsernameSuggest.useQuery(username);
   const nameShort = username.length < 3;
-  const nameAvail =
-    userAvail.currentData?.availablename === username.toLowerCase();
+  const nameTooLong = username.length > 100;
+  // Mirrors backend rules in kbase/auth2 NewUserName: must start with a
+  // lowercase letter; only [a-z0-9_]; no repeating or trailing underscores.
+  const nameFormatValid =
+    /^[a-z][a-z0-9_]*$/.test(username) &&
+    !username.includes('__') &&
+    !username.endsWith('_');
+  const nameAvail = userAvail.currentData?.availablename === username;
 
   const surveyQuestion = 'How did you hear about us? (select all that apply)';
   const [optionalText, setOptionalText] = useState<Record<string, string>>({});
@@ -199,7 +205,11 @@ export const AccountInformation: FC<{}> = () => {
                   required: true,
                   onChange: (e) => setUsername(e.currentTarget.value),
                   validate: () =>
-                    !nameShort && !userAvail.isFetching && nameAvail,
+                    !nameShort &&
+                    !nameTooLong &&
+                    nameFormatValid &&
+                    !userAvail.isFetching &&
+                    nameAvail,
                 })}
                 defaultValue={account.username}
                 helperText={
@@ -207,6 +217,24 @@ export const AccountInformation: FC<{}> = () => {
                     {nameShort ? (
                       <span>
                         Username is too short.
+                        <br />
+                      </span>
+                    ) : nameTooLong ? (
+                      <span>
+                        Username must be at most 100 characters.
+                        <br />
+                      </span>
+                    ) : !nameFormatValid ? (
+                      <span>
+                        Username may contain only lowercase letters, digits, and
+                        underscores, and must start with a letter. Underscores
+                        cannot repeat or end the username.
+                        {userAvail.currentData?.availablename ? (
+                          <>
+                            {' '}
+                            Suggested: "{userAvail.currentData.availablename}".
+                          </>
+                        ) : null}
                         <br />
                       </span>
                     ) : !nameAvail && !userAvail.isFetching ? (
@@ -224,7 +252,12 @@ export const AccountInformation: FC<{}> = () => {
                     </span>
                   </>
                 }
-                error={nameShort || (!userAvail.isFetching && !nameAvail)}
+                error={
+                  nameShort ||
+                  nameTooLong ||
+                  !nameFormatValid ||
+                  (!userAvail.isFetching && !nameAvail)
+                }
               />
             </FormControl>
             <FormControl>

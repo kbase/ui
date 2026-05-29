@@ -135,4 +135,72 @@ describe('AccountInformation', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('/signup/3');
   });
+
+  test.each([
+    ['uppercase letters', 'BadUser'],
+    ['a leading digit', '1baduser'],
+    ['a hyphen', 'bad-user'],
+    ['a period', 'bad.user'],
+    ['repeating underscores', 'bad__user'],
+    ['a trailing underscore', 'baduser_'],
+  ])(
+    'blocks submission and shows format error for username with %s',
+    async (_label, badName) => {
+      const store = createTestStore();
+      store.dispatch(
+        setLoginData({
+          creationallowed: true,
+          expires: 0,
+          login: [],
+          provider: 'Google',
+          create: [
+            {
+              provemail: 'test@test.com',
+              provfullname: 'Test User',
+              availablename: 'testuser',
+              id: '123',
+              provusername: 'testuser',
+            },
+          ],
+        })
+      );
+      renderWithProviders(<AccountInformation />, { store });
+
+      await act(() => {
+        fireEvent.change(screen.getByRole('textbox', { name: /Full Name/i }), {
+          target: { value: 'Test User' },
+        });
+      });
+      await act(() => {
+        fireEvent.change(screen.getByRole('textbox', { name: /Email/i }), {
+          target: { value: 'test@test.com' },
+        });
+      });
+      await act(() => {
+        fireEvent.change(
+          screen.getByRole('textbox', { name: /KBase Username/i }),
+          { target: { value: badName } }
+        );
+      });
+      await act(() => {
+        fireEvent.change(
+          screen.getByRole('textbox', { name: /Organization/i }),
+          { target: { value: 'Test Org' } }
+        );
+      });
+      await act(() => {
+        fireEvent.change(screen.getByRole('textbox', { name: /Department/i }), {
+          target: { value: 'Test Dept' },
+        });
+      });
+      await act(() => {
+        fireEvent.submit(screen.getByTestId('accountinfoform'));
+      });
+
+      expect(
+        screen.getByText(/may contain only lowercase letters/i)
+      ).toBeInTheDocument();
+      expect(mockNavigate).not.toHaveBeenCalledWith('/signup/3');
+    }
+  );
 });
