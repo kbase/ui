@@ -72,7 +72,7 @@ const LeftNavBar: FC = () => {
           icon={faDatabase}
           badge={'alpha'}
           badgeColor={'warning'}
-          requiredRole="CDM_JUPYTERHUB_ADMIN"
+          requiredRole="BERDL_USER"
         />
       </ul>
       <ul className={classes.nav_list}>
