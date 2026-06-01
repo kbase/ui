@@ -44,9 +44,16 @@ export const signupSlice = createSlice({
       // Set provider creeation data
       state.loginData = action.payload;
       // Set account defaults from provider
-      state.account.display = action.payload?.create[0].provfullname;
-      state.account.email = action.payload?.create[0].provemail;
-      state.account.username = action.payload?.create[0].availablename;
+      const detail = action.payload?.create[0];
+      state.account.display = detail?.provfullname;
+      state.account.email = detail?.provemail;
+      // ORCID's provusername is the numeric ORCID iD, which auth2 cannot
+      // sanitize into a valid username and falls back to user<N>. Leave the
+      // field blank for ORCID so the user picks their own.
+      state.account.username =
+        action.payload?.provider === 'OrcID'
+          ? undefined
+          : detail?.availablename;
     },
     setAccount: (
       state,
