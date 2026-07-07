@@ -69,9 +69,9 @@ export const LogInSessions: FC = () => {
               <Typography variant="body2">
                 A log in session is created when you log in to KBase. A log in
                 session is removed when you logout. However, if you do not
-                logout, your log in session will remain active for two weeks. At
-                the end of two weeks, the log in session will become invalid,
-                and you will need to log in again.
+                logout, your log in session will remain active for four weeks.
+                At the end of four weeks, the log in session will become
+                invalid, and you will need to log in again.
               </Typography>
             </Stack>
           }
