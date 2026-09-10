@@ -10,7 +10,7 @@
       "domain": "ci.kbase.us",
       "legacy": "legacy.ci.kbase.us",
       "public_url": "/",
-      "cdm_domain": "cdmhub.ci.kbase.us"
+      "berdl_domain": "cdmhub.ci.kbase.us"
     },
 
     "ci-europa": {
@@ -47,7 +47,7 @@
         "name": "kbase_session_backup",
         "domain": ".kbase.us"
       },
-      "cdm_domain": "hub.berdl.kbase.us",
+      "berdl_domain": "hub.berdl.kbase.us",
       "redirect_whitelist": ["*.berdl.kbase.us"]
     }
   }
