@@ -67,8 +67,8 @@ const LeftNavBar: FC = () => {
           badgeColor={'primary'}
         />
         <NavItem
-          path={'/berdl/redirect'}
-          desc="BERDL"
+          path={'/lakehouse/redirect'}
+          desc="Lakehouse"
           icon={faDatabase}
           badge={'alpha'}
           badgeColor={'warning'}

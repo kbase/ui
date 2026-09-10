@@ -18,7 +18,7 @@ interface EnvironmentConfig {
     name: string;
     domain: string;
   };
-  berdl_domain?: string;
+  lakehouse_domain?: string;
   redirect_whitelist?: string[];
 }
 
@@ -54,7 +54,7 @@ const setEnvironment = (
     legacy,
     public_url: publicURL,
     backup_cookie: backupCookie,
-    berdl_domain: berdlDomain,
+    lakehouse_domain: lakehouseDomain,
     redirect_whitelist: redirectWhitelist,
   } = environmentConfig;
 
@@ -66,7 +66,7 @@ const setEnvironment = (
     REACT_APP_KBASE_LEGACY_DOMAIN: legacy,
     REACT_APP_KBASE_BACKUP_COOKIE_NAME: backupCookie?.name || '',
     REACT_APP_KBASE_BACKUP_COOKIE_DOMAIN: backupCookie?.domain || '',
-    REACT_APP_KBASE_BERDL_DOMAIN: berdlDomain || 'cdmhub.' + domain,
+    REACT_APP_KBASE_LAKEHOUSE_DOMAIN: lakehouseDomain || 'cdmhub.' + domain,
     REACT_APP_REDIRECT_WHITELIST: redirectWhitelist?.join(',') || '',
   };
   Object.assign(process.env, envsNew);
