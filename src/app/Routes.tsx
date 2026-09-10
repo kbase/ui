@@ -38,7 +38,7 @@ import { LogInSessions } from '../features/account/LogInSessions';
 import { UseAgreements } from '../features/account/UseAgreements';
 import { skipToken } from '@reduxjs/toolkit/dist/query';
 import { getMe } from '../common/api/authService';
-import { BERDLRedirect } from '../features/berdl/BERDLRedirect';
+import { LakehouseRedirect } from '../features/lakehouse/LakehouseRedirect';
 import {
   OrcidLink,
   OrcidLinkContinue,
@@ -147,18 +147,18 @@ const Routes: FC = () => {
         <Route path="*" element={<PageNotFound />} />
       </Route>
 
-      {/* BERDL */}
-      <Route path="/berdl">
+      {/* Lakehouse */}
+      <Route path="/lakehouse">
         <Route
           path="redirect"
-          element={<Authed element={<BERDLRedirect />} />}
+          element={<Authed element={<LakehouseRedirect />} />}
         />
       </Route>
       {/* The CI hub's login page (kbase/cdm-jupyterhub templates/login.html)
           still sends users to the pre-rename route. */}
       <Route
         path="/cdm/redirect"
-        element={<Navigate to="/berdl/redirect" replace />}
+        element={<Navigate to="/lakehouse/redirect" replace />}
       />
 
       {/* IFrame Fallback Routes */}

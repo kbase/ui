@@ -2,9 +2,9 @@ import { Container, Stack } from '@mui/system';
 import { useEffect } from 'react';
 import { Loader } from '../../common/components';
 
-export const BERDLRedirect = () => {
+export const LakehouseRedirect = () => {
   useEffect(() => {
-    window.location.href = `https://${process.env.REACT_APP_KBASE_BERDL_DOMAIN}/hub`;
+    window.location.href = `https://${process.env.REACT_APP_KBASE_LAKEHOUSE_DOMAIN}/hub`;
   });
   return (
     <Container maxWidth="lg">
@@ -16,7 +16,7 @@ export const BERDLRedirect = () => {
         justifyContent={'center'}
       >
         <Loader />
-        <div>Redirecting to BERDL</div>
+        <div>Redirecting to Lakehouse</div>
       </Stack>
     </Container>
   );
