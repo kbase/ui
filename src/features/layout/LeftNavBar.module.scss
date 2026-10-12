@@ -45,6 +45,13 @@ ul.nav_list {
       background: use-rgba-color("silver", 0.5);
     }
 
+    &.disabled,
+    &.disabled:hover {
+      background: use-color("white");
+      color: use-color("base-light");
+      cursor: not-allowed;
+    }
+
     .nav_icon {
       font-size: 2rem;
       width: 100%;

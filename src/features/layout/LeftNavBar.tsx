@@ -23,12 +23,13 @@ import { getFeedsUnseenCount } from '../../common/api/feedsService';
 import { useAppSelector } from '../../common/hooks';
 import { authToken } from '../auth/authSlice';
 import classes from './LeftNavBar.module.scss';
-import { Button, Menu, MenuItem } from '@mui/material';
+import { Button, Menu, MenuItem, Tooltip } from '@mui/material';
 import { getMe } from '../../common/api/authService';
 import { skipToken } from '@reduxjs/toolkit/dist/query';
 
 const LeftNavBar: FC = () => {
   const token = useAppSelector(authToken);
+  const mfa = useAppSelector(({ auth }) => auth.tokenInfo?.mfa);
   const { data: feeds } = getFeedsUnseenCount.useQuery(undefined, {
     skip: !token,
     pollingInterval: 10000,
@@ -70,9 +71,13 @@ const LeftNavBar: FC = () => {
           path={'/lakehouse/redirect'}
           desc="Lakehouse"
           icon={faDatabase}
-          badge={'alpha'}
-          badgeColor={'warning'}
           requiredRole="BERDL_USER"
+          // The hub admits only log in sessions that used a second factor.
+          disabledReason={
+            mfa === 'Used'
+              ? undefined
+              : 'The Lakehouse requires two-factor authentication. Log out, then log in with ORCID using 2FA.'
+          }
         />
       </ul>
       <ul className={classes.nav_list}>
@@ -161,7 +166,17 @@ const NavItem: FC<{
   badge?: number | string;
   badgeColor?: string;
   requiredRole?: string;
-}> = ({ path, onClick, desc, icon, badge, badgeColor, requiredRole }) => {
+  disabledReason?: string;
+}> = ({
+  path,
+  onClick,
+  desc,
+  icon,
+  badge,
+  badgeColor,
+  requiredRole,
+  disabledReason,
+}) => {
   const location = useLocation();
   const token = useAppSelector(authToken);
   const { data: me } = getMe.useQuery(token ? { token } : skipToken);
@@ -174,23 +189,39 @@ const NavItem: FC<{
     itemClasses += ` ${classes.active}`;
   }
   if (requiredRole && !myRoles.has(requiredRole)) return <></>;
+  const content = (
+    <>
+      <FAIcon className={classes.nav_icon} icon={icon} />
+      <span className={classes.nav_desc}>{desc}</span>
+      {badge ? (
+        <span
+          className={[
+            classes.nav_notifs,
+            badgeColor ? classes[`nav_notifs-bg--${badgeColor}`] : '',
+          ].join(' ')}
+        >
+          {badge}
+        </span>
+      ) : (
+        <></>
+      )}
+    </>
+  );
+  if (disabledReason) {
+    return (
+      <li className={`${classes.nav_item} ${classes.disabled}`} key={path}>
+        <Tooltip title={disabledReason} placement="right">
+          <span role="link" aria-disabled="true" tabIndex={0}>
+            {content}
+          </span>
+        </Tooltip>
+      </li>
+    );
+  }
   return (
     <li className={itemClasses} key={path}>
       <Link to={path} onClick={onClick}>
-        <FAIcon className={classes.nav_icon} icon={icon} />
-        <span className={classes.nav_desc}>{desc}</span>
-        {badge ? (
-          <span
-            className={[
-              classes.nav_notifs,
-              badgeColor ? classes[`nav_notifs-bg--${badgeColor}`] : '',
-            ].join(' ')}
-          >
-            {badge}
-          </span>
-        ) : (
-          <></>
-        )}
+        {content}
       </Link>
     </li>
   );
