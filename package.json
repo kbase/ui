@@ -29,7 +29,7 @@
     "@types/plotly.js": "^2.12.30",
     "@types/react-plotly.js": "^2.6.3",
     "ajv": "^8.12.0",
-    "canvas": "^2.11.2",
+    "canvas": "^3.2.3",
     "d3-zoom": "^3.0.0",
     "dompurify": "^3.0.1",
     "downsample-lttb-ts": "^0.0.6",
@@ -39,7 +39,6 @@
     "kbase-policies": "github:kbase/policies",
     "leaflet": "^1.9.4",
     "marked": "^4.2.12",
-    "node-sass": "^9.0.0",
     "plotly.js": "^2.27.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -52,6 +51,7 @@
     "react-router-dom": "^6.11.1",
     "react-scripts": "^5.0.1",
     "react-select": "^5.7.7",
+    "sass": "^1.106.1",
     "timeago.js": "^4.0.2",
     "ts-node": "^10.9.2",
     "typescript": "^4.9.4",
@@ -105,7 +105,7 @@
     "@testing-library/dom": "^9.0.1"
   },
   "engines": {
-    "node": ">=20.11.1"
+    "node": ">=22.23.4"
   },
   "eslintConfig": {
     "overrides": [
