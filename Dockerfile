@@ -1,4 +1,4 @@
-FROM nginx:stable-alpine3.17-slim
+FROM nginx:stable-alpine3.24-slim
 USER root
 
 ## Install sed command needed for startup script
